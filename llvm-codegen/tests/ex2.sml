@@ -5,36 +5,60 @@
  *
  * Hand-crafted CFG for the function
  *
- *	fun rev xs = let
- *	      fun rev' ([], xs') = xs'
- *		| rev' (x::xs, xs') = rev' (xs, x::xs')
- *	      in
- *		rev' (xs, [])
- *	      end;
+ *      fun rev xs = let
+ *            fun rev' ([], xs') = xs'
+ *              | rev' (x::xs, xs') = rev' (xs, x::xs')
+ *            in
+ *              rev' (xs, [])
+ *            end;
  *
  * The generated first-order CPS is:
  *
  * ***********************************************
- *	std v130 (v131[PV], v31[PV], v111[C], v112[PV], v113[PV], v114[PV], v53[PR2]) =
- *	   {RK_ESCAPE 1, (L)v115} -> v156
- *	   {v156} -> v157
- *	   v111 (v111, v112, v113, v114, v157)
+ *      std v130 (v131[PV], v31[PV], v111[C], v112[PV], v113[PV], v114[PV], v53[PR2]) =
+ *         {RK_ESCAPE 1, (L)v115} -> v156
+ *         {v156} -> v157
+ *         v111 (v111, v112, v113, v114, v157)
  *
- *	std v115 (v138[PV], v137[PV], v136[C], v135[PV], v134[PV], v133[PV], v132[PR1]) =
- *	   {RK_ESCAPE 1, (L)v122} -> v155
- *	   v136 (v136, v135, v134, v133, v155)
+ *      std v115 (v138[PV], v137[PV], v136[C], v135[PV], v134[PV], v133[PV], v132[PR1]) =
+ *         {RK_ESCAPE 1, (L)v122} -> v155
+ *         v136 (v136, v135, v134, v133, v155)
  *
- *	std v122 (v145[PV], v144[PV], v143[C], v142[PV], v141[PV], v140[PV], v139[PV]) =
- *	   (L)v129 (v139, (I63t)0, v143, v142, v141, v140)
+ *      std v122 (v145[PV], v144[PV], v143[C], v142[PV], v141[PV], v140[PV], v139[PV]) =
+ *         (L)v129 (v139, (I63t)0, v143, v142, v141, v140)
  *
- *	known_chk v129 (v151[PV], v150[PV], v149[C], v148[PV], v147[PV], v146[PV]) =
- *	   if boxed(v151) [v105] then
- *	      v151.0 -> v152[PV]
- *	      v151.1 -> v153[PV]
- *	      {v152, v150} -> v154
- *	      (L)v129 (v153, v154, v149, v148, v147, v146)
- *	   else
- *	      v149 (v149, v148, v147, v146, v150)
+ *      known_chk v129 (v151[PV], v150[PV], v149[C], v148[PV], v147[PV], v146[PV]) =
+ *         if boxed(v151) [v105] then
+ *            v151.0 -> v152[PV]
+ *            v151.1 -> v153[PV]
+ *            {v152, v150} -> v154
+ *            (L)v129 (v153, v154, v149, v148, v147, v146)
+ *         else
+ *            v149 (v149, v148, v147, v146, v150)
+ * ***********************************************
+ *
+ * The equivalent CFG IR (with type omitted) is
+ *
+ * ***********************************************
+ *      FUN v130 (v131, v31, v111, v112, v113, v114, v53) =
+ *         ALLOC(RECORD 0x80, [LABEL v155]) -> v156
+ *         ALLOC(RECORD 0x80, [VAR v156]) -> v157
+ *           THROW (VAR v111) (VAR v111, VAR v112, VAR v113, VAR v114, VAR v157)
+ *
+ *      FUN v115 (v138[PV], v137[PV], v136[C], v135[PV], v134[PV], v133[PV], v132[PR1]) =
+ *         ALLOC(RECORD 0x80, [LABEL v122]) -> v155
+ *           THROW (VAR v136) (VAR v136, VAR v135, VAR v134, VAR v133, VAR v155)
+ *
+ *      FUN v122 (v145, v144, v143, v142, v141, v140, v139) =
+ *         GOTO v129 (VAR v139, NUM(1:i64), VAR v143, VAR v142, VAR v141, VAR v140)
+ *
+ *      FRAG v129 (v151[PV], v150[PV], v149[C], v148[PV], v147[PV], v146[PV]) =
+ *         CHK_GC(NONE,
+ *           IF IEQL(ANDB(v151, NUM(1:i64)), NUM(0:i64)) THEN
+ *             ALLOC(RECORD 0x100, [SELECT(0, VAR v151), SELECT(1, VAR 151)]) -> v154
+ *               GOTO v129 (VAR v153, VAR v154, VAR v149, VAR v148, VAR v147, VAR v146)
+ *           ELSE
+ *            THROW (VAR v149) (VAR v149, VAR v148, VAR v147, VAR v146, VAR v150)
  * ***********************************************
  *)
 

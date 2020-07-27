@@ -20,7 +20,7 @@ namespace CTypes {
         static c_type * read (asdl::instream & is);
       protected:
         enum _tag_t {
-            _con_C_void,
+            _con_C_void = 1,
             _con_C_float,
             _con_C_double,
             _con_C_long_double,
@@ -238,10 +238,10 @@ namespace CFG_Prim {
         virtual ~alloc ();
         // pickler method suppressed
         static alloc * read (asdl::instream & is);
-        virtual llvm::Value *codegen (code_buffer *buf, Args_t &args) = 0;
+        virtual Value *codegen (code_buffer *buf, Args_t &args) = 0;
 
       protected:
-        enum _tag_t {_con_RECORD, _con_RAW_RECORD, _con_RAW_ALLOC};
+        enum _tag_t {_con_RECORD = 1, _con_RAW_RECORD, _con_RAW_ALLOC};
         alloc (_tag_t tag)
             : _tag(tag)
         { }
@@ -270,7 +270,7 @@ namespace CFG_Prim {
         {
             this->_v_mut = v;
         }
-        llvm::Value *codegen (code_buffer *buf, Args_t &args);
+        Value *codegen (code_buffer *buf, Args_t &args);
 
       private:
         asdl::integer _v_desc;
@@ -308,7 +308,7 @@ namespace CFG_Prim {
         {
             this->_v_sz = v;
         }
-        llvm::Value *codegen (code_buffer *buf, Args_t &args);
+        Value *codegen (code_buffer *buf, Args_t &args);
 
       private:
         asdl::integer _v_desc;
@@ -347,7 +347,7 @@ namespace CFG_Prim {
         {
             this->_v_len = v;
         }
-        llvm::Value *codegen (code_buffer *buf, Args_t &args);
+        Value *codegen (code_buffer *buf, Args_t &args);
 
       private:
         asdl::option<asdl::integer> _v_desc;
@@ -362,10 +362,10 @@ namespace CFG_Prim {
         virtual ~arith ();
         // pickler method suppressed
         static arith * read (asdl::instream & is);
-        virtual llvm::Value *codegen (code_buffer *buf, Args_t &args) = 0;
+        virtual Value *codegen (code_buffer *buf, Args_t &args) = 0;
 
       protected:
-        enum _tag_t {_con_ARITH, _con_REAL_TO_INT};
+        enum _tag_t {_con_ARITH = 1, _con_REAL_TO_INT};
         arith (_tag_t tag)
             : _tag(tag)
         { }
@@ -394,7 +394,7 @@ namespace CFG_Prim {
         {
             this->_v_sz = v;
         }
-        llvm::Value *codegen (code_buffer *buf, Args_t &args);
+        Value *codegen (code_buffer *buf, Args_t &args);
 
       private:
         arithop _v_oper;
@@ -432,7 +432,7 @@ namespace CFG_Prim {
         {
             this->_v_to = v;
         }
-        llvm::Value *codegen (code_buffer *buf, Args_t &args);
+        Value *codegen (code_buffer *buf, Args_t &args);
 
       private:
         rounding_mode _v_mode;
@@ -469,11 +469,11 @@ namespace CFG_Prim {
         virtual ~pure ();
         // pickler method suppressed
         static pure * read (asdl::instream & is);
-        virtual llvm::Value *codegen (code_buffer *buf, Args_t &args) = 0;
+        virtual Value *codegen (code_buffer *buf, Args_t &args) = 0;
 
       protected:
         enum _tag_t {
-            _con_PURE_ARITH,
+            _con_PURE_ARITH = 1,
             _con_EXTEND,
             _con_INT_TO_REAL,
             _con_PURE_SUBSCRIPT,
@@ -507,7 +507,7 @@ namespace CFG_Prim {
         {
             this->_v_sz = v;
         }
-        llvm::Value *codegen (code_buffer *buf, Args_t &args);
+        Value *codegen (code_buffer *buf, Args_t &args);
 
       private:
         pureop _v_oper;
@@ -544,7 +544,7 @@ namespace CFG_Prim {
         {
             this->_v_to = v;
         }
-        llvm::Value *codegen (code_buffer *buf, Args_t &args);
+        Value *codegen (code_buffer *buf, Args_t &args);
 
       private:
         bool _v_signed;
@@ -574,7 +574,7 @@ namespace CFG_Prim {
         {
             this->_v_to = v;
         }
-        llvm::Value *codegen (code_buffer *buf, Args_t &args);
+        Value *codegen (code_buffer *buf, Args_t &args);
 
       private:
         int _v_from;
@@ -586,7 +586,7 @@ namespace CFG_Prim {
         { }
         ~PURE_SUBSCRIPT ();
         // pickler method suppressed
-        llvm::Value *codegen (code_buffer *buf, Args_t &args);
+        Value *codegen (code_buffer *buf, Args_t &args);
 
     };
     class PURE_RAW_SUBSCRIPT : public pure {
@@ -612,7 +612,7 @@ namespace CFG_Prim {
         {
             this->_v_sz = v;
         }
-        llvm::Value *codegen (code_buffer *buf, Args_t &args);
+        Value *codegen (code_buffer *buf, Args_t &args);
 
       private:
         numkind _v_kind;
@@ -623,11 +623,11 @@ namespace CFG_Prim {
         virtual ~looker ();
         // pickler method suppressed
         static looker * read (asdl::instream & is);
-        virtual llvm::Value *codegen (code_buffer *buf, Args_t &args) = 0;
+        virtual Value *codegen (code_buffer *buf, Args_t &args) = 0;
 
       protected:
         enum _tag_t {
-            _con_DEREF,
+            _con_DEREF = 1,
             _con_SUBSCRIPT,
             _con_RAW_SUBSCRIPT,
             _con_RAW_LOAD,
@@ -645,7 +645,7 @@ namespace CFG_Prim {
         { }
         ~DEREF ();
         // pickler method suppressed
-        llvm::Value *codegen (code_buffer *buf, Args_t &args);
+        Value *codegen (code_buffer *buf, Args_t &args);
 
     };
     struct SUBSCRIPT : public looker {
@@ -654,7 +654,7 @@ namespace CFG_Prim {
         { }
         ~SUBSCRIPT ();
         // pickler method suppressed
-        llvm::Value *codegen (code_buffer *buf, Args_t &args);
+        Value *codegen (code_buffer *buf, Args_t &args);
 
     };
     class RAW_SUBSCRIPT : public looker {
@@ -680,7 +680,7 @@ namespace CFG_Prim {
         {
             this->_v_sz = v;
         }
-        llvm::Value *codegen (code_buffer *buf, Args_t &args);
+        Value *codegen (code_buffer *buf, Args_t &args);
 
       private:
         numkind _v_kind;
@@ -709,7 +709,7 @@ namespace CFG_Prim {
         {
             this->_v_sz = v;
         }
-        llvm::Value *codegen (code_buffer *buf, Args_t &args);
+        Value *codegen (code_buffer *buf, Args_t &args);
 
       private:
         numkind _v_kind;
@@ -721,7 +721,7 @@ namespace CFG_Prim {
         { }
         ~GET_HDLR ();
         // pickler method suppressed
-        llvm::Value *codegen (code_buffer *buf, Args_t &args);
+        Value *codegen (code_buffer *buf, Args_t &args);
 
     };
     struct GET_VAR : public looker {
@@ -730,7 +730,7 @@ namespace CFG_Prim {
         { }
         ~GET_VAR ();
         // pickler method suppressed
-        llvm::Value *codegen (code_buffer *buf, Args_t &args);
+        Value *codegen (code_buffer *buf, Args_t &args);
 
     };
     class setter {
@@ -742,7 +742,7 @@ namespace CFG_Prim {
 
       protected:
         enum _tag_t {
-            _con_UNBOXED_UPDATE,
+            _con_UNBOXED_UPDATE = 1,
             _con_UPDATE,
             _con_UNBOXED_ASSIGN,
             _con_ASSIGN,
@@ -894,10 +894,10 @@ namespace CFG_Prim {
         virtual ~branch ();
         // pickler method suppressed
         static branch * read (asdl::instream & is);
-        virtual llvm::Value *codegen (code_buffer *buf, Args_t &args) = 0;
+        virtual Value *codegen (code_buffer *buf, Args_t &args) = 0;
 
       protected:
-        enum _tag_t {_con_CMP, _con_FCMP, _con_FSGN, _con_PEQL, _con_PNEQ};
+        enum _tag_t {_con_CMP = 1, _con_FCMP, _con_FSGN, _con_PEQL, _con_PNEQ};
         branch (_tag_t tag)
             : _tag(tag)
         { }
@@ -934,7 +934,7 @@ namespace CFG_Prim {
         {
             this->_v_sz = v;
         }
-        llvm::Value *codegen (code_buffer *buf, Args_t &args);
+        Value *codegen (code_buffer *buf, Args_t &args);
 
       private:
         cmpop _v_oper;
@@ -964,7 +964,7 @@ namespace CFG_Prim {
         {
             this->_v_sz = v;
         }
-        llvm::Value *codegen (code_buffer *buf, Args_t &args);
+        Value *codegen (code_buffer *buf, Args_t &args);
 
       private:
         fcmpop _v_oper;
@@ -985,7 +985,7 @@ namespace CFG_Prim {
         {
             this->_v0 = v;
         }
-        llvm::Value *codegen (code_buffer *buf, Args_t &args);
+        Value *codegen (code_buffer *buf, Args_t &args);
 
       private:
         int _v0;
@@ -996,7 +996,7 @@ namespace CFG_Prim {
         { }
         ~PEQL ();
         // pickler method suppressed
-        llvm::Value *codegen (code_buffer *buf, Args_t &args);
+        Value *codegen (code_buffer *buf, Args_t &args);
 
     };
     struct PNEQ : public branch {
@@ -1005,7 +1005,7 @@ namespace CFG_Prim {
         { }
         ~PNEQ ();
         // pickler method suppressed
-        llvm::Value *codegen (code_buffer *buf, Args_t &args);
+        Value *codegen (code_buffer *buf, Args_t &args);
 
     };
 } // namespace CFG_Prim
@@ -1023,10 +1023,10 @@ namespace CFG {
         virtual ~ty ();
         // pickler method suppressed
         static ty * read (asdl::instream & is);
-        virtual llvm::Type *codegen (code_buffer *buf) = 0;
+        virtual Type *codegen (code_buffer *buf) = 0;
 
       protected:
-        enum _tag_t {_con_NUMt, _con_FLTt, _con_PTRt, _con_FUNt, _con_CNTt};
+        enum _tag_t {_con_NUMt = 1, _con_FLTt, _con_PTRt, _con_FUNt, _con_CNTt};
         ty (_tag_t tag)
             : _tag(tag)
         { }
@@ -1047,7 +1047,7 @@ namespace CFG {
         {
             this->_v0 = v;
         }
-        llvm::Type *codegen (code_buffer *buf);
+        Type *codegen (code_buffer *buf);
 
       private:
         int _v0;
@@ -1067,7 +1067,7 @@ namespace CFG {
         {
             this->_v0 = v;
         }
-        llvm::Type *codegen (code_buffer *buf);
+        Type *codegen (code_buffer *buf);
 
       private:
         int _v0;
@@ -1078,7 +1078,7 @@ namespace CFG {
         { }
         ~PTRt ();
         // pickler method suppressed
-        llvm::Type *codegen (code_buffer *buf);
+        Type *codegen (code_buffer *buf);
 
     };
     struct FUNt : public ty {
@@ -1087,7 +1087,7 @@ namespace CFG {
         { }
         ~FUNt ();
         // pickler method suppressed
-        llvm::Type *codegen (code_buffer *buf);
+        Type *codegen (code_buffer *buf);
 
     };
     struct CNTt : public ty {
@@ -1096,7 +1096,7 @@ namespace CFG {
         { }
         ~CNTt ();
         // pickler method suppressed
-        llvm::Type *codegen (code_buffer *buf);
+        Type *codegen (code_buffer *buf);
 
     };
     // ty_seq pickler suppressed
@@ -1106,11 +1106,11 @@ namespace CFG {
         virtual ~exp ();
         // pickler method suppressed
         static exp * read (asdl::instream & is);
-        virtual llvm::Value *codegen (code_buffer *buf) = 0;
+        virtual Value *codegen (code_buffer *buf) = 0;
 
       protected:
         enum _tag_t {
-            _con_VAR,
+            _con_VAR = 1,
             _con_LABEL,
             _con_NUM,
             _con_LOOKER,
@@ -1138,7 +1138,7 @@ namespace CFG {
         {
             this->_v0 = v;
         }
-        llvm::Value *codegen (code_buffer *buf);
+        Value *codegen (code_buffer *buf);
 
       private:
         LambdaVar::lvar _v0;
@@ -1158,7 +1158,7 @@ namespace CFG {
         {
             this->_v0 = v;
         }
-        llvm::Value *codegen (code_buffer *buf);
+        Value *codegen (code_buffer *buf);
 
       private:
         LambdaVar::lvar _v0;
@@ -1194,7 +1194,7 @@ namespace CFG {
         {
             this->_v_sz = v;
         }
-        llvm::Value *codegen (code_buffer *buf);
+        Value *codegen (code_buffer *buf);
 
       private:
         asdl::integer _v_iv;
@@ -1224,7 +1224,7 @@ namespace CFG {
         {
             this->_v1 = v;
         }
-        llvm::Value *codegen (code_buffer *buf);
+        Value *codegen (code_buffer *buf);
 
       private:
         CFG_Prim::looker * _v0;
@@ -1253,7 +1253,7 @@ namespace CFG {
         {
             this->_v1 = v;
         }
-        llvm::Value *codegen (code_buffer *buf);
+        Value *codegen (code_buffer *buf);
 
       private:
         CFG_Prim::pure * _v0;
@@ -1282,7 +1282,7 @@ namespace CFG {
         {
             this->_v1 = v;
         }
-        llvm::Value *codegen (code_buffer *buf);
+        Value *codegen (code_buffer *buf);
 
       private:
         int _v0;
@@ -1311,7 +1311,7 @@ namespace CFG {
         {
             this->_v1 = v;
         }
-        llvm::Value *codegen (code_buffer *buf);
+        Value *codegen (code_buffer *buf);
 
       private:
         int _v0;
@@ -1343,7 +1343,7 @@ namespace CFG {
         {
             this->_v1 = v;
         }
-        void bind (code_buffer *buf, llvm::Value *v) { buf->insertVal (this->_v0, v); }
+        void bind (code_buffer *buf, Value *v) { buf->insertVal (this->_v0, v); }
 
       private:
         LambdaVar::lvar _v0;
@@ -1363,7 +1363,7 @@ namespace CFG {
 
       protected:
         enum _tag_t {
-            _con_LET,
+            _con_LET = 1,
             _con_CHK_GC,
             _con_ALLOC,
             _con_APPLY,
@@ -1896,9 +1896,10 @@ namespace CFG {
         void init (code_buffer *buf, bool isEntry);
         void codegen (code_buffer *buf, bool isEntry);
 	llvm::BasicBlock *bb() const { return this->_v_body->bb(); }
-	void setIncoming (int i, const llvm::BasicBlock *bblk, llvm::Value *v)
+	Type *paramTy (int i) { return this->_phiNodes[i]->getType(); }
+	void addIncoming (int i, Value *v, llvm::BasicBlock *bblk)
 	{
-	    this->_phiNodes[i]->setIncomingValueForBlock(bblk, v);
+	    this->_phiNodes[i]->addIncoming(v, bblk);
 	}
 
       private:

@@ -30,6 +30,8 @@
 #include "lambda-var.hxx"
 #include "sml-registers.hxx"
 
+using Value = llvm::Value;
+using Type = llvm::Type;
 using Args_t = std::vector<llvm::Value *>;
 
 namespace CFG {
@@ -68,29 +70,34 @@ class code_buffer {
   // get the IR builder
     llvm::IRBuilder<> build () { return this->_builder; }
 
-  // define a new function in the module with the given type; the `isFirst` flag
-  // should be true for the entry function of the cluster.  This function sets
-  // the current function of the code generator to be the new function and also
-  // initializes the SML register state.
-    llvm::Function *newFunction (std::vector<llvm::Type *> paramTys, bool isFirst);
+  // define a new LLVM function for a cluster with the given type; the `isFirst` flag
+  // should be true for the entry function of the module.
+    llvm::Function *newFunction (llvm::FunctionType *fnTy, std::string const &name, bool isFirst);
 
-    llvm::FunctionType *createFnTy (std::vector<llvm::Type *> const & tys) const;
+  // create a function type from a vector of parameter types.  This function adds
+  // the extra types corresponding to the SML registers
+    llvm::FunctionType *createFnTy (std::vector<Type *> const & tys) const;
+
+  // create a vector to hold the types of function paramaters (including for fragments),
+  // where `n` is the number of arguments to the call.  This method initialize the
+  // prefix of the vector with the types of the SML registers
+    std::vector<Type *> createParamTys (int n) const;
 
   // create a vector to hold the arguments of a call (APPLY/THROW/GOTO), where
-  // `n` is the number of arguments to the call.
+  // `n` is the number of arguments to the call.  This method initialize the
+  // prefix of the vector with the values of the SML registers
     Args_t createArgs (int n);
 
     void setupStdEntry (CFG::frag *frag);
 
-  // setup the argument/parameter lists for a fragment
-    Args_t setupFragArgs (CFG::frag *frag, Args_t &args);
-    void setupFragEntry (CFG::frag *frag);
+  // setup the parameter lists for a fragment
+    void setupFragEntry (CFG::frag *frag, std::vector<llvm::PHINode *> &phiNodes);
 
   // get the LLVM value that represents the specified SML register
-    llvm::Value *mlReg (sml_reg_id r) const { return this->_regState.get(r); }
+    Value *mlReg (sml_reg_id r) const { return this->_regState.get(r); }
 
   // assign a value to an SML register
-    void setMLReg (sml_reg_id r, llvm::Value *v) { this->_regState.set(r, v); }
+    void setMLReg (sml_reg_id r, Value *v) { this->_regState.set(r, v); }
 
   // save and restore the SML register state to a cache object
     void saveSMLRegState (reg_state & cache) { cache.copyFrom (this->_regState); }
@@ -105,13 +112,13 @@ class code_buffer {
     llvm::IntegerType *i16Ty;
     llvm::IntegerType *i32Ty;
     llvm::IntegerType *i64Ty;
-    llvm::Type *f32Ty;
-    llvm::Type *f64Ty;
+    Type *f32Ty;
+    Type *f64Ty;
     llvm::IntegerType *intTy;	// native integer type
-    llvm::Type *mlValueTy;	// the uniform ML value type, which is a pointer to the intTy
-    llvm::Type *objPtrTy;	// pointer into the heap (i.e., a pointer to an ML value)
-    llvm::Type *bytePtrTy;	// "char *" type
-    llvm::Type *voidTy;		// "void"
+    Type *mlValueTy;	// the uniform ML value type, which is a pointer to the intTy
+    Type *objPtrTy;	// pointer into the heap (i.e., a pointer to an ML value)
+    Type *bytePtrTy;	// "char *" type
+    Type *voidTy;		// "void"
 
     llvm::IntegerType *iType (int sz)
     {
@@ -120,14 +127,14 @@ class code_buffer {
 	else if (sz == 16) return this->i16Ty;
 	else return this->i8Ty;
     }
-    llvm::Type *fType (int sz)
+    Type *fType (int sz)
     {
 	if (sz == 64) return this->f64Ty;
 	else return this->f32Ty;
     }
 
   // ensure that a value has the `mlValue` type
-    llvm::Value *asMLValue (llvm::Value *v)
+    Value *asMLValue (Value *v)
     {
 	if (! v->getType()->isPointerTy()) {
 	    return this->_builder.CreateIntToPtr(v, this->mlValueTy);
@@ -137,7 +144,7 @@ class code_buffer {
     }
 
   // ensure that a value has the `mlValue` type
-    llvm::Value *asObjPtr (llvm::Value *v)
+    Value *asObjPtr (Value *v)
     {
 	if (! v->getType()->isPointerTy()) {
 	    return this->_builder.CreateIntToPtr(v, this->objPtrTy);
@@ -147,7 +154,7 @@ class code_buffer {
     }
 
   // ensure that a value is a machine-sized int type (assume that it is either intTy or mlValueTy
-    llvm::Value *asInt (llvm::Value *v)
+    Value *asInt (Value *v)
     {
 	if (v->getType()->isPointerTy()) {
 	    return this->_builder.CreatePtrToInt(v, this->intTy);
@@ -155,6 +162,10 @@ class code_buffer {
 	    return v;
 	}
     }
+
+  // cast an argument type to match the expected target type.  We assume that the
+  // types are _not_ equal!
+    Value *castTy (Type *srcTy, Type *tgtTy, Value *v);
 
 /** NOTE: we may be able to avoid needing the signed constants */
   // signed integer constant of specified bit size
@@ -224,16 +235,16 @@ class code_buffer {
     }
 
   // insert a binding into the lvar-to-value map
-    void insertVal (LambdaVar::lvar lv, llvm::Value *v)
+    void insertVal (LambdaVar::lvar lv, Value *v)
     {
-	std::pair<LambdaVar::lvar,llvm::Value *> pair(lv, v);
+	std::pair<LambdaVar::lvar,Value *> pair(lv, v);
 	this->_vMap.insert (pair);
     }
 
   // lookup a binding in the lvar-to-value map
-    llvm::Value *lookupVal (LambdaVar::lvar lv)
+    Value *lookupVal (LambdaVar::lvar lv)
     {
-	lvar_map_t<llvm::Value>::const_iterator got = this->_vMap.find(lv);
+	lvar_map_t<Value>::const_iterator got = this->_vMap.find(lv);
 	if (got == this->_vMap.end()) {
 	    return nullptr;
 	} else {
@@ -347,6 +358,129 @@ class code_buffer {
 	return this->_sqrt64;
     }
 
+  /***** shorthand for LLVM integer instructions (with argument coercions) *****/
+/* FIXME: Note that for now, we assume that all arithmetic is in the native integer size! */
+    Value *createAdd (Value *a, Value *b)
+    {
+	return this->_builder.CreateAdd (this->asInt(a), this->asInt(b));
+    }
+    Value *createAnd (Value *a, Value *b)
+    {
+	return this->_builder.CreateAnd (this->asInt(a), this->asInt(b));
+    }
+    Value *createAShr (Value *a, Value *b)
+    {
+	return this->_builder.CreateAShr (this->asInt(a), this->asInt(b));
+    }
+    Value *createICmp (llvm::CmpInst::Predicate cmp, Value *a, Value *b)
+    {
+	return this->_builder.CreateICmp (cmp, this->asInt(a), this->asInt(b));
+    }
+    Value *createICmpEQ (Value *a, Value *b)
+    {
+	return this->_builder.CreateICmpEQ (this->asInt(a), this->asInt(b));
+    }
+    Value *createICmpNE (Value *a, Value *b)
+    {
+	return this->_builder.CreateICmpNE (this->asInt(a), this->asInt(b));
+    }
+    Value *createICmpSLT (Value *a, Value *b)
+    {
+	return this->_builder.CreateICmpSLT (this->asInt(a), this->asInt(b));
+    }
+    Value *createLShr (Value *a, Value *b)
+    {
+	return this->_builder.CreateLShr (this->asInt(a), this->asInt(b));
+    }
+    Value *createMul (Value *a, Value *b)
+    {
+	return this->_builder.CreateMul (this->asInt(a), this->asInt(b));
+    }
+    Value *createOr (Value *a, Value *b)
+    {
+	return this->_builder.CreateOr (this->asInt(a), this->asInt(b));
+    }
+    Value *createSDiv (Value *a, Value *b)
+    {
+	return this->_builder.CreateSDiv (this->asInt(a), this->asInt(b));
+    }
+    Value *createShl (Value *a, Value *b)
+    {
+	return this->_builder.CreateShl (this->asInt(a), this->asInt(b));
+    }
+    Value *createSIToFP (Value *v, Type *ty)
+    {
+	return this->_builder.CreateSIToFP (v, ty);
+    }
+    Value *createSRem (Value *a, Value *b)
+    {
+	return this->_builder.CreateSRem (this->asInt(a), this->asInt(b));
+    }
+    Value *createSub (Value *a, Value *b)
+    {
+	return this->_builder.CreateSub (this->asInt(a), this->asInt(b));
+    }
+    Value *createUDiv (Value *a, Value *b)
+    {
+	return this->_builder.CreateUDiv (this->asInt(a), this->asInt(b));
+    }
+    Value *createURem (Value *a, Value *b)
+    {
+	return this->_builder.CreateURem (this->asInt(a), this->asInt(b));
+    }
+    Value *createXor (Value *a, Value *b)
+    {
+	return this->_builder.CreateXor (this->asInt(a), this->asInt(b));
+    }
+
+    Value *createSExt (Value *v, Type *ty)
+    {
+	return this->_builder.CreateSExt (v, ty);
+    }
+    Value *createZExt (Value *v, Type *ty)
+    {
+	return this->_builder.CreateZExt (v, ty);
+    }
+
+  /***** shorthand for LLVM floating-point instructions *****/
+    Value *createFAdd (Value *a, Value *b) { return this->_builder.CreateFAdd (a, b); }
+    Value *createFCmp (llvm::CmpInst::Predicate cmp, Value *a, Value *b)
+    {
+	return this->_builder.CreateFCmp (cmp, a, b);
+    }
+    Value *createFDiv (Value *a, Value *b) { return this->_builder.CreateFDiv (a, b); }
+    Value *createFMul (Value *a, Value *b) { return this->_builder.CreateFMul (a, b); }
+    Value *createFNeg (Value *v) { return this->_builder.CreateFNeg (v); }
+    Value *createFPToSI (Value *v, Type *ty) { return this->_builder.CreateFPToSI (v, ty); }
+    Value *createFSub (Value *a, Value *b) { return this->_builder.CreateFSub (a, b); }
+
+  /***** shorthand for load/store instructions *****/
+    Value *createLoad (Type *ty, Value *adr)
+    {
+      // NOTE: our loads are always aligned to the ABI alignment requirement
+	return this->_builder.CreateAlignedLoad (ty, adr, 0);
+    }
+
+  /***** shorthand for type cast instructions *****/
+    Value *createIntToPtr (Value *v, Type *ty)
+    {
+	return this->_builder.CreateIntToPtr (v, ty);
+    }
+    Value *createBitCast (Value *v, Type *ty)
+    {
+	return this->_builder.CreateBitCast (v, ty);
+    }
+    Value *createPointerCast (Value *v, Type *ty)
+    {
+	return this->_builder.CreatePointerCast (v, ty);
+    }
+
+  /***** shorthand for other instructions *****/
+    Value *createExtractValue (Value *v, int i)
+    {
+	return this->_builder.CreateExtractValue (v, i);
+    }
+
   private:
     struct target_info const	*_target;
     llvm::LLVMContext		_context;
@@ -355,7 +489,7 @@ class code_buffer {
     llvm::Function		*_curFn;	// current LLVM function
     lvar_map_t<CFG::cluster>	_clusterMap;	// per-module mapping from labels to clusters
     lvar_map_t<CFG::frag>	_fragMap;	// pre-cluster map from labels to fragments
-    lvar_map_t<llvm::Value>	_vMap;		// per-fragment map from lvars to values
+    lvar_map_t<Value>	_vMap;		// per-fragment map from lvars to values
 
   // a basic block for the current cluster that will force an Overflow trap
     llvm::BasicBlock		*_overflowBB;
@@ -382,10 +516,10 @@ class code_buffer {
   // helper function for getting an intrinsic when it has not yet
   // been loaded for the current module.
   //
-    llvm::Function *_getIntrinsic (llvm::Intrinsic::ID id, llvm::Type *ty)
+    llvm::Function *_getIntrinsic (llvm::Intrinsic::ID id, Type *ty)
     {
 	return llvm::Intrinsic::getDeclaration (
-	    this->_module, id, llvm::ArrayRef<llvm::Type *>(ty));
+	    this->_module, id, llvm::ArrayRef<Type *>(ty));
     }
 
   // constructor

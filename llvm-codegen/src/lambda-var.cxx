@@ -13,8 +13,6 @@
 #include <cstdint>
 #include <vector>
 
-#include <iostream> //DEBUG
-
 namespace LambdaVar {
 
     // LVars are represented by positive integers (the Int63.int type on 64-bit
@@ -37,7 +35,6 @@ namespace LambdaVar {
           default:
             break;
         }
-std::cerr << "# read_lvar: v" << v << "\n";
 	return static_cast<int>(v);
     }
 

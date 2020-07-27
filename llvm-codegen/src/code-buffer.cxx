@@ -44,8 +44,8 @@ code_buffer::code_buffer (std::string const & target)
     this->i16Ty = llvm::IntegerType::get (this->_context, 16);
     this->i32Ty = llvm::IntegerType::get (this->_context, 32);
     this->i64Ty = llvm::IntegerType::get (this->_context, 64);
-    this->f32Ty = llvm::Type::getPrimitiveType (this->_context, llvm::Type::FloatTyID);
-    this->f64Ty = llvm::Type::getPrimitiveType (this->_context, llvm::Type::DoubleTyID);
+    this->f32Ty = Type::getPrimitiveType (this->_context, Type::FloatTyID);
+    this->f64Ty = Type::getPrimitiveType (this->_context, Type::DoubleTyID);
 
     if (this->_target->wordSz == 32) {
 	this->intTy = this->i32Ty;
@@ -56,7 +56,7 @@ code_buffer::code_buffer (std::string const & target)
     this->mlValueTy = this->intTy->getPointerTo ();
     this->objPtrTy = this->mlValueTy->getPointerTo ();
     this->bytePtrTy = this->i8Ty->getPointerTo (ML_HEAP_ADDR_SP);
-    this->voidTy = llvm::Type::getVoidTy (this->_context);
+    this->voidTy = Type::getVoidTy (this->_context);
 
 } // constructor
 
@@ -102,70 +102,62 @@ void code_buffer::beginFrag ()
 
 } // code_buffer::beginFrag
 
-llvm::Function *code_buffer::newFunction (std::vector<llvm::Type *> paramTys, bool isFirst)
+llvm::Function *code_buffer::newFunction (
+    llvm::FunctionType *fnTy,
+    std::string const &name,
+    bool isFirst)
 {
-    llvm::Type *allParams[32];	// no target machine has more than 32 registers
-
-  // the parameter list starts with the special registers (i.e., alloc ptr, ...), which
-  // are all given the SML pointer type
-    int nExtra = this->_regInfo.numMachineRegs();
-    int nParams = 0;
-    while (nParams < nExtra) {
-	if (this->_regInfo.machineReg(nParams)->id() <= sml_reg_id::STORE_PTR) {
-	    allParams[nParams++] = this->objPtrTy;
-	} else {
-	    allParams[nParams++] = this->mlValueTy;
-	}
-    }
-
-  // then add the types from the function's formal parameters
-    for (auto paramTy : paramTys) {
-	allParams[nParams++] = paramTy;
-    }
-
-    llvm::FunctionType *fnTy = llvm::FunctionType::get (
-	this->voidTy,
-	llvm::ArrayRef<llvm::Type *>(allParams, nParams),
-	false);
-
-    this->_curFn = llvm::Function::Create (
+    llvm::Function *fn = llvm::Function::Create (
 	    fnTy,
 	    isFirst ? llvm::GlobalValue::ExternalLinkage : llvm::GlobalValue::PrivateLinkage,
-	    isFirst ? "main" : "",
+	    name,
 	    this->_module);
-    this->_curFn->setCallingConv (llvm::CallingConv::JWA);
 
-    return this->_curFn;
+  // set the calling convention to our "Jump-with-arguments" convention
+    fn->setCallingConv (llvm::CallingConv::JWA);
+
+  // assign attributes to the function
+    fn->addFnAttr (llvm::Attribute::Naked);
+
+    return fn;
 
 }
 
-llvm::FunctionType *code_buffer::createFnTy (std::vector<llvm::Type *> const & tys) const
+llvm::FunctionType *code_buffer::createFnTy (std::vector<Type *> const & tys) const
 {
-    std::vector<llvm::Type *> allParams;
+    std::vector<Type *> allParams = this->createParamTys (tys.size());
 
-    int nExtra = this->_regInfo.numMachineRegs();
-
-    allParams.reserve(tys.size() + nExtra);
-
-  // the parameter list starts with the special registers (i.e., alloc ptr, ...),
-  //
-    for (int i = 0;  i < nExtra;  ++i) {
-	if (this->_regInfo.machineReg(i)->id() <= sml_reg_id::STORE_PTR) {
-	    allParams.push_back (this->objPtrTy);
-	} else {
-	    allParams.push_back (this->mlValueTy);
-	}
-    }
-
-  // then add the types from the function's formal parameters
+  // add the types from the function's formal parameters
     for (auto ty : tys) {
 	allParams.push_back (ty);
     }
 
     return llvm::FunctionType::get (
 	this->voidTy,
-	llvm::ArrayRef<llvm::Type *>(allParams),
+	llvm::ArrayRef<Type *>(allParams),
 	false);
+
+}
+
+std::vector<Type *> code_buffer::createParamTys (int n) const
+{
+    std::vector<Type *> tys;
+
+    int nExtra = this->_regInfo.numMachineRegs();
+
+    tys.reserve(tys.size() + nExtra);
+
+  // the parameter list starts with the special registers (i.e., alloc ptr, ...),
+  //
+    for (int i = 0;  i < nExtra;  ++i) {
+	if (this->_regInfo.machineReg(i)->id() <= sml_reg_id::STORE_PTR) {
+	    tys.push_back (this->objPtrTy);
+	} else {
+	    tys.push_back (this->mlValueTy);
+	}
+    }
+
+    return tys;
 
 }
 
@@ -222,32 +214,22 @@ void code_buffer::setupStdEntry (CFG::frag *frag)
 
 }
 
-// setup the argument/parameter lists for a fragment
-Args_t code_buffer::setupFragArgs (CFG::frag *frag, Args_t &args)
+void code_buffer::setupFragEntry (CFG::frag *frag, std::vector<llvm::PHINode *> &phiNodes)
 {
-    Args_t newArgs;
-
     int nExtra = this->_regInfo.numMachineRegs();
-    newArgs.reserve (args.size() + nExtra);
 
-  // add initial arguments for those reserved registers that are mapped to hardware registers
-    for (int i = 0;  i < nExtra;  i++) {
+  // initialize the register state
+    for (int i = 0;  i < nExtra;  ++i) {
 	reg_info const *info = this->_regInfo.machineReg(i);
-	assert (info->isMachineReg() && "not a machine register");
-	newArgs.push_back (this->_regState.get(info->id()));
+	this->_regState.set (info->id(), phiNodes[i]);
     }
 
-  // copy the rest of the arguments
-    for (auto arg : args) {
-	newArgs.push_back (arg);
+  // bind the formal parameters to the remaining PHI nodes
+    std::vector<CFG::param *> params = frag->get_params();
+    for (int i = 0;  i < params.size();  i++) {
+	this->insertVal (params[i]->get_0(), phiNodes[nExtra + i]);
     }
 
-    return newArgs;
-
-} // code_buffer::setupFragArgs
-
-void code_buffer::setupFragEntry (CFG::frag *frag)
-{
 } // code_buffer::setupFragEntry
 
 // return the basic-block that contains the Overflow trap generator
@@ -282,4 +264,27 @@ llvm::MDNode *code_buffer::overflowWeights ()
     return this->branchProb(1);
 
 } // code_buffer::overflowWeights
+
+// generate a type cast for an actual to formal transfer.  The type of the
+// formal (`tgtTy`) is limited to be an objPtrTy, mlValueTy, intTy, or realTy.
+// We should never need a cast in the latter two cases.
+//
+Value *code_buffer::castTy (Type *srcTy, Type *tgtTy, Value *v)
+{
+    if (tgtTy == this->mlValueTy) {
+	if (srcTy->isPointerTy()) {
+	    return this->_builder.CreateBitCast(v, this->mlValueTy);
+	} else {
+	    return this->_builder.CreateIntToPtr(v, this->mlValueTy);
+	}
+    }
+    else if (tgtTy == this->objPtrTy) {
+	return this->_builder.CreateBitCast(v, this->mlValueTy);
+    }
+    else {
+	assert (false && "invalid type cast");
+	return nullptr;
+    }
+
+} // code_buffer::castTy
 

@@ -15,40 +15,40 @@ namespace CFG {
 
   /***** code generation for the `ty` type *****/
 
-    llvm::Type *NUMt::codegen (code_buffer * buf)
+    Type *NUMt::codegen (code_buffer * buf)
     {
 	return buf->iType (this->_v0);
 
     } // NUMt::codegen
 
-    llvm::Type *FLTt::codegen (code_buffer * buf)
+    Type *FLTt::codegen (code_buffer * buf)
     {
 	return buf->fType (this->_v0);
 
     } // FLTt::codegen
 
-    llvm::Type *PTRt::codegen (code_buffer * buf)
+    Type *PTRt::codegen (code_buffer * buf)
     {
 	return buf->mlValueTy;
 
     } // PTRt::codegen
 
-    llvm::Type *FUNt::codegen (code_buffer * buf)
+    Type *FUNt::codegen (code_buffer * buf)
     {
 	return buf->mlValueTy;
 
     } // FUNt::codegen
 
-    llvm::Type *CNTt::codegen (code_buffer * buf)
+    Type *CNTt::codegen (code_buffer * buf)
     {
 	return buf->mlValueTy;
 
     } // CNTt::codegen
 
   // code generation for a vector of types
-    static std::vector<llvm::Type *> genTypes (code_buffer * buf, std::vector<ty *> const &tys)
+    static std::vector<Type *> genTypes (code_buffer * buf, std::vector<ty *> const &tys)
     {
-	std::vector<llvm::Type *> llvmTys;
+	std::vector<Type *> llvmTys;
 	llvmTys.reserve(tys.size());
 	for (auto ty : tys) {
 	    llvmTys.push_back (ty->codegen (buf));
@@ -58,13 +58,13 @@ namespace CFG {
 
   /***** code generation for the `exp` type *****/
 
-    llvm::Value *VAR::codegen (code_buffer * buf)
+    Value *VAR::codegen (code_buffer * buf)
     {
 	return buf->lookupVal (this->_v0);
 
     } // VAR::codegen
 
-    llvm::Value *LABEL::codegen (code_buffer * buf)
+    Value *LABEL::codegen (code_buffer * buf)
     {
 	cluster *cluster = buf->lookupCluster (this->_v0);
 
@@ -73,7 +73,7 @@ namespace CFG {
 /* FIXME */return buf->uConst(42);
     } // LABEL::codegen
 
-    llvm::Value *NUM::codegen (code_buffer * buf)
+    Value *NUM::codegen (code_buffer * buf)
     {
 	if (this->get_signed()) {
 	    return buf->iConst (this->get_sz(), this->get_iv().toInt64());
@@ -83,7 +83,7 @@ namespace CFG {
 
     } // NUM::codegen
 
-    llvm::Value *LOOKER::codegen (code_buffer * buf)
+    Value *LOOKER::codegen (code_buffer * buf)
     {
 	Args_t args;
 	for (auto it = this->_v1.begin(); it != this->_v1.end(); ++it) {
@@ -93,7 +93,7 @@ namespace CFG {
 
     } // LOOKER::codegen
 
-    llvm::Value *PURE::codegen (code_buffer * buf)
+    Value *PURE::codegen (code_buffer * buf)
     {
 	Args_t args;
 	for (auto it = this->_v1.begin(); it != this->_v1.end(); ++it) {
@@ -103,13 +103,18 @@ namespace CFG {
 
     } // PURE::codegen
 
-    llvm::Value *SELECT::codegen (code_buffer * buf)
+    Value *SELECT::codegen (code_buffer * buf)
     {
-/* FIXME */return nullptr;
+	Value *adr = buf->build().CreateInBoundsGEP (
+	    buf->asObjPtr(this->_v1->codegen(buf)),
+	    { buf->uConst(this->_v0) });
+	return buf->createLoad (buf->mlValueTy, adr);
+
     } // SELECT::codegen
 
-    llvm::Value *OFFSET::codegen (code_buffer * buf)
+    Value *OFFSET::codegen (code_buffer * buf)
     {
+	assert (false && "OFFSET");
 /* FIXME */return nullptr;
     } // OFFSET::codegen
 
@@ -137,7 +142,7 @@ namespace CFG {
 	Args_t args;
 	for (auto it = this->_v1.begin(); it != this->_v1.end(); ++it) {
 #ifndef XXX
-	    llvm::Value *v = (*it)->codegen (buf);
+	    Value *v = (*it)->codegen (buf);
 llvm::dbgs() << "ALLOC: type = "; v->getType()->print(llvm::dbgs(), true, true);
 llvm::dbgs() << "; value = " << *v << "\n";
 	    args.push_back (v);
@@ -155,7 +160,7 @@ llvm::dbgs() << "; value = " << *v << "\n";
     void APPLY::codegen (code_buffer * buf)
     {
 	llvm::FunctionType *fnTy;
-	llvm::Value *fn;
+	Value *fn;
 	LABEL *lab = dynamic_cast<LABEL *>(this->_v0);
 	if (lab == nullptr) {
 	    fnTy = buf->createFnTy (genTypes (buf, this->_v2));
@@ -186,7 +191,7 @@ llvm::dbgs() << "; value = " << *v << "\n";
     void THROW::codegen (code_buffer * buf)
     {
 	llvm::FunctionType *fnTy;
-	llvm::Value *fn;
+	Value *fn;
 	LABEL *lab = dynamic_cast<LABEL *>(this->_v0);
 	if (lab == nullptr) {
 	    fnTy = buf->createFnTy (genTypes (buf, this->_v2));
@@ -220,23 +225,26 @@ llvm::dbgs() << "; value = " << *v << "\n";
 	frag *dstFrag = buf->lookupFrag (this->_v0);
 
       // evaluate the arguments
-	Args_t args;
-	args.reserve(this->_v1.size());
+	Args_t args = buf->createArgs (this->_v1.size());
 	for (auto arg : this->_v1) {
 	    args.push_back (arg->codegen (buf));
 	}
-
-      // add extra argument values needed for reserved registers
-	Args_t allArgs = buf->setupFragArgs (dstFrag, args);
 
       // generate the control transfer
 	buf->build().CreateBr (dstFrag->bb());
 
       // add outgoing values as incoming values to the destination's
       // phi nodes
-	for (int i = 0;  i < allArgs.size();  ++i) {
-// FIXME: add typecast around argument values
-	    dstFrag->setIncoming (i, srcBB, allArgs[i]);
+	buf->setInsertPoint (dstFrag->bb());
+	for (int i = 0;  i < args.size();  ++i) {
+	  // make sure that the type match!
+	    Type *srcTy = args[i]->getType();
+	    Type *tgtTy = dstFrag->paramTy(i);
+	    if (srcTy != tgtTy) {
+		dstFrag->addIncoming (i, buf->castTy(srcTy, tgtTy, args[i]), srcBB);
+	    } else {
+		dstFrag->addIncoming (i, args[i], srcBB);
+	    }
 	}
 
     } // GOTO::codegen
@@ -248,7 +256,7 @@ llvm::dbgs() << "; value = " << *v << "\n";
 
       // evaluate the argument
 // FIXME: do we need to downcast to 32 bits?
-	llvm::Value *arg = this->_v0->codegen(buf);
+	Value *arg = this->_v0->codegen(buf);
 
       // create the switch; note that we use the last case as the default
 	llvm::SwitchInst *sw = buf->build().CreateSwitch(arg, this->_v1[nCases]->bb(), nCases);
@@ -276,7 +284,7 @@ llvm::dbgs() << "; value = " << *v << "\n";
 	for (auto it = this->_v1.begin(); it != this->_v1.end(); ++it) {
 	    args.push_back ((*it)->codegen (buf));
 	}
-	llvm::Value *cond = this->_v0->codegen(buf, args);
+	Value *cond = this->_v0->codegen(buf, args);
 
       // generate the conditional branch
 	if (this->_v2 == 0) {
@@ -338,18 +346,15 @@ llvm::dbgs() << "; value = " << *v << "\n";
     {
 	buf->beginFrag ();
 
-	if (! isEntry) {
-	  // initialize the lvar to value map with the incoming parameters
-	    for (int i = 0;  i < this->_phiNodes.size();  i++) {
-		buf->insertVal (this->_v_params[i]->get_0(), this->_phiNodes[i]);
-	    }
-	}
-	else {
+	buf->setInsertPoint (this->_v_body->bb());
+
+	if (isEntry) {
 	    buf->setupStdEntry (this);
+	} else {
+	    buf->setupFragEntry (this, this->_phiNodes);
 	}
 
       // generate code for the fragment
-	buf->setInsertPoint (this->_v_body->bb());
 	this->_v_body->codegen (buf);
 
     } // frag::codegen
@@ -372,6 +377,8 @@ llvm::dbgs() << "; value = " << *v << "\n";
 	for (auto it = this->_v_frags.begin();  it != this->_v_frags.end();  ++it) {
 	    (*it)->codegen (buf, false);
 	}
+
+	buf->endCluster ();
 
     } // cluster::codegen
 

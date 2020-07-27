@@ -259,34 +259,34 @@ view Cxx {
 
 -- alloc
     { CFG_Prim.alloc }  <= public_code %%
-        virtual llvm::Value *codegen (code_buffer *buf, Args_t &args) = 0;
+        virtual Value *codegen (code_buffer *buf, Args_t &args) = 0;
 %%
     { CFG_Prim.alloc.* } <= public_code %%
-        llvm::Value *codegen (code_buffer *buf, Args_t &args);
+        Value *codegen (code_buffer *buf, Args_t &args);
 %%
 
 -- arith
     { CFG_Prim.arith }  <= public_code %%
-        virtual llvm::Value *codegen (code_buffer *buf, Args_t &args) = 0;
+        virtual Value *codegen (code_buffer *buf, Args_t &args) = 0;
 %%
     { CFG_Prim.arith.* } <= public_code %%
-        llvm::Value *codegen (code_buffer *buf, Args_t &args);
+        Value *codegen (code_buffer *buf, Args_t &args);
 %%
 
 -- pure
     { CFG_Prim.pure }  <= public_code %%
-        virtual llvm::Value *codegen (code_buffer *buf, Args_t &args) = 0;
+        virtual Value *codegen (code_buffer *buf, Args_t &args) = 0;
 %%
     { CFG_Prim.pure.* } <= public_code %%
-        llvm::Value *codegen (code_buffer *buf, Args_t &args);
+        Value *codegen (code_buffer *buf, Args_t &args);
 %%
 
 -- looker
     { CFG_Prim.looker }  <= public_code %%
-        virtual llvm::Value *codegen (code_buffer *buf, Args_t &args) = 0;
+        virtual Value *codegen (code_buffer *buf, Args_t &args) = 0;
 %%
     { CFG_Prim.looker.* } <= public_code %%
-        llvm::Value *codegen (code_buffer *buf, Args_t &args);
+        Value *codegen (code_buffer *buf, Args_t &args);
 %%
 
 -- setter
@@ -299,31 +299,31 @@ view Cxx {
 
 -- branch
     { CFG_Prim.branch }  <= public_code %%
-        virtual llvm::Value *codegen (code_buffer *buf, Args_t &args) = 0;
+        virtual Value *codegen (code_buffer *buf, Args_t &args) = 0;
 %%
     { CFG_Prim.branch.* } <= public_code %%
-        llvm::Value *codegen (code_buffer *buf, Args_t &args);
+        Value *codegen (code_buffer *buf, Args_t &args);
 %%
 
 -- ty
     { CFG.ty } <= public_code %%
-	virtual llvm::Type *codegen (code_buffer *buf) = 0;
+	virtual Type *codegen (code_buffer *buf) = 0;
 %%
     { CFG.ty.* } <= public_code %%
-	llvm::Type *codegen (code_buffer *buf);
+	Type *codegen (code_buffer *buf);
 %%
 
 -- param
     { CFG.param } <= public_code %%
-	void bind (code_buffer *buf, llvm::Value *v) { buf->insertVal (this->_v0, v); }
+	void bind (code_buffer *buf, Value *v) { buf->insertVal (this->_v0, v); }
 %%
 
 -- exp
     { CFG.exp } <= public_code %%
-        virtual llvm::Value *codegen (code_buffer *buf) = 0;
+        virtual Value *codegen (code_buffer *buf) = 0;
 %%
     { CFG.exp.* } <= public_code %%
-        llvm::Value *codegen (code_buffer *buf);
+        Value *codegen (code_buffer *buf);
 %%
 
 -- stm
@@ -347,9 +347,10 @@ view Cxx {
         void init (code_buffer *buf, bool isEntry);
         void codegen (code_buffer *buf, bool isEntry);
 	llvm::BasicBlock *bb() const { return this->_v_body->bb(); }
-	void setIncoming (int i, const llvm::BasicBlock *bblk, llvm::Value *v)
+	Type *paramTy (int i) { return this->_phiNodes[i]->getType(); }
+	void addIncoming (int i, Value *v, llvm::BasicBlock *bblk)
 	{
-	    this->_phiNodes[i]->setIncomingValueForBlock(bblk, v);
+	    this->_phiNodes[i]->addIncoming(v, bblk);
 	}
 %%
     { CFG.frag } <= private_code %%

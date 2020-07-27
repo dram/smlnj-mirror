@@ -15,7 +15,9 @@ namespace CFG {
 
   /***** initialization for the `stm` type *****/
 
-    void stm::_initBB (code_buffer * buf, bool blkEntry)
+  // helper function for setting the `_bb` field of a `stm`
+  //
+    inline void stm::_initBB (code_buffer * buf, bool blkEntry)
     {
 	if (blkEntry) {
 	    this->_bb = buf->newBB();
@@ -38,6 +40,7 @@ namespace CFG {
 	this->_initBB (buf, blkEntry);
 
       // continue initialization
+/* FIXME: the continuation of a CHK_GC node will need to have a BB, once we implement GC checks */
 	this->_v1->init (buf, false);
 
     } // CHK_GC::init
@@ -130,29 +133,20 @@ namespace CFG {
       // add the fragment to the label to fragment map
 	buf->insertFrag (this->_v_lab, this);
 
-      // define the LLVM function for this cluster
-	std::vector<llvm::Type *> paramTys;
-	paramTys.reserve (this->_v_params.size());
-	for (auto param : this->_v_params) {
-	    paramTys.push_back (param->get_1()->codegen(buf));
-	}
-	llvm::Function *fn = buf->newFunction (paramTys, isEntry);
-
-      // set the calling convention to our "Jump-with-arguments" convention
-	fn->setCallingConv (llvm::CallingConv::JWA);
-
-      // assign attributes to the function
-	 fn->addFnAttr (llvm::Attribute::Naked);
-
       // initialize the fragment's body */
 	this->_v_body->init (buf, true);
 
       // add a phi node for each parameter of the fragment
 	if (! isEntry) {
+	  // compute the parameter types for the fragment
+	    auto paramTys = buf->createParamTys (this->_v_params.size());
+	    for (auto param : this->_v_params) {
+		paramTys.push_back (param->get_1()->codegen (buf));
+	    }
+	  // for each parameter, add a PHI node to the entry block
 	    buf->setInsertPoint (this->_v_body->bb());
-	    this->_phiNodes.reserve (this->_v_params.size());
-	    for (auto it = this->_v_params.begin(); it != this->_v_params.end();  ++it) {
-		llvm::Type *ty = (*it)->get_1()->codegen (buf);
+	    this->_phiNodes.reserve (paramTys.size());
+	    for (auto ty : paramTys) {
 		llvm::PHINode *phi = buf->build().CreatePHI(ty, 0);
 		this->_phiNodes.push_back (phi);
 	    }
@@ -165,10 +159,22 @@ namespace CFG {
 
     void cluster::init (code_buffer * buf, bool isEntry)
     {
+	frag *entry = this->_v_entry;
+
       // add the cluster to the cluster map
-	buf->insertCluster (this->_v_entry->get_lab(), this);
+	buf->insertCluster (entry->get_lab(), this);
 
       // create and record the LLVM function for the cluster
+	auto params = entry->get_params();
+	std::vector<llvm::Type *> paramTys;
+	paramTys.reserve (params.size());
+	for (auto param : params) {
+	    paramTys.push_back (param->get_1()->codegen(buf));
+	}
+	llvm::FunctionType *fnTy = buf->createFnTy (paramTys);
+
+	std::string name = (isEntry ? "entry" : "fn") + std::to_string(entry->get_lab());
+	this->_fn = buf->newFunction (fnTy, name, isEntry);
 
     }
 
