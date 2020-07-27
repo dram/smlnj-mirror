@@ -70,7 +70,8 @@ namespace CFG {
 
 	assert (cluster && "Unknown cluster label");
 
-/* FIXME */return buf->uConst(42);
+	return buf->createBitCast(cluster->fn(), buf->mlValueTy);
+
     } // LABEL::codegen
 
     Value *NUM::codegen (code_buffer * buf)

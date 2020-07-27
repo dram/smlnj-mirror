@@ -49,12 +49,14 @@ namespace CFG_Prim {
 
     Value *RAW_RECORD::codegen (code_buffer * buf, Args_t & args)
     {
-/* FIXME */ return nullptr;
+	assert (false && "RAW_RECORD");
+/* FIXME */return nullptr;
     } // RAW_RECORD::codegen
 
     Value *RAW_ALLOC::codegen (code_buffer * buf, Args_t & args)
     {
-/* FIXME */ return nullptr;
+	assert (false && "RAW_ALLOC");
+/* FIXME */return nullptr;
     } // RAW_ALLOC::codegen
 
 
