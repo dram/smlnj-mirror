@@ -20,6 +20,7 @@
 #include "llvm/Transforms/InstCombine/InstCombine.h"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Scalar/GVN.h"
+#include "llvm/Support/FileSystem.h"
 
 #include <exception>
 
@@ -136,12 +137,17 @@ void code_buffer::optimize ()
 void code_buffer::dumpAsm (std::string const &asmFile)
 {
     std::error_code EC;
-    llvm::raw_fd_ostream asmStrm(asmFile, EC);
+    llvm::raw_fd_ostream asmStrm(asmFile, EC, llvm::sys::fs::OF_None);
+    if (EC) {
+	llvm::errs() << "unable to open assembly output file\n";
+	return;
+    }
 
     llvm::legacy::PassManager pass;
     if (this->_tgtMachine->addPassesToEmitFile(pass, asmStrm, nullptr, llvm::CGFT_AssemblyFile))
     {
 	llvm::errs() << "unable to generate assembly code\n";
+	return;
     }
 
     pass.run(*this->_module);

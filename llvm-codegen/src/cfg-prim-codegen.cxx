@@ -26,7 +26,7 @@ namespace CFG_Prim {
 	    (unsigned)buf->wordSzInBytes());
 
       // initialize the object's fields
-	for (int i = 1;  i <= len;  i++) {
+	for (int i = 1;  i <= len;  ++i) {
 	    Value *adr = buf->build().CreateInBoundsGEP (allocPtr, { buf->uConst(i) });
 	    buf->build().CreateAlignedStore (
 		buf->asMLValue (args[i-1]),
@@ -36,7 +36,7 @@ namespace CFG_Prim {
 
       // compute the object's address and cast it to an ML value
 	Value *obj = buf->createBitCast (
-	    buf->build().CreateInBoundsGEP (allocPtr, { buf->uConst(0) }),
+	    buf->build().CreateInBoundsGEP (allocPtr, { buf->uConst(1) }),
 	    buf->mlValueTy);
 
       // bump the allocation pointer
@@ -49,8 +49,46 @@ namespace CFG_Prim {
 
     Value *RAW_RECORD::codegen (code_buffer * buf, Args_t & args)
     {
-	assert (false && "RAW_RECORD");
-/* FIXME */return nullptr;
+	int len = args.size();
+	Value *allocPtr = buf->mlReg (sml_reg_id::ALLOC_PTR);
+
+/* FIXME: for 32-bit targets, we need to align the allocation pointer */
+
+      // write object descriptor
+	buf->build().CreateAlignedStore (
+	    buf->createIntToPtr(buf->uConst(this->_v_desc.toUInt64()), buf->mlValueTy),
+	    allocPtr,
+	    (unsigned)buf->wordSzInBytes());
+
+      // compute the object's address and cast it to an ML value
+	Value *obj = buf->createBitCast (
+	    buf->build().CreateInBoundsGEP (allocPtr, { buf->uConst(1) }),
+	    buf->mlValueTy);
+
+      // get a pointer to the beginning of the object that has the
+      // right type
+	Type *elemTy = (this->_v_kind == numkind::INT
+	    ? buf->iType(this->_v_sz)
+	    : buf->fType(this->_v_sz));
+	Value *initPtr = buf->createBitCast (obj, elemTy->getPointerTo());
+
+      // initialize the object's fields
+	for (int i = 0;  i < len;  ++i) {
+	    Value *adr = buf->build().CreateInBoundsGEP (initPtr, { buf->uConst(i) });
+	    buf->build().CreateAlignedStore (
+		args[i],
+		adr,
+		0 /* default alignment */);
+	}
+
+      // bump the allocation pointer
+	buf->setMLReg (sml_reg_id::ALLOC_PTR,
+	    buf->createBitCast (
+	        buf->build().CreateInBoundsGEP (initPtr, { buf->uConst(len) }),
+		buf->objPtrTy));
+
+	return obj;
+
     } // RAW_RECORD::codegen
 
     Value *RAW_ALLOC::codegen (code_buffer * buf, Args_t & args)

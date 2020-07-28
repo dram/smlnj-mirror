@@ -38,7 +38,7 @@ void codegen (asdl::instream &inS)
 	std::cerr << "\nModule verified\n";
     }
 
-    CodeBuf->dumpAsm ("-");
+    CodeBuf->dumpAsm ("out.s");
 
     CodeBuf->endModule();
 

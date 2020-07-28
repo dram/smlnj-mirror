@@ -60,7 +60,9 @@ namespace CFG {
 
     Value *VAR::codegen (code_buffer * buf)
     {
-	return buf->lookupVal (this->_v0);
+	Value *v = buf->lookupVal (this->_v0);
+	assert (v && "unbound variable");
+	return v;
 
     } // VAR::codegen
 
