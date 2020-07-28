@@ -35,6 +35,7 @@ using Type = llvm::Type;
 using Args_t = std::vector<llvm::Value *>;
 
 namespace llvm {
+    class TargetMachine;
     namespace legacy {
 	class FunctionPassManager;
     }
@@ -59,6 +60,9 @@ class code_buffer {
 
   // create the code buffer for the given target
     static code_buffer *create (std::string const & target);
+
+    void optimize ();
+    void dumpAsm (std::string const &asmFile);
 
   // initialize the code buffer for a new module
     void beginModule (std::string const & src, int nClusters);
@@ -498,6 +502,7 @@ class code_buffer {
     llvm::LLVMContext		_context;
     llvm::IRBuilder<>		_builder;
     llvm::Module		*_module;
+    llvm::TargetMachine		*_tgtMachine;
     llvm::legacy::FunctionPassManager *_passMngr;
     llvm::Function		*_curFn;	// current LLVM function
     lvar_map_t<CFG::cluster>	_clusterMap;	// per-module mapping from labels to clusters

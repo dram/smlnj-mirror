@@ -53,6 +53,20 @@ code_buffer::code_buffer (target_info const *target)
     llvm::Triple triple;
     triple.setArch (target->arch);
 
+    std::string errMsg;
+//    auto tgt = llvm::TargetRegistry::lookupTarget(triple.getTriple(), errMsg);
+    auto tgt = llvm::TargetRegistry::lookupTarget("x86_64-apple-macosx10.15.0", errMsg);
+    assert (tgt && "unable to find target");
+
+    llvm::TargetOptions tgtOpts;
+    tgtOpts.GuaranteedTailCallOpt = true;
+    this->_tgtMachine = tgt->createTargetMachine(
+	triple.getTriple(),
+	"generic",
+	"",
+	tgtOpts,
+	llvm::None);
+
   // initialize the standard types that we use
     this->i8Ty = llvm::IntegerType::get (this->_context, 8);
     this->i16Ty = llvm::IntegerType::get (this->_context, 16);
@@ -90,6 +104,10 @@ void code_buffer::beginModule (std::string const & src, int nClusters)
     this->_ssub64WO = nullptr;
     this->_smul64WO = nullptr;
 
+  // tell the module about the target machine
+    this->_module->setTargetTriple(this->_tgtMachine->getTargetTriple().getTriple());
+    this->_module->setDataLayout(this->_tgtMachine->createDataLayout());
+
   // setup the pass manager
     this->_passMngr = new llvm::legacy::FunctionPassManager (this->_module);
 
@@ -105,6 +123,32 @@ void code_buffer::beginModule (std::string const & src, int nClusters)
     this->_passMngr->doInitialization();
 
 } // code_buffer::beginModule
+
+void code_buffer::optimize ()
+{
+  // run the function optimizations over every function
+    for (auto it = this->_module->begin();  it != this->_module->end();  ++it) {
+	this->_passMngr->run (*it);
+    }
+
+}
+
+void code_buffer::dumpAsm (std::string const &asmFile)
+{
+    std::error_code EC;
+    llvm::raw_fd_ostream asmStrm(asmFile, EC);
+
+    llvm::legacy::PassManager pass;
+    if (this->_tgtMachine->addPassesToEmitFile(pass, asmStrm, nullptr, llvm::CGFT_AssemblyFile))
+    {
+	llvm::errs() << "unable to generate assembly code\n";
+    }
+
+    pass.run(*this->_module);
+
+    asmStrm.flush();
+
+}
 
 void code_buffer::endModule ()
 {
