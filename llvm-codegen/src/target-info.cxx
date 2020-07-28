@@ -12,6 +12,8 @@
 
 static target_info AMD64Info = {
 	"amd64",			// name
+	llvm::Triple::x86_64,
+	"e-i64:64-n8:16:32:64-S128",	// LLVM data layout string
 	64,				// wordSz
 	18,				// numRegs
 	3,				// numCalleeSaves

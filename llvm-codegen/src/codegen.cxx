@@ -10,6 +10,7 @@
 
 #include "code-buffer.hxx"
 #include "cfg.hxx"
+#include <iostream>
 
 static code_buffer *CodeBuf = nullptr;
 
@@ -24,5 +25,11 @@ void codegen (asdl::instream &inS)
     cu->codegen (CodeBuf);
 
     CodeBuf->dump ();
+
+    if (! CodeBuf->verify ()) {
+	std::cerr << "\nModule verified\n";
+    }
+
+    CodeBuf->endModule();
 
 }

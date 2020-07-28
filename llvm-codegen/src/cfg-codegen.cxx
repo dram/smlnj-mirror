@@ -142,14 +142,7 @@ namespace CFG {
     {
 	Args_t args;
 	for (auto it = this->_v1.begin(); it != this->_v1.end(); ++it) {
-#ifndef XXX
-	    Value *v = (*it)->codegen (buf);
-llvm::dbgs() << "ALLOC: type = "; v->getType()->print(llvm::dbgs(), true, true);
-llvm::dbgs() << "; value = " << *v << "\n";
-	    args.push_back (v);
-#else
 	    args.push_back ((*it)->codegen (buf));
-#endif
 	}
 	buf->insertVal (this->_v2, this->_v0->codegen(buf, args));
 
@@ -183,7 +176,7 @@ llvm::dbgs() << "; value = " << *v << "\n";
 
 	llvm::CallInst *call = buf->build().CreateCall(fnTy, fn, args);
 	call->setCallingConv (llvm::CallingConv::JWA);
-	call->setTailCallKind (llvm::CallInst::TCK_MustTail);
+	call->setTailCallKind (llvm::CallInst::TCK_Tail);
 
 	buf->build().CreateRetVoid();
 
@@ -214,7 +207,7 @@ llvm::dbgs() << "; value = " << *v << "\n";
 
 	llvm::CallInst *call = buf->build().CreateCall(fnTy, fn, args);
 	call->setCallingConv (llvm::CallingConv::JWA);
-	call->setTailCallKind (llvm::CallInst::TCK_MustTail);
+	call->setTailCallKind (llvm::CallInst::TCK_Tail);
 
 	buf->build().CreateRetVoid();
 

@@ -12,6 +12,15 @@
 #include "target-info.hxx"
 #include "cfg.hxx" // for argument setup
 
+#include "llvm/IR/InlineAsm.h"
+#include "llvm/IR/Verifier.h"
+#include "llvm/Target/TargetMachine.h"
+#include "llvm/Support/TargetRegistry.h"
+#include "llvm/IR/LegacyPassManager.h"
+#include "llvm/Transforms/InstCombine/InstCombine.h"
+#include "llvm/Transforms/Scalar.h"
+#include "llvm/Transforms/Scalar/GVN.h"
+
 #include <exception>
 
 /* FIXME: for now, these are all zero, but we should do something else */
@@ -23,21 +32,26 @@
 
 code_buffer *code_buffer::create (std::string const & target)
 {
-    code_buffer *buf = new code_buffer (target);
+    auto tgtInfo = target_info::InfoForTarget (target);
+    if (tgtInfo == nullptr) {
+	return nullptr;
+    }
+
+    code_buffer *buf = new code_buffer (tgtInfo);
 
     return buf;
 }
 
-code_buffer::code_buffer (std::string const & target)
-  : _target(target_info::InfoForTarget(target)),
+code_buffer::code_buffer (target_info const *target)
+  : _target(target),
     _context(), _builder(this->_context), _module(nullptr),
   // initialize the register info
-    _regInfo(this->_target),
+    _regInfo(target),
     _regState(this->_regInfo)
 {
-    if (this->_target == nullptr) {
-	throw std::invalid_argument ("invalid target " + target);
-    }
+  // set up the target machine
+    llvm::Triple triple;
+    triple.setArch (target->arch);
 
   // initialize the standard types that we use
     this->i8Ty = llvm::IntegerType::get (this->_context, 8);
@@ -76,7 +90,30 @@ void code_buffer::beginModule (std::string const & src, int nClusters)
     this->_ssub64WO = nullptr;
     this->_smul64WO = nullptr;
 
+  // setup the pass manager
+    this->_passMngr = new llvm::legacy::FunctionPassManager (this->_module);
+
+  // Do simple "peephole" optimizations and bit-twiddling optzns.
+    this->_passMngr->add(llvm::createInstructionCombiningPass());
+  // Reassociate expressions.
+    this->_passMngr->add(llvm::createReassociatePass());
+  // Eliminate Common SubExpressions.
+    this->_passMngr->add(llvm::createGVNPass());
+  // Simplify the control flow graph (deleting unreachable blocks, etc).
+    this->_passMngr->add(llvm::createCFGSimplificationPass());
+
+    this->_passMngr->doInitialization();
+
 } // code_buffer::beginModule
+
+void code_buffer::endModule ()
+{
+    delete this->_passMngr;
+    this->_passMngr = nullptr;
+
+    delete this->_module;
+    this->_module = nullptr;
+}
 
 void code_buffer::beginCluster (llvm::Function *fn)
 {
@@ -236,7 +273,20 @@ void code_buffer::setupFragEntry (CFG::frag *frag, std::vector<llvm::PHINode *> 
 llvm::BasicBlock *code_buffer::getOverflowBB ()
 {
     if (this->_overflowBB == nullptr) {
+	auto saveBB = this->_builder.GetInsertBlock ();
 	this->_overflowBB = this->newBB ();
+	this->_builder.SetInsertPoint (this->_overflowBB);
+	auto fnTy = llvm::FunctionType::get (this->voidTy, false);	// void trap()
+	llvm::InlineAsm *trap =
+	    llvm::InlineAsm::get (
+		fnTy,
+		"int 4",
+		"",
+		true);
+	this->_builder.CreateCall (fnTy, trap);
+	this->_builder.CreateRetVoid ();
+      // restore current basic block
+	this->_builder.SetInsertPoint (this->_overflowBB);
     }
 
     return this->_overflowBB;
@@ -287,4 +337,15 @@ Value *code_buffer::castTy (Type *srcTy, Type *tgtTy, Value *v)
     }
 
 } // code_buffer::castTy
+
+
+// dump the current module to stderr
+void code_buffer::dump () const { this->_module->dump(); }
+
+// run the LLVM verifier on the module
+bool code_buffer::verify () const
+{
+    return llvm::verifyModule (*this->_module, &llvm::dbgs());
+
+}
 

@@ -12,6 +12,8 @@
 #include <iostream>
 #include <cstdlib>
 
+#include "llvm/Support/TargetSelect.h"
+
 void codegen (asdl::instream &inS);
 
 int main (int argc, char **argv)
@@ -20,6 +22,8 @@ int main (int argc, char **argv)
 	std::cerr << "usage: codegen <pkl-file>\n";
 	exit (1);
     }
+
+    llvm::InitializeNativeTarget ();
 
     asdl::file_instream inS(argv[1]);
     codegen (inS);

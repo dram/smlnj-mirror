@@ -13,6 +13,7 @@ Library
   structure Ex1
   structure Ex2
   structure Ex3
+  structure Ex4
 
 is
 
@@ -24,5 +25,8 @@ is
   ex1.sml
   ex2.sml
   ex3.sml
+  ex4.sml
   dump.sml
   load.sml
+  obj-desc.sml
+

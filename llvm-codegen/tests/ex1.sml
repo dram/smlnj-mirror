@@ -35,7 +35,7 @@ structure Ex1 =
       fun V id = C.VAR(v id)
 
       fun record (flds, x, k) = let
-	    val desc = II.<<(II.fromInt(length flds), 0w7)
+	    val desc = ObjDesc.record(length flds)
 	    in
 	      C.ALLOC(P.RECORD{desc = desc, mut = false}, flds, x, k)
 	    end

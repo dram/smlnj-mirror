@@ -12,12 +12,16 @@
 #ifndef _TARGET_INFO_HXX_
 #define _TARGET_INFO_HXX_
 
+#include "llvm/ADT/Triple.h"
+
 #include <string>
 
 #include "sml-registers.hxx"
 
 struct target_info {
     std::string name;			// the target's name
+    llvm::Triple::ArchType arch;	// LLVM's architecture specifier
+    std::string dataLayout;		// LLVM data layout string
     int wordSz;				// size in bits of ML word (should also be the same as
 					// the native pointer size)
     int numRegs;			// the number of SML registers used by the target

@@ -34,6 +34,12 @@ using Value = llvm::Value;
 using Type = llvm::Type;
 using Args_t = std::vector<llvm::Value *>;
 
+namespace llvm {
+    namespace legacy {
+	class FunctionPassManager;
+    }
+}
+
 namespace CFG {
     class frag;
     class cluster;
@@ -56,6 +62,7 @@ class code_buffer {
 
   // initialize the code buffer for a new module
     void beginModule (std::string const & src, int nClusters);
+    void endModule ();
 
   // mark the beginning/end of a cluster
     void beginCluster (llvm::Function *fn);
@@ -63,9 +70,6 @@ class code_buffer {
 
   // initialize the code buffer for a new fragment
     void beginFrag ();
-
-  // dump the current module to stderr
-    void dump () const { this->_module->dump(); }
 
   // get the IR builder
     llvm::IRBuilder<> build () { return this->_builder; }
@@ -481,15 +485,24 @@ class code_buffer {
 	return this->_builder.CreateExtractValue (v, i);
     }
 
+  /***** Debugging support *****/
+
+  // dump the current module to stderr
+    void dump () const;
+
+  // run the LLVM verifier on the module
+    bool verify () const;
+
   private:
     struct target_info const	*_target;
     llvm::LLVMContext		_context;
     llvm::IRBuilder<>		_builder;
     llvm::Module		*_module;
+    llvm::legacy::FunctionPassManager *_passMngr;
     llvm::Function		*_curFn;	// current LLVM function
     lvar_map_t<CFG::cluster>	_clusterMap;	// per-module mapping from labels to clusters
     lvar_map_t<CFG::frag>	_fragMap;	// pre-cluster map from labels to fragments
-    lvar_map_t<Value>	_vMap;		// per-fragment map from lvars to values
+    lvar_map_t<Value>		_vMap;		// per-fragment map from lvars to values
 
   // a basic block for the current cluster that will force an Overflow trap
     llvm::BasicBlock		*_overflowBB;
@@ -523,7 +536,7 @@ class code_buffer {
     }
 
   // constructor
-    code_buffer (std::string const &target);
+    code_buffer (struct target_info const *target);
 
 };
 
