@@ -53,7 +53,7 @@
  *               ISUB(v105, NUM(1:i64)) -> v44
  *               ALLOC(RAW_RECORD(, i64), [v105]) -> v119
  *               ALLOC(RECORD , [v109, v108, v119]) -> v120
- *                 APPLY (LABEL v87) (LABEL 92, VAR v120, VAR v107, VAR v106, VAR v44)
+ *                 GOTO v87 (LABEL 92, VAR v120, VAR v107, VAR v106, VAR v44)
  *            ELSE
  *               THROW (VAR v109) (VAR v109, VAR v108, VAR v107, VAR v106, NUM(1:i64))
  *
@@ -123,11 +123,10 @@ structure Ex4 =
 		  unkProb,
 		  (* then *)
 		    arith(P.ISUB, [V 105, num 1], v 44,
-		    rawRecord([V 105], v 109,
+		    rawRecord([V 105], v 119,
 		    record([V 109, V 108, V 119], v 120,
-		      C.APPLY(LAB 87,
-			[LAB 92, V 120, V 107, V 106, V 44],
-			[C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.NUMt 64])))),
+		      C.GOTO(v 87,
+			[LAB 92, V 120, V 107, V 106, V 44])))),
 		  (* else *)
 		    C.THROW(V 109,
 		      [V 109, V 108, V 107, V 106, num 1],
