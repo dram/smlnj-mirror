@@ -53,6 +53,9 @@ class reg_info {
   // memory-allocated registers.
     int index () const { return this->_idx; }
 
+  // return the stack offset for this register
+    int offset () const { return this->_offset; }
+
     std::string const &name () const { return this->_name; }
 
     bool isMachineReg () const { return (this->_idx >= 0); }
@@ -99,7 +102,6 @@ class sml_registers {
   private:
     bool	_hasBaseReg;			// true if target needs the base register to
 						// compute code-address values
-    int		_nRegs;				// number of registers supported by target
     int		_nHWRegs;			// the number of special registers that are
 						// hardware supported.
     reg_info *	_info[reg_info::NUM_REGS];	// information about the registers;
@@ -136,6 +138,8 @@ class reg_state {
     void copyFrom (reg_state const & cache);
 
   private:
+    llvm::Value * _basePtr;			// base-address of current function; used for
+						// computing position-independent labels
     llvm::Value * _val[reg_info::NUM_REGS];	// mapping from registers IDs to their current
 						// representation as an LLVM value.
 };

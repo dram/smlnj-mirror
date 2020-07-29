@@ -110,15 +110,17 @@ namespace CFG {
     {
 	Value *adr = buf->build().CreateInBoundsGEP (
 	    buf->asObjPtr(this->_v1->codegen(buf)),
-	    { buf->uConst(this->_v0) });
+	    { buf->i32Const(static_cast<int32_t>(this->_v0)) });
 	return buf->createLoad (buf->mlValueTy, adr);
 
     } // SELECT::codegen
 
     Value *OFFSET::codegen (code_buffer * buf)
     {
-	assert (false && "OFFSET");
-/* FIXME */return nullptr;
+	return buf->build().CreateInBoundsGEP (
+	    buf->asObjPtr(this->_v1->codegen(buf)),
+	    { buf->i32Const(static_cast<int32_t>(this->_v0)) });
+
     } // OFFSET::codegen
 
   /***** code generation for the `stm` type *****/
@@ -333,6 +335,7 @@ namespace CFG {
 
     void RCC::codegen (code_buffer * buf)
     {
+	assert (false && "RCC not yet implemented"); /* FIXME */
     } // RCC::codegen
 
 

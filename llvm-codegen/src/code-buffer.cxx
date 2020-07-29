@@ -282,23 +282,29 @@ void code_buffer::setupStdEntry (CFG::frag *frag)
   //
 
     llvm::Function *fn = this->_curFn;
-    int nExtra = this->_regInfo.numMachineRegs();
 
   // initialize the register state
-    for (int i = 0;  i < nExtra;  ++i) {
-	reg_info const *info = this->_regInfo.machineReg(i);
-	llvm::Argument *arg = this->_curFn->getArg(i);
+    for (int i = 0, hwIx = 0;  i < reg_info::NUM_REGS;  ++i) {
+	reg_info const *info = this->_regInfo.info(static_cast<sml_reg_id>(i));
+	if (info->isMachineReg()) {
+	    llvm::Argument *arg = this->_curFn->getArg(hwIx++);
 #ifndef NDEBUG
-	arg->setName (info->name());
+	    arg->setName (info->name());
 #endif
-	this->_regState.set (info->id(), arg);
+	    this->_regState.set (info->id(), arg);
+	}
+	else { // stack-allocated register
+	    this->_regState.set (info->id(), nullptr);
+	}
     }
 
     std::vector<CFG::param *> params = frag->get_params();
+    int nExtra = this->_regInfo.numMachineRegs();
     for (int i = 0;  i < params.size();  i++) {
 	this->insertVal (params[i]->get_0(), fn->getArg(nExtra + i));
     }
 
+// FIXME: need initialize the base pointer
 }
 
 void code_buffer::setupFragEntry (CFG::frag *frag, std::vector<llvm::PHINode *> &phiNodes)
@@ -319,6 +325,32 @@ void code_buffer::setupFragEntry (CFG::frag *frag, std::vector<llvm::PHINode *> 
 
 } // code_buffer::setupFragEntry
 
+// private function for loading a special register from memory
+Value *code_buffer::_loadMemReg (sml_reg_id r)
+{
+    auto info = this->_regInfo.info(r);
+    auto fp = this->_builder.CreateCall(this->_frameAddress(), { this->i32Const(0) });
+    auto adr = this->_builder.CreateBitCast(
+	this->_builder.CreateInBoundsGEP(fp, { this->iConst(info->offset()) }),
+	this->objPtrTy);
+
+    return this->_builder.CreateAlignedLoad (this->mlValueTy, adr, this->_wordSzB, info->name());
+
+} // code_buffer::_loadMemReg
+
+// private function for setting a special memory register
+void code_buffer::_storeMemReg (sml_reg_id r, Value *v)
+{
+    auto info = this->_regInfo.info(r);
+    auto fp = this->_builder.CreateCall(this->_frameAddress(), { this->i32Const(0) });
+    auto adr = this->_builder.CreateBitCast(
+	this->_builder.CreateInBoundsGEP(fp, { this->iConst(info->offset()) }),
+	this->objPtrTy);
+
+    this->_builder.CreateAlignedStore (v, adr, this->_wordSzB);
+
+} // code_buffer::_storeMemReg
+
 // return the basic-block that contains the Overflow trap generator
 llvm::BasicBlock *code_buffer::getOverflowBB ()
 {
@@ -330,7 +362,7 @@ llvm::BasicBlock *code_buffer::getOverflowBB ()
 	llvm::InlineAsm *trap =
 	    llvm::InlineAsm::get (
 		fnTy,
-		"int 4",
+		"int $$4",
 		"",
 		true);
 	this->_builder.CreateCall (fnTy, trap);

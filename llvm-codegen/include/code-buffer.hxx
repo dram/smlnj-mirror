@@ -102,10 +102,26 @@ class code_buffer {
     void setupFragEntry (CFG::frag *frag, std::vector<llvm::PHINode *> &phiNodes);
 
   // get the LLVM value that represents the specified SML register
-    Value *mlReg (sml_reg_id r) const { return this->_regState.get(r); }
+    Value *mlReg (sml_reg_id r)
+    {
+	Value *reg = this->_regState.get(r);
+	if (reg == nullptr) {
+	    return this->_loadMemReg(r);
+	} else {
+	    return reg;
+	}
+    }
 
   // assign a value to an SML register
-    void setMLReg (sml_reg_id r, Value *v) { this->_regState.set(r, v); }
+    void setMLReg (sml_reg_id r, Value *v)
+    {
+	Value *reg = this->_regState.get(r);
+	if (reg == nullptr) {
+	    return this->_storeMemReg(r, v);
+	} else {
+	    this->_regState.set(r, v);
+	}
+    }
 
   // save and restore the SML register state to a cache object
     void saveSMLRegState (reg_state & cache) { cache.copyFrom (this->_regState); }
@@ -128,14 +144,14 @@ class code_buffer {
     Type *bytePtrTy;	// "char *" type
     Type *voidTy;		// "void"
 
-    llvm::IntegerType *iType (int sz)
+    llvm::IntegerType *iType (int sz) const
     {
 	if (sz == 64) return this->i64Ty;
 	else if (sz == 32) return this->i32Ty;
 	else if (sz == 16) return this->i16Ty;
 	else return this->i8Ty;
     }
-    Type *fType (int sz)
+    Type *fType (int sz) const
     {
 	if (sz == 64) return this->f64Ty;
 	else return this->f32Ty;
@@ -177,31 +193,31 @@ class code_buffer {
 
 /** NOTE: we may be able to avoid needing the signed constants */
   // signed integer constant of specified bit size
-    llvm::ConstantInt *iConst (int sz, int64_t c)
+    llvm::ConstantInt *iConst (int sz, int64_t c) const
     {
 	return llvm::ConstantInt::getSigned (this->iType (sz), c);
     }
   // signed constant of native size
-    llvm::ConstantInt *iConst (int64_t c)
+    llvm::ConstantInt *iConst (int64_t c) const
     {
 	return llvm::ConstantInt::getSigned (this->intTy, c);
     }
-    llvm::ConstantInt *i32Const (int32_t n)
+    llvm::ConstantInt *i32Const (int32_t n) const
     {
 	return llvm::ConstantInt::getSigned (this->i32Ty, n);
     }
 
   // unsigned integer constant of specified bit size
-    llvm::ConstantInt *uConst (int sz, uint64_t c)
+    llvm::ConstantInt *uConst (int sz, uint64_t c) const
     {
 	return llvm::ConstantInt::get (this->iType (sz), c);
     }
   // unsigned constant of native size
-    llvm::ConstantInt *uConst (uint64_t c)
+    llvm::ConstantInt *uConst (uint64_t c) const
     {
 	return llvm::ConstantInt::get (this->intTy, c);
     }
-    llvm::ConstantInt *u32Const (uint32_t n)
+    llvm::ConstantInt *u32Const (uint32_t n) const
     {
 	return llvm::ConstantInt::get (this->i32Ty, n);
     }
@@ -289,7 +305,7 @@ class code_buffer {
     llvm::MDNode *overflowWeights ();
 
   // get intinsics; these are cached for the current module
-    llvm::Function *sadd32WOvflw ()
+    llvm::Function *sadd32WOvflw () const
     {
 	if (this->_sadd32WO == nullptr) {
 	    this->_sadd32WO =
@@ -297,7 +313,7 @@ class code_buffer {
 	}
 	return this->_sadd32WO;
     }
-    llvm::Function *ssub32WOvflw ()
+    llvm::Function *ssub32WOvflw () const
     {
 	if (this->_ssub32WO == nullptr) {
 	    this->_ssub32WO =
@@ -305,7 +321,7 @@ class code_buffer {
 	}
 	return this->_ssub32WO;
     }
-    llvm::Function *smul32WOvflw ()
+    llvm::Function *smul32WOvflw () const
     {
 	if (this->_smul32WO == nullptr) {
 	    this->_smul32WO =
@@ -313,7 +329,7 @@ class code_buffer {
 	}
 	return this->_smul32WO;
     }
-    llvm::Function *sadd64WOvflw ()
+    llvm::Function *sadd64WOvflw () const
     {
 	if (this->_sadd64WO == nullptr) {
 	    this->_sadd64WO =
@@ -321,7 +337,7 @@ class code_buffer {
 	}
 	return this->_sadd64WO;
     }
-    llvm::Function *ssub64WOvflw ()
+    llvm::Function *ssub64WOvflw () const
     {
 	if (this->_ssub64WO == nullptr) {
 	    this->_ssub64WO =
@@ -329,7 +345,7 @@ class code_buffer {
 	}
 	return this->_ssub64WO;
     }
-    llvm::Function *smul64WOvflw ()
+    llvm::Function *smul64WOvflw () const
     {
 	if (this->_smul64WO == nullptr) {
 	    this->_smul64WO =
@@ -337,28 +353,28 @@ class code_buffer {
 	}
 	return this->_smul64WO;
     }
-    llvm::Function *fabs32 ()
+    llvm::Function *fabs32 () const
     {
 	if (this->_fabs32 == nullptr) {
 	    this->_fabs32 = _getIntrinsic (llvm::Intrinsic::fabs, this->i32Ty);
 	}
 	return this->_fabs32;
     }
-    llvm::Function *fabs64 ()
+    llvm::Function *fabs64 () const
     {
 	if (this->_fabs64 == nullptr) {
 	    this->_fabs64 = _getIntrinsic (llvm::Intrinsic::fabs, this->i64Ty);
 	}
 	return this->_fabs64;
     }
-    llvm::Function *sqrt32 ()
+    llvm::Function *sqrt32 () const
     {
 	if (this->_sqrt32 == nullptr) {
 	    this->_sqrt32 = _getIntrinsic (llvm::Intrinsic::sqrt, this->i32Ty);
 	}
 	return this->_sqrt32;
     }
-    llvm::Function *sqrt64 ()
+    llvm::Function *sqrt64 () const
     {
 	if (this->_sqrt64 == nullptr) {
 	    this->_sqrt64 = _getIntrinsic (llvm::Intrinsic::sqrt, this->i64Ty);
@@ -520,25 +536,40 @@ class code_buffer {
     int64_t _wordSzB;
 
   // cached intrinsic functions
-    llvm::Function *_sadd32WO;		// @llvm.sadd.with.overflow.i32
-    llvm::Function *_ssub32WO;		// @llvm.ssub.with.overflow.i32
-    llvm::Function *_smul32WO;		// @llvm.smul.with.overflow.i32
-    llvm::Function *_sadd64WO;		// @llvm.sadd.with.overflow.i64
-    llvm::Function *_ssub64WO;		// @llvm.ssub.with.overflow.i64
-    llvm::Function *_smul64WO;		// @llvm.smul.with.overflow.i64
-    llvm::Function *_fabs32;		// @llvm.fabs.f32
-    llvm::Function *_fabs64;		// @llvm.fabs.f64
-    llvm::Function *_sqrt32;		// @llvm.sqrt.f32
-    llvm::Function *_sqrt64;		// @llvm.sqrt.f64
+    mutable llvm::Function *_frameAdr;		// @llvm.frameaddress
+    mutable llvm::Function *_sadd32WO;		// @llvm.sadd.with.overflow.i32
+    mutable llvm::Function *_ssub32WO;		// @llvm.ssub.with.overflow.i32
+    mutable llvm::Function *_smul32WO;		// @llvm.smul.with.overflow.i32
+    mutable llvm::Function *_sadd64WO;		// @llvm.sadd.with.overflow.i64
+    mutable llvm::Function *_ssub64WO;		// @llvm.ssub.with.overflow.i64
+    mutable llvm::Function *_smul64WO;		// @llvm.smul.with.overflow.i64
+    mutable llvm::Function *_fabs32;		// @llvm.fabs.f32
+    mutable llvm::Function *_fabs64;		// @llvm.fabs.f64
+    mutable llvm::Function *_sqrt32;		// @llvm.sqrt.f32
+    mutable llvm::Function *_sqrt64;		// @llvm.sqrt.f64
 
   // helper function for getting an intrinsic when it has not yet
   // been loaded for the current module.
   //
-    llvm::Function *_getIntrinsic (llvm::Intrinsic::ID id, Type *ty)
+    llvm::Function *_getIntrinsic (llvm::Intrinsic::ID id, Type *ty) const
     {
 	return llvm::Intrinsic::getDeclaration (
 	    this->_module, id, llvm::ArrayRef<Type *>(ty));
     }
+
+    llvm::Function *_frameAddress () const
+    {
+	if (this->_frameAdr == nullptr) {
+	    this->_frameAdr = _getIntrinsic (llvm::Intrinsic::frameaddress, this->bytePtrTy);
+	}
+	return this->_frameAdr;
+    }
+
+  // function for loading a special register from memory
+    Value *_loadMemReg (sml_reg_id r);
+
+  // function for setting a special memory register
+    void _storeMemReg (sml_reg_id r, Value *v);
 
   // constructor
     code_buffer (struct target_info const *target);

@@ -29,8 +29,9 @@ struct target_info {
     bool needsBasePtr;			// true if the target needs the module base address
 					// to compute code addresses.  Otherwise, we assume
 					// PC-relative addressing is supported.
-    int stkOffset[reg_info::NUM_REGS];	// will be non-zero for SML registers that are
-					// represented by a slot in the stack frame.
+    int stkOffset[reg_info::NUM_REGS];	// byte offset from stack pointer to location where
+					// the value is stored.  Will be non-zero only for SML
+					// registers that are represented in memory.
 
     static target_info const *InfoForTarget (std::string const &name);
 

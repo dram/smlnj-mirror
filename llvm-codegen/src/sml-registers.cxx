@@ -30,13 +30,12 @@ reg_info::reg_info (sml_reg_id id, int idx, int off)
 sml_registers::sml_registers (struct target_info const *target)
 {
     if (target == nullptr) {
-	this->_nRegs = 0;
+	this->_nHWRegs = 0;
 	return;
     }
 
   // initialize the register info for the target
     this->_hasBaseReg = target->needsBasePtr;
-    this->_nRegs = target->numRegs;
     for (int i = 0;  i < reg_info::NUM_REGS;  ++i) {
 	sml_reg_id id = static_cast<sml_reg_id>(i);
 	if ((! this->_hasBaseReg) && (id == sml_reg_id::BASE_PTR)) {
