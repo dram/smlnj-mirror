@@ -10,10 +10,11 @@ Library
   structure Dump
   structure Load
 
-  structure Ex1
-  structure Ex2
-  structure Ex3
-  structure Ex4
+  structure Ex1		(* id function *)
+  structure Ex2		(* list rev *)
+  structure Ex3		(* floating-point madd *)
+  structure Ex4		(* Int64 factorial *)
+  structure Ex5		(* try wrapper *)
 
 is
 
@@ -26,6 +27,7 @@ is
   ex2.sml
   ex3.sml
   ex4.sml
+  ex5.sml
   dump.sml
   load.sml
   obj-desc.sml

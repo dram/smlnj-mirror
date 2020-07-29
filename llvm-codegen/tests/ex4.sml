@@ -157,7 +157,7 @@ structure Ex4 =
 		    arith(P.IMUL, [rawSelect(0, C.SELECT(2, V 113)), V 110], v 42,
 		    C.LET(C.SELECT(0, V 113), (v 118, C.CNTt),
 		      C.THROW (V 118,
-			[V 118, V 117, V 112, V 111, V 42],
+			[V 118, C.SELECT(1, V 113), V 112, V 111, V 42],
 			[C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.NUMt 64])))
 		},
 	      frags = []
