@@ -23,7 +23,11 @@ int main (int argc, char **argv)
 	exit (1);
     }
 
-    llvm::InitializeNativeTarget ();
+    llvm::InitializeAllTargetInfos();
+    llvm::InitializeAllTargets();
+    llvm::InitializeAllTargetMCs();
+    llvm::InitializeAllAsmParsers();
+    llvm::InitializeAllAsmPrinters();
 
     asdl::file_instream inS(argv[1]);
     codegen (inS);
