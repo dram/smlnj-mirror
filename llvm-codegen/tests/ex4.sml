@@ -90,13 +90,16 @@ structure Ex4 =
       fun arith (oper, args, res, k) = C.ARITH(P.ARITH{oper=oper, sz=64}, args, (res, C.NUMt 64), k)
       fun rawSelect (i, v) = C.PURE(P.PURE_RAW_SUBSCRIPT{kind=P.INT, sz=64}, [v, num i])
       fun num n = C.NUM{iv=n, signed=true, sz=64}
-      fun attrs isC = {
-	      isCont = isC, alignHP = 8, needsBasePtr = true, hasTrapArith = false, hasRCC = false
+      fun fAttrs bp = { (* function attrs *)
+	      isCont = false, alignHP = 8, needsBasePtr = bp, hasTrapArith = false, hasRCC = false
+	    }
+      fun cAttrs bp = { (* contiuation attrs *)
+	      isCont = true, alignHP = 8, needsBasePtr = bp, hasTrapArith = false, hasRCC = false
 	    }
       val unkProb = 0
 
       val fn96 = C.Cluster{
-	      attrs = attrs false,
+	      attrs = fAttrs true,
 	      entry = C.Frag{
 		  lab = v 96,
 		  params = [
@@ -133,7 +136,10 @@ structure Ex4 =
 		      [C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.NUMt 64])))
 	    }
       val fn80 = C.Cluster{
-	      attrs = attrs false,
+	      attrs = { (* function attrs *)
+	          isCont = false, alignHP = 8, needsBasePtr = true,
+		  hasTrapArith = true, hasRCC = false
+	        },
 	      entry = C.Frag{
 		  lab = v 80,
 		  params = [
@@ -146,7 +152,7 @@ structure Ex4 =
 	      frags = [fn87]
 	    }
       val fn92 = C.Cluster{
-	      attrs = attrs true,
+	      attrs = cAttrs false,
 	      entry = C.Frag{
 		  lab = v 92,
 		  params = [

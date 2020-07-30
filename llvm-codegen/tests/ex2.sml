@@ -80,13 +80,16 @@ structure Ex2 =
 	    end
       fun pureOp (oper, args) = C.PURE(P.PURE_ARITH{oper=oper, sz=64}, args)
       fun num n = C.NUM{iv=n, signed=true, sz=64}
-      fun attrs isC = {
-	      isCont = isC, alignHP = 8, needsBasePtr = true, hasTrapArith = false, hasRCC = false
+      fun fAttrs bp = { (* function attrs *)
+	      isCont = false, alignHP = 8, needsBasePtr = bp, hasTrapArith = false, hasRCC = false
+	    }
+      fun cAttrs bp = { (* contiuation attrs *)
+	      isCont = true, alignHP = 8, needsBasePtr = bp, hasTrapArith = false, hasRCC = false
 	    }
       val unkProb = 0
 
       val fn130 = C.Cluster{
-	      attrs = attrs false,
+	      attrs = fAttrs true,
 	      entry = C.Frag{
 		  lab = v 130,
 		  params = [
@@ -102,7 +105,7 @@ structure Ex2 =
 	      frags = []
 	    }
       val fn115 = C.Cluster{
-	      attrs = attrs false,
+	      attrs = fAttrs true,
 	      entry = C.Frag{
 		  lab = v 115,
 		  params = [
@@ -136,7 +139,7 @@ structure Ex2 =
 		      [C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
 	    }
       val fn122 = C.Cluster{
-	      attrs = attrs false,
+	      attrs = fAttrs true,
 	      entry = C.Frag{
 		  lab = v 122,
 		  params = [

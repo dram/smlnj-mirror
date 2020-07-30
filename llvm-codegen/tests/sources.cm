@@ -19,7 +19,10 @@ Library
 is
 
   $/basis.cm
+(*
   $/asdl-lib.cm
+*)
+  /Users/jhr/Work/smlnj/sml-llvm/asdl/src/lib/sml/asdl-lib.cm
 
   cfg.cm
 

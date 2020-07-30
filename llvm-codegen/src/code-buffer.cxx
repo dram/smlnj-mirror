@@ -175,10 +175,6 @@ void code_buffer::beginCluster (llvm::Function *fn)
 
 void code_buffer::endCluster ()
 {
-    if (this->_overflowBB != nullptr) {
-/* FIXME: initialize the overflow BB */
-    }
-
 /* TODO: call GC code? */
 
 } // code_buffer::endCluster
@@ -264,11 +260,11 @@ Args_t code_buffer::createArgs (int n)
 
 // setup the incoming arguments for a standard function entry
 //
-void code_buffer::setupStdEntry (CFG::frag *frag)
+void code_buffer::setupStdEntry (CFG::attrs *attrs, CFG::frag *frag)
 {
   // the order of incoming arguments is:
   //
-  //	1. special registers: ALLOC_PTR, LIMIT_PTR, STORE_PTR, EXN_HNDLR, VAR_PTR, BASE_PTR
+  //	1. special registers: ALLOC_PTR, LIMIT_PTR, STORE_PTR, EXN_HNDLR, VAR_PTR
   //
   //    2. STD_LINK, STD_CLOS, STD_CONT
   //
@@ -282,6 +278,12 @@ void code_buffer::setupStdEntry (CFG::frag *frag)
   //
 
     llvm::Function *fn = this->_curFn;
+
+  // initialize the base pointer (if necessary)
+    if (attrs->get_needsBasePtr() && this->_regInfo.usesBasePtr()) {
+      // STDLINK holds the function's address and is the first non-special argument.
+	this->_regState.setBasePtr (this->_curFn->getArg(this->_regInfo.numMachineRegs()));
+    }
 
   // initialize the register state
     for (int i = 0, hwIx = 0;  i < reg_info::NUM_REGS;  ++i) {
@@ -325,9 +327,51 @@ void code_buffer::setupFragEntry (CFG::frag *frag, std::vector<llvm::PHINode *> 
 
 } // code_buffer::setupFragEntry
 
+Value *code_buffer::evalLabel (llvm::Function *fn)
+{
+    Value *basePtr = this->_regState.getBasePtr();
+
+#ifdef XXX
+    if (basePtr == nullptr) {
+	return this->createBitCast(fn, this->mlValueTy);
+    }
+    else {
+llvm::dbgs() << "\n## evalLabel (" << *fn << ")\n";
+      // compute basePtr + (lab - curFn)
+	return this->_builder.CreateIntToPtr(
+	    this->createAdd (
+		this->_builder.CreatePtrToInt(basePtr, this->intTy),
+		this->createSub (
+		    this->_builder.CreatePtrToInt(fn, this->intTy),
+		    this->_builder.CreatePtrToInt(this->_curFn, this->intTy))),
+	    this->mlValueTy);
+    }
+#else
+      // compute basePtr + (lab - curFn)
+	auto delta = this->createSub (
+	    this->_builder.CreatePtrToInt(fn, this->intTy),
+	    this->_builder.CreatePtrToInt(this->_curFn, this->intTy));
+	auto adr = this->createAdd (this->_builder.CreatePtrToInt(basePtr, this->intTy), delta);
+	return this->_builder.CreateIntToPtr(adr, this->mlValueTy);
+#endif
+
+} // code_buffer::evalLabel
+
+#define USE_INLINE_ASM_TO_ACCESS_STK
+
 // private function for loading a special register from memory
 Value *code_buffer::_loadMemReg (sml_reg_id r)
 {
+#ifdef USE_INLINE_ASM_TO_ACCESS_STK
+    auto info = this->_regInfo.info(r);
+    auto fnTy = llvm::FunctionType::get (this->mlValueTy, false); // i64Ty *load();
+    llvm::InlineAsm *load = llvm::InlineAsm::get (
+	fnTy,
+	"movq " + std::to_string(info->offset()) + "(%rsp),$0", // "movq offset(%rsp),dst"
+	"=r",
+	false);
+    return this->_builder.CreateCall (fnTy, load);
+#else
     auto info = this->_regInfo.info(r);
     auto fp = this->_builder.CreateCall(this->_frameAddress(), { this->i32Const(0) });
     auto adr = this->_builder.CreateBitCast(
@@ -335,12 +379,23 @@ Value *code_buffer::_loadMemReg (sml_reg_id r)
 	this->objPtrTy);
 
     return this->_builder.CreateAlignedLoad (this->mlValueTy, adr, this->_wordSzB, info->name());
+#endif
 
 } // code_buffer::_loadMemReg
 
 // private function for setting a special memory register
 void code_buffer::_storeMemReg (sml_reg_id r, Value *v)
 {
+#ifdef USE_INLINE_ASM_TO_ACCESS_STK
+    auto info = this->_regInfo.info(r);
+    auto fnTy = llvm::FunctionType::get (this->voidTy, { this->mlValueTy }, false); // void store(i64Ty *v);
+    llvm::InlineAsm *store = llvm::InlineAsm::get (
+	fnTy,
+	"movq $0," + std::to_string(info->offset()) + "(%rsp)", // "movq src,offset(%rsp)"
+	"r",
+	true);
+    this->_builder.CreateCall (fnTy, store, { v });
+#else
     auto info = this->_regInfo.info(r);
     auto fp = this->_builder.CreateCall(this->_frameAddress(), { this->i32Const(0) });
     auto adr = this->_builder.CreateBitCast(
@@ -348,6 +403,7 @@ void code_buffer::_storeMemReg (sml_reg_id r, Value *v)
 	this->objPtrTy);
 
     this->_builder.CreateAlignedStore (v, adr, this->_wordSzB);
+#endif
 
 } // code_buffer::_storeMemReg
 
@@ -368,7 +424,7 @@ llvm::BasicBlock *code_buffer::getOverflowBB ()
 	this->_builder.CreateCall (fnTy, trap);
 	this->_builder.CreateRetVoid ();
       // restore current basic block
-	this->_builder.SetInsertPoint (this->_overflowBB);
+	this->_builder.SetInsertPoint (saveBB);
     }
 
     return this->_overflowBB;

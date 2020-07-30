@@ -105,13 +105,16 @@ structure Ex5 =
 	      C.ALLOC(P.RAW_RECORD{desc = desc, kind = P.INT, sz = 64}, flds, x, k)
 	    end
       fun num n = C.NUM{iv=n, signed=true, sz=64}
-      fun attrs isC = {
-	      isCont = isC, alignHP = 8, needsBasePtr = true, hasTrapArith = false, hasRCC = false
+      fun fAttrs bp = { (* function attrs *)
+	      isCont = false, alignHP = 8, needsBasePtr = bp, hasTrapArith = false, hasRCC = false
+	    }
+      fun cAttrs bp = { (* contiuation attrs *)
+	      isCont = true, alignHP = 8, needsBasePtr = bp, hasTrapArith = false, hasRCC = false
 	    }
       val unkProb = 0
 
       val fn333 = C.Cluster{
-	      attrs = attrs false,
+	      attrs = fAttrs true,
 	      entry = C.Frag{
 		  lab = v 333,
 		  params = [
@@ -127,7 +130,7 @@ structure Ex5 =
 	      frags = []
 	    }
       val fn307 = C.Cluster{
-	      attrs = attrs false,
+	      attrs = fAttrs true,
 	      entry = C.Frag{
 		  lab = v 307,
 		  params = [
@@ -142,7 +145,7 @@ structure Ex5 =
 	      frags = []
 	    }
       val fn314 = C.Cluster{
-	      attrs = attrs false,
+	      attrs = fAttrs true,
 	      entry = C.Frag{
 		  lab = v 314,
 		  params = [
@@ -162,7 +165,7 @@ structure Ex5 =
 	      frags = []
 	    }
       val fn321 = C.Cluster{
-	      attrs = attrs false,
+	      attrs = fAttrs false,
 	      entry = C.Frag{
 		  lab = v 321,
 		  params = [
@@ -180,7 +183,7 @@ structure Ex5 =
 	      frags = []
 	    }
       val fn329 = C.Cluster{
-	      attrs = attrs true,
+	      attrs = cAttrs false,
 	      entry = C.Frag{
 		  lab = v 329,
 		  params = [

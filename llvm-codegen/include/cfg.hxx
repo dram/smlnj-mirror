@@ -1894,7 +1894,7 @@ namespace CFG {
             this->_v_body = v;
         }
         void init (code_buffer *buf, bool isEntry);
-        void codegen (code_buffer *buf, bool isEntry);
+        void codegen (code_buffer * buf, cluster *cluster);
 	llvm::BasicBlock *bb() const { return this->_v_body->bb(); }
 	Type *paramTy (int i) { return this->_phiNodes[i]->getType(); }
 	void addIncoming (int i, Value *v, llvm::BasicBlock *bblk)

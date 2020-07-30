@@ -27,7 +27,6 @@ enum class sml_reg_id {
 	STORE_PTR,		// points to list of store records
 	EXN_HNDLR,		// exception handler
 	VAR_PTR,		// var_ptr register
-	BASE_PTR,		// points to base address of module (optional)
 	GC_LINK,
 	NUM_REGS
 };
@@ -91,6 +90,9 @@ class sml_registers {
   //
     sml_registers (struct target_info const *target);
 
+  // does the target require the base address register?
+    bool usesBasePtr () const { return this->_usesBasePtr; }
+
     reg_info const *info (sml_reg_id id) const { return this->_info[static_cast<int>(id)]; }
 
   // the number of special registers that are mapped to machine registers and thus
@@ -100,12 +102,12 @@ class sml_registers {
     reg_info const *machineReg (int idx) const { return this->_hwRegs[idx]; }
 
   private:
-    bool	_hasBaseReg;			// true if target needs the base register to
+    bool	_usesBasePtr;			// true if target needs the base register to
 						// compute code-address values
     int		_nHWRegs;			// the number of special registers that are
 						// hardware supported.
     reg_info *	_info[reg_info::NUM_REGS];	// information about the registers;
-						// _info[BASE_PTR] will be null if _hasBaseReg
+						// _info[BASE_PTR] will be null if _usesBasePtr
 						// is false.  Otherwise, _info[i] will be
 						// non-null for 0 <= i < _nRegs.
     reg_info *	_hwRegs[reg_info::NUM_REGS];	// info about the SML registers that are
@@ -134,6 +136,12 @@ class reg_state {
     {
 	this->_val[static_cast<int>(r)] = v;
     }
+
+  // get the LLVM value of the base-address pointer
+    llvm::Value *getBasePtr () const { return this->_basePtr; }
+
+  // set the base-address pointer
+    void setBasePtr (llvm::Value *v) { this->_basePtr = v; }
 
     void copyFrom (reg_state const & cache);
 

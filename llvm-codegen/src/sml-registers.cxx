@@ -16,7 +16,7 @@
 // the extra arguments that are added to thread the state of the reserved
 // registers through the control-flow graph.
 static std::string RegNames[reg_info::NUM_REGS] = {
-	"allocPtr", "limitPtr", "storePtr", "exnPtr", "varPtr", "basePtr", "gcLink"
+	"allocPtr", "limitPtr", "storePtr", "exnPtr", "varPtr", "gcLink"
     };
 
 reg_info::reg_info (sml_reg_id id, int idx, int off)
@@ -35,13 +35,10 @@ sml_registers::sml_registers (struct target_info const *target)
     }
 
   // initialize the register info for the target
-    this->_hasBaseReg = target->needsBasePtr;
+    this->_usesBasePtr = target->usesBasePtr;
     for (int i = 0;  i < reg_info::NUM_REGS;  ++i) {
 	sml_reg_id id = static_cast<sml_reg_id>(i);
-	if ((! this->_hasBaseReg) && (id == sml_reg_id::BASE_PTR)) {
-	    this->_info[i] = nullptr;
-	}
-	else if (target->stkOffset[i] != 0) {
+	if (target->stkOffset[i] != 0) {
 	    this->_info[i] = reg_info::createStkReg (id, target->stkOffset[i]);
 	}
 	else {
@@ -67,6 +64,7 @@ sml_registers::sml_registers (struct target_info const *target)
 /***** reg_state methods *****/
 
 reg_state::reg_state (sml_registers const & info)
+  : _basePtr(nullptr)
 {
   // we initialize all of the registers to nullptr
     for (int i = 0;  i < reg_info::NUM_REGS;  i++) {
@@ -76,6 +74,7 @@ reg_state::reg_state (sml_registers const & info)
 
 void reg_state::copyFrom (reg_state const & cache)
 {
+  /* NOTE: we do not copy the _basePtr, because it is invariant */
     for (int i = 0;  i < reg_info::NUM_REGS;  i++) {
 	this->_val[i] = cache._val[i];
     }

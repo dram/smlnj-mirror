@@ -43,6 +43,7 @@ namespace llvm {
 
 namespace CFG {
     class frag;
+    class attrs;
     class cluster;
 }
 
@@ -96,7 +97,7 @@ class code_buffer {
   // prefix of the vector with the values of the SML registers
     Args_t createArgs (int n);
 
-    void setupStdEntry (CFG::frag *frag);
+    void setupStdEntry (CFG::attrs *attrs, CFG::frag *frag);
 
   // setup the parameter lists for a fragment
     void setupFragEntry (CFG::frag *frag, std::vector<llvm::PHINode *> &phiNodes);
@@ -239,6 +240,9 @@ class code_buffer {
 	    return got->second;
 	}
     }
+
+  // evaluate a LABEL (which maps to the given function) to an absolute address
+    Value *evalLabel (llvm::Function *fn);
 
   // insert a binding into the label-to-fragment map
     void insertFrag (LambdaVar::lvar lab, CFG::frag *frag)

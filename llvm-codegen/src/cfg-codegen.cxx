@@ -72,7 +72,7 @@ namespace CFG {
 
 	assert (cluster && "Unknown cluster label");
 
-	return buf->createBitCast(cluster->fn(), buf->mlValueTy);
+	return buf->evalLabel (cluster->fn());
 
     } // LABEL::codegen
 
@@ -341,14 +341,14 @@ namespace CFG {
 
   /***** code generation for the `frag` type *****/
 
-    void frag::codegen (code_buffer * buf, bool isEntry)
+    void frag::codegen (code_buffer * buf, cluster *cluster)
     {
 	buf->beginFrag ();
 
 	buf->setInsertPoint (this->_v_body->bb());
 
-	if (isEntry) {
-	    buf->setupStdEntry (this);
+	if (cluster != nullptr) {
+	    buf->setupStdEntry (cluster->get_attrs(), this);
 	} else {
 	    buf->setupFragEntry (this, this->_phiNodes);
 	}
@@ -372,9 +372,9 @@ namespace CFG {
 	}
 
       // generate code for the cluster
-	this->_v_entry->codegen (buf, true);
+	this->_v_entry->codegen (buf, this);
 	for (auto it = this->_v_frags.begin();  it != this->_v_frags.end();  ++it) {
-	    (*it)->codegen (buf, false);
+	    (*it)->codegen (buf, nullptr);
 	}
 
 	buf->endCluster ();

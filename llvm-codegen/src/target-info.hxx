@@ -26,7 +26,7 @@ struct target_info {
 					// the native pointer size)
     int numRegs;			// the number of SML registers used by the target
     int numCalleeSaves;			// the number of registers used for callee-save values
-    bool needsBasePtr;			// true if the target needs the module base address
+    bool usesBasePtr;			// true if the target needs the module base address
 					// to compute code addresses.  Otherwise, we assume
 					// PC-relative addressing is supported.
     int stkOffset[reg_info::NUM_REGS];	// byte offset from stack pointer to location where
