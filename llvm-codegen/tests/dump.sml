@@ -16,7 +16,8 @@ structure Dump =
 	    ("ex2.pkl", Ex2.cu),
 	    ("ex3.pkl", Ex3.cu),
 	    ("ex4.pkl", Ex4.cu),
-	    ("ex5.pkl", Ex5.cu)
+	    ("ex5.pkl", Ex5.cu),
+	    ("ex6.pkl", Ex6.cu)
 	  ]
 
   end

@@ -15,6 +15,7 @@ Library
   structure Ex3		(* floating-point madd *)
   structure Ex4		(* Int64 factorial *)
   structure Ex5		(* try wrapper *)
+  structure Ex6		(* switch *)
 
 is
 
@@ -31,6 +32,7 @@ is
   ex3.sml
   ex4.sml
   ex5.sml
+  ex6.sml
   dump.sml
   load.sml
   obj-desc.sml
