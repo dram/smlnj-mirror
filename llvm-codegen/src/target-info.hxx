@@ -32,6 +32,8 @@ struct target_info {
     int stkOffset[reg_info::NUM_REGS];	// byte offset from stack pointer to location where
 					// the value is stored.  Will be non-zero only for SML
 					// registers that are represented in memory.
+    int callGCOffset;			// stack offset of call-gc entry address
+    unsigned int allocSlopSzb;		// byte size of allocation slop
 
     static target_info const *InfoForTarget (std::string const &name);
 

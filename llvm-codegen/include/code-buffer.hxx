@@ -42,6 +42,7 @@ namespace llvm {
 }
 
 namespace CFG {
+    class param;
     class frag;
     class attrs;
     class cluster;
@@ -129,8 +130,9 @@ class code_buffer {
     void restoreSMLRegState (reg_state const & cache) { this->_regState.copyFrom (cache); }
 
   // target parameters
-    int wordSzInBytes () { return this->_wordSzB; }
-    bool is64Bit () { return (this->_wordSzB == 8); }
+    int wordSzInBytes () const { return this->_wordSzB; }
+    bool is64Bit () const { return (this->_wordSzB == 8); }
+    target_info const *targetInfo () const { return this->_target; }
 
   // cached types
     llvm::IntegerType *i8Ty;
@@ -286,6 +288,12 @@ class code_buffer {
 	return llvm::BasicBlock::Create (this->_context, "", this->_curFn);
     }
 
+  // return the block address for a basic block in the current function
+    llvm::BlockAddress *blockAddr (llvm::BasicBlock *bb)
+    {
+	return llvm::BlockAddress::get (this->_curFn, bb);
+    }
+
   // set the current block to insert instructions in
     void setInsertPoint (llvm::BasicBlock *bb)
     {
@@ -297,6 +305,10 @@ class code_buffer {
     {
 	return this->_builder.GetInsertBlock ();
     }
+
+  // Create a GC invocation where `params` are the live variables and `frag` is nullptr
+  // for GC checks at standard entries and is the fragment for GC checks at known functions.
+    llvm::BasicBlock *invokeGC (std::vector<CFG::param *> const &params, CFG::frag *frag);
 
   // return the basic-block that contains the Overflow trap generator
     llvm::BasicBlock *getOverflowBB ();
@@ -508,6 +520,21 @@ class code_buffer {
     {
 	return this->_builder.CreateExtractValue (v, i);
     }
+    llvm::BranchInst *createBr (llvm::BasicBlock *bb)
+    {
+	return this->_builder.CreateBr (bb);
+    }
+
+  /***** Code generation *****/
+
+  // dump assembly code to stdout
+    void dumpAsm () const;
+
+  // dump assembly code to a file
+    void dumpAsm (std::string const &stem) const;
+
+  // dump machine code to an object file
+    void dumpObj (std::string const &stem) const;
 
   /***** Debugging support *****/
 
@@ -521,9 +548,7 @@ class code_buffer {
     struct target_info const	*_target;
     llvm::LLVMContext		_context;
     llvm::IRBuilder<>		_builder;
-    llvm::Module		*_module;
-    llvm::TargetMachine		*_tgtMachine;
-    llvm::legacy::FunctionPassManager *_passMngr;
+    class mc_gen		*_gen;
     llvm::Function		*_curFn;	// current LLVM function
     lvar_map_t<CFG::cluster>	_clusterMap;	// per-module mapping from labels to clusters
     lvar_map_t<CFG::frag>	_fragMap;	// pre-cluster map from labels to fragments

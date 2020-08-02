@@ -10,17 +10,12 @@
 
 #include "code-buffer.hxx"
 #include "target-info.hxx"
+#include "mc-gen.hxx"
 #include "cfg.hxx" // for argument setup
 
+#include "llvm/IR/GlobalValue.h"
 #include "llvm/IR/InlineAsm.h"
 #include "llvm/IR/Verifier.h"
-#include "llvm/Target/TargetMachine.h"
-#include "llvm/Support/TargetRegistry.h"
-#include "llvm/IR/LegacyPassManager.h"
-#include "llvm/Transforms/InstCombine/InstCombine.h"
-#include "llvm/Transforms/Scalar.h"
-#include "llvm/Transforms/Scalar/GVN.h"
-#include "llvm/Support/FileSystem.h"
 
 #include <exception>
 
@@ -45,28 +40,13 @@ code_buffer *code_buffer::create (std::string const & target)
 
 code_buffer::code_buffer (target_info const *target)
   : _target(target),
-    _context(), _builder(this->_context), _module(nullptr),
+    _context(), _builder(this->_context),
+    _gen(nullptr),
   // initialize the register info
     _regInfo(target),
     _regState(this->_regInfo)
 {
-  // set up the target machine
-    llvm::Triple triple;
-    triple.setArch (target->arch);
-
-    std::string errMsg;
-//    auto tgt = llvm::TargetRegistry::lookupTarget(triple.getTriple(), errMsg);
-    auto tgt = llvm::TargetRegistry::lookupTarget("x86_64-apple-macosx10.15.0", errMsg);
-    assert (tgt && "unable to find target");
-
-    llvm::TargetOptions tgtOpts;
-    tgtOpts.GuaranteedTailCallOpt = true;
-    this->_tgtMachine = tgt->createTargetMachine(
-	triple.getTriple(),
-	"generic",
-	"",
-	tgtOpts,
-	llvm::None);
+    this->_gen = new mc_gen (this->_context, target),
 
   // initialize the standard types that we use
     this->i8Ty = llvm::IntegerType::get (this->_context, 8);
@@ -91,7 +71,7 @@ code_buffer::code_buffer (target_info const *target)
 
 void code_buffer::beginModule (std::string const & src, int nClusters)
 {
-    this->_module = new llvm::Module (src, this->_context);
+    this->_gen->beginModule (std);
 
   // prepare the label-to-cluster map
     this->_clusterMap.clear();
@@ -105,64 +85,16 @@ void code_buffer::beginModule (std::string const & src, int nClusters)
     this->_ssub64WO = nullptr;
     this->_smul64WO = nullptr;
 
-  // tell the module about the target machine
-    this->_module->setTargetTriple(this->_tgtMachine->getTargetTriple().getTriple());
-    this->_module->setDataLayout(this->_tgtMachine->createDataLayout());
-
-  // setup the pass manager
-    this->_passMngr = new llvm::legacy::FunctionPassManager (this->_module);
-
-  // Do simple "peephole" optimizations and bit-twiddling optzns.
-    this->_passMngr->add(llvm::createInstructionCombiningPass());
-  // Reassociate expressions.
-    this->_passMngr->add(llvm::createReassociatePass());
-  // Eliminate Common SubExpressions.
-    this->_passMngr->add(llvm::createGVNPass());
-  // Simplify the control flow graph (deleting unreachable blocks, etc).
-    this->_passMngr->add(llvm::createCFGSimplificationPass());
-
-    this->_passMngr->doInitialization();
-
 } // code_buffer::beginModule
 
 void code_buffer::optimize ()
 {
-  // run the function optimizations over every function
-    for (auto it = this->_module->begin();  it != this->_module->end();  ++it) {
-	this->_passMngr->run (*it);
-    }
-
-}
-
-void code_buffer::dumpAsm (std::string const &asmFile)
-{
-    std::error_code EC;
-    llvm::raw_fd_ostream asmStrm(asmFile, EC, llvm::sys::fs::OF_None);
-    if (EC) {
-	llvm::errs() << "unable to open assembly output file\n";
-	return;
-    }
-
-    llvm::legacy::PassManager pass;
-    if (this->_tgtMachine->addPassesToEmitFile(pass, asmStrm, nullptr, llvm::CGFT_AssemblyFile))
-    {
-	llvm::errs() << "unable to generate assembly code\n";
-	return;
-    }
-
-    pass.run(*this->_module);
-
-    asmStrm.flush();
-
+    this->_gen->optimize ();
 }
 
 void code_buffer::endModule ()
 {
-    delete this->_passMngr;
-    this->_passMngr = nullptr;
-
-    delete this->_module;
-    this->_module = nullptr;
+    this->_gen->endModule();
 }
 
 void code_buffer::beginCluster (llvm::Function *fn)
@@ -331,46 +263,65 @@ Value *code_buffer::evalLabel (llvm::Function *fn)
 {
     Value *basePtr = this->_regState.getBasePtr();
 
-#ifdef XXX
     if (basePtr == nullptr) {
-	return this->createBitCast(fn, this->mlValueTy);
+      // define an alias for `(lab - 0)`
+	auto alias = llvm::GlobalAlias::create (
+	    this->intTy,
+	    0,
+	    llvm::GlobalValue::PrivateLinkage,
+	    fn->getName() + "_alias",
+	    llvm::ConstantExpr::getIntToPtr(
+		llvm::ConstantExpr::getSub (
+		    llvm::ConstantExpr::getPtrToInt(fn, this->intTy),
+		    llvm::Constant::getNullValue(this->intTy)),
+		this->mlValueTy),
+	    this->_module);
+	alias->setUnnamedAddr (llvm::GlobalValue::UnnamedAddr::Global);
+	return alias;
     }
     else {
-llvm::dbgs() << "\n## evalLabel (" << *fn << ")\n";
+      // define an alias for the value `(lab - curFn)`
+	auto delta = llvm::GlobalAlias::create (
+	    this->intTy,
+	    0,
+	    llvm::GlobalValue::PrivateLinkage,
+	    fn->getName() + "_sub_" + this->_curFn->getName(),
+	    llvm::ConstantExpr::getIntToPtr(
+		llvm::ConstantExpr::getSub (
+		    llvm::ConstantExpr::getPtrToInt(fn, this->intTy),
+		    llvm::ConstantExpr::getPtrToInt(this->_curFn, this->intTy)),
+		this->mlValueTy),
+	    this->_module);
+	delta->setUnnamedAddr (llvm::GlobalValue::UnnamedAddr::Global);
+
       // compute basePtr + (lab - curFn)
 	return this->_builder.CreateIntToPtr(
 	    this->createAdd (
 		this->_builder.CreatePtrToInt(basePtr, this->intTy),
-		this->createSub (
-		    this->_builder.CreatePtrToInt(fn, this->intTy),
-		    this->_builder.CreatePtrToInt(this->_curFn, this->intTy))),
+		delta),
 	    this->mlValueTy);
     }
-#else
-      // compute basePtr + (lab - curFn)
-	auto delta = this->createSub (
-	    this->_builder.CreatePtrToInt(fn, this->intTy),
-	    this->_builder.CreatePtrToInt(this->_curFn, this->intTy));
-	auto adr = this->createAdd (this->_builder.CreatePtrToInt(basePtr, this->intTy), delta);
-	return this->_builder.CreateIntToPtr(adr, this->mlValueTy);
-#endif
 
 } // code_buffer::evalLabel
 
 #define USE_INLINE_ASM_TO_ACCESS_STK
 
+inline Value *_loadFromStack (code_buffer *buf, int offset)
+{
+    auto fnTy = llvm::FunctionType::get (buf->mlValueTy, false); // i64Ty *load();
+    llvm::InlineAsm *load = llvm::InlineAsm::get (
+	fnTy,
+	"movq " + std::to_string(offset) + "(%rsp),$0", // "movq offset(%rsp),dst"
+	"=r",
+	false);
+    return buf->build().CreateCall (fnTy, load);
+}
+
 // private function for loading a special register from memory
 Value *code_buffer::_loadMemReg (sml_reg_id r)
 {
 #ifdef USE_INLINE_ASM_TO_ACCESS_STK
-    auto info = this->_regInfo.info(r);
-    auto fnTy = llvm::FunctionType::get (this->mlValueTy, false); // i64Ty *load();
-    llvm::InlineAsm *load = llvm::InlineAsm::get (
-	fnTy,
-	"movq " + std::to_string(info->offset()) + "(%rsp),$0", // "movq offset(%rsp),dst"
-	"=r",
-	false);
-    return this->_builder.CreateCall (fnTy, load);
+    return _loadFromStack (this, this->_regInfo.info(r)->offset());
 #else
     auto info = this->_regInfo.info(r);
     auto fp = this->_builder.CreateCall(this->_frameAddress(), { this->i32Const(0) });
@@ -406,6 +357,73 @@ void code_buffer::_storeMemReg (sml_reg_id r, Value *v)
 #endif
 
 } // code_buffer::_storeMemReg
+
+llvm::BasicBlock *code_buffer::invokeGC (std::vector<CFG::param *> const &params, CFG::frag *frag)
+{
+    llvm::BasicBlock *saveBB = this->_builder.GetInsertBlock ();
+    llvm::BasicBlock *bb = this->newBB();
+
+    this->_builder.SetInsertPoint (bb);
+
+  // get the address of the "call-gc" entry
+    Value *callGCFn = _loadFromStack (this, this->_target->callGCOffset);
+
+/* FIXME: need to save extra roots/integer registers/floating-point registers */
+    Value *linkReg = this->lookupVal (params[0]->get_0());
+    Value *closReg = this->lookupVal (params[1]->get_0());
+    Value *contReg = this->lookupVal (params[2]->get_0());
+    Value *argReg = this->lookupVal (params[3]->get_0());
+    int numCalleeSaves = this->targetInfo()->numCalleeSaves;
+    Value *calleeSaveReg[numCalleeSaves];
+    for (int i = 0;  i < numCalleeSaves;  ++i) {
+	calleeSaveReg[i] = this->lookupVal (params[4 + i]->get_0());
+    }
+
+  // setup the GC arguments (not counting extras)
+    int numGCArgs = 4 + this->targetInfo()->numCalleeSaves;
+    std::vector<Type *> gcArgTys = this->createParamTys (numGCArgs);
+    Args_t gcArgs = this->createArgs (numGCArgs);
+  // STD_LINK
+    gcArgTys.push_back (this->mlValueTy);
+    gcArgs.push_back (linkReg);
+  // STD_CLOS
+    gcArgTys.push_back (this->mlValueTy);
+    gcArgs.push_back (closReg);
+  // STD_CONT
+    gcArgTys.push_back (this->mlValueTy);
+    gcArgs.push_back (contReg);
+  // STD_ARG
+    gcArgTys.push_back (this->mlValueTy);
+    gcArgs.push_back (argReg);
+  // general-purpose callee saves
+    for (int i = 0;  i < numCalleeSaves; ++i) {
+	gcArgTys.push_back (this->mlValueTy);
+	gcArgs.push_back (calleeSaveReg[i]);	/* FIXME */
+    }
+
+  // call the garbage collector
+    auto fnTy = llvm::FunctionType::get (this->voidTy, gcArgTys, false);
+    auto call = this->_builder.CreateCall (
+	fnTy,
+	this->_builder.CreateBitCast(callGCFn, fnTy->getPointerTo()),
+	gcArgs);
+    call->setCallingConv (llvm::CallingConv::JWA);
+    call->setTailCallKind (llvm::CallInst::TCK_NoTail);
+
+  // transfer control back to the limit test
+    if (frag != nullptr) {
+      // restore the roots, etc
+	this->createBr (frag->bb());
+    } else {
+/* jump to param[0] */
+	assert (false && "return to std entry not implemented yet");
+    }
+
+    this->_builder.SetInsertPoint (saveBB);
+
+    return bb;
+
+} // code_buffer::invokeGC
 
 // return the basic-block that contains the Overflow trap generator
 llvm::BasicBlock *code_buffer::getOverflowBB ()
@@ -476,14 +494,14 @@ Value *code_buffer::castTy (Type *srcTy, Type *tgtTy, Value *v)
 
 } // code_buffer::castTy
 
+void code_buffer::dumpAsm () const { this->_gen->dumpCode ("-", true); }
+
+void code_buffer::dumpAsm (std::string const &stem) const { this->_gen->dumpCode (stem, true); }
+
+void code_buffer::dumpObj (std::string const &stem) const { this->_gen->dumpCode (stem, false); }
 
 // dump the current module to stderr
-void code_buffer::dump () const { this->_module->dump(); }
+void code_buffer::dump () const { this->_gen->dump(); }
 
 // run the LLVM verifier on the module
-bool code_buffer::verify () const
-{
-    return llvm::verifyModule (*this->_module, &llvm::dbgs());
-
-}
-
+bool code_buffer::verify () const { this->_gen->verify(); }

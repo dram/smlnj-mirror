@@ -17,10 +17,11 @@
 #       --llvm-src <path>       Specify path to LLVM source tree relative to the
 #                               llvm-codegen directory [default: llvm-10.0.0.src]
 #
-#       --build-dir <path>      Specify name of build directory relative to the
-#                               llvm-codegen directory [default: llvm-build]
+#	--release		Build a "release" build in llvm-release-build
+#				[default: "debug" build in llvm-build]
 #
 
+BUILD_TYPE=Debug
 FORCE=no
 LLVM_SRC=llvm-10.0.0.src
 LLVM_BUILD=llvm-build
@@ -35,7 +36,7 @@ case `uname -s` in
 esac
 
 usage() {
-  echo "usage: build-llvm.sh [--force] [-np <n>] [--llvm-src <path>] [--build-dir <path>]"
+  echo "usage: build-llvm.sh [--force] [-np <n>] [--llvm-src <path>] [--release_build]"
   echo ""
   echo "    --help              Generate help message"
   echo ""
@@ -48,8 +49,7 @@ usage() {
   echo "    --llvm-src <path>   Specify path to LLVM source tree relative to the"
   echo "                        llvm-codegen directory [default: $LLVM_SRC]"
   echo ""
-  echo "    --build-dir <path>  Specify name of build directory relative to the"
-  echo "                        llvm-codegen directory [default: $LLVM_BUILD]"
+  echo "    --release           Build a "release" build in llvm-release-build"
 
   exit $1
 }
@@ -76,6 +76,10 @@ while [ "$#" != "0" ] ; do
       else
 	usage 1
       fi ;;
+    --release)
+      LLVM_BUILD=llvm-release-build
+      BUILD_TYPE=Release
+      ;;
     --build-dir)
       if [ $# -ge 1 ] ; then
 	LLVM_BUILD=$1
@@ -88,7 +92,7 @@ while [ "$#" != "0" ] ; do
 done
 
 CMAKE_DEFS="\
-  -DCMAKE_BUILD_TYPE=Debug \
+  -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
   -DCMAKE_INSTALL_PREFIX=../llvm \
   -DLLVM_TARGETS_TO_BUILD=X86;AArch64 \
   -DLLVM_ENABLE_OCAMLDOC=OFF \
