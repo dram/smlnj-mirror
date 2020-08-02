@@ -95,7 +95,18 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 == Recent updates
 
 //--------------------------------------------------------------------
-[2019/07/22]::
+[2020/08/02]::
++
+Fixed bug bugref:269[] (`Word64.fromString` causes an `Overflow` for
+greater than 2^32^-1).  This bug was the result of constants from the
+32-bit version of the code not getting updated for the 64-bit version.
+Scanning of both hexadecimal and octal representations of both integers
+and words were affected.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2020/07/22]::
 +
 Added an additional lowering pass for the `STREQL` primop.  This
 primop is generated to implement pattern matching against string
@@ -117,7 +128,7 @@ owner:cs.uchicago.edu/~jhr[John Reppy]
 == Version 110.98; 2020/07/16
 
 //--------------------------------------------------------------------
-[2019/07/10]::
+[2020/07/10]::
 +
 Implemented https://github.com/SMLFamily/BasisLibrary/wiki/2020-001-Addition-of-Universal-module[
 Basis Library proposal 2020-001 (Addition of Universal module)].
