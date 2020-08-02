@@ -57,6 +57,7 @@ structure Ex1 =
 		      (v 79, C.PTRt), (v 38, C.PTRt), (v 60, C.CNTt), (v 61, C.PTRt),
 		      (v 62, C.PTRt), (v 63, C.PTRt), (v 45, C.PTRt)
 		    ],
+		  allocChk = SOME 0w0,
 		  body = record ([C.LABEL(v 64)], v 95,
 		    record ([V 95], v 96,
 		      C.THROW (V 60,
@@ -73,6 +74,7 @@ structure Ex1 =
 		      (v 86, C.PTRt), (v 85, C.PTRt), (v 84, C.CNTt),
 		      (v 83, C.PTRt), (v 82, C.PTRt), (v 81, C.PTRt), (v 80, C.PTRt)
 		    ],
+		  allocChk = SOME 0w0,
 		  body = record ([C.LABEL(v 71)], v 94,
 		    C.THROW (V 84,
 		      [V 84, V 83, V 82, V 81, V 94],
@@ -88,6 +90,7 @@ structure Ex1 =
 		      (v 93, C.PTRt), (v 92, C.PTRt), (v 91, C.CNTt), (v 90, C.PTRt),
 		      (v 89, C.PTRt), (v 88, C.PTRt), (v 87, C.PTRt)
 		    ],
+		  allocChk = SOME 0w0,
 		  body = C.APPLY(V 91,
 		    [V 91, V 90, V 89, V 88, V 87],
 		    [C.PTRt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])

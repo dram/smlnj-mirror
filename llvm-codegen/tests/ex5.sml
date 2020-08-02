@@ -121,6 +121,7 @@ structure Ex5 =
 		      (v 334, C.PTRt), (v 263, C.PTRt), (v 303, C.CNTt), (v 304, C.PTRt),
 		      (v 305, C.PTRt), (v 306, C.PTRt), (v 279, C.PTRt)
 		    ],
+		  allocChk = SOME 0w0,
 		  body = record ([LAB 307], v 377,
 		    record ([V 377], v 378,
 		      C.THROW (V 303,
@@ -137,6 +138,7 @@ structure Ex5 =
 		      (v 341, C.PTRt), (v 340, C.PTRt), (v 339, C.CNTt), (v 338, C.PTRt),
 		      (v 337, C.PTRt), (v 336, C.PTRt), (v 335, C.PTRt)
 		    ],
+		  allocChk = SOME 0w0,
 		  body = record ([LAB 314], v 376,
 		    C.THROW (V 339,
 		      [V 339, V 338, V 337, V 336, V 376],
@@ -153,6 +155,7 @@ structure Ex5 =
 		      (v 346, C.PTRt), (v 345, C.PTRt), (v 344, C.FUNt), (v 343, C.FUNt),
 		      (v 342, C.PTRt)
 		    ],
+		  allocChk = SOME 0w0,
 		  body = C.LET(C.LOOKER(P.GET_HDLR, []), (v 293, C.FUNt),
 		    record([LAB 321, V 343, V 293, V 348, V 347, V 346, V 345], v 365,
 		    setHdlr(V 365,
@@ -172,6 +175,7 @@ structure Ex5 =
 		      (v 357, C.PTRt), (v 356, C.PTRt), (v 355, C.CNTt), (v 354, C.PTRt),
 		      (v 353, C.PTRt), (v 352, C.PTRt), (v 351, C.PTRt)
 		    ],
+		  allocChk = SOME 0w0,
 		  body = setHdlr(C.SELECT(2, V 356),
 		    C.LET(C.SELECT(0, V 356), (v 364, C.FUNt),
 		      C.APPLY(V 364, [
@@ -190,6 +194,7 @@ structure Ex5 =
 		      (v 370, C.PTRt), (v 369, C.PTRt), (v 368, C.PTRt), (v 367, C.PTRt),
 		      (v 366, C.PTRt)
 		    ],
+		  allocChk = SOME 0w0,
 		  body = setHdlr(C.SELECT(0, V 369),
 		    C.LET(C.SELECT(1, V 369), (v 373, C.CNTt),
 		      C.THROW(V 373,

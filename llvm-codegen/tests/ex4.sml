@@ -106,6 +106,7 @@ structure Ex4 =
 		      (v 97, C.PTRt), (v 40, C.PTRt), (v 76, C.CNTt), (v 77, C.PTRt),
 		      (v 78, C.PTRt), (v 79, C.PTRt), (v 53, C.PTRt)
 		    ],
+		  allocChk = SOME 0w0,
 		  body = record ([LAB 80], v 121,
 		    record ([V 121], v 122,
 		      C.THROW (V 76,
@@ -120,20 +121,20 @@ structure Ex4 =
 		  (v 109, C.CNTt), (v 108, C.PTRt), (v 107, C.PTRt),
 		  (v 106, C.PTRt), (v 105, C.NUMt 64)
 		],
-	      body = C.CHK_GC(NONE,
-		C.BRANCH(
-		  P.CMP{oper=P.GT, signed=true, sz=64}, [V 105, num 1],
-		  unkProb,
-		  (* then *)
-		    arith(P.ISUB, [V 105, num 1], v 44,
-		    rawRecord([V 105], v 119,
-		    record([V 109, V 108, V 119], v 120,
-		      C.GOTO(v 87,
-			[LAB 92, V 120, V 107, V 106, V 44])))),
-		  (* else *)
-		    C.THROW(V 109,
-		      [V 109, V 108, V 107, V 106, num 1],
-		      [C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.NUMt 64])))
+	      allocChk = SOME 0w0,
+	      body = C.BRANCH(
+		P.CMP{oper=P.GT, signed=true, sz=64}, [V 105, num 1],
+		unkProb,
+		(* then *)
+		  arith(P.ISUB, [V 105, num 1], v 44,
+		  rawRecord([V 105], v 119,
+		  record([V 109, V 108, V 119], v 120,
+		    C.GOTO(v 87,
+		      [LAB 92, V 120, V 107, V 106, V 44])))),
+		(* else *)
+		  C.THROW(V 109,
+		    [V 109, V 108, V 107, V 106, num 1],
+		    [C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.NUMt 64]))
 	    }
       val fn80 = C.Cluster{
 	      attrs = { (* function attrs *)
@@ -147,6 +148,7 @@ structure Ex4 =
 		      (v 101, C.PTRt), (v 100, C.PTRt), (v 99, C.PTRt),
 		      (v 98, C.NUMt 64)
 		    ],
+		  allocChk = NONE,
 		  body = C.GOTO (v 87, [V 102, V 101, V 100, V 99, V 98])
 		},
 	      frags = [fn87]
@@ -159,6 +161,7 @@ structure Ex4 =
 		      (v 114, C.PTRt), (v 113, C.PTRt), (v 112, C.PTRt),
 		      (v 111, C.PTRt), (v 110, C.NUMt 64)
 		    ],
+		  allocChk = SOME 0w0,
 		  body =
 		    arith(P.IMUL, [rawSelect(0, C.SELECT(2, V 113)), V 110], v 42,
 		    C.LET(C.SELECT(0, V 113), (v 118, C.CNTt),

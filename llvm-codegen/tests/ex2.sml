@@ -96,6 +96,7 @@ structure Ex2 =
 		      (v 131, C.PTRt), (v 31, C.PTRt), (v 111, C.CNTt), (v 112, C.PTRt),
 		      (v 113, C.PTRt), (v 114, C.PTRt), (v 53, C.PTRt)
 		    ],
+		  allocChk = SOME 0w0,
 		  body = record ([LAB 115], v 156,
 		    record ([V 156], v 157,
 		      C.THROW (V 111,
@@ -112,6 +113,7 @@ structure Ex2 =
 		      (v 138, C.PTRt), (v 137, C.PTRt), (v 136, C.CNTt),
 		      (v 135, C.PTRt), (v 134, C.PTRt), (v 133, C.PTRt), (v 132, C.PTRt)
 		    ],
+		  allocChk = SOME 0w0,
 		  body = record ([LAB 122], v 155,
 		    C.THROW (V 136,
 		      [V 136, V 135, V 134, V 133, V 155],
@@ -125,18 +127,18 @@ structure Ex2 =
 		  (v 151, C.PTRt), (v 150, C.PTRt), (v 149, C.CNTt),
 		  (v 148, C.PTRt), (v 147, C.PTRt), (v 146, C.PTRt)
 		],
-	      body = C.CHK_GC(NONE,
-		C.BRANCH(
-		  P.CMP{oper=P.EQL, signed=false, sz=64},
-		  [pureOp(P.ANDB, [V 151, num 1]), num 0],
-		  unkProb,
-		  (* then *)
-		    record([C.SELECT(0, V 151), V 150], v 154,
-		      C.GOTO(v 129, [C.SELECT(1, V 151), V 154, V 149, V 148, V 147, V 146])),
-		  (* else *)
-		    C.THROW(V 149,
-		      [V 149, V 148, V 147, V 146, V 150],
-		      [C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
+	      allocChk = SOME 0w0,
+	      body = C.BRANCH(
+		P.CMP{oper=P.EQL, signed=false, sz=64},
+		[pureOp(P.ANDB, [V 151, num 1]), num 0],
+		unkProb,
+		(* then *)
+		  record([C.SELECT(0, V 151), V 150], v 154,
+		    C.GOTO(v 129, [C.SELECT(1, V 151), V 154, V 149, V 148, V 147, V 146])),
+		(* else *)
+		  C.THROW(V 149,
+		    [V 149, V 148, V 147, V 146, V 150],
+		    [C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.PTRt]))
 	    }
       val fn122 = C.Cluster{
 	      attrs = fAttrs true,
@@ -146,6 +148,7 @@ structure Ex2 =
 		      (v 145, C.PTRt), (v 144, C.PTRt), (v 143, C.CNTt), (v 142, C.PTRt),
 		      (v 141, C.PTRt), (v 140, C.PTRt), (v 139, C.PTRt)
 		    ],
+		  allocChk = NONE,
 		  body = C.GOTO (v 129, [V 139, num 1, V 143, V 142, V 141, V 140])
 		},
 	      frags = [fn129]

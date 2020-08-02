@@ -68,6 +68,7 @@ structure Ex3 =
 		      (v 81, C.PTRt), (v 44, C.PTRt), (v 69, C.CNTt), (v 70, C.PTRt),
 		      (v 71, C.PTRt), (v 72, C.PTRt), (v 57, C.PTRt)
 		    ],
+		  allocChk = SOME 0w0,
 		  body = record ([LAB 73], v 91,
 		    record ([V 91], v 92,
 		      C.THROW (V 69,
@@ -85,6 +86,7 @@ structure Ex3 =
 		      (v 87, C.PTRt), (v 86, C.PTRt), (v 85, C.PTRt),
 		      (v 84, C.FLTt 64), (v 83, C.FLTt 64), (v 82, C.FLTt 64)
 		    ],
+		  allocChk = SOME 0w0,
 		  body = C.THROW (V 88, [
 		        V 88, V 87, V 86, V 85,
 			pureOp(P.FADD, [pureOp(P.FMUL, [V 84, V 83]), V 82])
