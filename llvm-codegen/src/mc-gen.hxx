@@ -8,42 +8,32 @@
 /// \author John Reppy
 ///
 
-#ifdef _MC_GEN_HXX_
+#ifndef _MC_GEN_HXX_
 #define _MC_GEN_HXX_
 
 #include <memory>
 
+#include "llvm/IR/Module.h"
+#include "llvm/IR/LLVMContext.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/IR/LegacyPassManager.h"
 
 class mc_gen {
   public:
 
-    mc_gen (llvm::Context &context, target_info const *target);
-
-  // dump the current module to stderr
-    void dump () const
-    {
-#ifndef RELEASE_BUILD
-	this->_module->dump();
-#endif
-    }
-
-  // run the LLVM verifier on the module
-    bool verify () const { return llvm::verifyModule (*this->_module, &llvm::dbgs()); }
+    mc_gen (llvm::LLVMContext &context, struct target_info const *target);
 
   // per-module initialization and finalization
-    void beginModule (std::string const & src);
+    void beginModule (std::string const & src, llvm::Module *module);
     void endModule ();
 
   // run the per-function optimizations over the functions of the module
-    void optimize ();
+    void optimize (llvm::Module *module);
 
   // dump the code to an output file
-    void dumpCode (std::string const & stem, bool asmCode = true) const;
+    void dumpCode (llvm::Module *module, std::string const & stem, bool asmCode = true) const;
 
   private:
-    std::unique_ptr<llvm::Module> _module;
     std::unique_ptr<llvm::TargetMachine> _tgtMachine;
     std::unique_ptr<llvm::legacy::FunctionPassManager> _passMngr;
 

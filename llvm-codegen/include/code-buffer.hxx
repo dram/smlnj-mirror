@@ -18,7 +18,6 @@
 
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/LLVMContext.h"
-#include "llvm/IR/Module.h"
 #include "llvm/IR/Value.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
@@ -549,6 +548,7 @@ class code_buffer {
     llvm::LLVMContext		_context;
     llvm::IRBuilder<>		_builder;
     class mc_gen		*_gen;
+    llvm::Module		*_module;	// current module
     llvm::Function		*_curFn;	// current LLVM function
     lvar_map_t<CFG::cluster>	_clusterMap;	// per-module mapping from labels to clusters
     lvar_map_t<CFG::frag>	_fragMap;	// pre-cluster map from labels to fragments
@@ -580,11 +580,7 @@ class code_buffer {
   // helper function for getting an intrinsic when it has not yet
   // been loaded for the current module.
   //
-    llvm::Function *_getIntrinsic (llvm::Intrinsic::ID id, Type *ty) const
-    {
-	return llvm::Intrinsic::getDeclaration (
-	    this->_module, id, llvm::ArrayRef<Type *>(ty));
-    }
+    llvm::Function *_getIntrinsic (llvm::Intrinsic::ID id, Type *ty) const;
 
     llvm::Function *_frameAddress () const
     {

@@ -71,7 +71,9 @@ code_buffer::code_buffer (target_info const *target)
 
 void code_buffer::beginModule (std::string const & src, int nClusters)
 {
-    this->_gen->beginModule (std);
+    this->_module = new llvm::Module (src, this->_context);
+
+    this->_gen->beginModule (src, this->_module);
 
   // prepare the label-to-cluster map
     this->_clusterMap.clear();
@@ -89,12 +91,13 @@ void code_buffer::beginModule (std::string const & src, int nClusters)
 
 void code_buffer::optimize ()
 {
-    this->_gen->optimize ();
+    this->_gen->optimize (this->_module);
 }
 
 void code_buffer::endModule ()
 {
     this->_gen->endModule();
+    delete this->_module;
 }
 
 void code_buffer::beginCluster (llvm::Function *fn)
@@ -494,14 +497,34 @@ Value *code_buffer::castTy (Type *srcTy, Type *tgtTy, Value *v)
 
 } // code_buffer::castTy
 
-void code_buffer::dumpAsm () const { this->_gen->dumpCode ("-", true); }
+llvm::Function *code_buffer::_getIntrinsic (llvm::Intrinsic::ID id, Type *ty) const
+{
+    return llvm::Intrinsic::getDeclaration (
+	this->_module, id, llvm::ArrayRef<Type *>(ty));
+}
 
-void code_buffer::dumpAsm (std::string const &stem) const { this->_gen->dumpCode (stem, true); }
+void code_buffer::dumpAsm () const { this->_gen->dumpCode (this->_module, "-", true); }
 
-void code_buffer::dumpObj (std::string const &stem) const { this->_gen->dumpCode (stem, false); }
+void code_buffer::dumpAsm (std::string const &stem) const
+{
+    this->_gen->dumpCode (this->_module,stem, true);
+}
+
+void code_buffer::dumpObj (std::string const &stem) const
+{
+    this->_gen->dumpCode (this->_module,stem, false);
+}
 
 // dump the current module to stderr
-void code_buffer::dump () const { this->_gen->dump(); }
+void code_buffer::dump () const
+{
+#ifndef RELEASE_BUILD
+    this->_module->dump();
+#endif
+}
 
 // run the LLVM verifier on the module
-bool code_buffer::verify () const { this->_gen->verify(); }
+bool code_buffer::verify () const
+{
+    return llvm::verifyModule (*this->_module, &llvm::dbgs());
+}

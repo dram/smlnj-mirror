@@ -8,6 +8,7 @@
 /// \author John Reppy
 ///
 
+#include "target-info.hxx"
 #include "mc-gen.hxx"
 
 #include "llvm/Support/TargetRegistry.h"
@@ -18,7 +19,7 @@
 
 #include "llvm/ExecutionEngine/Orc/JITTargetMachineBuilder.h"
 
-mc_gen::mc_gen (llvm::Context &context, target_info const *target)
+mc_gen::mc_gen (llvm::LLVMContext &context, target_info const *target)
 {
   // set up the target machine builder
     llvm::Triple triple("x86_64-apple-macosx10.15.0");
@@ -38,16 +39,14 @@ mc_gen::mc_gen (llvm::Context &context, target_info const *target)
 
 } // mc_gen constructor
 
-void mc_gen::beginModule (std::string const & src)
+void mc_gen::beginModule (std::string const & src, llvm::Module *module)
 {
-    this->_module = std::make_unique<llvm::Module> (src, this->_context);
-
   // tell the module about the target machine
-    this->_module->setTargetTriple(this->_tgtMachine->getTargetTriple().getTriple());
-    this->_module->setDataLayout(this->_tgtMachine->createDataLayout());
+    module->setTargetTriple(this->_tgtMachine->getTargetTriple().getTriple());
+    module->setDataLayout(this->_tgtMachine->createDataLayout());
 
   // setup the pass manager
-    this->_passMngr = new llvm::legacy::FunctionPassManager (this->_module);
+    this->_passMngr = std::make_unique<llvm::legacy::FunctionPassManager> (module);
 
   // Do simple "peephole" optimizations and bit-twiddling optzns.
     this->_passMngr->add(llvm::createInstructionCombiningPass());
@@ -64,20 +63,19 @@ void mc_gen::beginModule (std::string const & src)
 
 void mc_gen::endModule ()
 {
-    delete this->_passMngr->reset();
-    delete this->_module->reset();
+    this->_passMngr.reset();
 }
 
-void mc_gen::optimize ()
+void mc_gen::optimize (llvm::Module *module)
 {
   // run the function optimizations over every function
-    for (auto it = this->_module->begin();  it != this->_module->end();  ++it) {
+    for (auto it = module->begin();  it != module->end();  ++it) {
 	this->_passMngr->run (*it);
     }
 
 }
 
-void dumpCode (std::string const & stem, bool asmCode) const
+void mc_gen::dumpCode (llvm::Module *module, std::string const & stem, bool asmCode) const
 {
     std::string outFile;
     if (stem != "-") {
@@ -101,7 +99,7 @@ void dumpCode (std::string const & stem, bool asmCode) const
 	return;
     }
 
-    pass.run(*this->_module);
+    pass.run(*module);
 
     outStrm.flush();
 

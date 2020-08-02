@@ -16,7 +16,7 @@ VPATH =		../src
 INCLS =		$(wildcard ../include/*hxx) $(wildcard ../../include/asdl/*hxx)
 
 SRCS =		cfg.cxx lambda-var.cxx \
-		codegen.cxx code-buffer.cxx sml-registers.cxx target-info.cxx \
+		codegen.cxx code-buffer.cxx mc-gen.cxx sml-registers.cxx target-info.cxx \
 		cfg-init.cxx cfg-codegen.cxx cfg-prim-codegen.cxx
 
 OBJS =		$(SRCS:%.cxx=%.o)
