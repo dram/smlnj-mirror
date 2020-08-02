@@ -10,6 +10,7 @@
 ///
 
 #include "cfg.hxx"
+#include "target-info.hxx"
 
 namespace CFG {
 
@@ -134,14 +135,6 @@ namespace CFG {
 
     } // LET::codegen
 
-    void CHK_GC::codegen (code_buffer * buf)
-    {
-/* FIXME */
-      // compile continuation
-	this->_v1->codegen(buf);
-
-    } // CHK_GC::codegen
-
     void ALLOC::codegen (code_buffer * buf)
     {
 	Args_t args;
@@ -229,7 +222,7 @@ namespace CFG {
 	}
 
       // generate the control transfer
-	buf->build().CreateBr (dstFrag->bb());
+	buf->createBr (dstFrag->bb());
 
       // add outgoing values as incoming values to the destination's
       // phi nodes
@@ -249,12 +242,32 @@ namespace CFG {
 
     void SWITCH::codegen (code_buffer * buf)
     {
-      // the number of non-default cases; we use the last case as the default
-	int nCases = this->_v1.size() - 1;
-
       // evaluate the argument
 // FIXME: do we need to downcast to 32 bits?
 	Value *arg = this->_v0->codegen(buf);
+
+#ifdef EXPLICIT_JUMP_TABLE
+	int nCases = this->_v1.size();
+
+	std::vector<llvm::BasicBlock *>blks;
+	blks.reserve(nCases);
+	std::vector<llvm::Constant *>offsets;
+	addrs.reserve(nCases);
+	for (auto it = this->_v1.begin();  it != this->_v1.end();  ++it) {
+	    blks.push_back ((*it)->bb());
+	    auto offset = llvm::ConstantExpr::getSub (
+		llvm::ConstantExpr::getPtrToInt(buf->blockAddr((*it)->bb())),
+		llvm::ConstantExpr::getPtrToInt(this->_curFn, this->intTy));
+	    offsets.push_back (offset);
+	}
+      // allocate the array of offsets
+	auto jmpTbl = llvm::ConstantArray::get (
+	    llvm::ArrayType::get(buf->intTy, nCases),
+	    offsets);
+	buf->blockAddr()
+#else
+      // the number of non-default cases; we use the last case as the default
+	int nCases = this->_v1.size() - 1;
 
       // create the switch; note that we use the last case as the default
 	llvm::SwitchInst *sw = buf->build().CreateSwitch(arg, this->_v1[nCases]->bb(), nCases);
@@ -263,6 +276,7 @@ namespace CFG {
 	for (int i = 0;  i < nCases;  i++) {
 	    sw->addCase (buf->iConst(32, i), this->_v1[i]->bb());
 	}
+#endif
 
       // generate the code for the basic blocks
 	reg_state saveRegs;
@@ -351,6 +365,33 @@ namespace CFG {
 	    buf->setupStdEntry (cluster->get_attrs(), this);
 	} else {
 	    buf->setupFragEntry (this, this->_phiNodes);
+	}
+
+      // generate the heap-limit check, if required
+	if (! this->_v_allocChk.isEmpty()) {
+	    unsigned int amt = this->_v_allocChk.valOf();
+	    unsigned int allocSlop = buf->targetInfo()->allocSlopSzb;
+	    Value *limitTst;
+	    if (amt > allocSlop) {
+		limitTst = buf->createICmp(llvm::ICmpInst::ICMP_UGT,
+		    buf->createAdd (
+			buf->mlReg(sml_reg_id::ALLOC_PTR),
+			buf->uConst(amt - allocSlop)),
+		    buf->asInt (buf->mlReg(sml_reg_id::LIMIT_PTR)));
+	    } else {
+		limitTst = buf->createICmp(llvm::ICmpInst::ICMP_UGT,
+		    buf->asInt (buf->mlReg(sml_reg_id::ALLOC_PTR)),
+		    buf->asInt (buf->mlReg(sml_reg_id::LIMIT_PTR)));
+	    }
+	    llvm::BasicBlock *nextBB = buf->newBB();
+	    llvm::BasicBlock *callGCBB =
+// TODO: for the entry fragment, we can use the link register to get back to the
+// beginning of the function.  This allows us to merge GC invocations for multiple
+// functions to reduce code size
+//		buf->invokeGC (this->_v_params, (cluster != nullptr) ? this : nullptr);
+		buf->invokeGC (this->_v_params, this);
+	    buf->build().CreateCondBr(limitTst, callGCBB, nextBB, buf->branchProb(1));
+	    buf->setInsertPoint (nextBB);
 	}
 
       // generate code for the fragment

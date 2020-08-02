@@ -35,16 +35,6 @@ namespace CFG {
 
     } // LET::init
 
-    void CHK_GC::init (code_buffer * buf, bool blkEntry)
-    {
-	this->_initBB (buf, blkEntry);
-
-      // continue initialization
-/* FIXME: the continuation of a CHK_GC node will need to have a BB, once we implement GC checks */
-	this->_v1->init (buf, false);
-
-    } // CHK_GC::init
-
     void ALLOC::init (code_buffer * buf, bool blkEntry)
     {
 	this->_initBB (buf, blkEntry);

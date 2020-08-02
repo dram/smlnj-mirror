@@ -13,7 +13,7 @@ LD_FLAGS =	-L../../lib -L/opt/local/include
 LIBS =		-lasdl
 
 LLVM_LD_FLAGS =	$(shell ../llvm/bin/llvm-config --ldflags)
-LLVM_LIBS =	$(shell ../llvm/bin/llvm-config --libs x86 aarch64) \
+LLVM_LIBS =	$(shell ../llvm/bin/llvm-config --libs x86 aarch64 orcjit) \
 		$(shell ../llvm/bin/llvm-config --system-libs)
 
 CODEGEN_OBJS =	$(wildcard ../build/*.o)

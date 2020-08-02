@@ -663,54 +663,50 @@ structure CFGFilePickle : CFGPICKLE
               write_exp (outS, x0);
               write_param (outS, x1);
               write_stm (outS, x2))
-            | CFG.CHK_GC(x0, x1) => (
-              ASDLFilePickle.writeTag8 (outS, 0w2);
-              writeOption ASDLFilePickle.writeInt (outS, x0);
-              write_stm (outS, x1))
             | CFG.ALLOC(x0, x1, x2, x3) => (
-              ASDLFilePickle.writeTag8 (outS, 0w3);
+              ASDLFilePickle.writeTag8 (outS, 0w2);
               CFG_PrimFilePickle.write_alloc (outS, x0);
               writeSeq write_exp (outS, x1);
               LambdaVarFilePickle.write_lvar (outS, x2);
               write_stm (outS, x3))
             | CFG.APPLY(x0, x1, x2) => (
-              ASDLFilePickle.writeTag8 (outS, 0w4);
+              ASDLFilePickle.writeTag8 (outS, 0w3);
               write_exp (outS, x0);
               writeSeq write_exp (outS, x1);
               writeSeq write_ty (outS, x2))
             | CFG.THROW(x0, x1, x2) => (
-              ASDLFilePickle.writeTag8 (outS, 0w5);
+              ASDLFilePickle.writeTag8 (outS, 0w4);
               write_exp (outS, x0);
               writeSeq write_exp (outS, x1);
               writeSeq write_ty (outS, x2))
             | CFG.GOTO(x0, x1) => (
-              ASDLFilePickle.writeTag8 (outS, 0w6);
+              ASDLFilePickle.writeTag8 (outS, 0w5);
               LambdaVarFilePickle.write_lvar (outS, x0);
               writeSeq write_exp (outS, x1))
             | CFG.SWITCH(x0, x1) => (
-              ASDLFilePickle.writeTag8 (outS, 0w7);
+              ASDLFilePickle.writeTag8 (outS, 0w6);
               write_exp (outS, x0);
               writeSeq write_stm (outS, x1))
             | CFG.BRANCH(x0, x1, x2, x3, x4) => (
-              ASDLFilePickle.writeTag8 (outS, 0w8);
+              ASDLFilePickle.writeTag8 (outS, 0w7);
               CFG_PrimFilePickle.write_branch (outS, x0);
               writeSeq write_exp (outS, x1);
               write_probability (outS, x2);
               write_stm (outS, x3);
               write_stm (outS, x4))
             | CFG.ARITH(x0, x1, x2, x3) => (
-              ASDLFilePickle.writeTag8 (outS, 0w9);
+              ASDLFilePickle.writeTag8 (outS, 0w8);
               CFG_PrimFilePickle.write_arith (outS, x0);
               writeSeq write_exp (outS, x1);
               write_param (outS, x2);
               write_stm (outS, x3))
             | CFG.SETTER(x0, x1, x2) => (
-              ASDLFilePickle.writeTag8 (outS, 0w10);
+              ASDLFilePickle.writeTag8 (outS, 0w9);
               CFG_PrimFilePickle.write_setter (outS, x0);
               writeSeq write_exp (outS, x1);
               write_stm (outS, x2))
             | CFG.RCC{reentrant, linkage, proto, args, results, live, k} => (
-              ASDLFilePickle.writeTag8 (outS, 0w11);
+              ASDLFilePickle.writeTag8 (outS, 0w10);
               ASDLFilePickle.writeBool (outS, reentrant);
               ASDLFilePickle.writeString (outS, linkage);
               CTypesFilePickle.write_c_proto (outS, proto);
@@ -727,12 +723,6 @@ structure CFGFilePickle : CFGPICKLE
                   CFG.LET (x0, x1, x2)
               end
             | 0w2 => let
-              val x0 = readOption ASDLFilePickle.readInt inS
-              val x1 = read_stm inS
-              in
-                  CFG.CHK_GC (x0, x1)
-              end
-            | 0w3 => let
               val x0 = CFG_PrimFilePickle.read_alloc inS
               val x1 = readSeq read_exp inS
               val x2 = LambdaVarFilePickle.read_lvar inS
@@ -740,33 +730,33 @@ structure CFGFilePickle : CFGPICKLE
               in
                   CFG.ALLOC (x0, x1, x2, x3)
               end
-            | 0w4 => let
+            | 0w3 => let
               val x0 = read_exp inS
               val x1 = readSeq read_exp inS
               val x2 = readSeq read_ty inS
               in
                   CFG.APPLY (x0, x1, x2)
               end
-            | 0w5 => let
+            | 0w4 => let
               val x0 = read_exp inS
               val x1 = readSeq read_exp inS
               val x2 = readSeq read_ty inS
               in
                   CFG.THROW (x0, x1, x2)
               end
-            | 0w6 => let
+            | 0w5 => let
               val x0 = LambdaVarFilePickle.read_lvar inS
               val x1 = readSeq read_exp inS
               in
                   CFG.GOTO (x0, x1)
               end
-            | 0w7 => let
+            | 0w6 => let
               val x0 = read_exp inS
               val x1 = readSeq read_stm inS
               in
                   CFG.SWITCH (x0, x1)
               end
-            | 0w8 => let
+            | 0w7 => let
               val x0 = CFG_PrimFilePickle.read_branch inS
               val x1 = readSeq read_exp inS
               val x2 = read_probability inS
@@ -775,7 +765,7 @@ structure CFGFilePickle : CFGPICKLE
               in
                   CFG.BRANCH (x0, x1, x2, x3, x4)
               end
-            | 0w9 => let
+            | 0w8 => let
               val x0 = CFG_PrimFilePickle.read_arith inS
               val x1 = readSeq read_exp inS
               val x2 = read_param inS
@@ -783,14 +773,14 @@ structure CFGFilePickle : CFGPICKLE
               in
                   CFG.ARITH (x0, x1, x2, x3)
               end
-            | 0w10 => let
+            | 0w9 => let
               val x0 = CFG_PrimFilePickle.read_setter inS
               val x1 = readSeq read_exp inS
               val x2 = read_stm inS
               in
                   CFG.SETTER (x0, x1, x2)
               end
-            | 0w11 => let
+            | 0w10 => let
               val reentrant = ASDLFilePickle.readBool inS
               val linkage = ASDLFilePickle.readString inS
               val proto = CTypesFilePickle.read_c_proto inS
@@ -811,18 +801,20 @@ structure CFGFilePickle : CFGPICKLE
               end
             | _ => raise ASDL.DecodeError)
     fun write_frag (outS, obj) = let
-          val CFG.Frag{lab, params, body} = obj
+          val CFG.Frag{lab, params, allocChk, body} = obj
           in
             LambdaVarFilePickle.write_lvar (outS, lab);
             writeSeq write_param (outS, params);
+            writeOption ASDLFilePickle.writeUInt (outS, allocChk);
             write_stm (outS, body)
           end
     fun read_frag inS = let
           val lab = LambdaVarFilePickle.read_lvar inS
           val params = readSeq read_param inS
+          val allocChk = readOption ASDLFilePickle.readUInt inS
           val body = read_stm inS
           in
-              CFG.Frag {lab = lab, params = params, body = body}
+              CFG.Frag {lab = lab, params = params, allocChk = allocChk, body = body}
           end
     fun write_cluster (outS, obj) = let
           val CFG.Cluster{attrs, entry, frags} = obj

@@ -188,10 +188,6 @@ module CFG (
 
     stm
       = LET (exp, param, stm)
-      -- `CHK_GC(needs, stm)` is a heap-limit check; the optional `needs` value
-      -- specifies an about of space required (when it is larger than the
-      -- allocation slop)
-      | CHK_GC (int?, stm)
       -- `ALLOC(p, args, x, k)` applies the allocation primitive `p` to the
       -- `args`, binds the resulting object to `x` and then executes `k`.
       | ALLOC (CFG_Prim.alloc, exp*, LambdaVar.lvar, stm)
@@ -223,9 +219,14 @@ module CFG (
 	  param* live,			-- live variables across call (with types)
 	  stm k)			-- the continuation
 
-  -- a cluster fragment is an extended basic block
+  -- a cluster fragment is an extended basic block.  The fields are:
+  --    lab		the fragment's label
+  --	params		the lvar parameters and parameter types
+  --	allocChk	optional allocation check; empty means no check, we use 0 for the
+  --			standard check
+  --	body		the root of the extended basic block
   --
-    frag = Frag (LambdaVar.lvar lab, param* params, stm body)
+    frag = Frag (LambdaVar.lvar lab, param* params, uint? allocChk, stm body)
 
   -- meta data about a cluster
   --

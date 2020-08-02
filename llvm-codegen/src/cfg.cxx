@@ -457,12 +457,6 @@ namespace CFG {
                 auto f2 = stm::read(is);
                 return new LET(f0, f1, f2);
             }
-          case _con_CHK_GC:
-            {
-                auto f0 = asdl::read_int_option(is);
-                auto f1 = stm::read(is);
-                return new CHK_GC(f0, f1);
-            }
           case _con_ALLOC:
             {
                 auto f0 = CFG_Prim::alloc::read(is);
@@ -541,10 +535,6 @@ namespace CFG {
         delete this->_v1;
         delete this->_v2;
     }
-    CHK_GC::~CHK_GC ()
-    {
-        delete this->_v1;
-    }
     ALLOC::~ALLOC ()
     {
         delete this->_v0;
@@ -594,8 +584,9 @@ namespace CFG {
     {
         auto flab = LambdaVar::read_lvar(is);
         auto fparams = read_param_seq(is);
+        auto fallocChk = asdl::read_uint_option(is);
         auto fbody = stm::read(is);
-        return new frag(flab, fparams, fbody);
+        return new frag(flab, fparams, fallocChk, fbody);
     }
     frag::~frag ()
     {

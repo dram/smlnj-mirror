@@ -1364,7 +1364,6 @@ namespace CFG {
       protected:
         enum _tag_t {
             _con_LET = 1,
-            _con_CHK_GC,
             _con_ALLOC,
             _con_APPLY,
             _con_THROW,
@@ -1421,36 +1420,6 @@ namespace CFG {
         exp * _v0;
         param * _v1;
         stm * _v2;
-    };
-    class CHK_GC : public stm {
-      public:
-        CHK_GC (asdl::option<int> p0, stm * p1)
-            : stm(stm::_con_CHK_GC), _v0(p0), _v1(p1)
-        { }
-        ~CHK_GC ();
-        // pickler method suppressed
-        asdl::option<int> get_0 ()
-        {
-            return this->_v0;
-        }
-        void set_0 (asdl::option<int> v)
-        {
-            this->_v0 = v;
-        }
-        stm * get_1 ()
-        {
-            return this->_v1;
-        }
-        void set_1 (stm * v)
-        {
-            this->_v1 = v;
-        }
-        void init (code_buffer *buf, bool blkEntry);
-        void codegen (code_buffer *buf);
-
-      private:
-        asdl::option<int> _v0;
-        stm * _v1;
     };
     class ALLOC : public stm {
       public:
@@ -1863,8 +1832,9 @@ namespace CFG {
     std::vector<stm *> read_stm_seq (asdl::instream & is);
     class frag {
       public:
-        frag (LambdaVar::lvar p_lab, std::vector<param *> p_params, stm * p_body)
-            : _v_lab(p_lab), _v_params(p_params), _v_body(p_body)
+        frag (LambdaVar::lvar p_lab, std::vector<param *> p_params, asdl::option<unsigned int> p_allocChk, stm * p_body)
+            : _v_lab(p_lab), _v_params(p_params), _v_allocChk(p_allocChk),
+            _v_body(p_body)
         { }
         ~frag ();
         // pickler method suppressed
@@ -1884,6 +1854,14 @@ namespace CFG {
         void set_params (std::vector<param *> v)
         {
             this->_v_params = v;
+        }
+        asdl::option<unsigned int> get_allocChk ()
+        {
+            return this->_v_allocChk;
+        }
+        void set_allocChk (asdl::option<unsigned int> v)
+        {
+            this->_v_allocChk = v;
         }
         stm * get_body ()
         {
@@ -1905,6 +1883,7 @@ namespace CFG {
       private:
         LambdaVar::lvar _v_lab;
         std::vector<param *> _v_params;
+        asdl::option<unsigned int> _v_allocChk;
         stm * _v_body;
         std::vector<llvm::PHINode *> _phiNodes;
 
