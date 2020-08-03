@@ -24,7 +24,7 @@ class mc_gen {
     mc_gen (llvm::LLVMContext &context, struct target_info const *target);
 
   // per-module initialization and finalization
-    void beginModule (std::string const & src, llvm::Module *module);
+    void beginModule (llvm::Module *module);
     void endModule ();
 
   // run the per-function optimizations over the functions of the module

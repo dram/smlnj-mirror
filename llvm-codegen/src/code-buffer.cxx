@@ -73,7 +73,7 @@ void code_buffer::beginModule (std::string const & src, int nClusters)
 {
     this->_module = new llvm::Module (src, this->_context);
 
-    this->_gen->beginModule (src, this->_module);
+    this->_gen->beginModule (this->_module);
 
   // prepare the label-to-cluster map
     this->_clusterMap.clear();
@@ -507,7 +507,7 @@ void code_buffer::dumpAsm () const { this->_gen->dumpCode (this->_module, "-", t
 
 void code_buffer::dumpAsm (std::string const &stem) const
 {
-    this->_gen->dumpCode (this->_module,stem, true);
+    this->_gen->dumpCode (this->_module, stem, true);
 }
 
 void code_buffer::dumpObj (std::string const &stem) const
