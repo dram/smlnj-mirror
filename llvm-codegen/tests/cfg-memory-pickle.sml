@@ -601,10 +601,9 @@ structure CFGMemoryPickle : CFGPICKLE
             | CFG.LABEL x0 => (
               ASDLMemoryPickle.writeTag8 (outS, 0w2);
               LambdaVarMemoryPickle.write_lvar (outS, x0))
-            | CFG.NUM{iv, signed, sz} => (
+            | CFG.NUM{iv, sz} => (
               ASDLMemoryPickle.writeTag8 (outS, 0w3);
               ASDLMemoryPickle.writeInteger (outS, iv);
-              ASDLMemoryPickle.writeBool (outS, signed);
               ASDLMemoryPickle.writeInt (outS, sz))
             | CFG.LOOKER(x0, x1) => (
               ASDLMemoryPickle.writeTag8 (outS, 0w4);
@@ -630,10 +629,9 @@ structure CFGMemoryPickle : CFGPICKLE
               end
             | 0w3 => let
               val iv = ASDLMemoryPickle.readInteger inS
-              val signed = ASDLMemoryPickle.readBool inS
               val sz = ASDLMemoryPickle.readInt inS
               in
-                  CFG.NUM {iv = iv, signed = signed, sz = sz}
+                  CFG.NUM {iv = iv, sz = sz}
               end
             | 0w4 => let
               val x0 = CFG_PrimMemoryPickle.read_looker inS

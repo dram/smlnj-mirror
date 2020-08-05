@@ -79,7 +79,7 @@ namespace CFG {
 
     Value *NUM::codegen (code_buffer * buf)
     {
-	if (this->get_signed()) {
+	if (this->get_iv().getSign() < 0) {
 	    return buf->iConst (this->get_sz(), this->get_iv().toInt64());
 	} else {
 	    return buf->uConst (this->get_sz(), this->get_iv().toUInt64());

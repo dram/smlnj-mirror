@@ -1165,8 +1165,8 @@ namespace CFG {
     };
     class NUM : public exp {
       public:
-        NUM (asdl::integer p_iv, bool p_signed, int p_sz)
-            : exp(exp::_con_NUM), _v_iv(p_iv), _v_signed(p_signed), _v_sz(p_sz)
+        NUM (asdl::integer p_iv, int p_sz)
+            : exp(exp::_con_NUM), _v_iv(p_iv), _v_sz(p_sz)
         { }
         ~NUM ();
         // pickler method suppressed
@@ -1177,14 +1177,6 @@ namespace CFG {
         void set_iv (asdl::integer v)
         {
             this->_v_iv = v;
-        }
-        bool get_signed ()
-        {
-            return this->_v_signed;
-        }
-        void set_signed (bool v)
-        {
-            this->_v_signed = v;
         }
         int get_sz ()
         {
@@ -1198,7 +1190,6 @@ namespace CFG {
 
       private:
         asdl::integer _v_iv;
-        bool _v_signed;
         int _v_sz;
     };
     class LOOKER : public exp {

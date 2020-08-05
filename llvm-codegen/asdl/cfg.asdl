@@ -173,7 +173,7 @@ module CFG (
     exp
       = VAR (LambdaVar.lvar)
       | LABEL (LambdaVar.lvar)
-      | NUM (integer iv, bool signed, int sz)
+      | NUM (integer iv, int sz)
       | LOOKER (CFG_Prim.looker, exp*)
       | PURE (CFG_Prim.pure, exp*)
       | SELECT (int, exp)

@@ -370,9 +370,8 @@ namespace CFG {
           case _con_NUM:
             {
                 auto fiv = asdl::read_integer(is);
-                auto fsigned = asdl::read_bool(is);
                 auto fsz = asdl::read_int(is);
-                return new NUM(fiv, fsigned, fsz);
+                return new NUM(fiv, fsz);
             }
           case _con_LOOKER:
             {

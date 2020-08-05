@@ -134,7 +134,7 @@ structure CFG = struct
     datatype exp
       = VAR of LambdaVar.lvar
       | LABEL of LambdaVar.lvar
-      | NUM of {iv : IntInf.int, signed : bool, sz : int}
+      | NUM of {iv : IntInf.int, sz : int}
       | LOOKER of CFG_Prim.looker * exp list
       | PURE of CFG_Prim.pure * exp list
       | SELECT of int * exp

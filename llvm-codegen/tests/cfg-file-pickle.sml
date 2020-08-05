@@ -601,10 +601,9 @@ structure CFGFilePickle : CFGPICKLE
             | CFG.LABEL x0 => (
               ASDLFilePickle.writeTag8 (outS, 0w2);
               LambdaVarFilePickle.write_lvar (outS, x0))
-            | CFG.NUM{iv, signed, sz} => (
+            | CFG.NUM{iv, sz} => (
               ASDLFilePickle.writeTag8 (outS, 0w3);
               ASDLFilePickle.writeInteger (outS, iv);
-              ASDLFilePickle.writeBool (outS, signed);
               ASDLFilePickle.writeInt (outS, sz))
             | CFG.LOOKER(x0, x1) => (
               ASDLFilePickle.writeTag8 (outS, 0w4);
@@ -627,10 +626,9 @@ structure CFGFilePickle : CFGPICKLE
             | 0w2 => let val x0 = LambdaVarFilePickle.read_lvar inS in CFG.LABEL (x0) end
             | 0w3 => let
               val iv = ASDLFilePickle.readInteger inS
-              val signed = ASDLFilePickle.readBool inS
               val sz = ASDLFilePickle.readInt inS
               in
-                  CFG.NUM {iv = iv, signed = signed, sz = sz}
+                  CFG.NUM {iv = iv, sz = sz}
               end
             | 0w4 => let
               val x0 = CFG_PrimFilePickle.read_looker inS
