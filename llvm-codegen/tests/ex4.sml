@@ -75,7 +75,7 @@ structure Ex4 =
       fun V id = C.VAR(v id)
       fun LAB id = C.LABEL(v id)
 
-      fun num n = C.NUM{iv=n, signed=true, sz=64}
+      fun num n = C.NUM{iv=n, sz=64}
       fun record (flds, x, k) = let
 	    val desc = ObjDesc.record(length flds)
 	    in
@@ -89,7 +89,6 @@ structure Ex4 =
       fun pureOp (oper, args) = C.PURE(P.PURE_ARITH{oper=oper, sz=64}, args)
       fun arith (oper, args, res, k) = C.ARITH(P.ARITH{oper=oper, sz=64}, args, (res, C.NUMt 64), k)
       fun rawSelect (i, v) = C.PURE(P.PURE_RAW_SUBSCRIPT{kind=P.INT, sz=64}, [v, num i])
-      fun num n = C.NUM{iv=n, signed=true, sz=64}
       fun fAttrs bp = { (* function attrs *)
 	      isCont = false, alignHP = 8, needsBasePtr = bp, hasTrapArith = false, hasRCC = false
 	    }

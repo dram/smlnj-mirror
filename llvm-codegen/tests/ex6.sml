@@ -55,13 +55,12 @@ structure Ex6 =
       fun V id = C.VAR(v id)
       fun LAB id = C.LABEL(v id)
 
-      fun num n = C.NUM{iv=n, signed=true, sz=64}
+      fun num n = C.NUM{iv=n, sz=64}
       fun record (flds, x, k) = let
 	    val desc = ObjDesc.record(length flds)
 	    in
 	      C.ALLOC(P.RECORD{desc = desc, mut = false}, flds, x, k)
 	    end
-      fun num n = C.NUM{iv=n, signed=true, sz=64}
       fun fAttrs bp = { (* function attrs *)
 	      isCont = false, alignHP = 8, needsBasePtr = bp, hasTrapArith = false, hasRCC = false
 	    }
