@@ -58,7 +58,7 @@ namespace CFG_Prim {
 	int len = args.size();
 	Value *allocPtr = buf->mlReg (sml_reg_id::ALLOC_PTR);
 
-/* FIXME: for 32-bit targets, we need to align the allocation pointer */
+/* FIXME: for 32-bit targets, we may need to align the allocation pointer */
 
       // write object descriptor
 	buf->build().CreateAlignedStore (
@@ -97,8 +97,44 @@ namespace CFG_Prim {
 
     Value *RAW_ALLOC::codegen (code_buffer * buf, Args_t & args)
     {
-	assert (false && "RAW_ALLOC");
-/* FIXME */return nullptr;
+	Value *allocPtr = buf->mlReg (sml_reg_id::ALLOC_PTR);
+	int len = this->_v_len;  // length in bytes
+	int align = this->_v_align; // alignment in bytes
+
+	if (align > buf->wordSzInBytes()) {
+	  // adjust the allocation point to be one word before an aligned address
+	    allocPtr = buf->createIntToPtr(
+		buf->createOr(
+		    buf->createPtrToInt(allocPtr),
+		    buf->uConst(align - buf->wordSzInBytes())),
+		buf->objPtrTy);
+	}
+
+	if (! this->_v_desc.isEmpty()) {
+	  // write object descriptor
+	    uint64_t desc = this->_v_desc.valOf().toUInt64();
+	    buf->build().CreateAlignedStore (
+		buf->createIntToPtr(buf->uConst(desc), buf->mlValueTy),
+		allocPtr,
+		(unsigned)buf->wordSzInBytes());
+	}
+	// else tagless object for spilling
+
+      // compute the object's address and cast it to an ML value
+	Value *obj = buf->createBitCast (
+	    buf->build().CreateInBoundsGEP (allocPtr, { buf->uConst(1) }),
+	    buf->mlValueTy);
+
+      // bump the allocation pointer
+	buf->setMLReg (sml_reg_id::ALLOC_PTR,
+	    buf->createBitCast (
+	        buf->build().CreateInBoundsGEP (
+		    buf->createBitCast (allocPtr, buf->bytePtrTy),
+		    { buf->uConst(len + buf->wordSzInBytes()) }),
+		buf->objPtrTy));
+
+	return obj;
+
     } // RAW_ALLOC::codegen
 
 

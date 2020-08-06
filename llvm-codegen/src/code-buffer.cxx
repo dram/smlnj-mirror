@@ -503,7 +503,15 @@ llvm::Function *code_buffer::_getIntrinsic (llvm::Intrinsic::ID id, Type *ty) co
 	this->_module, id, llvm::ArrayRef<Type *>(ty));
 }
 
-void code_buffer::dumpAsm () const { this->_gen->dumpCode (this->_module, "-", true); }
+void code_buffer::compile () const
+{
+    this->_gen->compile (this->_module);
+}
+
+void code_buffer::dumpAsm () const
+{
+    this->_gen->dumpCode (this->_module, "-", true);
+}
 
 void code_buffer::dumpAsm (std::string const &stem) const
 {
@@ -512,7 +520,7 @@ void code_buffer::dumpAsm (std::string const &stem) const
 
 void code_buffer::dumpObj (std::string const &stem) const
 {
-    this->_gen->dumpCode (this->_module,stem, false);
+    this->_gen->dumpCode (this->_module, stem, false);
 }
 
 // dump the current module to stderr

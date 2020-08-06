@@ -17,6 +17,8 @@
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Scalar/GVN.h"
 #include "llvm/Support/FileSystem.h"
+#include "llvm/Support/SmallVectorMemoryBuffer.h"
+#include "llvm/Object/ObjectFile.h"
 
 #include "llvm/ExecutionEngine/Orc/JITTargetMachineBuilder.h"
 
@@ -56,7 +58,7 @@ void mc_gen::beginModule (llvm::Module *module)
   // set up a optimization pipeline following the pattern used in the Manticore
   // compiler.
 /* FIXME: what about analysis passes? */
-    this->_passMngr->add(llvm::createLowerExpectIntrinsicPass());       /* -lower-expect ?? */
+    this->_passMngr->add(llvm::createLowerExpectIntrinsicPass());       /* -lower-expect */
     this->_passMngr->add(llvm::createCFGSimplificationPass());          /* -simplifycfg */
     this->_passMngr->add(llvm::createInstructionCombiningPass());       /* -instcombine */
     this->_passMngr->add(llvm::createReassociatePass());                /* -reassociate */
@@ -83,6 +85,72 @@ void mc_gen::optimize (llvm::Module *module)
     for (auto it = module->begin();  it != module->end();  ++it) {
         this->_passMngr->run (*it);
     }
+
+}
+
+// adopted from SimpleCompiler::operator() (CompileUtils.cpp)
+//
+//llvm::Expected<std::unique_ptr<llvm::ObjectFile>>
+bool mc_gen::compile (llvm::Module *module)
+{
+    llvm::SmallVector<char, 0> objBufferSV;
+    {
+	llvm::raw_svector_ostream objStrm(objBufferSV);
+	llvm::legacy::PassManager pass;
+	llvm::MCContext *ctx;
+	if (this->_tgtMachine->addPassesToEmitMC(pass, ctx, objStrm)) {
+	    llvm::errs() << "unable to add pass to generate code\n";
+	    return true;
+	}
+	pass.run (*module);
+    }
+
+    auto objBuffer = std::make_unique<llvm::SmallVectorMemoryBuffer>(
+	std::move(objBufferSV), module->getModuleIdentifier() + "-objectbuffer");
+
+  // convert the memory buffer to an object file
+    auto obj = llvm::object::ObjectFile::createObjectFile(objBuffer->getMemBufferRef());
+
+    if (! obj) {
+	llvm::errs() << "unable to get object file\n";
+	return true;
+    }
+
+/* TODO: eventually, we should change the return type of this function to
+ *
+ *	llvm::Expected<llvm::StringRef>
+ *
+ * and just return the contents of the text segment.  We might want to verify
+ * that the entry function is at the beginning of the section.
+ */
+
+  // print info about the sections
+    llvm::dbgs() << "=== Sections ===\n";
+    for (auto sect : (*obj)->sections()) {
+	auto name = sect.getName();
+	auto addr = sect.getAddress();
+	auto sz = sect.getSize();
+	if (name) {
+	    llvm::dbgs() << "  " << *name;
+	} else {
+	    llvm::dbgs() << "  <section>";
+	}
+	if (sect.isText()) llvm::dbgs() << " [TEXT] ";
+	else if (sect.isData()) llvm::dbgs() << " [DATA] ";
+	llvm::dbgs() << " " << (void *)addr << ".." << (void *)(addr+sz) << "\n";
+    }
+
+  // print the symbols
+    llvm::dbgs() << "=== Symbols ===\n";
+    for (auto sym : (*obj)->symbols()) {
+	auto name = sym.getName();
+	auto addr = sym.getAddress();
+	if (name && addr) {
+	    llvm::dbgs() << "  " << *name << " @ " << (void *)*addr << "\n";
+	}
+    }
+
+    return false;
 
 }
 

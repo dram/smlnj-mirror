@@ -18,7 +18,7 @@ static target_info AMD64Info = {
 	18,				// numRegs
 	3,				// numCalleeSaves
 // TODO: change the following to false
-	false,				// usesBasePtr
+	true,				// usesBasePtr
 	{				// offsets for memory registers
 	    0, 0, 0,			    // ALLOC_PTR, LIMIT_PTR, STORE_PTR
 // FIXME: we are using the stack layout used for the MLRISC backend, it may have

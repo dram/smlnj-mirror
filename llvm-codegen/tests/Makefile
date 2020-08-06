@@ -17,7 +17,7 @@ LLVM_LIBS =	$(shell ../llvm/bin/llvm-config --libs x86 aarch64 orcjit) \
 		$(shell ../llvm/bin/llvm-config --system-libs)
 
 CODEGEN_OBJS =	$(wildcard ../build/*.o)
-OBJS =		codegen.o $(CODEGEN_OBJS)
+OBJS =		main.o $(CODEGEN_OBJS)
 
 codegen:	$(OBJS)
 	clang++ -o codegen $(LLVM_LD_FLAGS) $(LD_FLAGS) $(OBJS) $(LLVM_LD_FLAGS) $(LIBS) $(LLVM_LIBS)

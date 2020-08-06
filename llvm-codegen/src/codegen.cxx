@@ -10,12 +10,15 @@
 
 #include "code-buffer.hxx"
 #include "cfg.hxx"
+#include "codegen.hxx"
 #include <iostream>
 
 static code_buffer *CodeBuf = nullptr;
 
-void codegen (asdl::instream &inS)
+void codegen (std::string const & src, output out)
 {
+    asdl::file_instream inS(src);
+
     std::cout << "read pickle ..." << std::flush;;
     CFG::comp_unit *cu = CFG::comp_unit::read (inS);
 
@@ -38,8 +41,30 @@ void codegen (asdl::instream &inS)
 	std::cerr << "\nModule verified\n";
     }
 
-//    CodeBuf->dumpAsm ("out");
-    CodeBuf->dumpAsm ();
+  // get the stem of the filename
+    std::string stem(src);
+    auto pos = stem.rfind(".pkl");
+    if (pos+4 != stem.size()) {
+	stem = "out";
+    }
+    else {
+	stem = stem.substr(0, pos);
+    }
+
+    switch (out) {
+      case output::PrintAsm:
+	CodeBuf->dumpAsm();
+	break;
+      case output::AsmFile:
+	CodeBuf->dumpAsm (stem);
+	break;
+      case output::ObjFile:
+	CodeBuf->dumpObj (stem);
+	break;
+      case output::Memory:
+	CodeBuf->compile ();
+	break;
+    }
 
     CodeBuf->endModule();
 

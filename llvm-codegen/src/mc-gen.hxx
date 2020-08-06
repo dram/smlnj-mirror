@@ -33,6 +33,8 @@ class mc_gen {
   // dump the code to an output file
     void dumpCode (llvm::Module *module, std::string const & stem, bool asmCode = true) const;
 
+    bool compile (llvm::Module *module);
+
   private:
     std::unique_ptr<llvm::TargetMachine> _tgtMachine;
     std::unique_ptr<llvm::legacy::FunctionPassManager> _passMngr;

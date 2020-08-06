@@ -63,7 +63,6 @@ class code_buffer {
     static code_buffer *create (std::string const & target);
 
     void optimize ();
-    void dumpAsm (std::string const &asmFile);
 
   // initialize the code buffer for a new module
     void beginModule (std::string const & src, int nClusters);
@@ -505,6 +504,10 @@ class code_buffer {
     {
 	return this->_builder.CreateIntToPtr (v, ty);
     }
+    Value *createPtrToInt (Value *v)
+    {
+	return this->_builder.CreatePtrToInt(v, this->intTy);
+    }
     Value *createBitCast (Value *v, Type *ty)
     {
 	return this->_builder.CreateBitCast (v, ty);
@@ -525,6 +528,9 @@ class code_buffer {
     }
 
   /***** Code generation *****/
+
+  // compile to an in-memory code object
+    void compile () const;
 
   // dump assembly code to stdout
     void dumpAsm () const;
