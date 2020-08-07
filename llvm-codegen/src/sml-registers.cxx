@@ -16,7 +16,7 @@
 // the extra arguments that are added to thread the state of the reserved
 // registers through the control-flow graph.
 static std::string RegNames[reg_info::NUM_REGS] = {
-	"allocPtr", "limitPtr", "storePtr", "exnPtr", "varPtr", "gcLink"
+	"allocPtr", "limitPtr", "storePtr", "exnPtr", "varPtr"
     };
 
 reg_info::reg_info (sml_reg_id id, int idx, int off)

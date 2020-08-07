@@ -109,18 +109,18 @@ namespace CFG {
 
     Value *SELECT::codegen (code_buffer * buf)
     {
-	Value *adr = buf->build().CreateInBoundsGEP (
+	Value *adr = buf->createGEP (
 	    buf->asObjPtr(this->_v1->codegen(buf)),
-	    { buf->i32Const(static_cast<int32_t>(this->_v0)) });
+	    static_cast<int32_t>(this->_v0));
 	return buf->createLoad (buf->mlValueTy, adr);
 
     } // SELECT::codegen
 
     Value *OFFSET::codegen (code_buffer * buf)
     {
-	return buf->build().CreateInBoundsGEP (
+	return buf->createGEP (
 	    buf->asObjPtr(this->_v1->codegen(buf)),
-	    { buf->i32Const(static_cast<int32_t>(this->_v0)) });
+	    static_cast<int32_t>(this->_v0));
 
     } // OFFSET::codegen
 
@@ -370,6 +370,8 @@ namespace CFG {
 
       // generate the heap-limit check, if required
 	if (! this->_v_allocChk.isEmpty()) {
+	    reg_state saveRegs;
+	    buf->saveSMLRegState (saveRegs);
 	    unsigned int amt = this->_v_allocChk.valOf();
 	    unsigned int allocSlop = buf->targetInfo()->allocSlopSzb;
 	    Value *limitTst;
@@ -385,14 +387,20 @@ namespace CFG {
 		    buf->asInt (buf->mlReg(sml_reg_id::LIMIT_PTR)));
 	    }
 	    llvm::BasicBlock *nextBB = buf->newBB();
-	    llvm::BasicBlock *callGCBB =
+	    llvm::BasicBlock *callGCBB;
+	    if (cluster == nullptr) {
+		callGCBB = buf->invokeGC (this, frag_kind::INTERNAL);
+	    } else if (cluster->get_attrs()->get_isCont()) {
+		callGCBB = buf->invokeGC (this, frag_kind::STD_CONT);
+	    } else {
+		callGCBB = buf->invokeGC (this, frag_kind::STD_FUN);
+	    }
 // TODO: for the entry fragment, we can use the link register to get back to the
 // beginning of the function.  This allows us to merge GC invocations for multiple
 // functions to reduce code size
-//		buf->invokeGC (this->_v_params, (cluster != nullptr) ? this : nullptr);
-		buf->invokeGC (this->_v_params, this);
 	    buf->build().CreateCondBr(limitTst, callGCBB, nextBB, buf->branchProb(1));
 	    buf->setInsertPoint (nextBB);
+	    buf->restoreSMLRegState (saveRegs);
 	}
 
       // generate code for the fragment
@@ -405,7 +413,7 @@ namespace CFG {
 
     void cluster::codegen (code_buffer * buf, bool isFirst)
     {
-	buf->beginCluster (this->_fn);
+	buf->beginCluster (this, this->_fn);
 
       // initialize the fragments for the cluster
 	this->_v_entry->init (buf, true);

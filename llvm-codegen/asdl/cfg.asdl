@@ -260,55 +260,57 @@ view Cxx {
 
 -- alloc
     { CFG_Prim.alloc }  <= public_code %%
-        virtual Value *codegen (code_buffer *buf, Args_t &args) = 0;
+        virtual Value *codegen (code_buffer *buf, Args_t const &args) = 0;
 %%
     { CFG_Prim.alloc.* } <= public_code %%
-        Value *codegen (code_buffer *buf, Args_t &args);
+        Value *codegen (code_buffer *buf, Args_t const &args);
 %%
 
 -- arith
     { CFG_Prim.arith }  <= public_code %%
-        virtual Value *codegen (code_buffer *buf, Args_t &args) = 0;
+        virtual Value *codegen (code_buffer *buf, Args_t const &args) = 0;
 %%
     { CFG_Prim.arith.* } <= public_code %%
-        Value *codegen (code_buffer *buf, Args_t &args);
+        Value *codegen (code_buffer *buf, Args_t const &args);
 %%
 
 -- pure
     { CFG_Prim.pure }  <= public_code %%
-        virtual Value *codegen (code_buffer *buf, Args_t &args) = 0;
+        virtual Value *codegen (code_buffer *buf, Args_t const &args) = 0;
 %%
     { CFG_Prim.pure.* } <= public_code %%
-        Value *codegen (code_buffer *buf, Args_t &args);
+        Value *codegen (code_buffer *buf, Args_t const &args);
 %%
 
 -- looker
     { CFG_Prim.looker }  <= public_code %%
-        virtual Value *codegen (code_buffer *buf, Args_t &args) = 0;
+        virtual Value *codegen (code_buffer *buf, Args_t const &args) = 0;
 %%
     { CFG_Prim.looker.* } <= public_code %%
-        Value *codegen (code_buffer *buf, Args_t &args);
+        Value *codegen (code_buffer *buf, Args_t const &args);
 %%
 
 -- setter
     { CFG_Prim.setter }  <= public_code %%
-        virtual void codegen (code_buffer *buf, Args_t &args) = 0;
+        virtual void codegen (code_buffer *buf, Args_t const &args) = 0;
 %%
     { CFG_Prim.setter.* } <= public_code %%
-        void codegen (code_buffer *buf, Args_t &args);
+        void codegen (code_buffer *buf, Args_t const &args);
 %%
 
 -- branch
     { CFG_Prim.branch }  <= public_code %%
-        virtual Value *codegen (code_buffer *buf, Args_t &args) = 0;
+        virtual Value *codegen (code_buffer *buf, Args_t const &args) = 0;
 %%
     { CFG_Prim.branch.* } <= public_code %%
-        Value *codegen (code_buffer *buf, Args_t &args);
+        Value *codegen (code_buffer *buf, Args_t const &args);
 %%
 
 -- ty
     { CFG.ty } <= public_code %%
 	virtual Type *codegen (code_buffer *buf) = 0;
+	bool isNUMt () { return this->_tag == _con_NUMt; }
+	bool isFLTt () { return this->_tag == _con_FLTt; }
 %%
     { CFG.ty.* } <= public_code %%
 	Type *codegen (code_buffer *buf);

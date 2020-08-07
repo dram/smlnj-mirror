@@ -23,7 +23,7 @@ static target_info AMD64Info = {
 	    0, 0, 0,			    // ALLOC_PTR, LIMIT_PTR, STORE_PTR
 // FIXME: we are using the stack layout used for the MLRISC backend, it may have
 // to be adjusted to be compatible with LLVM's stack layout conventions
-	    40, 56, 48		   	// EXN_HNDLR, VAR_PTR, GC_LINK
+	    40, 56		   	// EXN_HNDLR, VAR_PTR
 	},
 	64,				// call-gc offset
 	8*1024				// allocation slop

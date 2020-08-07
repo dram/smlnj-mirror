@@ -51,6 +51,10 @@ namespace CFG {
 template <typename T>
 using lvar_map_t = std::unordered_map<LambdaVar::lvar, T *>;
 
+// the different kinds of fragments.  The first two are restricted
+// to entry fragments for clusters; all others are `INTERNAL`
+//
+enum class frag_kind { STD_FUN, STD_CONT, INTERNAL };
 
 // The code_buffer class encapsulates the current state of code generation, as well
 // as information about the target architecture.  It is passed as an argument to
@@ -69,7 +73,7 @@ class code_buffer {
     void endModule ();
 
   // mark the beginning/end of a cluster
-    void beginCluster (llvm::Function *fn);
+    void beginCluster (CFG::cluster *cluster, llvm::Function *fn);
     void endCluster ();
 
   // initialize the code buffer for a new fragment
@@ -132,6 +136,22 @@ class code_buffer {
     bool is64Bit () const { return (this->_wordSzB == 8); }
     target_info const *targetInfo () const { return this->_target; }
 
+  // align the allocation pointer for 64 bits on 32-bit machines.  The resulting
+  // alloc pointer points to the location of the object descriptor, so adding
+  // wordSzInBytes() should produce an 8-byte aligned address
+    Value *alignedAllocPtr ()
+    {
+	if (this->is64Bit()) {
+	    return this->mlReg (sml_reg_id::ALLOC_PTR);
+	} else {
+	    return this->createIntToPtr(
+		this->createOr(
+                    this->createPtrToInt (this->mlReg (sml_reg_id::ALLOC_PTR)),
+		    this->uConst (4)),
+		this->objPtrTy);
+	}
+    }
+
   // cached types
     llvm::IntegerType *i8Ty;
     llvm::IntegerType *i16Ty;
@@ -140,10 +160,12 @@ class code_buffer {
     Type *f32Ty;
     Type *f64Ty;
     llvm::IntegerType *intTy;	// native integer type
-    Type *mlValueTy;	// the uniform ML value type, which is a pointer to the intTy
-    Type *objPtrTy;	// pointer into the heap (i.e., a pointer to an ML value)
-    Type *bytePtrTy;	// "char *" type
+    Type *mlValueTy;		// the uniform ML value type, which is a pointer to the intTy
+    Type *objPtrTy;		// pointer into the heap (i.e., a pointer to an ML value)
+    Type *bytePtrTy;		// "char *" type
     Type *voidTy;		// "void"
+    llvm::StructType *gcRetTy;	// return struct type for GC calls
+    llvm::FunctionType *gcFnTy; // type of call-gc function
 
     llvm::IntegerType *iType (int sz) const
     {
@@ -161,10 +183,13 @@ class code_buffer {
   // ensure that a value has the `mlValue` type
     Value *asMLValue (Value *v)
     {
-	if (! v->getType()->isPointerTy()) {
-	    return this->_builder.CreateIntToPtr(v, this->mlValueTy);
-	} else {
+	auto ty = v->getType();
+	if (ty == this->mlValueTy) {
 	    return v;
+	} else if (ty->isPointerTy()) {
+	    return this->_builder.CreateBitCast (v, this->mlValueTy);
+	} else {
+	    return this->_builder.CreateIntToPtr(v, this->mlValueTy);
 	}
     }
 
@@ -304,9 +329,13 @@ class code_buffer {
 	return this->_builder.GetInsertBlock ();
     }
 
+  // utility function for allocating a record of ML values (pointers or
+  // tagged ints).
+    Value *allocRecord (uint64_t desc, Args_t const & args);
+
   // Create a GC invocation where `params` are the live variables and `frag` is nullptr
   // for GC checks at standard entries and is the fragment for GC checks at known functions.
-    llvm::BasicBlock *invokeGC (std::vector<CFG::param *> const &params, CFG::frag *frag);
+    llvm::BasicBlock *invokeGC (CFG::frag const *frag, frag_kind kind);
 
   // return the basic-block that contains the Overflow trap generator
     llvm::BasicBlock *getOverflowBB ();
@@ -526,6 +555,26 @@ class code_buffer {
     {
 	return this->_builder.CreateBr (bb);
     }
+    Value *createGEP (Value *base, Value *idx)
+    {
+	return this->_builder.CreateInBoundsGEP (base, { idx });
+    }
+    Value *createGEP (Type *ty, Value *base, Value *idx)
+    {
+	return this->_builder.CreateInBoundsGEP (
+	    this->createBitCast (base, ty),
+	    { idx });
+    }
+    Value *createGEP (Value *base, int32_t idx)
+    {
+	return this->_builder.CreateInBoundsGEP (base, { this->i32Const(idx) });
+    }
+    Value *createGEP (Type *ty, Value *base, int32_t idx)
+    {
+	return this->_builder.CreateInBoundsGEP (
+	    this->createBitCast (base, ty),
+	    { this->i32Const(idx) });
+    }
 
   /***** Code generation *****/
 
@@ -556,6 +605,7 @@ class code_buffer {
     class mc_gen		*_gen;
     llvm::Module		*_module;	// current module
     llvm::Function		*_curFn;	// current LLVM function
+    CFG::cluster		*_curCluster;	// current CFG cluster
     lvar_map_t<CFG::cluster>	_clusterMap;	// per-module mapping from labels to clusters
     lvar_map_t<CFG::frag>	_fragMap;	// pre-cluster map from labels to fragments
     lvar_map_t<Value>		_vMap;		// per-fragment map from lvars to values

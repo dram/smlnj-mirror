@@ -20,40 +20,13 @@ namespace CFG_Prim {
     }
 
   /***** code generation for the `alloc` type *****/
-    Value *RECORD::codegen (code_buffer * buf, Args_t & args)
+    Value *RECORD::codegen (code_buffer * buf, Args_t const &args)
     {
-	int len = args.size();
-	Value *allocPtr = buf->mlReg (sml_reg_id::ALLOC_PTR);
-
-      // write object descriptor
-	buf->build().CreateAlignedStore (
-	    buf->createIntToPtr(buf->uConst(this->_v_desc.toUInt64()), buf->mlValueTy),
-	    allocPtr,
-	    (unsigned)buf->wordSzInBytes());
-
-      // initialize the object's fields
-	for (int i = 1;  i <= len;  ++i) {
-	    Value *adr = buf->build().CreateInBoundsGEP (allocPtr, { buf->uConst(i) });
-	    buf->build().CreateAlignedStore (
-		buf->asMLValue (args[i-1]),
-		adr,
-		(unsigned)buf->wordSzInBytes());
-	}
-
-      // compute the object's address and cast it to an ML value
-	Value *obj = buf->createBitCast (
-	    buf->build().CreateInBoundsGEP (allocPtr, { buf->uConst(1) }),
-	    buf->mlValueTy);
-
-      // bump the allocation pointer
-	buf->setMLReg (sml_reg_id::ALLOC_PTR,
-	    buf->build().CreateInBoundsGEP (allocPtr, { buf->uConst(len + 1) }));
-
-	return obj;
+	return buf->allocRecord (this->_v_desc.toUInt64(), args);
 
     } // RECORD::codegen
 
-    Value *RAW_RECORD::codegen (code_buffer * buf, Args_t & args)
+    Value *RAW_RECORD::codegen (code_buffer * buf, Args_t const &args)
     {
 	int len = args.size();
 	Value *allocPtr = buf->mlReg (sml_reg_id::ALLOC_PTR);
@@ -68,7 +41,7 @@ namespace CFG_Prim {
 
       // compute the object's address and cast it to an ML value
 	Value *obj = buf->createBitCast (
-	    buf->build().CreateInBoundsGEP (allocPtr, { buf->uConst(1) }),
+	    buf->createGEP (allocPtr, 1),
 	    buf->mlValueTy);
 
       // get a pointer to the beginning of the object that has the
@@ -78,7 +51,7 @@ namespace CFG_Prim {
 
       // initialize the object's fields
 	for (int i = 0;  i < len;  ++i) {
-	    Value *adr = buf->build().CreateInBoundsGEP (initPtr, { buf->uConst(i) });
+	    Value *adr = buf->createGEP (initPtr, i);
 	    buf->build().CreateAlignedStore (
 		args[i],
 		adr,
@@ -88,14 +61,14 @@ namespace CFG_Prim {
       // bump the allocation pointer
 	buf->setMLReg (sml_reg_id::ALLOC_PTR,
 	    buf->createBitCast (
-	        buf->build().CreateInBoundsGEP (initPtr, { buf->uConst(len) }),
+	        buf->createGEP (initPtr, len),
 		buf->objPtrTy));
 
 	return obj;
 
     } // RAW_RECORD::codegen
 
-    Value *RAW_ALLOC::codegen (code_buffer * buf, Args_t & args)
+    Value *RAW_ALLOC::codegen (code_buffer * buf, Args_t const &args)
     {
 	Value *allocPtr = buf->mlReg (sml_reg_id::ALLOC_PTR);
 	int len = this->_v_len;  // length in bytes
@@ -122,15 +95,13 @@ namespace CFG_Prim {
 
       // compute the object's address and cast it to an ML value
 	Value *obj = buf->createBitCast (
-	    buf->build().CreateInBoundsGEP (allocPtr, { buf->uConst(1) }),
+	    buf->createGEP (allocPtr, 1),
 	    buf->mlValueTy);
 
       // bump the allocation pointer
 	buf->setMLReg (sml_reg_id::ALLOC_PTR,
 	    buf->createBitCast (
-	        buf->build().CreateInBoundsGEP (
-		    buf->createBitCast (allocPtr, buf->bytePtrTy),
-		    { buf->uConst(len + buf->wordSzInBytes()) }),
+	        buf->createGEP (buf->bytePtrTy, allocPtr, len + buf->wordSzInBytes()),
 		buf->objPtrTy));
 
 	return obj;
@@ -140,7 +111,7 @@ namespace CFG_Prim {
 
   /***** code generation for the `arith` type *****/
 
-    Value *ARITH::codegen (code_buffer * buf, Args_t & args)
+    Value *ARITH::codegen (code_buffer * buf, Args_t const &args)
     {
 	Value *pair;
 	switch (this->get_oper()) {
@@ -183,7 +154,7 @@ namespace CFG_Prim {
 
     } // ARITH::codegen
 
-    Value *REAL_TO_INT::codegen (code_buffer * buf, Args_t & args)
+    Value *REAL_TO_INT::codegen (code_buffer * buf, Args_t const &args)
     {
 	return buf->createFPToSI (args[0], buf->iType (this->_v_to));
 
@@ -192,7 +163,7 @@ namespace CFG_Prim {
 
   /***** code generation for the `pure` type *****/
 
-    Value *PURE_ARITH::codegen (code_buffer * buf, Args_t & args)
+    Value *PURE_ARITH::codegen (code_buffer * buf, Args_t const &args)
     {
 	switch (this->get_oper()) {
 	    case pureop::ADD:
@@ -244,7 +215,7 @@ namespace CFG_Prim {
 
     } // PURE_ARITH::codegen
 
-    Value *EXTEND::codegen (code_buffer * buf, Args_t & args)
+    Value *EXTEND::codegen (code_buffer * buf, Args_t const &args)
     {
 	if (this->_v_signed) {
 	    return buf->createSExt (args[0], buf->iType(this->_v_to));
@@ -254,28 +225,24 @@ namespace CFG_Prim {
 
     } // EXTEND::codegen
 
-    Value *INT_TO_REAL::codegen (code_buffer * buf, Args_t & args)
+    Value *INT_TO_REAL::codegen (code_buffer * buf, Args_t const &args)
     {
 	return buf->createSIToFP (args[0], buf->fType(this->_v_to));
 
     } // INT_TO_REAL::codegen
 
-    Value *PURE_SUBSCRIPT::codegen (code_buffer * buf, Args_t & args)
+    Value *PURE_SUBSCRIPT::codegen (code_buffer * buf, Args_t const &args)
     {
-	Value *adr = buf->build().CreateInBoundsGEP (
-		buf->asObjPtr(args[0]),
-		{ buf->asInt(args[1]) });
+	Value *adr = buf->createGEP (buf->asObjPtr(args[0]), buf->asInt(args[1]));
 	return buf->build().CreateLoad (buf->mlValueTy, adr);
 
     } // PURE_SUBSCRIPT::codegen
 
-    Value *PURE_RAW_SUBSCRIPT::codegen (code_buffer * buf, Args_t & args)
+    Value *PURE_RAW_SUBSCRIPT::codegen (code_buffer * buf, Args_t const &args)
     {
 	Type *elemTy = numType (buf, this->_v_kind, this->_v_sz);
 
-	Value *adr = buf->build().CreateInBoundsGEP (
-	    buf->createBitCast (args[0], elemTy->getPointerTo()),
-	    { args[1] });
+	Value *adr = buf->createGEP (elemTy->getPointerTo(), args[0], args[1]);
 
 	return buf->createLoad (elemTy, adr);
 
@@ -284,22 +251,22 @@ namespace CFG_Prim {
 
   /***** code generation for the `looker` type *****/
 
-    Value *DEREF::codegen (code_buffer * buf, Args_t & args)
+    Value *DEREF::codegen (code_buffer * buf, Args_t const &args)
     {
 	return buf->build().CreateLoad (buf->mlValueTy, buf->asObjPtr(args[0]));
 
     } // DEREF::codegen
 
-    Value *SUBSCRIPT::codegen (code_buffer * buf, Args_t & args)
+    Value *SUBSCRIPT::codegen (code_buffer * buf, Args_t const &args)
     {
 	Value *baseAdr = buf->asObjPtr(args[0]);
-	Value *adr = buf->build().CreateGEP(baseAdr, buf->asInt(args[1]));
+	Value *adr = buf->createGEP(baseAdr, buf->asInt(args[1]));
 // QUESTION: should we mark the load as volatile?
 	return buf->build().CreateLoad (buf->mlValueTy, adr);
 
     } // SUBSCRIPT::codegen
 
-    Value *RAW_LOAD::codegen (code_buffer * buf, Args_t & args)
+    Value *RAW_LOAD::codegen (code_buffer * buf, Args_t const &args)
     {
 	Type *elemTy = numType (buf, this->_v_kind, this->_v_sz);
 
@@ -307,7 +274,7 @@ namespace CFG_Prim {
       // and then bitcast to the desired pointer type for the load
 	Value *adr =
 	    buf->createPointerCast (
-	        buf->build().CreateGEP (buf->bytePtrTy, args[0], args[1]),
+	        buf->createGEP (buf->bytePtrTy, args[0], args[1]),
 		elemTy->getPointerTo());
 
 // QUESTION: should we mark the load as volatile?
@@ -315,24 +282,24 @@ namespace CFG_Prim {
 
     } // RAW_LOAD::codegen
 
-    Value *RAW_SUBSCRIPT::codegen (code_buffer * buf, Args_t & args)
+    Value *RAW_SUBSCRIPT::codegen (code_buffer * buf, Args_t const &args)
     {
 	Type *elemTy = numType (buf, this->_v_kind, this->_v_sz);
 
-	Value *adr = buf->build().CreateGEP (elemTy->getPointerTo(), args[0], args[1]);
+	Value *adr = buf->createGEP (elemTy->getPointerTo(), args[0], args[1]);
 
 // QUESTION: should we mark the load as volatile?
 	return buf->createLoad (elemTy, adr);
 
     } // RAW_SUBSCRIPT::codegen
 
-    Value *GET_HDLR::codegen (code_buffer * buf, Args_t & args)
+    Value *GET_HDLR::codegen (code_buffer * buf, Args_t const &args)
     {
 	return buf->mlReg (sml_reg_id::EXN_HNDLR);
 
     } // GET_HDLR::codegen
 
-    Value *GET_VAR::codegen (code_buffer * buf, Args_t & args)
+    Value *GET_VAR::codegen (code_buffer * buf, Args_t const &args)
     {
 	return buf->mlReg (sml_reg_id::VAR_PTR);
 
@@ -350,39 +317,33 @@ namespace CFG_Prim {
       // write the address into the store-list object
 	buf->build().CreateAlignedStore (
 	    buf->asMLValue (adr),
-	    buf->build().CreateInBoundsGEP (allocPtr, { buf->uConst(0) }),
+	    buf->createGEP (allocPtr, 0),
 	    (unsigned)buf->wordSzInBytes());
       // write the link field
 	buf->build().CreateAlignedStore (
 	    buf->asMLValue (storePtr),
-	    buf->build().CreateInBoundsGEP (allocPtr, { buf->uConst(1) }),
+	    buf->createGEP (allocPtr, 1),
 	    (unsigned)buf->wordSzInBytes());
       // update the store pointer
 	buf->setMLReg (sml_reg_id::STORE_PTR, allocPtr);
       // bump the allocation pointer
 	buf->setMLReg (sml_reg_id::ALLOC_PTR,
-	    buf->build().CreateInBoundsGEP (allocPtr, { buf->uConst(2) }));
+	    buf->createGEP (allocPtr, 2));
 
     }
 
-    void UNBOXED_UPDATE::codegen (code_buffer * buf, Args_t & args)
+    void UNBOXED_UPDATE::codegen (code_buffer * buf, Args_t const &args)
     {
-	Value *adr = buf->build().CreateInBoundsGEP (
-		buf->createBitCast (args[0], buf->objPtrTy),
-		{ args[1] });
-
 	buf->build().CreateAlignedStore (
 	    buf->asMLValue(args[2]),
-	    adr,
+	    buf->createGEP (buf->objPtrTy, args[0], args[1]),
 	    (unsigned)buf->wordSzInBytes());
 
     } // UNBOXED_UPDATE::codegen
 
-    void UPDATE::codegen (code_buffer * buf, Args_t & args)
+    void UPDATE::codegen (code_buffer * buf, Args_t const &args)
     {
-	Value *adr = buf->build().CreateInBoundsGEP (
-		buf->createBitCast (args[0], buf->objPtrTy),
-		{ args[1] });
+	Value *adr = buf->createGEP (buf->objPtrTy, args[0], args[1]);
 
 	recordStore (buf, adr);
 
@@ -393,21 +354,18 @@ namespace CFG_Prim {
 
     } // UPDATE::codegen
 
-    void UNBOXED_ASSIGN::codegen (code_buffer * buf, Args_t & args)
+    void UNBOXED_ASSIGN::codegen (code_buffer * buf, Args_t const &args)
     {
-	Value *adr = buf->build().CreateInBoundsGEP (
-		buf->createBitCast (args[0], buf->intTy->getPointerTo()),
-		{ buf->uConst(0) });
-
-	buf->build().CreateAlignedStore (args[1], adr, (unsigned)buf->wordSzInBytes());
+	buf->build().CreateAlignedStore (
+	    args[1],
+	    buf->createGEP (buf->intTy->getPointerTo(), args[0], args[1]),
+	    (unsigned)buf->wordSzInBytes());
 
     } // UNBOXED_ASSIGN::codegen
 
-    void ASSIGN::codegen (code_buffer * buf, Args_t & args)
+    void ASSIGN::codegen (code_buffer * buf, Args_t const &args)
     {
-	Value *adr = buf->build().CreateInBoundsGEP (
-		buf->createBitCast (args[0], buf->objPtrTy),
-		{ buf->uConst(0) });
+	Value *adr = buf->createGEP (buf->objPtrTy, args[0], args[1]);
 
 	recordStore (buf, adr);
 
@@ -418,23 +376,23 @@ namespace CFG_Prim {
 
     } // ASSIGN::codegen
 
-    void RAW_UPDATE::codegen (code_buffer * buf, Args_t & args)
+    void RAW_UPDATE::codegen (code_buffer * buf, Args_t const &args)
     {
 	assert (false && "RAW_UPDATE not implemented yet"); /* FIXME */
     } // RAW_UPDATE::codegen
 
-    void RAW_STORE::codegen (code_buffer * buf, Args_t & args)
+    void RAW_STORE::codegen (code_buffer * buf, Args_t const &args)
     {
 	assert (false && "RAW_STORE not implemented yet"); /* FIXME */
     } // RAW_STORE::codegen
 
-    void SET_HDLR::codegen (code_buffer * buf, Args_t & args)
+    void SET_HDLR::codegen (code_buffer * buf, Args_t const &args)
     {
 	buf->setMLReg (sml_reg_id::EXN_HNDLR, args[0]);
 
     } // SETHDLR::codegen
 
-    void SET_VAR::codegen (code_buffer * buf, Args_t & args)
+    void SET_VAR::codegen (code_buffer * buf, Args_t const &args)
     {
 	buf->setMLReg (sml_reg_id::VAR_PTR, args[0]);
 
@@ -458,7 +416,7 @@ namespace CFG_Prim {
 	    llvm::ICmpInst::ICMP_NE	// (unsigned) NEQ
 	};
 
-    Value *CMP::codegen (code_buffer * buf, Args_t & args)
+    Value *CMP::codegen (code_buffer * buf, Args_t const &args)
     {
 	int idx = 2 * (static_cast<int>(this->_v_oper) - 1);
 	if (this->_v_signed) {
@@ -486,13 +444,13 @@ namespace CFG_Prim {
 	    llvm::FCmpInst::FCMP_UEQ	// F_UE
 	};
 
-    Value *FCMP::codegen (code_buffer * buf, Args_t & args)
+    Value *FCMP::codegen (code_buffer * buf, Args_t const &args)
     {
 	return buf->createFCmp (FCmpMap[static_cast<int>(this->_v_oper) - 1], args[0], args[1]);
 
     } // FCMP::codegen
 
-    Value *FSGN::codegen (code_buffer * buf, Args_t & args)
+    Value *FSGN::codegen (code_buffer * buf, Args_t const &args)
     {
       // bitcast to integer type of same size
 	Value *asInt = buf->createBitCast (args[0], buf->iType (this->_v0));
@@ -501,13 +459,13 @@ namespace CFG_Prim {
 
     } // FSGN::codegen
 
-    Value *PEQL::codegen (code_buffer * buf, Args_t & args)
+    Value *PEQL::codegen (code_buffer * buf, Args_t const &args)
     {
 	return buf->createICmpEQ(args[0], args[1]);
 
     } // PEQL::codegen
 
-    Value *PNEQ::codegen (code_buffer * buf, Args_t & args)
+    Value *PNEQ::codegen (code_buffer * buf, Args_t const &args)
     {
 	return buf->createICmpNE(args[0], args[1]);
 

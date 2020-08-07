@@ -27,8 +27,10 @@ void codegen (std::string const & src, output out)
 	CodeBuf = code_buffer::create ("amd64");
     }
 
-    std::cout << " generate llvm ..." << std::flush;;
+    std::cout << " generate llvm ...\n" << std::flush;;
     cu->codegen (CodeBuf);
+
+    CodeBuf->dump ();
 
     std::cout << " optimize ..." << std::flush;;
     CodeBuf->optimize ();

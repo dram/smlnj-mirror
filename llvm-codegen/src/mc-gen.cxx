@@ -28,8 +28,10 @@ mc_gen::mc_gen (llvm::LLVMContext &context, target_info const *target)
     llvm::Triple triple("x86_64-apple-macosx10.15.0");
 //    triple.setArch (target->arch);
     llvm::orc::JITTargetMachineBuilder tgtBuilder(triple);
+
     tgtBuilder.setRelocationModel (llvm::Reloc::PIC_);
-//    tgtBuilder.setCodeGenOptLevel (llvm::CodeGenOpt::Less);
+    tgtBuilder.setCodeGenOptLevel (llvm::CodeGenOpt::Less);
+
     llvm::TargetOptions tgtOpts;
     tgtOpts.GuaranteedTailCallOpt = true;
     tgtBuilder.setOptions (tgtOpts);
@@ -51,13 +53,14 @@ void mc_gen::beginModule (llvm::Module *module)
   // setup the pass manager
     this->_passMngr = std::make_unique<llvm::legacy::FunctionPassManager> (module);
 
+  // setup analysis passes
     this->_passMngr->add(
 	llvm::createTargetTransformInfoWrapperPass(
 	    this->_tgtMachine->getTargetIRAnalysis()));
+/* FIXME: are there other analysis passes that we need? */
 
   // set up a optimization pipeline following the pattern used in the Manticore
   // compiler.
-/* FIXME: what about analysis passes? */
     this->_passMngr->add(llvm::createLowerExpectIntrinsicPass());       /* -lower-expect */
     this->_passMngr->add(llvm::createCFGSimplificationPass());          /* -simplifycfg */
     this->_passMngr->add(llvm::createInstructionCombiningPass());       /* -instcombine */

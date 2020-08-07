@@ -27,8 +27,7 @@ enum class sml_reg_id {
 	STORE_PTR,		// points to list of store records
 	EXN_HNDLR,		// exception handler
 	VAR_PTR,		// var_ptr register
-	GC_LINK,
-	NUM_REGS
+	NUM_REGS		// the number of special registers
 };
 
 class reg_info {
@@ -74,14 +73,7 @@ class reg_info {
 
 };
 
-// information about the arguments for a standard function or continuation call
-//
-struct argument_info {
-    std::vector<sml_reg_id>	formals;	// the registers used to pass the arguments
-    std::vector<llvm::Type *>	tys;		// the LLVM types for the parameters
-};
-
-// information about the "SML" registers for a given target
+// information about the special "SML" registers for a given target
 //
 class sml_registers {
   public:
@@ -106,17 +98,14 @@ class sml_registers {
 						// compute code-address values
     int		_nHWRegs;			// the number of special registers that are
 						// hardware supported.
-    reg_info *	_info[reg_info::NUM_REGS];	// information about the registers;
-						// _info[BASE_PTR] will be null if _usesBasePtr
-						// is false.  Otherwise, _info[i] will be
-						// non-null for 0 <= i < _nRegs.
+    reg_info *	_info[reg_info::NUM_REGS];	// information about the registers.
     reg_info *	_hwRegs[reg_info::NUM_REGS];	// info about the SML registers that are
 						// mapped to machine registers and, thus, are
 						// passed as arguments in the JWA convention.
 };
 
-// The reg_state tracks a mapping from SML registers to LLVM values.
-//
+/// The reg_state tracks a mapping from SML registers to LLVM values.
+///
 class reg_state {
   public:
 
@@ -152,6 +141,8 @@ class reg_state {
 						// representation as an LLVM value.
 };
 
+/// initialize the static register information for the target
+///
 sml_registers *InitRegInfo (std::string const &target);
 
 #endif // !_SML_REGISTERS_HXX_

@@ -58,14 +58,27 @@ code_buffer::code_buffer (target_info const *target)
 
     if (this->_target->wordSz == 32) {
 	this->intTy = this->i32Ty;
+	this->_wordSzB = 4;
     }
     else { // info.wordSz == 64
 	this->intTy = this->i64Ty;
+	this->_wordSzB = 8;
     }
     this->mlValueTy = this->intTy->getPointerTo ();
     this->objPtrTy = this->mlValueTy->getPointerTo ();
     this->bytePtrTy = this->i8Ty->getPointerTo (ML_HEAP_ADDR_SP);
     this->voidTy = Type::getVoidTy (this->_context);
+
+  // "call-gc" types
+    {
+	int n = target->numCalleeSaves + 4;
+	std::vector<Type *> gcTys = this->createParamTys (n);
+	for (int i = 0;  i < n;  ++i) {
+	    gcTys.push_back (this->mlValueTy);
+	}
+	this->gcRetTy = llvm::StructType::create(gcTys, "gc_ret_ty");
+	this->gcFnTy = llvm::FunctionType::get(this->gcRetTy, gcTys, false);
+    }
 
 } // constructor
 
@@ -100,17 +113,18 @@ void code_buffer::endModule ()
     delete this->_module;
 }
 
-void code_buffer::beginCluster (llvm::Function *fn)
+void code_buffer::beginCluster (CFG::cluster *cluster, llvm::Function *fn)
 {
     this->_overflowBB = nullptr;
     this->_fragMap.clear();
     this->_curFn = fn;
+    this->_curCluster = cluster;
 
 } // code_buffer::beginCluster
 
 void code_buffer::endCluster ()
 {
-/* TODO: call GC code? */
+/* TODO: emit common GC code? */
 
 } // code_buffer::endCluster
 
@@ -309,6 +323,8 @@ Value *code_buffer::evalLabel (llvm::Function *fn)
 
 #define USE_INLINE_ASM_TO_ACCESS_STK
 
+/* TODO: another approach would be to use the @llvm.read_register() intrinsic */
+
 inline Value *_loadFromStack (code_buffer *buf, int offset)
 {
     auto fnTy = llvm::FunctionType::get (buf->mlValueTy, false); // i64Ty *load();
@@ -361,65 +377,271 @@ void code_buffer::_storeMemReg (sml_reg_id r, Value *v)
 
 } // code_buffer::_storeMemReg
 
-llvm::BasicBlock *code_buffer::invokeGC (std::vector<CFG::param *> const &params, CFG::frag *frag)
+// utility function for allocating a record of ML values (pointers or
+// tagged ints).
+//
+Value *code_buffer::allocRecord (uint64_t desc, Args_t const & args)
 {
+    int len = args.size();
+    Value *allocPtr = this->mlReg (sml_reg_id::ALLOC_PTR);
+
+  // write object descriptor
+    this->build().CreateAlignedStore (
+	this->createIntToPtr(this->uConst(desc), this->mlValueTy),
+	allocPtr,
+	(unsigned)this->_wordSzB);
+
+  // initialize the object's fields
+    for (int i = 1;  i <= len;  ++i) {
+	this->build().CreateAlignedStore (
+	    this->asMLValue (args[i-1]),
+	    this->createGEP (allocPtr, i),
+	    (unsigned)this->_wordSzB);
+    }
+
+  // compute the object's address and cast it to an ML value
+    Value *obj = this->asMLValue (this->createGEP (allocPtr, 1));
+
+  // bump the allocation pointer
+    this->setMLReg (sml_reg_id::ALLOC_PTR, this->createGEP (allocPtr, len + 1));
+
+    return obj;
+}
+
+// generate code to invoke the garbage collector.  This code is responsible
+// for packaging up excess live variables into heap objects and then
+// restoring them after the garbage collection.
+//
+llvm::BasicBlock *code_buffer::invokeGC (CFG::frag const *frag, frag_kind kind)
+{
+    std::vector<CFG::param *> params = frag->get_params();
+    int numParams = params.size();
+
+  // switch to a new block to the code
     llvm::BasicBlock *saveBB = this->_builder.GetInsertBlock ();
     llvm::BasicBlock *bb = this->newBB();
-
     this->_builder.SetInsertPoint (bb);
+
+  // In addition to the special "SML" registers, the GC calling convention
+  // uses the standard linkage registers (STD_LINK, STD_CLOS, STD_CONT),
+  // the callee-save registers (MISC1, ...), and STD_ARG.
+  //
+    int numCalleeSaves = this->targetInfo()->numCalleeSaves;
+    int numGCArgs = 4 + numCalleeSaves;
+
+  // classify arguments into ML values (pointers and tagged ints), raw
+  // 32-bit values (ints and floats), and raw 64-bit values (ints and floats)
+  //
+    std::vector<int> mlArgs;		// indices of ML-value parameters
+    std::vector<int> raw32Args;		// indices of 32-bit raw parameters
+    std::vector<int> raw64Args;		// indices of 64-bit raw parameters
+    std::vector<Type *> paramTys;	// LLVM types of the parameters
+    for (int i = 0;  i < numParams;  ++i) {
+	CFG::ty *ty = params[i]->get_1();
+	if (ty->isNUMt()) {
+	    int sz = dynamic_cast<CFG::NUMt *>(ty)->get_0();
+	    if (sz == 32) {
+		raw32Args.push_back (i);
+	    } else {
+		raw64Args.push_back (i);
+	    }
+	} else if (ty->isFLTt()) {
+	    int sz = dynamic_cast<CFG::FLTt *>(ty)->get_0();
+	    if (sz == 32) {
+		raw32Args.push_back (i);
+	    } else {
+		raw64Args.push_back (i);
+	    }
+	} else {
+	    mlArgs.push_back (i);
+	}
+	paramTys.push_back (ty->codegen (this));
+    }
+
+  // compute the size of the raw live data in words (including padding)
+  // and whether we need to force 64-bit alignment for the allocation pointer
+    int rawSz = 4 * raw32Args.size(); // bytes
+    bool align64 = (raw64Args.size() > 0) || this->is64Bit();
+    if (align64) {
+      // pad to 8 bytes and add 64-bit space
+	rawSz = 8 * (((rawSz + 7) >> 3) + raw64Args.size());
+    }
+  // convert to words
+    rawSz /= this->_wordSzB;
+
+    Value *rawObj = nullptr;
+    if (rawSz > 0) {
+      // allocate a raw record for the live values
+	Value *allocPtr = align64
+	    ? this->alignedAllocPtr() // align the allocation pointer
+	    : this->mlReg (sml_reg_id::ALLOC_PTR);
+      // write the descriptor, which is `(rawSz << 7) | tag`, where `tag` is
+      // either 0x12 (for tag_raw) or 0x16 (for tag_raw64).
+	unsigned int desc = (rawSz << 7) | ((raw64Args.size() > 0) ? 0x16 : 0x12);
+	this->_builder.CreateAlignedStore (
+	    this->createIntToPtr(this->uConst(desc), this->mlValueTy),
+	    allocPtr,
+	    (unsigned)this->_wordSzB);
+      // object address as `char *`
+	Value *objAdr = this->createBitCast (
+	    this->_builder.CreateInBoundsGEP (allocPtr, { this->uConst(1) }),
+	    this->bytePtrTy);
+      // write the 32-bit contents first
+	unsigned int offset = 0;
+	for (auto ix : raw32Args) {
+	    auto param = params[ix];
+	    auto ty = paramTys[ix];
+	    this->_builder.CreateAlignedStore (
+		this->lookupVal (param->get_0()),
+		this->createBitCast(
+		    this->createGEP(objAdr, offset),
+		    ty->getPointerTo()),
+		4);
+	    offset += 4;
+	}
+      // pad the offset to 64-bits
+	offset = (offset + 7) & ~7;
+      // write the 64-bit contents
+	for (auto ix : raw64Args) {
+	    auto param = params[ix];
+	    auto ty = param->get_1()->codegen(this);
+	    this->_builder.CreateAlignedStore (
+		this->lookupVal (param->get_0()),
+		this->createBitCast(
+		    this->createGEP(objAdr, offset),
+		    ty->getPointerTo()),
+		8);
+	    offset += 8;
+	}
+      // bump the allocation pointer
+	this->setMLReg (sml_reg_id::ALLOC_PTR,
+	    this->asObjPtr(this->createGEP (objAdr, offset)));
+      // the raw object
+	rawObj = this->asMLValue(objAdr);
+    }
+
+  // the number of ML arguments includes the raw object (if present)
+    int nMLArgs = mlArgs.size() + (rawObj == nullptr ? 0 : 1);
+
+  // if we have too many ML arguments, we need to put the excess values
+  // in a record
+    Value *extraObj = nullptr;
+    if (nMLArgs > numGCArgs) {
+      // allocate a record for the extra ML values
+	Args_t extra;
+	extra.reserve (nMLArgs - numGCArgs + 1);
+	for (int i = numGCArgs - 1;  i < mlArgs.size();  ++i) {
+	    extra.push_back (this->lookupVal(params[mlArgs[i]]->get_0()));
+	}
+	if (rawObj != nullptr) {
+	    extra.push_back (rawObj);
+	}
+      // NOTE: record descriptors == (len << 7) | 2
+	extraObj = this->allocRecord ((extra.size() << 7) | 2, extra);
+    }
+
+  // The GC calling convention uses seven registers to pass arguments
+  // (assuming that there are three callee save registers).  These have
+  // the following order in the JWA calling convention:
+  //
+  //	STD_LINK
+  //	STD_CLOS
+  //	STD_CONT
+  //	MISC1 (callee save)
+  //	MISC2 (callee save)
+  //	MISC3 (callee save)
+  //	STD_ARG
+  //
+
+  // the number of fragment parameters that will pass through to the GC
+    int nPassThrough = std::min(nMLArgs, numGCArgs);
+    if ((extraObj != nullptr) || (rawObj != nullptr)) {
+	nPassThrough--;
+    }
+
+  // setup the GC arguments (not counting extras)
+    std::vector<Type *> gcArgTys = this->createParamTys (numGCArgs);
+    Args_t gcArgs = this->createArgs (numGCArgs);
+    for (int i = 0;  i < nPassThrough;  ++i) {
+	gcArgTys.push_back (this->mlValueTy);
+	gcArgs.push_back (this->lookupVal(params[mlArgs[i]]->get_0()));
+    }
+    if (extraObj != nullptr) {
+	gcArgTys.push_back (this->mlValueTy);
+	gcArgs.push_back (extraObj);
+    }
+    else if (rawObj != nullptr) {
+	gcArgTys.push_back (this->mlValueTy);
+	gcArgs.push_back (rawObj);
+    }
+  // null out any uninitialized arguments
+    int actualNumGCArgs = gcArgs.size();
+    for (int i = actualNumGCArgs;  i < numGCArgs;  ++i) {
+	gcArgTys.push_back (this->mlValueTy);
+	gcArgs.push_back (this->uConst(1)); // == SML unit value
+    }
 
   // get the address of the "call-gc" entry
     Value *callGCFn = _loadFromStack (this, this->_target->callGCOffset);
 
-/* FIXME: need to save extra roots/integer registers/floating-point registers */
-    Value *linkReg = this->lookupVal (params[0]->get_0());
-    Value *closReg = this->lookupVal (params[1]->get_0());
-    Value *contReg = this->lookupVal (params[2]->get_0());
-    Value *argReg = this->lookupVal (params[3]->get_0());
-    int numCalleeSaves = this->targetInfo()->numCalleeSaves;
-    Value *calleeSaveReg[numCalleeSaves];
-    for (int i = 0;  i < numCalleeSaves;  ++i) {
-	calleeSaveReg[i] = this->lookupVal (params[4 + i]->get_0());
-    }
-
-  // setup the GC arguments (not counting extras)
-    int numGCArgs = 4 + this->targetInfo()->numCalleeSaves;
-    std::vector<Type *> gcArgTys = this->createParamTys (numGCArgs);
-    Args_t gcArgs = this->createArgs (numGCArgs);
-  // STD_LINK
-    gcArgTys.push_back (this->mlValueTy);
-    gcArgs.push_back (linkReg);
-  // STD_CLOS
-    gcArgTys.push_back (this->mlValueTy);
-    gcArgs.push_back (closReg);
-  // STD_CONT
-    gcArgTys.push_back (this->mlValueTy);
-    gcArgs.push_back (contReg);
-  // STD_ARG
-    gcArgTys.push_back (this->mlValueTy);
-    gcArgs.push_back (argReg);
-  // general-purpose callee saves
-    for (int i = 0;  i < numCalleeSaves; ++i) {
-	gcArgTys.push_back (this->mlValueTy);
-	gcArgs.push_back (calleeSaveReg[i]);	/* FIXME */
-    }
-
-  // call the garbage collector
-    auto fnTy = llvm::FunctionType::get (this->voidTy, gcArgTys, false);
+  // call the garbage collector.  The return type of the GC is a struct
+  // that contains the post-GC values of the argument registers
     auto call = this->_builder.CreateCall (
-	fnTy,
-	this->_builder.CreateBitCast(callGCFn, fnTy->getPointerTo()),
+	this->gcFnTy,
+	this->createBitCast(callGCFn, this->gcFnTy->getPointerTo()),
 	gcArgs);
     call->setCallingConv (llvm::CallingConv::JWA);
-    call->setTailCallKind (llvm::CallInst::TCK_NoTail);
+//    call->setTailCallKind (llvm::CallInst::TCK_NoTail);
+
+  // restore the register state from the return struct
+    for (unsigned i = 0, hwIx = 0;  i < reg_info::NUM_REGS;  ++i) {
+	reg_info const *info = this->_regInfo.info(static_cast<sml_reg_id>(i));
+	if (info->isMachineReg()) {
+	    gcArgs[hwIx] = this->_builder.CreateExtractValue(call, { hwIx });
+	    this->setMLReg (info->id(), gcArgs[hwIx]);
+	    hwIx++;
+	}
+    }
+    for (unsigned i = this->_regInfo.numMachineRegs();  i < actualNumGCArgs;  i++) {
+	gcArgs[i] = this->_builder.CreateExtractValue(call, { i });
+    }
+
+  // the arguments for the return to the limit test
+    Args_t retArgs = this->createArgs (numParams);
+
+  // restore registers from the extra and raw objects
+    if (extraObj != nullptr) {
+assert (false && "extra stuff");
+    }
+    else if (rawObj != nullptr) {
+assert (false && "raw stuff");
+    }
+    else { // no extra work required
+	for (int i = 0;  i < numParams;  ++i) {
+	    Value *v = gcArgs[this->_regInfo.numMachineRegs() + i];
+	    if (v->getType() != paramTys[i]) {
+		v = this->castTy (v->getType(), paramTys[i], v);
+	    }
+	    retArgs.push_back (v);
+	}
+    }
 
   // transfer control back to the limit test
-    if (frag != nullptr) {
-      // restore the roots, etc
+    if (kind == frag_kind::INTERNAL) {
+      // update fragment's PHI nodes
+assert (false && "phi nodes");
 	this->createBr (frag->bb());
     } else {
-/* jump to param[0] */
-	assert (false && "return to std entry not implemented yet");
+      // args[0] holds the entry address of the cluster, so we transfer control to it.
+	auto fnTy = this->_curCluster->fn()->getFunctionType();
+	llvm::CallInst *call = this->_builder.CreateCall(
+	    fnTy,
+	    this->createBitCast(retArgs[0], fnTy->getPointerTo()),
+	    retArgs);
+	call->setCallingConv (llvm::CallingConv::JWA);
+	call->setTailCallKind (llvm::CallInst::TCK_Tail);
+      // terminate the block
+	this->_builder.CreateRetVoid();
     }
 
     this->_builder.SetInsertPoint (saveBB);
