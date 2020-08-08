@@ -5,7 +5,7 @@
 #
 # Script to configure and build the LLVM sources.
 #
-# usage: build-llvm.sh [--force] [-np <n>] [--llvm-src <path>] [--build-dir <path>]
+# usage: build-llvm.sh [--force] [-np <n>] [--llvm-src <path>] [--release]
 #
 #       --help                  Generate help message
 #
@@ -17,14 +17,13 @@
 #       --llvm-src <path>       Specify path to LLVM source tree relative to the
 #                               llvm-codegen directory [default: llvm-10.0.0.src]
 #
-#	--release		Build a "release" build in llvm-release-build
-#				[default: "debug" build in llvm-build]
+#	--release		Build a "release" build in llvm-build-release
+#				[default: "debug" build in llvm-build-debug]
 #
 
-BUILD_TYPE=Debug
 FORCE=no
-LLVM_SRC=llvm-10.0.0.src
-LLVM_BUILD=llvm-build
+LLVM_SRC=llvm-10.0.1.src
+BUILD_TYPE=Debug
 NPROCS=4
 
 # system specific defaults
@@ -49,7 +48,7 @@ usage() {
   echo "    --llvm-src <path>   Specify path to LLVM source tree relative to the"
   echo "                        llvm-codegen directory [default: $LLVM_SRC]"
   echo ""
-  echo "    --release           Build a "release" build in llvm-release-build"
+  echo "    --release           Build a "release" build to install in llvm-release"
 
   exit $1
 }
@@ -77,7 +76,6 @@ while [ "$#" != "0" ] ; do
 	usage 1
       fi ;;
     --release)
-      LLVM_BUILD=llvm-release-build
       BUILD_TYPE=Release
       ;;
     --build-dir)
@@ -91,9 +89,17 @@ while [ "$#" != "0" ] ; do
   esac
 done
 
+if [ $BUILD_TYPE = "Debug" ] ; then
+  LLVM_BUILD=llvm-build-debug
+  LLVM_INSTALL=llvm-debug
+else
+  LLVM_BUILD=llvm-build-release
+  LLVM_INSTALL=llvm-release
+fi
+
 CMAKE_DEFS="\
   -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-  -DCMAKE_INSTALL_PREFIX=../llvm \
+  -DCMAKE_INSTALL_PREFIX=../$LLVM_INSTALL \
   -DLLVM_TARGETS_TO_BUILD=X86;AArch64 \
   -DLLVM_ENABLE_OCAMLDOC=OFF \
   -DLLVM_INCLUDE_BENCHMARKS=OFF \
@@ -188,5 +194,8 @@ cd "$LLVM_BUILD"
 echo "$0: configuring build"
 cmake -G "Unix Makefiles" $CMAKE_DEFS "../$LLVM_SRC" || exit 1
 
+rm -rf $LLVM_INSTALL
+
 echo "$0: building on $NPROCS cores"
 time make -j $NPROCS install
+
