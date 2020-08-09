@@ -13,29 +13,65 @@
 #include "codegen.hxx"
 #include <iostream>
 
+// timer support
+#include <time.h>
+
+class Timer {
+  public:
+    static Timer start ()
+    {
+	struct timespec ts;
+	clock_gettime (CLOCK_REALTIME, &ts);
+	return Timer (_cvtTimeSpec(ts));
+    }
+    void restart ()
+    {
+	struct timespec ts;
+	clock_gettime (CLOCK_REALTIME, &ts);
+	this->_ns100 = _cvtTimeSpec(ts);
+    }
+    double msec () const
+    {
+	struct timespec ts;
+	clock_gettime (CLOCK_REALTIME, &ts);
+	double t = double(_cvtTimeSpec(ts) - this->_ns100);
+	return t / 10000.0;
+    }
+  private:
+    uint64_t _ns100;	// track time in 100's of nanoseconds
+    static uint64_t _cvtTimeSpec (struct timespec &ts)
+    {
+	return (
+	    10000000 * static_cast<uint64_t>(ts.tv_sec)
+	    + static_cast<uint64_t>(ts.tv_nsec) / 100);
+    }
+    Timer (uint64_t t) : _ns100(t) { }
+};
+
 static code_buffer *CodeBuf = nullptr;
 
 void codegen (std::string const & src, output out)
 {
     asdl::file_instream inS(src);
 
-    std::cout << "read pickle ..." << std::flush;;
-    CFG::comp_unit *cu = CFG::comp_unit::read (inS);
-
-    std::cout << " setup code buffer ..." << std::flush;;
     if (CodeBuf == nullptr) {
 	CodeBuf = code_buffer::create ("amd64");
     }
 
-    std::cout << " generate llvm ...\n" << std::flush;;
-    cu->codegen (CodeBuf);
+    std::cout << "read pickle ..." << std::flush;
+    Timer pklTimer = Timer::start();
+    CFG::comp_unit *cu = CFG::comp_unit::read (inS);
+    std::cout << " " << pklTimer.msec() << "ms\n" << std::flush;
 
-    CodeBuf->dump ();
+    std::cout << " generate llvm ..." << std::flush;;
+    Timer genTimer = Timer::start();
+    cu->codegen (CodeBuf);
+    std::cout << " " << genTimer.msec() << "ms\n" << std::flush;
 
     std::cout << " optimize ..." << std::flush;;
+    Timer optTimer = Timer::start();
     CodeBuf->optimize ();
-
-    std::cout << " done\n" << std::flush;;
+    std::cout << " " << optTimer.msec() << "ms\n" << std::flush;
 
     CodeBuf->dump ();
 

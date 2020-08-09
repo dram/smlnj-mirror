@@ -118,7 +118,7 @@ namespace CFG {
     // entry block for the fragment) and we add phi nodes to the block for each
     // of the parameters.
     //
-    void frag::init (code_buffer * buf, bool isEntry)
+    void frag::init (code_buffer * buf)
     {
       // add the fragment to the label to fragment map
 	buf->insertFrag (this->_v_lab, this);
@@ -127,11 +127,11 @@ namespace CFG {
 	this->_v_body->init (buf, true);
 
       // add a phi node for each parameter of the fragment
-	if (! isEntry) {
+	if (this->_v_kind == frag_kind::INTERNAL) {
 	  // compute the parameter types for the fragment
-	    auto paramTys = buf->createParamTys (this->_v_params.size());
+	    auto paramTys = buf->createParamTys (this->_v_kind, this->_v_params.size());
 	    for (auto param : this->_v_params) {
-		paramTys.push_back (param->get_1()->codegen (buf));
+		paramTys.push_back (param->get_ty()->codegen (buf));
 	    }
 	  // for each parameter, add a PHI node to the entry block
 	    buf->setInsertPoint (this->_v_body->bb());
@@ -159,9 +159,9 @@ namespace CFG {
 	std::vector<llvm::Type *> paramTys;
 	paramTys.reserve (params.size());
 	for (auto param : params) {
-	    paramTys.push_back (param->get_1()->codegen(buf));
+	    paramTys.push_back (param->get_ty()->codegen(buf));
 	}
-	llvm::FunctionType *fnTy = buf->createFnTy (paramTys);
+	llvm::FunctionType *fnTy = buf->createFnTy (entry->get_kind(), paramTys);
 
 	std::string name = (isEntry ? "entry" : "fn") + std::to_string(entry->get_lab());
 	this->_fn = buf->newFunction (fnTy, name, isEntry);

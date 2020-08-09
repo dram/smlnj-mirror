@@ -32,33 +32,32 @@ structure Ex1 =
       structure C = CFG
       structure II = IntInf
       fun v id = LambdaVar.fromId id
-      fun V id = C.VAR(v id)
-
+      fun V id = C.VAR{name = v id}
+      fun LAB id = C.LABEL{name = v id}
+      fun mkParam (x : LambdaVar.lvar, ty : C.ty) = {name = x, ty = ty}
+      val mkParams = List.map mkParam
       fun num n = C.NUM{iv=n, sz=64}
       fun record (flds, x, k) = let
 	    val desc = ObjDesc.record(length flds)
 	    in
 	      C.ALLOC(P.RECORD{desc = desc, mut = false}, flds, x, k)
 	    end
-      fun pureOp (oper, args) = C.PURE(P.PURE_ARITH{oper=oper, sz=64}, args)
-      fun fAttrs bp = { (* function attrs *)
-	      isCont = false, alignHP = 8, needsBasePtr = bp, hasTrapArith = false, hasRCC = false
-	    }
-      fun cAttrs bp = { (* contiuation attrs *)
-	      isCont = true, alignHP = 8, needsBasePtr = bp, hasTrapArith = false, hasRCC = false
+      fun attrs bp = { (* cluster attrs *)
+	      alignHP = 8, needsBasePtr = bp, hasTrapArith = false, hasRCC = false
 	    }
       val unkProb = 0
 
       val fn78 = C.Cluster{
-	      attrs = fAttrs true,
+	      attrs = attrs true,
 	      entry = C.Frag{
+		  kind = C.STD_FUN,
 		  lab = v 78,
-		  params = [
+		  params = mkParams [
 		      (v 79, C.PTRt), (v 38, C.PTRt), (v 60, C.CNTt), (v 61, C.PTRt),
 		      (v 62, C.PTRt), (v 63, C.PTRt), (v 45, C.PTRt)
 		    ],
 		  allocChk = SOME 0w0,
-		  body = record ([C.LABEL(v 64)], v 95,
+		  body = record ([LAB 64], v 95,
 		    record ([V 95], v 96,
 		      C.THROW (V 60,
 			[V 60, V 61, V 62, V 63, V 96],
@@ -67,15 +66,16 @@ structure Ex1 =
 	      frags = []
 	    }
       val fn64 = C.Cluster{
-	      attrs = fAttrs true,
+	      attrs = attrs true,
 	      entry = C.Frag{
+		  kind = C.STD_FUN,
 		  lab = v 64,
-		  params = [
+		  params = mkParams [
 		      (v 86, C.PTRt), (v 85, C.PTRt), (v 84, C.CNTt),
 		      (v 83, C.PTRt), (v 82, C.PTRt), (v 81, C.PTRt), (v 80, C.PTRt)
 		    ],
 		  allocChk = SOME 0w0,
-		  body = record ([C.LABEL(v 71)], v 94,
+		  body = record ([LAB 71], v 94,
 		    C.THROW (V 84,
 		      [V 84, V 83, V 82, V 81, V 94],
 		      [C.PTRt, C.PTRt, C.PTRt, C.PTRt, C.PTRt]))
@@ -83,15 +83,16 @@ structure Ex1 =
 	      frags = []
 	    }
       val fn71 = C.Cluster{
-	      attrs = fAttrs false,
+	      attrs = attrs false,
 	      entry = C.Frag{
+		  kind = C.STD_FUN,
 		  lab = v 71,
-		  params = [
+		  params = mkParams [
 		      (v 93, C.PTRt), (v 92, C.PTRt), (v 91, C.CNTt), (v 90, C.PTRt),
 		      (v 89, C.PTRt), (v 88, C.PTRt), (v 87, C.PTRt)
 		    ],
 		  allocChk = SOME 0w0,
-		  body = C.APPLY(V 91,
+		  body = C.THROW(V 91,
 		    [V 91, V 90, V 89, V 88, V 87],
 		    [C.PTRt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])
 		},

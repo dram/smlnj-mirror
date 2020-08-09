@@ -72,7 +72,7 @@ code_buffer::code_buffer (target_info const *target)
   // "call-gc" types
     {
 	int n = target->numCalleeSaves + 4;
-	std::vector<Type *> gcTys = this->createParamTys (n);
+	std::vector<Type *> gcTys = this->createParamTys (frag_kind::STD_FUN, n);
 	for (int i = 0;  i < n;  ++i) {
 	    gcTys.push_back (this->mlValueTy);
 	}
@@ -99,6 +99,12 @@ void code_buffer::beginModule (std::string const & src, int nClusters)
     this->_sadd64WO = nullptr;
     this->_ssub64WO = nullptr;
     this->_smul64WO = nullptr;
+    this->_fabs32 = nullptr;
+    this->_fabs64 = nullptr;
+    this->_sqrt32 = nullptr;
+    this->_sqrt64 = nullptr;
+    this->_readReg = nullptr;
+    this->_spRegMD = nullptr;
 
 } // code_buffer::beginModule
 
@@ -155,9 +161,9 @@ llvm::Function *code_buffer::newFunction (
 
 }
 
-llvm::FunctionType *code_buffer::createFnTy (std::vector<Type *> const & tys) const
+llvm::FunctionType *code_buffer::createFnTy (frag_kind kind, std::vector<Type *> const & tys) const
 {
-    std::vector<Type *> allParams = this->createParamTys (tys.size());
+    std::vector<Type *> allParams = this->createParamTys (kind, tys.size());
 
   // add the types from the function's formal parameters
     for (auto ty : tys) {
@@ -171,13 +177,17 @@ llvm::FunctionType *code_buffer::createFnTy (std::vector<Type *> const & tys) co
 
 }
 
-std::vector<Type *> code_buffer::createParamTys (int n) const
+std::vector<Type *> code_buffer::createParamTys (frag_kind kind, int n) const
 {
     std::vector<Type *> tys;
 
     int nExtra = this->_regInfo.numMachineRegs();
 
-    tys.reserve(tys.size() + nExtra);
+  // standard continuations do not use the first two registers of
+  // the JWA convention (STD_LINK and STD_CLOS).
+    int nUnused = (kind == frag_kind::STD_CONT) ? 2 : 0;
+
+    tys.reserve(tys.size() + nExtra + nUnused);
 
   // the parameter list starts with the special registers (i.e., alloc ptr, ...),
   //
@@ -189,19 +199,35 @@ std::vector<Type *> code_buffer::createParamTys (int n) const
 	}
     }
 
+  // we give the unused registers the ML value type
+    for (int i = 0;  i < nUnused;  ++i) {
+	tys.push_back (this->mlValueTy);
+    }
+
     return tys;
 
 }
 
-Args_t code_buffer::createArgs (int n)
+Args_t code_buffer::createArgs (frag_kind kind, int n)
 {
     Args_t args;
+
     int nExtra = this->_regInfo.numMachineRegs();
-    args.reserve (n + nExtra);
+
+  // standard continuations do not use the first two registers of
+  // the JWA convention (STD_LINK and STD_CLOS).
+    int nUnused = (kind == frag_kind::STD_CONT) ? 2 : 0;
+
+    args.reserve (n + nExtra + nUnused);
 
   // seed the args array with the extra arguments
     for (int i = 0;  i < nExtra;  ++i) {
 	args.push_back (this->_regState.get (this->_regInfo.machineReg(i)));
+    }
+
+  // we assign the unused argument registers the undefined value
+    for (int i = 0;  i < nUnused;  ++i) {
+	args.push_back (llvm::UndefValue::get(this->mlValueTy));
     }
 
     return args;
@@ -225,11 +251,14 @@ void code_buffer::setupStdEntry (CFG::attrs *attrs, CFG::frag *frag)
   //	   where "n" is the number of callee saves and "m" is the number of floating-point
   //	   callee-saves
   //
+  // For continuations, the STD_LINK and STD_CLOS registers are undefined and do not
+  // correspond to CFG parameters
 
     llvm::Function *fn = this->_curFn;
 
   // initialize the base pointer (if necessary)
     if (attrs->get_needsBasePtr() && this->_regInfo.usesBasePtr()) {
+/* FIXME: need different code for continuations!!! */
       // STDLINK holds the function's address and is the first non-special argument.
 	this->_regState.setBasePtr (this->_curFn->getArg(this->_regInfo.numMachineRegs()));
     }
@@ -249,10 +278,12 @@ void code_buffer::setupStdEntry (CFG::attrs *attrs, CFG::frag *frag)
 	}
     }
 
-    std::vector<CFG::param *> params = frag->get_params();
     int nExtra = this->_regInfo.numMachineRegs();
+    int nUnused = ((frag->get_kind() == frag_kind::STD_CONT) ? 2 : 0);
+
+    std::vector<CFG::param *> params = frag->get_params();
     for (int i = 0;  i < params.size();  i++) {
-	this->insertVal (params[i]->get_0(), fn->getArg(nExtra + i));
+	params[i]->bind (this, fn->getArg(nExtra + i));
     }
 
 // FIXME: need initialize the base pointer
@@ -271,7 +302,7 @@ void code_buffer::setupFragEntry (CFG::frag *frag, std::vector<llvm::PHINode *> 
   // bind the formal parameters to the remaining PHI nodes
     std::vector<CFG::param *> params = frag->get_params();
     for (int i = 0;  i < params.size();  i++) {
-	this->insertVal (params[i]->get_0(), phiNodes[nExtra + i]);
+	params[i]->bind (this, phiNodes[nExtra + i]);
     }
 
 } // code_buffer::setupFragEntry
@@ -321,59 +352,42 @@ Value *code_buffer::evalLabel (llvm::Function *fn)
 
 } // code_buffer::evalLabel
 
-#define USE_INLINE_ASM_TO_ACCESS_STK
-
-/* TODO: another approach would be to use the @llvm.read_register() intrinsic */
-
-inline Value *_loadFromStack (code_buffer *buf, int offset)
+void code_buffer::_initSPAccess ()
 {
-    auto fnTy = llvm::FunctionType::get (buf->mlValueTy, false); // i64Ty *load();
-    llvm::InlineAsm *load = llvm::InlineAsm::get (
-	fnTy,
-	"movq " + std::to_string(offset) + "(%rsp),$0", // "movq offset(%rsp),dst"
-	"=r",
-	false);
-    return buf->build().CreateCall (fnTy, load);
+    assert ((this->_readReg == nullptr) && (this->_spRegMD == nullptr));
+    this->_readReg = _getIntrinsic (llvm::Intrinsic::read_register, this->intTy);
+    this->_spRegMD = llvm::MDNode::get (
+	this->_context,
+	llvm::MDString::get(this->_context, "rsp"));
+
+}
+
+// utility function for loading a value from the stack
+inline Value *_loadFromStack (code_buffer *buf, int offset, std::string const &name)
+{
+    return buf->build().CreateAlignedLoad (
+	buf->stkAddr (buf->objPtrTy, offset),
+	buf->wordSzInBytes(),
+	name);
 }
 
 // private function for loading a special register from memory
 Value *code_buffer::_loadMemReg (sml_reg_id r)
 {
-#ifdef USE_INLINE_ASM_TO_ACCESS_STK
-    return _loadFromStack (this, this->_regInfo.info(r)->offset());
-#else
     auto info = this->_regInfo.info(r);
-    auto fp = this->_builder.CreateCall(this->_frameAddress(), { this->i32Const(0) });
-    auto adr = this->_builder.CreateBitCast(
-	this->_builder.CreateInBoundsGEP(fp, { this->iConst(info->offset()) }),
-	this->objPtrTy);
-
-    return this->_builder.CreateAlignedLoad (this->mlValueTy, adr, this->_wordSzB, info->name());
-#endif
+    return _loadFromStack (this, info->offset(), info->name());
 
 } // code_buffer::_loadMemReg
 
 // private function for setting a special memory register
 void code_buffer::_storeMemReg (sml_reg_id r, Value *v)
 {
-#ifdef USE_INLINE_ASM_TO_ACCESS_STK
     auto info = this->_regInfo.info(r);
-    auto fnTy = llvm::FunctionType::get (this->voidTy, { this->mlValueTy }, false); // void store(i64Ty *v);
-    llvm::InlineAsm *store = llvm::InlineAsm::get (
-	fnTy,
-	"movq $0," + std::to_string(info->offset()) + "(%rsp)", // "movq src,offset(%rsp)"
-	"r",
-	true);
-    this->_builder.CreateCall (fnTy, store, { v });
-#else
-    auto info = this->_regInfo.info(r);
-    auto fp = this->_builder.CreateCall(this->_frameAddress(), { this->i32Const(0) });
-    auto adr = this->_builder.CreateBitCast(
-	this->_builder.CreateInBoundsGEP(fp, { this->iConst(info->offset()) }),
-	this->objPtrTy);
-
-    this->_builder.CreateAlignedStore (v, adr, this->_wordSzB);
-#endif
+    auto stkAddr = this->stkAddr (v->getType()->getPointerTo(), info->offset());
+    this->_builder.CreateAlignedStore (
+	v,
+	stkAddr,
+	this->_wordSzB);
 
 } // code_buffer::_storeMemReg
 
@@ -437,16 +451,16 @@ llvm::BasicBlock *code_buffer::invokeGC (CFG::frag const *frag, frag_kind kind)
     std::vector<int> raw64Args;		// indices of 64-bit raw parameters
     std::vector<Type *> paramTys;	// LLVM types of the parameters
     for (int i = 0;  i < numParams;  ++i) {
-	CFG::ty *ty = params[i]->get_1();
+	CFG::ty *ty = params[i]->get_ty();
 	if (ty->isNUMt()) {
-	    int sz = dynamic_cast<CFG::NUMt *>(ty)->get_0();
+	    int sz = dynamic_cast<CFG::NUMt *>(ty)->get_sz();
 	    if (sz == 32) {
 		raw32Args.push_back (i);
 	    } else {
 		raw64Args.push_back (i);
 	    }
 	} else if (ty->isFLTt()) {
-	    int sz = dynamic_cast<CFG::FLTt *>(ty)->get_0();
+	    int sz = dynamic_cast<CFG::FLTt *>(ty)->get_sz();
 	    if (sz == 32) {
 		raw32Args.push_back (i);
 	    } else {
@@ -492,7 +506,7 @@ llvm::BasicBlock *code_buffer::invokeGC (CFG::frag const *frag, frag_kind kind)
 	    auto param = params[ix];
 	    auto ty = paramTys[ix];
 	    this->_builder.CreateAlignedStore (
-		this->lookupVal (param->get_0()),
+		this->lookupVal (param->get_name()),
 		this->createBitCast(
 		    this->createGEP(objAdr, offset),
 		    ty->getPointerTo()),
@@ -504,9 +518,9 @@ llvm::BasicBlock *code_buffer::invokeGC (CFG::frag const *frag, frag_kind kind)
       // write the 64-bit contents
 	for (auto ix : raw64Args) {
 	    auto param = params[ix];
-	    auto ty = param->get_1()->codegen(this);
+	    auto ty = param->get_ty()->codegen(this);
 	    this->_builder.CreateAlignedStore (
-		this->lookupVal (param->get_0()),
+		this->lookupVal (param->get_name()),
 		this->createBitCast(
 		    this->createGEP(objAdr, offset),
 		    ty->getPointerTo()),
@@ -531,7 +545,7 @@ llvm::BasicBlock *code_buffer::invokeGC (CFG::frag const *frag, frag_kind kind)
 	Args_t extra;
 	extra.reserve (nMLArgs - numGCArgs + 1);
 	for (int i = numGCArgs - 1;  i < mlArgs.size();  ++i) {
-	    extra.push_back (this->lookupVal(params[mlArgs[i]]->get_0()));
+	    extra.push_back (this->lookupVal(params[mlArgs[i]]->get_name()));
 	}
 	if (rawObj != nullptr) {
 	    extra.push_back (rawObj);
@@ -560,11 +574,11 @@ llvm::BasicBlock *code_buffer::invokeGC (CFG::frag const *frag, frag_kind kind)
     }
 
   // setup the GC arguments (not counting extras)
-    std::vector<Type *> gcArgTys = this->createParamTys (numGCArgs);
-    Args_t gcArgs = this->createArgs (numGCArgs);
+    std::vector<Type *> gcArgTys = this->createParamTys (frag_kind::STD_FUN, numGCArgs);
+    Args_t gcArgs = this->createArgs (frag_kind::STD_FUN, numGCArgs);
     for (int i = 0;  i < nPassThrough;  ++i) {
 	gcArgTys.push_back (this->mlValueTy);
-	gcArgs.push_back (this->lookupVal(params[mlArgs[i]]->get_0()));
+	gcArgs.push_back (this->lookupVal(params[mlArgs[i]]->get_name()));
     }
     if (extraObj != nullptr) {
 	gcArgTys.push_back (this->mlValueTy);
@@ -582,7 +596,9 @@ llvm::BasicBlock *code_buffer::invokeGC (CFG::frag const *frag, frag_kind kind)
     }
 
   // get the address of the "call-gc" entry
-    Value *callGCFn = _loadFromStack (this, this->_target->callGCOffset);
+    Value *callGCFn = _loadFromStack (this, this->_target->callGCOffset, "callGC");
+
+llvm::dbgs() << "\nInvokeGC: callGCFn = " << *callGCFn << "\n";
 
   // call the garbage collector.  The return type of the GC is a struct
   // that contains the post-GC values of the argument registers
@@ -591,7 +607,7 @@ llvm::BasicBlock *code_buffer::invokeGC (CFG::frag const *frag, frag_kind kind)
 	this->createBitCast(callGCFn, this->gcFnTy->getPointerTo()),
 	gcArgs);
     call->setCallingConv (llvm::CallingConv::JWA);
-//    call->setTailCallKind (llvm::CallInst::TCK_NoTail);
+    call->setTailCallKind (llvm::CallInst::TCK_NoTail);
 
   // restore the register state from the return struct
     for (unsigned i = 0, hwIx = 0;  i < reg_info::NUM_REGS;  ++i) {
@@ -607,7 +623,7 @@ llvm::BasicBlock *code_buffer::invokeGC (CFG::frag const *frag, frag_kind kind)
     }
 
   // the arguments for the return to the limit test
-    Args_t retArgs = this->createArgs (numParams);
+    Args_t retArgs = this->createArgs (kind, numParams);
 
   // restore registers from the extra and raw objects
     if (extraObj != nullptr) {

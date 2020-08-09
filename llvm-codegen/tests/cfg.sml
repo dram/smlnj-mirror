@@ -122,23 +122,27 @@ structure CFG_Prim = struct
   end
 
 structure CFG = struct
-    type attrs = {isCont : bool, alignHP : int, needsBasePtr : bool, hasTrapArith : bool, hasRCC : bool}
+    type attrs = {alignHP : int, needsBasePtr : bool, hasTrapArith : bool, hasRCC : bool}
+    datatype frag_kind
+      = STD_FUN
+      | STD_CONT
+      | INTERNAL
     type probability = int
     datatype ty
-      = NUMt of int
-      | FLTt of int
+      = NUMt of {sz : int}
+      | FLTt of {sz : int}
       | PTRt
       | FUNt
       | CNTt
-    type param = LambdaVar.lvar * ty
+    type param = {name : LambdaVar.lvar, ty : ty}
     datatype exp
-      = VAR of LambdaVar.lvar
-      | LABEL of LambdaVar.lvar
+      = VAR of {name : LambdaVar.lvar}
+      | LABEL of {name : LambdaVar.lvar}
       | NUM of {iv : IntInf.int, sz : int}
-      | LOOKER of CFG_Prim.looker * exp list
-      | PURE of CFG_Prim.pure * exp list
-      | SELECT of int * exp
-      | OFFSET of int * exp
+      | LOOKER of {oper : CFG_Prim.looker, args : exp list}
+      | PURE of {oper : CFG_Prim.pure, args : exp list}
+      | SELECT of {idx : int, arg : exp}
+      | OFFSET of {idx : int, arg : exp}
     datatype stm
       = LET of exp * param * stm
       | ALLOC of CFG_Prim.alloc * exp list * LambdaVar.lvar * stm
@@ -150,7 +154,7 @@ structure CFG = struct
       | ARITH of CFG_Prim.arith * exp list * param * stm
       | SETTER of CFG_Prim.setter * exp list * stm
       | RCC of {reentrant : bool, linkage : string, proto : CTypes.c_proto, args : exp list, results : param list, live : param list, k : stm}
-    datatype frag = Frag of {lab : LambdaVar.lvar, params : param list, allocChk : word option, body : stm}
+    datatype frag = Frag of {kind : frag_kind, lab : LambdaVar.lvar, params : param list, allocChk : word option, body : stm}
     datatype cluster = Cluster of {attrs : attrs, entry : frag, frags : frag list}
     type comp_unit = {srcFile : string, entry : cluster, fns : cluster list}
   end

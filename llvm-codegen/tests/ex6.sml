@@ -52,28 +52,27 @@ structure Ex6 =
       structure C = CFG
       structure II = IntInf
       fun v id = LambdaVar.fromId id
-      fun V id = C.VAR(v id)
-      fun LAB id = C.LABEL(v id)
-
+      fun V id = C.VAR{name = v id}
+      fun LAB id = C.LABEL{name = v id}
+      fun mkParam (x : LambdaVar.lvar, ty : C.ty) = {name = x, ty = ty}
+      val mkParams = List.map mkParam
       fun num n = C.NUM{iv=n, sz=64}
       fun record (flds, x, k) = let
 	    val desc = ObjDesc.record(length flds)
 	    in
 	      C.ALLOC(P.RECORD{desc = desc, mut = false}, flds, x, k)
 	    end
-      fun fAttrs bp = { (* function attrs *)
-	      isCont = false, alignHP = 8, needsBasePtr = bp, hasTrapArith = false, hasRCC = false
-	    }
-      fun cAttrs bp = { (* contiuation attrs *)
-	      isCont = true, alignHP = 8, needsBasePtr = bp, hasTrapArith = false, hasRCC = false
+      fun attrs bp = { (* cluster attrs *)
+	      alignHP = 8, needsBasePtr = bp, hasTrapArith = false, hasRCC = false
 	    }
       val unkProb = 0
 
       val fn181 = C.Cluster{
-	      attrs = fAttrs true,
+	      attrs = attrs true,
 	      entry = C.Frag{
+		  kind = C.STD_FUN,
 		  lab = v 181,
-		  params = [
+		  params = mkParams [
 		      (v 182, C.PTRt), (v 137, C.PTRt), (v 170, C.CNTt), (v 171, C.PTRt),
 		      (v 172, C.PTRt), (v 173, C.PTRt), (v 148, C.PTRt)
 		    ],
@@ -88,12 +87,13 @@ structure Ex6 =
 	    }
       fun return res = C.THROW (V 187,
 	    [V 187, V 186, V 185, V 184, num 0],
-	    [C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.NUMt 64])
+	    [C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.NUMt{sz=64}])
       val fn174 = C.Cluster{
-	      attrs = fAttrs true,
+	      attrs = attrs true,
 	      entry = C.Frag{
+		  kind = C.STD_FUN,
 		  lab = v 174,
-		  params = [
+		  params = mkParams [
 		      (v 189, C.PTRt), (v 188, C.PTRt), (v 187, C.CNTt), (v 186, C.PTRt),
 		      (v 185, C.PTRt), (v 184, C.PTRt), (v 183, C.PTRt)
 		    ],

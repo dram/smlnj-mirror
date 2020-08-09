@@ -45,6 +45,7 @@ namespace CFG {
     class frag;
     class attrs;
     class cluster;
+    enum class frag_kind;
 }
 
 // map from lvars to values of type T*
@@ -54,7 +55,7 @@ using lvar_map_t = std::unordered_map<LambdaVar::lvar, T *>;
 // the different kinds of fragments.  The first two are restricted
 // to entry fragments for clusters; all others are `INTERNAL`
 //
-enum class frag_kind { STD_FUN, STD_CONT, INTERNAL };
+using frag_kind = CFG::frag_kind;
 
 // The code_buffer class encapsulates the current state of code generation, as well
 // as information about the target architecture.  It is passed as an argument to
@@ -87,18 +88,19 @@ class code_buffer {
     llvm::Function *newFunction (llvm::FunctionType *fnTy, std::string const &name, bool isFirst);
 
   // create a function type from a vector of parameter types.  This function adds
-  // the extra types corresponding to the SML registers
-    llvm::FunctionType *createFnTy (std::vector<Type *> const & tys) const;
+  // the extra types corresponding to the SML registers and for the unused
+  // argument registers for continuations
+    llvm::FunctionType *createFnTy (frag_kind kind, std::vector<Type *> const & tys) const;
 
   // create a vector to hold the types of function paramaters (including for fragments),
   // where `n` is the number of arguments to the call.  This method initialize the
   // prefix of the vector with the types of the SML registers
-    std::vector<Type *> createParamTys (int n) const;
+    std::vector<Type *> createParamTys (frag_kind kind, int n) const;
 
   // create a vector to hold the arguments of a call (APPLY/THROW/GOTO), where
   // `n` is the number of arguments to the call.  This method initialize the
   // prefix of the vector with the values of the SML registers
-    Args_t createArgs (int n);
+    Args_t createArgs (frag_kind kind, int n);
 
     void setupStdEntry (CFG::attrs *attrs, CFG::frag *frag);
 
@@ -346,6 +348,24 @@ class code_buffer {
 
   // get the branch-weight meta data for overflow-trap branches
     llvm::MDNode *overflowWeights ();
+
+  // return an address in the stack with the given `ptrTy`.
+    Value *stkAddr (Type *ptrTy, int offset)
+    {
+	if (this->_readReg == nullptr) {
+	    this->_initSPAccess();
+	}
+
+	return this->createIntToPtr (
+	    this->createAdd(
+		this->_builder.CreateCall(
+		    this->_readReg->getFunctionType(),
+		    this->_readReg,
+		    { llvm::MetadataAsValue::get(this->_context, this->_spRegMD) }),
+		this->iConst(offset)),
+	    ptrTy);
+
+    }
 
   // get intinsics; these are cached for the current module
     llvm::Function *sadd32WOvflw () const
@@ -621,7 +641,6 @@ class code_buffer {
     int64_t _wordSzB;
 
   // cached intrinsic functions
-    mutable llvm::Function *_frameAdr;		// @llvm.frameaddress
     mutable llvm::Function *_sadd32WO;		// @llvm.sadd.with.overflow.i32
     mutable llvm::Function *_ssub32WO;		// @llvm.ssub.with.overflow.i32
     mutable llvm::Function *_smul32WO;		// @llvm.smul.with.overflow.i32
@@ -633,18 +652,16 @@ class code_buffer {
     mutable llvm::Function *_sqrt32;		// @llvm.sqrt.f32
     mutable llvm::Function *_sqrt64;		// @llvm.sqrt.f64
 
+  // cached @llvm.read_register + meta data to access stack
+    llvm::Function *_readReg;
+    llvm::MDNode *_spRegMD;
+
   // helper function for getting an intrinsic when it has not yet
   // been loaded for the current module.
   //
     llvm::Function *_getIntrinsic (llvm::Intrinsic::ID id, Type *ty) const;
 
-    llvm::Function *_frameAddress () const
-    {
-	if (this->_frameAdr == nullptr) {
-	    this->_frameAdr = _getIntrinsic (llvm::Intrinsic::frameaddress, this->bytePtrTy);
-	}
-	return this->_frameAdr;
-    }
+    void _initSPAccess ();
 
   // function for loading a special register from memory
     Value *_loadMemReg (sml_reg_id r);

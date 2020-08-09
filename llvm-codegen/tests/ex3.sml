@@ -42,29 +42,28 @@ structure Ex3 =
       structure C = CFG
       structure II = IntInf
       fun v id = LambdaVar.fromId id
-      fun V id = C.VAR(v id)
-      fun LAB id = C.LABEL(v id)
-
+      fun V id = C.VAR{name = v id}
+      fun LAB id = C.LABEL{name = v id}
+      fun mkParam (x : LambdaVar.lvar, ty : C.ty) = {name = x, ty = ty}
+      val mkParams = List.map mkParam
       fun num n = C.NUM{iv=n, sz=64}
       fun record (flds, x, k) = let
 	    val desc = ObjDesc.record(length flds)
 	    in
 	      C.ALLOC(P.RECORD{desc = desc, mut = false}, flds, x, k)
 	    end
-      fun pureOp (oper, args) = C.PURE(P.PURE_ARITH{oper=oper, sz=64}, args)
-      fun fAttrs bp = { (* function attrs *)
-	      isCont = false, alignHP = 8, needsBasePtr = bp, hasTrapArith = false, hasRCC = false
-	    }
-      fun cAttrs bp = { (* contiuation attrs *)
-	      isCont = true, alignHP = 8, needsBasePtr = bp, hasTrapArith = false, hasRCC = false
+      fun pureOp (oper, args) = C.PURE{oper=P.PURE_ARITH{oper=oper, sz=64}, args=args}
+      fun attrs bp = { (* cluster attrs *)
+	      alignHP = 8, needsBasePtr = bp, hasTrapArith = false, hasRCC = false
 	    }
       val unkProb = 0
 
       val fn80 = C.Cluster{
-	      attrs = fAttrs true,
+	      attrs = attrs true,
 	      entry = C.Frag{
+		  kind = C.STD_FUN,
 		  lab = v 80,
-		  params = [
+		  params = mkParams [
 		      (v 81, C.PTRt), (v 44, C.PTRt), (v 69, C.CNTt), (v 70, C.PTRt),
 		      (v 71, C.PTRt), (v 72, C.PTRt), (v 57, C.PTRt)
 		    ],
@@ -78,20 +77,21 @@ structure Ex3 =
 	      frags = []
 	    }
       val fn73 = C.Cluster{
-	      attrs = fAttrs false,
+	      attrs = attrs false,
 	      entry = C.Frag{
+		  kind = C.STD_FUN,
 		  lab = v 73,
-		  params = [
+		  params = mkParams [
 		      (v 90, C.PTRt), (v 89, C.PTRt), (v 88, C.CNTt),
 		      (v 87, C.PTRt), (v 86, C.PTRt), (v 85, C.PTRt),
-		      (v 84, C.FLTt 64), (v 83, C.FLTt 64), (v 82, C.FLTt 64)
+		      (v 84, C.FLTt{sz=64}), (v 83, C.FLTt{sz=64}), (v 82, C.FLTt{sz=64})
 		    ],
 		  allocChk = SOME 0w0,
 		  body = C.THROW (V 88, [
 		        V 88, V 87, V 86, V 85,
 			pureOp(P.FADD, [pureOp(P.FMUL, [V 84, V 83]), V 82])
 		      ],
-		    [C.PTRt, C.PTRt, C.PTRt, C.PTRt, C.FLTt 64])
+		    [C.PTRt, C.PTRt, C.PTRt, C.PTRt, C.FLTt{sz=64}])
 		},
 	      frags = []
 	    }

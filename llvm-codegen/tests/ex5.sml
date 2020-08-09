@@ -89,34 +89,34 @@ structure Ex5 =
       structure C = CFG
       structure II = IntInf
       fun v id = LambdaVar.fromId id
-      fun V id = C.VAR(v id)
-      fun LAB id = C.LABEL(v id)
-
+      fun V id = C.VAR{name = v id}
+      fun LAB id = C.LABEL{name = v id}
+      fun mkParam (x : LambdaVar.lvar, ty : C.ty) = {name = x, ty = ty}
+      val mkParams = List.map mkParam
       fun num n = C.NUM{iv=n, sz=64}
       fun record (flds, x, k) = let
 	    val desc = ObjDesc.record(length flds)
 	    in
 	      C.ALLOC(P.RECORD{desc = desc, mut = false}, flds, x, k)
 	    end
+      fun select (idx, arg) = C.SELECT{idx=idx, arg=arg}
       fun setHdlr (exp, k) = C.SETTER(P.SET_HDLR, [exp], k)
       fun rawRecord (flds, x, k) = let
 	    val desc = ObjDesc.rawRecord(length flds)
 	    in
 	      C.ALLOC(P.RAW_RECORD{desc = desc, kind = P.INT, sz = 64}, flds, x, k)
 	    end
-      fun fAttrs bp = { (* function attrs *)
-	      isCont = false, alignHP = 8, needsBasePtr = bp, hasTrapArith = false, hasRCC = false
-	    }
-      fun cAttrs bp = { (* contiuation attrs *)
-	      isCont = true, alignHP = 8, needsBasePtr = bp, hasTrapArith = false, hasRCC = false
+      fun attrs bp = { (* cluster attrs *)
+	      alignHP = 8, needsBasePtr = bp, hasTrapArith = false, hasRCC = false
 	    }
       val unkProb = 0
 
       val fn333 = C.Cluster{
-	      attrs = fAttrs true,
+	      attrs = attrs true,
 	      entry = C.Frag{
+		  kind = C.STD_FUN,
 		  lab = v 333,
-		  params = [
+		  params = mkParams [
 		      (v 334, C.PTRt), (v 263, C.PTRt), (v 303, C.CNTt), (v 304, C.PTRt),
 		      (v 305, C.PTRt), (v 306, C.PTRt), (v 279, C.PTRt)
 		    ],
@@ -130,10 +130,11 @@ structure Ex5 =
 	      frags = []
 	    }
       val fn307 = C.Cluster{
-	      attrs = fAttrs true,
+	      attrs = attrs true,
 	      entry = C.Frag{
+		  kind = C.STD_FUN,
 		  lab = v 307,
-		  params = [
+		  params = mkParams [
 		      (v 341, C.PTRt), (v 340, C.PTRt), (v 339, C.CNTt), (v 338, C.PTRt),
 		      (v 337, C.PTRt), (v 336, C.PTRt), (v 335, C.PTRt)
 		    ],
@@ -146,20 +147,21 @@ structure Ex5 =
 	      frags = []
 	    }
       val fn314 = C.Cluster{
-	      attrs = fAttrs true,
+	      attrs = attrs true,
 	      entry = C.Frag{
+		  kind = C.STD_FUN,
 		  lab = v 314,
-		  params = [
+		  params = mkParams [
 		      (v 350, C.PTRt), (v 349, C.PTRt), (v 348, C.CNTt), (v 347, C.PTRt),
 		      (v 346, C.PTRt), (v 345, C.PTRt), (v 344, C.FUNt), (v 343, C.FUNt),
 		      (v 342, C.PTRt)
 		    ],
 		  allocChk = SOME 0w0,
-		  body = C.LET(C.LOOKER(P.GET_HDLR, []), (v 293, C.FUNt),
+		  body = C.LET(C.LOOKER{oper=P.GET_HDLR, args=[]}, mkParam(v 293, C.FUNt),
 		    record([LAB 321, V 343, V 293, V 348, V 347, V 346, V 345], v 365,
 		    setHdlr(V 365,
 		    record([V 293, V 348, V 347], v 374,
-		    C.LET(C.SELECT(0, V 344), (v 375, C.FUNt),
+		    C.LET(select(0, V 344), mkParam(v 375, C.FUNt),
 		      C.APPLY(V 375,
 			[V 375, V 344, LAB 329, V 374, V 346, V 345, V 342],
 			[C.FUNt, C.PTRt, C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.PTRt]))))))
@@ -167,37 +169,39 @@ structure Ex5 =
 	      frags = []
 	    }
       val fn321 = C.Cluster{
-	      attrs = fAttrs false,
+	      attrs = attrs false,
 	      entry = C.Frag{
+		  kind = C.STD_FUN,
 		  lab = v 321,
-		  params = [
+		  params = mkParams [
 		      (v 357, C.PTRt), (v 356, C.PTRt), (v 355, C.CNTt), (v 354, C.PTRt),
 		      (v 353, C.PTRt), (v 352, C.PTRt), (v 351, C.PTRt)
 		    ],
 		  allocChk = SOME 0w0,
-		  body = setHdlr(C.SELECT(2, V 356),
-		    C.LET(C.SELECT(0, V 356), (v 364, C.FUNt),
+		  body = setHdlr(select(2, V 356),
+		    C.LET(select(0, V 356), mkParam(v 364, C.FUNt),
 		      C.APPLY(V 364, [
-			    V 364, C.SELECT(1, V 356), C.SELECT(3, V 356), C.SELECT(4, V 356),
-			    C.SELECT(5, V 356), C.SELECT(6, V 356), V 351
+			    V 364, select(1, V 356), select(3, V 356), select(4, V 356),
+			    select(5, V 356), select(6, V 356), V 351
 			  ],
 			[C.FUNt, C.FUNt, C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
 		},
 	      frags = []
 	    }
       val fn329 = C.Cluster{
-	      attrs = cAttrs false,
+	      attrs = attrs false,
 	      entry = C.Frag{
+		  kind = C.STD_CONT,
 		  lab = v 329,
-		  params = [
+		  params = mkParams [
 		      (v 370, C.PTRt), (v 369, C.PTRt), (v 368, C.PTRt), (v 367, C.PTRt),
 		      (v 366, C.PTRt)
 		    ],
 		  allocChk = SOME 0w0,
-		  body = setHdlr(C.SELECT(0, V 369),
-		    C.LET(C.SELECT(1, V 369), (v 373, C.CNTt),
+		  body = setHdlr(select(0, V 369),
+		    C.LET(select(1, V 369), mkParam(v 373, C.CNTt),
 		      C.THROW(V 373,
-			[V 373, C.SELECT(2, V 369), V 368, V 367, V 366],
+			[V 373, select(2, V 369), V 368, V 367, V 366],
 			[C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
 		},
 	      frags = []

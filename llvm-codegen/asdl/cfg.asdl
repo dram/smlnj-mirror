@@ -161,8 +161,8 @@ module CFG (
   -- CFG types.
   --
     ty
-      = NUMt (int)	-- integers of given size
-      | FLTt (int) 	-- float of given size
+      = NUMt (int sz)	-- integers of given size
+      | FLTt (int sz) 	-- float of given size
       | PTRt		-- pointer
       | FUNt		-- function
       | CNTt		-- continuation
@@ -171,15 +171,15 @@ module CFG (
   -- literal table, so we do not include them here.
   --
     exp
-      = VAR (LambdaVar.lvar)
-      | LABEL (LambdaVar.lvar)
+      = VAR (LambdaVar.lvar name)
+      | LABEL (LambdaVar.lvar name)
       | NUM (integer iv, int sz)
-      | LOOKER (CFG_Prim.looker, exp*)
-      | PURE (CFG_Prim.pure, exp*)
-      | SELECT (int, exp)
-      | OFFSET (int, exp)
+      | LOOKER (CFG_Prim.looker oper, exp* args)
+      | PURE (CFG_Prim.pure oper, exp* args)
+      | SELECT (int idx, exp arg)
+      | OFFSET (int idx, exp arg)
 
-    param = (LambdaVar.lvar, ty)
+    param = (LambdaVar.lvar name, ty ty)
 
   -- branch probabilities are measured in percent (1..99).  We use 0 to
   -- represent the absence of probability information.
@@ -219,20 +219,21 @@ module CFG (
 	  param* live,			-- live variables across call (with types)
 	  stm k)			-- the continuation
 
+    frag_kind = STD_FUN | STD_CONT | INTERNAL
+
   -- a cluster fragment is an extended basic block.  The fields are:
+  --    kind            the kind of fragment, which determines its calling convention
   --    lab		the fragment's label
   --	params		the lvar parameters and parameter types
   --	allocChk	optional allocation check; empty means no check, we use 0 for the
   --			standard check
   --	body		the root of the extended basic block
   --
-    frag = Frag (LambdaVar.lvar lab, param* params, uint? allocChk, stm body)
+    frag = Frag (frag_kind kind, LambdaVar.lvar lab, param* params, uint? allocChk, stm body)
 
   -- meta data about a cluster
   --
     attrs = (
-	bool isCont,		-- true if the cluster is a standard continuation; otherwise
-				-- it is a standard function
 	int alignHP,		-- alignment requirement for allocation pointer
 	bool needsBasePtr,	-- true if cluster does PC-relative addressing
 	bool hasTrapArith,	-- true if cluster has trapping arithmetic
@@ -318,7 +319,7 @@ view Cxx {
 
 -- param
     { CFG.param } <= public_code %%
-	void bind (code_buffer *buf, Value *v) { buf->insertVal (this->_v0, v); }
+	void bind (code_buffer *buf, Value *v) { buf->insertVal (this->_v_name, v); }
 %%
 
 -- exp
@@ -347,8 +348,8 @@ view Cxx {
 
 -- frag
     { CFG.frag } <= public_code %%
-        void init (code_buffer *buf, bool isEntry);
-        void codegen (code_buffer * buf, cluster *cluster);
+        void init (code_buffer *buf);
+        void codegen (code_buffer *buf, cluster *cluster);
 	llvm::BasicBlock *bb() const { return this->_v_body->bb(); }
 	Type *paramTy (int i) { return this->_phiNodes[i]->getType(); }
 	void addIncoming (int i, Value *v, llvm::BasicBlock *bblk)

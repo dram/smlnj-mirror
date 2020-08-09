@@ -326,13 +326,13 @@ namespace CFG {
         switch (tag) {
           case _con_NUMt:
             {
-                auto f0 = asdl::read_int(is);
-                return new NUMt(f0);
+                auto fsz = asdl::read_int(is);
+                return new NUMt(fsz);
             }
           case _con_FLTt:
             {
-                auto f0 = asdl::read_int(is);
-                return new FLTt(f0);
+                auto fsz = asdl::read_int(is);
+                return new FLTt(fsz);
             }
           case _con_PTRt:
             return new PTRt;
@@ -359,13 +359,13 @@ namespace CFG {
         switch (tag) {
           case _con_VAR:
             {
-                auto f0 = LambdaVar::read_lvar(is);
-                return new VAR(f0);
+                auto fname = LambdaVar::read_lvar(is);
+                return new VAR(fname);
             }
           case _con_LABEL:
             {
-                auto f0 = LambdaVar::read_lvar(is);
-                return new LABEL(f0);
+                auto fname = LambdaVar::read_lvar(is);
+                return new LABEL(fname);
             }
           case _con_NUM:
             {
@@ -375,27 +375,27 @@ namespace CFG {
             }
           case _con_LOOKER:
             {
-                auto f0 = CFG_Prim::looker::read(is);
-                auto f1 = read_exp_seq(is);
-                return new LOOKER(f0, f1);
+                auto foper = CFG_Prim::looker::read(is);
+                auto fargs = read_exp_seq(is);
+                return new LOOKER(foper, fargs);
             }
           case _con_PURE:
             {
-                auto f0 = CFG_Prim::pure::read(is);
-                auto f1 = read_exp_seq(is);
-                return new PURE(f0, f1);
+                auto foper = CFG_Prim::pure::read(is);
+                auto fargs = read_exp_seq(is);
+                return new PURE(foper, fargs);
             }
           case _con_SELECT:
             {
-                auto f0 = asdl::read_int(is);
-                auto f1 = exp::read(is);
-                return new SELECT(f0, f1);
+                auto fidx = asdl::read_int(is);
+                auto farg = exp::read(is);
+                return new SELECT(fidx, farg);
             }
           case _con_OFFSET:
             {
-                auto f0 = asdl::read_int(is);
-                auto f1 = exp::read(is);
-                return new OFFSET(f0, f1);
+                auto fidx = asdl::read_int(is);
+                auto farg = exp::read(is);
+                return new OFFSET(fidx, farg);
             }
         }
     }
@@ -405,19 +405,19 @@ namespace CFG {
     NUM::~NUM () { }
     LOOKER::~LOOKER ()
     {
-        delete this->_v0;
+        delete this->_v_oper;
     }
     PURE::~PURE ()
     {
-        delete this->_v0;
+        delete this->_v_oper;
     }
     SELECT::~SELECT ()
     {
-        delete this->_v1;
+        delete this->_v_arg;
     }
     OFFSET::~OFFSET ()
     {
-        delete this->_v1;
+        delete this->_v_arg;
     }
     // exp_seq pickler suppressed
     std::vector<exp *> read_exp_seq (asdl::instream & is)
@@ -426,13 +426,13 @@ namespace CFG {
     }
     param * param::read (asdl::instream & is)
     {
-        auto f0 = LambdaVar::read_lvar(is);
-        auto f1 = ty::read(is);
-        return new param(f0, f1);
+        auto fname = LambdaVar::read_lvar(is);
+        auto fty = ty::read(is);
+        return new param(fname, fty);
     }
     param::~param ()
     {
-        delete this->_v1;
+        delete this->_v_ty;
     }
     // param_seq pickler suppressed
     std::vector<param *> read_param_seq (asdl::instream & is)
@@ -579,13 +579,19 @@ namespace CFG {
     {
         return asdl::read_seq<stm>(is);
     }
+    // pickler suppressed for frag_kind
+    frag_kind read_frag_kind (asdl::instream & is)
+    {
+        return static_cast<frag_kind>(asdl::read_tag8(is));
+    }
     frag * frag::read (asdl::instream & is)
     {
+        auto fkind = read_frag_kind(is);
         auto flab = LambdaVar::read_lvar(is);
         auto fparams = read_param_seq(is);
         auto fallocChk = asdl::read_uint_option(is);
         auto fbody = stm::read(is);
-        return new frag(flab, fparams, fallocChk, fbody);
+        return new frag(fkind, flab, fparams, fallocChk, fbody);
     }
     frag::~frag ()
     {
@@ -598,12 +604,11 @@ namespace CFG {
     }
     attrs * attrs::read (asdl::instream & is)
     {
-        auto fisCont = asdl::read_bool(is);
         auto falignHP = asdl::read_int(is);
         auto fneedsBasePtr = asdl::read_bool(is);
         auto fhasTrapArith = asdl::read_bool(is);
         auto fhasRCC = asdl::read_bool(is);
-        return new attrs(fisCont, falignHP, fneedsBasePtr, fhasTrapArith, fhasRCC);
+        return new attrs(falignHP, fneedsBasePtr, fhasTrapArith, fhasRCC);
     }
     attrs::~attrs () { }
     cluster * cluster::read (asdl::instream & is)

@@ -541,89 +541,101 @@ structure CFGFilePickle : CFGPICKLE
 (*---------- end pickle-util.in ----------*)
 
     fun write_attrs (outS, obj) = let
-          val {isCont, alignHP, needsBasePtr, hasTrapArith, hasRCC} = obj
+          val {alignHP, needsBasePtr, hasTrapArith, hasRCC} = obj
           in
-            ASDLFilePickle.writeBool (outS, isCont);
             ASDLFilePickle.writeInt (outS, alignHP);
             ASDLFilePickle.writeBool (outS, needsBasePtr);
             ASDLFilePickle.writeBool (outS, hasTrapArith);
             ASDLFilePickle.writeBool (outS, hasRCC)
           end
     fun read_attrs inS = let
-          val isCont = ASDLFilePickle.readBool inS
           val alignHP = ASDLFilePickle.readInt inS
           val needsBasePtr = ASDLFilePickle.readBool inS
           val hasTrapArith = ASDLFilePickle.readBool inS
           val hasRCC = ASDLFilePickle.readBool inS
           in
               {
-              isCont = isCont,
               alignHP = alignHP,
               needsBasePtr = needsBasePtr,
               hasTrapArith = hasTrapArith,
               hasRCC = hasRCC}
           end
+    fun write_frag_kind (outS, obj) = (case obj
+           of CFG.STD_FUN => ASDLFilePickle.writeTag8 (outS, 0w1)
+            | CFG.STD_CONT => ASDLFilePickle.writeTag8 (outS, 0w2)
+            | CFG.INTERNAL => ASDLFilePickle.writeTag8 (outS, 0w3))
+    fun read_frag_kind inS = (case ASDLFilePickle.readTag8 inS
+           of 0w1 => CFG.STD_FUN
+            | 0w2 => CFG.STD_CONT
+            | 0w3 => CFG.INTERNAL
+            | _ => raise ASDL.DecodeError)
     fun write_probability (outS, obj) = ASDLFilePickle.writeInt (outS, obj)
     fun read_probability inS = ASDLFilePickle.readInt inS
     fun write_ty (outS, obj) = (case obj
-           of CFG.NUMt x0 => (
+           of CFG.NUMt{sz} => (
               ASDLFilePickle.writeTag8 (outS, 0w1);
-              ASDLFilePickle.writeInt (outS, x0))
-            | CFG.FLTt x0 => (
+              ASDLFilePickle.writeInt (outS, sz))
+            | CFG.FLTt{sz} => (
               ASDLFilePickle.writeTag8 (outS, 0w2);
-              ASDLFilePickle.writeInt (outS, x0))
+              ASDLFilePickle.writeInt (outS, sz))
             | CFG.PTRt => ASDLFilePickle.writeTag8 (outS, 0w3)
             | CFG.FUNt => ASDLFilePickle.writeTag8 (outS, 0w4)
             | CFG.CNTt => ASDLFilePickle.writeTag8 (outS, 0w5))
     fun read_ty inS = (case ASDLFilePickle.readTag8 inS
-           of 0w1 => let val x0 = ASDLFilePickle.readInt inS in CFG.NUMt (x0) end
-            | 0w2 => let val x0 = ASDLFilePickle.readInt inS in CFG.FLTt (x0) end
+           of 0w1 => let val sz = ASDLFilePickle.readInt inS in CFG.NUMt {sz = sz} end
+            | 0w2 => let val sz = ASDLFilePickle.readInt inS in CFG.FLTt {sz = sz} end
             | 0w3 => CFG.PTRt
             | 0w4 => CFG.FUNt
             | 0w5 => CFG.CNTt
             | _ => raise ASDL.DecodeError)
     fun write_param (outS, obj) = let
-          val (x0, x1) = obj
+          val {name, ty} = obj
           in
-            LambdaVarFilePickle.write_lvar (outS, x0);
-            write_ty (outS, x1)
+            LambdaVarFilePickle.write_lvar (outS, name);
+            write_ty (outS, ty)
           end
     fun read_param inS = let
-          val x0 = LambdaVarFilePickle.read_lvar inS
-          val x1 = read_ty inS
+          val name = LambdaVarFilePickle.read_lvar inS
+          val ty = read_ty inS
           in
-              (x0, x1)
+              {name = name, ty = ty}
           end
     fun write_exp (outS, obj) = (case obj
-           of CFG.VAR x0 => (
+           of CFG.VAR{name} => (
               ASDLFilePickle.writeTag8 (outS, 0w1);
-              LambdaVarFilePickle.write_lvar (outS, x0))
-            | CFG.LABEL x0 => (
+              LambdaVarFilePickle.write_lvar (outS, name))
+            | CFG.LABEL{name} => (
               ASDLFilePickle.writeTag8 (outS, 0w2);
-              LambdaVarFilePickle.write_lvar (outS, x0))
+              LambdaVarFilePickle.write_lvar (outS, name))
             | CFG.NUM{iv, sz} => (
               ASDLFilePickle.writeTag8 (outS, 0w3);
               ASDLFilePickle.writeInteger (outS, iv);
               ASDLFilePickle.writeInt (outS, sz))
-            | CFG.LOOKER(x0, x1) => (
+            | CFG.LOOKER{oper, args} => (
               ASDLFilePickle.writeTag8 (outS, 0w4);
-              CFG_PrimFilePickle.write_looker (outS, x0);
-              writeSeq write_exp (outS, x1))
-            | CFG.PURE(x0, x1) => (
+              CFG_PrimFilePickle.write_looker (outS, oper);
+              writeSeq write_exp (outS, args))
+            | CFG.PURE{oper, args} => (
               ASDLFilePickle.writeTag8 (outS, 0w5);
-              CFG_PrimFilePickle.write_pure (outS, x0);
-              writeSeq write_exp (outS, x1))
-            | CFG.SELECT(x0, x1) => (
+              CFG_PrimFilePickle.write_pure (outS, oper);
+              writeSeq write_exp (outS, args))
+            | CFG.SELECT{idx, arg} => (
               ASDLFilePickle.writeTag8 (outS, 0w6);
-              ASDLFilePickle.writeInt (outS, x0);
-              write_exp (outS, x1))
-            | CFG.OFFSET(x0, x1) => (
+              ASDLFilePickle.writeInt (outS, idx);
+              write_exp (outS, arg))
+            | CFG.OFFSET{idx, arg} => (
               ASDLFilePickle.writeTag8 (outS, 0w7);
-              ASDLFilePickle.writeInt (outS, x0);
-              write_exp (outS, x1)))
+              ASDLFilePickle.writeInt (outS, idx);
+              write_exp (outS, arg)))
     fun read_exp inS = (case ASDLFilePickle.readTag8 inS
-           of 0w1 => let val x0 = LambdaVarFilePickle.read_lvar inS in CFG.VAR (x0) end
-            | 0w2 => let val x0 = LambdaVarFilePickle.read_lvar inS in CFG.LABEL (x0) end
+           of 0w1 => let
+              val name = LambdaVarFilePickle.read_lvar inS
+              in CFG.VAR {name = name}
+              end
+            | 0w2 => let
+              val name = LambdaVarFilePickle.read_lvar inS
+              in CFG.LABEL {name = name}
+              end
             | 0w3 => let
               val iv = ASDLFilePickle.readInteger inS
               val sz = ASDLFilePickle.readInt inS
@@ -631,28 +643,28 @@ structure CFGFilePickle : CFGPICKLE
                   CFG.NUM {iv = iv, sz = sz}
               end
             | 0w4 => let
-              val x0 = CFG_PrimFilePickle.read_looker inS
-              val x1 = readSeq read_exp inS
+              val oper = CFG_PrimFilePickle.read_looker inS
+              val args = readSeq read_exp inS
               in
-                  CFG.LOOKER (x0, x1)
+                  CFG.LOOKER {oper = oper, args = args}
               end
             | 0w5 => let
-              val x0 = CFG_PrimFilePickle.read_pure inS
-              val x1 = readSeq read_exp inS
+              val oper = CFG_PrimFilePickle.read_pure inS
+              val args = readSeq read_exp inS
               in
-                  CFG.PURE (x0, x1)
+                  CFG.PURE {oper = oper, args = args}
               end
             | 0w6 => let
-              val x0 = ASDLFilePickle.readInt inS
-              val x1 = read_exp inS
+              val idx = ASDLFilePickle.readInt inS
+              val arg = read_exp inS
               in
-                  CFG.SELECT (x0, x1)
+                  CFG.SELECT {idx = idx, arg = arg}
               end
             | 0w7 => let
-              val x0 = ASDLFilePickle.readInt inS
-              val x1 = read_exp inS
+              val idx = ASDLFilePickle.readInt inS
+              val arg = read_exp inS
               in
-                  CFG.OFFSET (x0, x1)
+                  CFG.OFFSET {idx = idx, arg = arg}
               end
             | _ => raise ASDL.DecodeError)
     fun write_stm (outS, obj) = (case obj
@@ -799,20 +811,23 @@ structure CFGFilePickle : CFGPICKLE
               end
             | _ => raise ASDL.DecodeError)
     fun write_frag (outS, obj) = let
-          val CFG.Frag{lab, params, allocChk, body} = obj
+          val CFG.Frag{kind, lab, params, allocChk, body} = obj
           in
+            write_frag_kind (outS, kind);
             LambdaVarFilePickle.write_lvar (outS, lab);
             writeSeq write_param (outS, params);
             writeOption ASDLFilePickle.writeUInt (outS, allocChk);
             write_stm (outS, body)
           end
     fun read_frag inS = let
+          val kind = read_frag_kind inS
           val lab = LambdaVarFilePickle.read_lvar inS
           val params = readSeq read_param inS
           val allocChk = readOption ASDLFilePickle.readUInt inS
           val body = read_stm inS
           in
-              CFG.Frag {lab = lab, params = params, allocChk = allocChk, body = body}
+              CFG.Frag
+              {kind = kind, lab = lab, params = params, allocChk = allocChk, body = body}
           end
     fun write_cluster (outS, obj) = let
           val CFG.Cluster{attrs, entry, frags} = obj

@@ -18,13 +18,13 @@ namespace CFG {
 
     Type *NUMt::codegen (code_buffer * buf)
     {
-	return buf->iType (this->_v0);
+	return buf->iType (this->_v_sz);
 
     } // NUMt::codegen
 
     Type *FLTt::codegen (code_buffer * buf)
     {
-	return buf->fType (this->_v0);
+	return buf->fType (this->_v_sz);
 
     } // FLTt::codegen
 
@@ -61,7 +61,7 @@ namespace CFG {
 
     Value *VAR::codegen (code_buffer * buf)
     {
-	Value *v = buf->lookupVal (this->_v0);
+	Value *v = buf->lookupVal (this->_v_name);
 	assert (v && "unbound variable");
 	return v;
 
@@ -69,7 +69,7 @@ namespace CFG {
 
     Value *LABEL::codegen (code_buffer * buf)
     {
-	cluster *cluster = buf->lookupCluster (this->_v0);
+	cluster *cluster = buf->lookupCluster (this->_v_name);
 
 	assert (cluster && "Unknown cluster label");
 
@@ -90,28 +90,28 @@ namespace CFG {
     Value *LOOKER::codegen (code_buffer * buf)
     {
 	Args_t args;
-	for (auto it = this->_v1.begin(); it != this->_v1.end(); ++it) {
+	for (auto it = this->_v_args.begin(); it != this->_v_args.end(); ++it) {
 	    args.push_back ((*it)->codegen (buf));
 	}
-	return this->_v0->codegen (buf, args);
+	return this->_v_oper->codegen (buf, args);
 
     } // LOOKER::codegen
 
     Value *PURE::codegen (code_buffer * buf)
     {
 	Args_t args;
-	for (auto it = this->_v1.begin(); it != this->_v1.end(); ++it) {
+	for (auto it = this->_v_args.begin(); it != this->_v_args.end(); ++it) {
 	    args.push_back ((*it)->codegen (buf));
 	}
-	return this->_v0->codegen (buf, args);
+	return this->_v_oper->codegen (buf, args);
 
     } // PURE::codegen
 
     Value *SELECT::codegen (code_buffer * buf)
     {
 	Value *adr = buf->createGEP (
-	    buf->asObjPtr(this->_v1->codegen(buf)),
-	    static_cast<int32_t>(this->_v0));
+	    buf->asObjPtr(this->_v_arg->codegen(buf)),
+	    static_cast<int32_t>(this->_v_idx));
 	return buf->createLoad (buf->mlValueTy, adr);
 
     } // SELECT::codegen
@@ -119,8 +119,8 @@ namespace CFG {
     Value *OFFSET::codegen (code_buffer * buf)
     {
 	return buf->createGEP (
-	    buf->asObjPtr(this->_v1->codegen(buf)),
-	    static_cast<int32_t>(this->_v0));
+	    buf->asObjPtr(this->_v_arg->codegen(buf)),
+	    static_cast<int32_t>(this->_v_idx));
 
     } // OFFSET::codegen
 
@@ -154,19 +154,19 @@ namespace CFG {
 	Value *fn;
 	LABEL *lab = dynamic_cast<LABEL *>(this->_v0);
 	if (lab == nullptr) {
-	    fnTy = buf->createFnTy (genTypes (buf, this->_v2));
+	    fnTy = buf->createFnTy (frag_kind::STD_FUN, genTypes (buf, this->_v2));
 	    fn = buf->build().CreateBitCast(
 		this->_v0->codegen (buf),
 		fnTy->getPointerTo());
 	} else {
-	    cluster *f = buf->lookupCluster (lab->get_0());
+	    cluster *f = buf->lookupCluster (lab->get_name());
 	    assert (f && "APPLY of unknown cluster");
 	    fn = f->fn();
 	    fnTy = f->fn()->getFunctionType();
 	}
 
       // evaluate the arguments
-	Args_t args = buf->createArgs (this->_v1.size());
+	Args_t args = buf->createArgs (frag_kind::STD_FUN, this->_v1.size());
 	for (auto arg : this->_v1) {
 	    args.push_back (arg->codegen (buf));
 	}
@@ -185,22 +185,24 @@ namespace CFG {
 	Value *fn;
 	LABEL *lab = dynamic_cast<LABEL *>(this->_v0);
 	if (lab == nullptr) {
-	    fnTy = buf->createFnTy (genTypes (buf, this->_v2));
+	    fnTy = buf->createFnTy (frag_kind::STD_CONT, genTypes (buf, this->_v2));
 	    fn = buf->build().CreateBitCast(
 		this->_v0->codegen (buf),
 		fnTy->getPointerTo());
 	} else {
-	    cluster *f = buf->lookupCluster (lab->get_0());
+	    cluster *f = buf->lookupCluster (lab->get_name());
 	    assert (f && "THROW of unknown cluster");
 	    fn = f->fn();
 	    fnTy = f->fn()->getFunctionType();
 	}
 
       // evaluate the arguments
-	Args_t args = buf->createArgs (this->_v1.size());
+	Args_t args = buf->createArgs (frag_kind::STD_CONT, this->_v1.size());
 	for (auto arg : this->_v1) {
 	    args.push_back (arg->codegen (buf));
 	}
+
+llvm::dbgs() << "THROW: fnTy = " << *fnTy << "\n";
 
 	llvm::CallInst *call = buf->build().CreateCall(fnTy, fn, args);
 	call->setCallingConv (llvm::CallingConv::JWA);
@@ -215,8 +217,10 @@ namespace CFG {
 	llvm::BasicBlock *srcBB = buf->getCurBB();
 	frag *dstFrag = buf->lookupFrag (this->_v0);
 
+	assert (dstFrag && (dstFrag->get_kind() == frag_kind::INTERNAL));
+
       // evaluate the arguments
-	Args_t args = buf->createArgs (this->_v1.size());
+	Args_t args = buf->createArgs (frag_kind::INTERNAL, this->_v1.size());
 	for (auto arg : this->_v1) {
 	    args.push_back (arg->codegen (buf));
 	}
@@ -387,14 +391,7 @@ namespace CFG {
 		    buf->asInt (buf->mlReg(sml_reg_id::LIMIT_PTR)));
 	    }
 	    llvm::BasicBlock *nextBB = buf->newBB();
-	    llvm::BasicBlock *callGCBB;
-	    if (cluster == nullptr) {
-		callGCBB = buf->invokeGC (this, frag_kind::INTERNAL);
-	    } else if (cluster->get_attrs()->get_isCont()) {
-		callGCBB = buf->invokeGC (this, frag_kind::STD_CONT);
-	    } else {
-		callGCBB = buf->invokeGC (this, frag_kind::STD_FUN);
-	    }
+	    llvm::BasicBlock *callGCBB = buf->invokeGC (this, this->_v_kind);
 // TODO: for the entry fragment, we can use the link register to get back to the
 // beginning of the function.  This allows us to merge GC invocations for multiple
 // functions to reduce code size
@@ -416,9 +413,9 @@ namespace CFG {
 	buf->beginCluster (this, this->_fn);
 
       // initialize the fragments for the cluster
-	this->_v_entry->init (buf, true);
+	this->_v_entry->init (buf);
 	for (auto it = this->_v_frags.begin();  it != this->_v_frags.end();  ++it) {
-	    (*it)->init (buf, false);
+	    (*it)->init (buf);
 	}
 
       // generate code for the cluster

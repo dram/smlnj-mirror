@@ -1014,6 +1014,7 @@ namespace CFG {
     class exp;
     class param;
     class stm;
+    enum class frag_kind;
     class frag;
     class attrs;
     class cluster;
@@ -1036,43 +1037,43 @@ namespace CFG {
     };
     class NUMt : public ty {
       public:
-        NUMt (int p0)
-            : ty(ty::_con_NUMt), _v0(p0)
+        NUMt (int p_sz)
+            : ty(ty::_con_NUMt), _v_sz(p_sz)
         { }
         ~NUMt ();
         // pickler method suppressed
-        int get_0 () const
+        int get_sz () const
         {
-            return this->_v0;
+            return this->_v_sz;
         }
-        void set_0 (int v)
+        void set_sz (int v)
         {
-            this->_v0 = v;
+            this->_v_sz = v;
         }
         Type *codegen (code_buffer *buf);
 
       private:
-        int _v0;
+        int _v_sz;
     };
     class FLTt : public ty {
       public:
-        FLTt (int p0)
-            : ty(ty::_con_FLTt), _v0(p0)
+        FLTt (int p_sz)
+            : ty(ty::_con_FLTt), _v_sz(p_sz)
         { }
         ~FLTt ();
         // pickler method suppressed
-        int get_0 () const
+        int get_sz () const
         {
-            return this->_v0;
+            return this->_v_sz;
         }
-        void set_0 (int v)
+        void set_sz (int v)
         {
-            this->_v0 = v;
+            this->_v_sz = v;
         }
         Type *codegen (code_buffer *buf);
 
       private:
-        int _v0;
+        int _v_sz;
     };
     struct PTRt : public ty {
         PTRt ()
@@ -1127,43 +1128,43 @@ namespace CFG {
     };
     class VAR : public exp {
       public:
-        VAR (LambdaVar::lvar p0)
-            : exp(exp::_con_VAR), _v0(p0)
+        VAR (LambdaVar::lvar p_name)
+            : exp(exp::_con_VAR), _v_name(p_name)
         { }
         ~VAR ();
         // pickler method suppressed
-        LambdaVar::lvar get_0 () const
+        LambdaVar::lvar get_name () const
         {
-            return this->_v0;
+            return this->_v_name;
         }
-        void set_0 (LambdaVar::lvar v)
+        void set_name (LambdaVar::lvar v)
         {
-            this->_v0 = v;
+            this->_v_name = v;
         }
         Value *codegen (code_buffer *buf);
 
       private:
-        LambdaVar::lvar _v0;
+        LambdaVar::lvar _v_name;
     };
     class LABEL : public exp {
       public:
-        LABEL (LambdaVar::lvar p0)
-            : exp(exp::_con_LABEL), _v0(p0)
+        LABEL (LambdaVar::lvar p_name)
+            : exp(exp::_con_LABEL), _v_name(p_name)
         { }
         ~LABEL ();
         // pickler method suppressed
-        LambdaVar::lvar get_0 () const
+        LambdaVar::lvar get_name () const
         {
-            return this->_v0;
+            return this->_v_name;
         }
-        void set_0 (LambdaVar::lvar v)
+        void set_name (LambdaVar::lvar v)
         {
-            this->_v0 = v;
+            this->_v_name = v;
         }
         Value *codegen (code_buffer *buf);
 
       private:
-        LambdaVar::lvar _v0;
+        LambdaVar::lvar _v_name;
     };
     class NUM : public exp {
       public:
@@ -1196,151 +1197,151 @@ namespace CFG {
     };
     class LOOKER : public exp {
       public:
-        LOOKER (CFG_Prim::looker * p0, std::vector<exp *> p1)
-            : exp(exp::_con_LOOKER), _v0(p0), _v1(p1)
+        LOOKER (CFG_Prim::looker * p_oper, std::vector<exp *> p_args)
+            : exp(exp::_con_LOOKER), _v_oper(p_oper), _v_args(p_args)
         { }
         ~LOOKER ();
         // pickler method suppressed
-        CFG_Prim::looker * get_0 () const
+        CFG_Prim::looker * get_oper () const
         {
-            return this->_v0;
+            return this->_v_oper;
         }
-        void set_0 (CFG_Prim::looker * v)
+        void set_oper (CFG_Prim::looker * v)
         {
-            this->_v0 = v;
+            this->_v_oper = v;
         }
-        std::vector<exp *> get_1 () const
+        std::vector<exp *> get_args () const
         {
-            return this->_v1;
+            return this->_v_args;
         }
-        void set_1 (std::vector<exp *> v)
+        void set_args (std::vector<exp *> v)
         {
-            this->_v1 = v;
+            this->_v_args = v;
         }
         Value *codegen (code_buffer *buf);
 
       private:
-        CFG_Prim::looker * _v0;
-        std::vector<exp *> _v1;
+        CFG_Prim::looker * _v_oper;
+        std::vector<exp *> _v_args;
     };
     class PURE : public exp {
       public:
-        PURE (CFG_Prim::pure * p0, std::vector<exp *> p1)
-            : exp(exp::_con_PURE), _v0(p0), _v1(p1)
+        PURE (CFG_Prim::pure * p_oper, std::vector<exp *> p_args)
+            : exp(exp::_con_PURE), _v_oper(p_oper), _v_args(p_args)
         { }
         ~PURE ();
         // pickler method suppressed
-        CFG_Prim::pure * get_0 () const
+        CFG_Prim::pure * get_oper () const
         {
-            return this->_v0;
+            return this->_v_oper;
         }
-        void set_0 (CFG_Prim::pure * v)
+        void set_oper (CFG_Prim::pure * v)
         {
-            this->_v0 = v;
+            this->_v_oper = v;
         }
-        std::vector<exp *> get_1 () const
+        std::vector<exp *> get_args () const
         {
-            return this->_v1;
+            return this->_v_args;
         }
-        void set_1 (std::vector<exp *> v)
+        void set_args (std::vector<exp *> v)
         {
-            this->_v1 = v;
+            this->_v_args = v;
         }
         Value *codegen (code_buffer *buf);
 
       private:
-        CFG_Prim::pure * _v0;
-        std::vector<exp *> _v1;
+        CFG_Prim::pure * _v_oper;
+        std::vector<exp *> _v_args;
     };
     class SELECT : public exp {
       public:
-        SELECT (int p0, exp * p1)
-            : exp(exp::_con_SELECT), _v0(p0), _v1(p1)
+        SELECT (int p_idx, exp * p_arg)
+            : exp(exp::_con_SELECT), _v_idx(p_idx), _v_arg(p_arg)
         { }
         ~SELECT ();
         // pickler method suppressed
-        int get_0 () const
+        int get_idx () const
         {
-            return this->_v0;
+            return this->_v_idx;
         }
-        void set_0 (int v)
+        void set_idx (int v)
         {
-            this->_v0 = v;
+            this->_v_idx = v;
         }
-        exp * get_1 () const
+        exp * get_arg () const
         {
-            return this->_v1;
+            return this->_v_arg;
         }
-        void set_1 (exp * v)
+        void set_arg (exp * v)
         {
-            this->_v1 = v;
+            this->_v_arg = v;
         }
         Value *codegen (code_buffer *buf);
 
       private:
-        int _v0;
-        exp * _v1;
+        int _v_idx;
+        exp * _v_arg;
     };
     class OFFSET : public exp {
       public:
-        OFFSET (int p0, exp * p1)
-            : exp(exp::_con_OFFSET), _v0(p0), _v1(p1)
+        OFFSET (int p_idx, exp * p_arg)
+            : exp(exp::_con_OFFSET), _v_idx(p_idx), _v_arg(p_arg)
         { }
         ~OFFSET ();
         // pickler method suppressed
-        int get_0 () const
+        int get_idx () const
         {
-            return this->_v0;
+            return this->_v_idx;
         }
-        void set_0 (int v)
+        void set_idx (int v)
         {
-            this->_v0 = v;
+            this->_v_idx = v;
         }
-        exp * get_1 () const
+        exp * get_arg () const
         {
-            return this->_v1;
+            return this->_v_arg;
         }
-        void set_1 (exp * v)
+        void set_arg (exp * v)
         {
-            this->_v1 = v;
+            this->_v_arg = v;
         }
         Value *codegen (code_buffer *buf);
 
       private:
-        int _v0;
-        exp * _v1;
+        int _v_idx;
+        exp * _v_arg;
     };
     // exp_seq pickler suppressed
     std::vector<exp *> read_exp_seq (asdl::instream & is);
     class param {
       public:
-        param (LambdaVar::lvar p0, ty * p1)
-            : _v0(p0), _v1(p1)
+        param (LambdaVar::lvar p_name, ty * p_ty)
+            : _v_name(p_name), _v_ty(p_ty)
         { }
         ~param ();
         // pickler method suppressed
         static param * read (asdl::instream & is);
-        LambdaVar::lvar get_0 () const
+        LambdaVar::lvar get_name () const
         {
-            return this->_v0;
+            return this->_v_name;
         }
-        void set_0 (LambdaVar::lvar v)
+        void set_name (LambdaVar::lvar v)
         {
-            this->_v0 = v;
+            this->_v_name = v;
         }
-        ty * get_1 () const
+        ty * get_ty () const
         {
-            return this->_v1;
+            return this->_v_ty;
         }
-        void set_1 (ty * v)
+        void set_ty (ty * v)
         {
-            this->_v1 = v;
+            this->_v_ty = v;
         }
-        void bind (code_buffer *buf, Value *v) { buf->insertVal (this->_v0, v); }
+        void bind (code_buffer *buf, Value *v) { buf->insertVal (this->_v_name, v); }
 
       private:
-        LambdaVar::lvar _v0;
-        ty * _v1;
+        LambdaVar::lvar _v_name;
+        ty * _v_ty;
     };
     // param_seq pickler suppressed
     std::vector<param *> read_param_seq (asdl::instream & is);
@@ -1823,15 +1824,26 @@ namespace CFG {
     };
     // stm_seq pickler suppressed
     std::vector<stm *> read_stm_seq (asdl::instream & is);
+    enum class frag_kind {STD_FUN = 1, STD_CONT, INTERNAL};
+    // pickler suppressed for frag_kind
+    frag_kind read_frag_kind (asdl::instream & is);
     class frag {
       public:
-        frag (LambdaVar::lvar p_lab, std::vector<param *> p_params, asdl::option<unsigned int> p_allocChk, stm * p_body)
-            : _v_lab(p_lab), _v_params(p_params), _v_allocChk(p_allocChk),
-            _v_body(p_body)
+        frag (frag_kind p_kind, LambdaVar::lvar p_lab, std::vector<param *> p_params, asdl::option<unsigned int> p_allocChk, stm * p_body)
+            : _v_kind(p_kind), _v_lab(p_lab), _v_params(p_params),
+            _v_allocChk(p_allocChk), _v_body(p_body)
         { }
         ~frag ();
         // pickler method suppressed
         static frag * read (asdl::instream & is);
+        frag_kind get_kind () const
+        {
+            return this->_v_kind;
+        }
+        void set_kind (frag_kind v)
+        {
+            this->_v_kind = v;
+        }
         LambdaVar::lvar get_lab () const
         {
             return this->_v_lab;
@@ -1864,8 +1876,8 @@ namespace CFG {
         {
             this->_v_body = v;
         }
-        void init (code_buffer *buf, bool isEntry);
-        void codegen (code_buffer * buf, cluster *cluster);
+        void init (code_buffer *buf);
+        void codegen (code_buffer *buf, cluster *cluster);
 	llvm::BasicBlock *bb() const { return this->_v_body->bb(); }
 	Type *paramTy (int i) { return this->_phiNodes[i]->getType(); }
 	void addIncoming (int i, Value *v, llvm::BasicBlock *bblk)
@@ -1874,6 +1886,7 @@ namespace CFG {
 	}
 
       private:
+        frag_kind _v_kind;
         LambdaVar::lvar _v_lab;
         std::vector<param *> _v_params;
         asdl::option<unsigned int> _v_allocChk;
@@ -1885,22 +1898,13 @@ namespace CFG {
     std::vector<frag *> read_frag_seq (asdl::instream & is);
     class attrs {
       public:
-        attrs (bool p_isCont, int p_alignHP, bool p_needsBasePtr, bool p_hasTrapArith, bool p_hasRCC)
-            : _v_isCont(p_isCont), _v_alignHP(p_alignHP),
-            _v_needsBasePtr(p_needsBasePtr), _v_hasTrapArith(p_hasTrapArith),
-            _v_hasRCC(p_hasRCC)
+        attrs (int p_alignHP, bool p_needsBasePtr, bool p_hasTrapArith, bool p_hasRCC)
+            : _v_alignHP(p_alignHP), _v_needsBasePtr(p_needsBasePtr),
+            _v_hasTrapArith(p_hasTrapArith), _v_hasRCC(p_hasRCC)
         { }
         ~attrs ();
         // pickler method suppressed
         static attrs * read (asdl::instream & is);
-        bool get_isCont () const
-        {
-            return this->_v_isCont;
-        }
-        void set_isCont (bool v)
-        {
-            this->_v_isCont = v;
-        }
         int get_alignHP () const
         {
             return this->_v_alignHP;
@@ -1934,7 +1938,6 @@ namespace CFG {
             this->_v_hasRCC = v;
         }
       private:
-        bool _v_isCont;
         int _v_alignHP;
         bool _v_needsBasePtr;
         bool _v_hasTrapArith;

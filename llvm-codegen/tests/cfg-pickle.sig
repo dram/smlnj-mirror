@@ -65,6 +65,8 @@ signature CFGPICKLE = sig
     val read_probability : instream -> CFG.probability
     val write_stm : outstream * CFG.stm -> unit
     val read_stm : instream -> CFG.stm
+    val write_frag_kind : outstream * CFG.frag_kind -> unit
+    val read_frag_kind : instream -> CFG.frag_kind
     val write_frag : outstream * CFG.frag -> unit
     val read_frag : instream -> CFG.frag
     val write_attrs : outstream * CFG.attrs -> unit
