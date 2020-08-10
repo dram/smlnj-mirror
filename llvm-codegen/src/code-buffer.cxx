@@ -607,7 +607,6 @@ llvm::BasicBlock *code_buffer::invokeGC (CFG::frag const *frag, frag_kind kind)
 
     int argIx = 0;
     for ( ;  argIx < nPassThrough;  ++argIx) {
-llvm::dbgs() << "gcArgs[" << argIdx[argIx] << "] = params[" << mlArgs[argIx] << "]\n";
 	gcArgs[argIdx[argIx]] = this->lookupVal(params[mlArgs[argIx]]->get_name());
     }
     int extraIx = -1;

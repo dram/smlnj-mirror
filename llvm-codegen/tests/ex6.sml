@@ -5,42 +5,85 @@
  *
  * Hand-crafted CFG for the function
  *
- *      fun try (f, h, x) = (f x) handle ex => h ex;
+ *      datatype t = A | B | C | D | E
+ *
+ *	fun foo (sel, f1, f2, f3, f4, f5, x) = (case sel
+ *	       of A => f1 (x, 0)
+ *		| B => f2 (x, 1)
+ *		| C => f3 (x, 2)
+ *		| D => f4 (x, 3)
+ *		| E => f5 (x, 4)
+ *	      (* end case *))
  *
  * The generated first-order CPS is:
  *
  * ***********************************************
- *      std v181(v182[PV],v137[PV],v170[C],v171[PV],v172[PV],v173[PV],v148[PR2]) =
- *         {RK_ESCAPE 1,(L)v174} -> v190
- *         {v190} -> v191
- *         v170(v170,v171,v172,v173,v191)
+ *      std v321 (v322[PV],v233[PV],v298[C],v299[PV],v300[PV],v301[PV],v263[PR2]) =
+ *         {RK_ESCAPE 1,(L)v302} -> v350
+ *         {v350} -> v351
+ *         v298(v298,v299,v300,v301,v351)
+ ***
+ *      std v302 (v329[PV],v328[PV],v327[C],v326[PV],v325[PV],v324[PV],v323[PR2]) =
+ *         {RK_ESCAPE 1,(L)v309} -> v349
+ *         v327(v327,v326,v325,v324,v349)
+ ***
+ *      std v309 (v339[PV],v338[PV],v337[C],v336[PV],v335[PV],v334[PV],v333[I],v332[FN],v331[FN],v330[PR4]) =
+ *         v330.0 -> v340[FN]
+ *         v330.1 -> v341[FN]
+ *         v330.2 -> v342[FN]
+ *         v330.3 -> v343[PV]
+ *         case v333  [292] of
+ *          0 =>
+ *            v332.0 -> v344[FN]
+ *            v344(v344,v332,v337,v336,v335,v334,v343,(I63t)0)
+ *          1 =>
+ *            v331.0 -> v345[FN]
+ *            v345(v345,v331,v337,v336,v335,v334,v343,(I63t)1)
+ *          2 =>
+ *            v340.0 -> v346[FN]
+ *            v346(v346,v340,v337,v336,v335,v334,v343,(I63t)2)
+ *          3 =>
+ *            v341.0 -> v347[FN]
+ *            v347(v347,v341,v337,v336,v335,v334,v343,(I63t)3)
+ *          4 =>
+ *            v342.0 -> v348[FN]
+ *            v348(v348,v342,v337,v336,v335,v334,v343,(I63t)4)
  *
- *      std v174(v189[PV],v188[PV],v187[C],v186[PV],v185[PV],v184[PV],v183[PV]) =
- *         case v183  [165] of
- *          0 => v187(v187,v186,v185,v184,(I63t)0)
- *          1 => v187(v187,v186,v185,v184,(I63t)1)
- *          2 => v187(v187,v186,v185,v184,(I63t)2)
- *          3 => v187(v187,v186,v185,v184,(I63t)3)
- *          4 => v187(v187,v186,v185,v184,(I63t)4)
- *          5 => v187(v187,v186,v185,v184,(I63t)5)
  * ***********************************************
  *
  * The equivalent CFG IR (with types omitted) is
  *
  * ***********************************************
- *      FUN v181 (v182, v137, v170, v171, v172, v173, v148) =
- *         ALLOC(RECORD 0x80, [LABEL v174]) -> v191
- *         ALLOC(RECORD 0x80, [VAR v190]) -> v378
- *           THROW (VAR v170) (VAR v170, VAR v171, VAR v172, VAR v173, VAR v191)
+ *      FUN v321 (v322, v233, v298, v299, v300, v301, v263) =
+ *         ALLOC(RECORD 0x80, [LABEL v302]) -> v350
+ *         ALLOC(RECORD 0x80, [VAR v350]) -> v351
+ *           THROW (VAR v298) (VAR v298, VAR v299, VAR v300, VAR v301, VAR v351)
  *
- *      FUN v174 (v189, v188, v187, v186, v185, v184, v183) =
- *	   SWITCH (VAR v183)
- *	     case 0: THROW (VAR v187) (VAR v187, VAR v186, VAR v185, VAR v184, NUM 0)
- *	     case 1: THROW (VAR v187) (VAR v187, VAR v186, VAR v185, VAR v184, NUM 1)
- *	     case 2: THROW (VAR v187) (VAR v187, VAR v186, VAR v185, VAR v184, NUM 2)
- *	     case 3: THROW (VAR v187) (VAR v187, VAR v186, VAR v185, VAR v184, NUM 3)
- *	     case 4: THROW (VAR v187) (VAR v187, VAR v186, VAR v185, VAR v184, NUM 4)
- *	     case 5: THROW (VAR v187) (VAR v187, VAR v186, VAR v185, VAR v184, NUM 5)
+ *	FUN v302 (v329, v328, v327, v326, v325, v324, v323) =
+ *         ALLOC(RECORD 0x80, [LABEL v309]) -> v349
+ *	   THROW (VAR v327) (VAR v327, VAR v326, VAR v325, VAR v324, VAR v349)
+ *
+ *      FUN v309 (v339, v338, v337, v336, v335, v334, v333, v332, v331, v330) =
+ *         LET SELECT(0, VAR v330) -> v340
+ *         LET SELECT(1, VAR v330) -> v341
+ *         LET SELECT(1, VAR v330) -> v342
+ *         LET SELECT(3, VAR v330) -> v343
+ *	      SWITCH (SUB (VAR v333, NUM(1:i64)))
+ *	         case 0: LET SELECT(0, VAR v332) -> v344
+ *		    APPLY (VAR v344) (
+ *                     VAR v344, VAR v332, VAR v337, VAR v336, VAR v335, VAR v334, VAR v343, NUM 0)
+ *	         case 1: LET SELECT(0, VAR v331) -> v346
+ *                  APPLY (VAR v346) (
+ *                     VAR v346, VAR v331, VAR v337, VAR v336, VAR v335, VAR v334, VAR v343, NUM 1)
+ *               case 2: LET SELECT(0, VAR v340) -> v346
+ *		    APPLY (VAR v346) (
+ *                     VAR v346, VAR v340, VAR v337, VAR v336, VAR v335, VAR v334, VAR v343, NUM 2)
+ *	         case 3: LET SELECT(0, VAR v341) -> v347
+ *		    APPLY (VAR v347) (
+ *                     VAR v347, VAR v341, VAR v337, VAR v336, VAR v335, VAR v334, VAR v343, NUM 3)
+ *	         case 4: LET SELECT(0, VAR v342) -> v348
+ *		    APPLY (VAR v348) (
+ *                     VAR v348, VAR v342, VAR v337, VAR v336, VAR v335, VAR v334, VAR v343, NUM 4)
  * ***********************************************
  *)
 
@@ -62,25 +105,26 @@ structure Ex6 =
 	    in
 	      C.ALLOC(P.RECORD{desc = desc, mut = false}, flds, x, k)
 	    end
+      fun pureOp (oper, args) = C.PURE{oper=P.PURE_ARITH{oper=oper, sz=64}, args=args}
       fun attrs bp = { (* cluster attrs *)
 	      alignHP = 8, needsBasePtr = bp, hasTrapArith = false, hasRCC = false
 	    }
       val unkProb = 0
 
-      val fn181 = C.Cluster{
+      val fn321 = C.Cluster{
 	      attrs = attrs true,
 	      entry = C.Frag{
 		  kind = C.STD_FUN,
-		  lab = v 181,
+		  lab = v 321,
 		  params = mkParams [
-		      (v 182, C.PTRt), (v 137, C.PTRt), (v 170, C.CNTt), (v 171, C.PTRt),
-		      (v 172, C.PTRt), (v 173, C.PTRt), (v 148, C.PTRt)
+		      (v 322, C.PTRt), (v 233, C.PTRt), (v 298, C.CNTt), (v 299, C.PTRt),
+		      (v 300, C.PTRt), (v 301, C.PTRt), (v 263, C.PTRt)
 		    ],
 		  allocChk = SOME 0w0,
-		  body = record ([LAB 174], v 190,
-		    record ([V 190], v 191,
-		      C.THROW (V 170,
-			[V 170, V 171, V 172, V 173, V 191],
+		  body = record ([LAB 302], v 190,
+		    record ([V 190], v 350,
+		      C.THROW (V 298,
+			[V 298, V 299, V 300, V 301, V 350],
 			[C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
 		},
 	      frags = []
@@ -88,17 +132,17 @@ structure Ex6 =
       fun return res = C.THROW (V 187,
 	    [V 187, V 186, V 185, V 184, num 0],
 	    [C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.NUMt{sz=64}])
-      val fn174 = C.Cluster{
+      val fn302 = C.Cluster{
 	      attrs = attrs true,
 	      entry = C.Frag{
 		  kind = C.STD_FUN,
-		  lab = v 174,
+		  lab = v 302,
 		  params = mkParams [
 		      (v 189, C.PTRt), (v 188, C.PTRt), (v 187, C.CNTt), (v 186, C.PTRt),
 		      (v 185, C.PTRt), (v 184, C.PTRt), (v 183, C.PTRt)
 		    ],
 		  allocChk = SOME 0w0,
-		  body = C.SWITCH(V 183, [
+		  body = C.SWITCH(pureOp(P.SUB, [V 183, num 1]), [
 		      return 0,
 		      return 1,
 		      return 2,
@@ -110,7 +154,7 @@ structure Ex6 =
 	      frags = []
 	    }
     in
-    val cu = {srcFile = "switch.sml", entry = fn181, fns = [fn174]}
+    val cu = {srcFile = "switch.sml", entry = fn321, fns = [fn302]}
     end (* local *)
 
   end

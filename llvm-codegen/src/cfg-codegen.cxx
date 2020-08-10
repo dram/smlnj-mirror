@@ -272,8 +272,10 @@ namespace CFG {
 	int nCases = this->_v1.size() - 1;
 
       // create the switch; note that we use the last case as the default
-	llvm::SwitchInst *sw =
-	    buf->build().CreateSwitch(arg, this->_v1[nCases]->bb(), nCases);
+	llvm::SwitchInst *sw = buf->build().CreateSwitch(
+	    buf->build().CreateTrunc(buf->asInt(arg), buf->i32Ty),
+	    this->_v1[nCases]->bb(),
+	    nCases);
 
       // add the cases to the switch
 	for (int i = 0;  i < nCases;  i++) {
