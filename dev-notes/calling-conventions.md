@@ -48,7 +48,7 @@ available floating-point registers.
 ## Standard continuation call
 
 This convention is used to transfer control to an unkonwn or escaping
-continuation.  The convention depends on whether $NCS$ is zero or not,
+continuation.  The convention depends on whether *NCS* is zero or not,
 but we first assume that it is at least one.   In this case, the call
 must have at least *NCS* + *NFCS* + 1 arguments.  The first argument
 is mapped to the `STD_CONT` register, then come the callee saves
