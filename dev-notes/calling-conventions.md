@@ -25,6 +25,8 @@ The compiler defines a number of registers used to hold *callee-save*
 values.  We use *NCS* to designate the number of general-purpose callee-save
 registers and *NFCS* to designate the number of floating-point callee-save
 registers.  Currently the compiler uses *NCS* = 3 and *NFCS* = 0.
+The callee-save registers are assigned to the first few `MISC` registers,
+so typically `MISC1`, `MISC2`, and `MISC3` are callee saves.
 
 ## Standard function call
 
