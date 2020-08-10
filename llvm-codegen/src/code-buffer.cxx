@@ -438,7 +438,8 @@ llvm::BasicBlock *code_buffer::invokeGC (CFG::frag const *frag, frag_kind kind)
 
   // In addition to the special "SML" registers, the GC calling convention
   // uses the standard linkage registers (STD_LINK, STD_CLOS, STD_CONT),
-  // the callee-save registers (MISC1, ...), and STD_ARG.
+  // the callee-save registers (MISC1, ...), and STD_ARG.  Note that
+  // numGCArgs does _not_ count the special SML register arguments!
   //
     int numCalleeSaves = this->targetInfo()->numCalleeSaves;
     int numGCArgs = 4 + numCalleeSaves;
@@ -566,39 +567,64 @@ llvm::BasicBlock *code_buffer::invokeGC (CFG::frag const *frag, frag_kind kind)
   //	MISC3 (callee save)
   //	STD_ARG
   //
+  // Note that if this is a fragment, then STD_LINK and STD_CLOS are undefined
+  // and can be used to hold extra arguments
 
-  // the number of fragment parameters that will pass through to the GC
-    int nPassThrough = std::min(nMLArgs, numGCArgs);
-    if ((extraObj != nullptr) || (rawObj != nullptr)) {
+  // all of the arguments (not counting special registers) have the same type
+    std::vector<Type *> gcArgTys = this->createParamTys (frag_kind::STD_FUN, numGCArgs);
+    Args_t gcArgs = this->createArgs(frag_kind::STD_FUN, numGCArgs);
+    for (int i = 0;  i < numGCArgs;  ++i) {
+	gcArgTys.push_back (this->mlValueTy);
+	gcArgs.push_back (nullptr);  // allocate space
+    }
+
+/* TODO: the argIdx vectors could be computed once per target! */
+  // mapping from parameter indices to gcArg indices
+    std::vector<int> argIdx;
+    argIdx.reserve (numGCArgs);
+    int argBase = this->_regInfo.numMachineRegs();
+    if (kind == frag_kind::STD_CONT) {
+      // map to STD_CONT, MISC0, MISC1, ... */
+	for (int i = 0;  i < numCalleeSaves + 1;  ++i) {
+	    argIdx.push_back (argBase + i + 2);
+	}
+	argIdx.push_back (argBase + 0);  			// use STD_LINK
+	argIdx.push_back (argBase + 1);  			// use STD_CLOS
+	argIdx.push_back (argBase + numCalleeSaves + 2);	// use STD_ARG last
+    }
+    else {
+	for (int i = 0;  i < numGCArgs;  ++i) {
+	    argIdx.push_back (argBase + i);
+	}
+    }
+
+  // number of parameters that are passed through to the GC as is.
+    int nPassThrough = std::min (nMLArgs, numGCArgs);
+    if ((nPassThrough == numGCArgs) && ((rawObj != nullptr) || (extraObj != nullptr))) {
+      // we will need a register for the rawObj or extraObj
 	nPassThrough--;
     }
 
-  // setup the GC arguments (not counting extras)
-    std::vector<Type *> gcArgTys = this->createParamTys (frag_kind::STD_FUN, numGCArgs);
-    Args_t gcArgs = this->createArgs (frag_kind::STD_FUN, numGCArgs);
-    for (int i = 0;  i < nPassThrough;  ++i) {
-	gcArgTys.push_back (this->mlValueTy);
-	gcArgs.push_back (this->lookupVal(params[mlArgs[i]]->get_name()));
+    int argIx = 0;
+    for ( ;  argIx < nPassThrough;  ++argIx) {
+llvm::dbgs() << "gcArgs[" << argIdx[argIx] << "] = params[" << mlArgs[argIx] << "]\n";
+	gcArgs[argIdx[argIx]] = this->lookupVal(params[mlArgs[argIx]]->get_name());
     }
     if (extraObj != nullptr) {
-	gcArgTys.push_back (this->mlValueTy);
-	gcArgs.push_back (extraObj);
+	gcArgs[argIdx[argIx++]] = extraObj;
     }
     else if (rawObj != nullptr) {
-	gcArgTys.push_back (this->mlValueTy);
-	gcArgs.push_back (rawObj);
+	gcArgs[argIdx[argIx++]] = rawObj;
     }
   // null out any uninitialized arguments
-    int actualNumGCArgs = gcArgs.size();
-    for (int i = actualNumGCArgs;  i < numGCArgs;  ++i) {
-	gcArgTys.push_back (this->mlValueTy);
-	gcArgs.push_back (this->uConst(1)); // == SML unit value
+    int nActualArgs = gcArgs.size() - argBase;
+    for (int i = nActualArgs;  i < numGCArgs;  ++i) {
+llvm::dbgs() << "gcArgs[" << argIdx[argIx] << "] = UNIT\n";
+	gcArgs[argIdx[argIx++]] = this->uConst(1); // == SML unit value
     }
 
   // get the address of the "call-gc" entry
     Value *callGCFn = _loadFromStack (this, this->_target->callGCOffset, "callGC");
-
-llvm::dbgs() << "\nInvokeGC: callGCFn = " << *callGCFn << "\n";
 
   // call the garbage collector.  The return type of the GC is a struct
   // that contains the post-GC values of the argument registers
@@ -618,7 +644,7 @@ llvm::dbgs() << "\nInvokeGC: callGCFn = " << *callGCFn << "\n";
 	    hwIx++;
 	}
     }
-    for (unsigned i = this->_regInfo.numMachineRegs();  i < actualNumGCArgs;  i++) {
+    for (unsigned i = argBase;  i < gcArgs.size();  i++) {
 	gcArgs[i] = this->_builder.CreateExtractValue(call, { i });
     }
 
@@ -634,7 +660,7 @@ assert (false && "raw stuff");
     }
     else { // no extra work required
 	for (int i = 0;  i < numParams;  ++i) {
-	    Value *v = gcArgs[this->_regInfo.numMachineRegs() + i];
+	    Value *v = gcArgs[argIdx[i]];
 	    if (v->getType() != paramTys[i]) {
 		v = this->castTy (v->getType(), paramTys[i], v);
 	    }
