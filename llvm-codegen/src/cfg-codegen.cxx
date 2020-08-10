@@ -202,8 +202,6 @@ namespace CFG {
 	    args.push_back (arg->codegen (buf));
 	}
 
-llvm::dbgs() << "THROW: fnTy = " << *fnTy << "\n";
-
 	llvm::CallInst *call = buf->build().CreateCall(fnTy, fn, args);
 	call->setCallingConv (llvm::CallingConv::JWA);
 	call->setTailCallKind (llvm::CallInst::TCK_Tail);

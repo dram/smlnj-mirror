@@ -519,7 +519,7 @@ llvm::BasicBlock *code_buffer::invokeGC (CFG::frag const *frag, frag_kind kind)
       // write the 64-bit contents
 	for (auto ix : raw64Args) {
 	    auto param = params[ix];
-	    auto ty = param->get_ty()->codegen(this);
+	    auto ty = paramTys[ix];
 	    this->_builder.CreateAlignedStore (
 		this->lookupVal (param->get_name()),
 		this->createBitCast(
@@ -610,16 +610,18 @@ llvm::BasicBlock *code_buffer::invokeGC (CFG::frag const *frag, frag_kind kind)
 llvm::dbgs() << "gcArgs[" << argIdx[argIx] << "] = params[" << mlArgs[argIx] << "]\n";
 	gcArgs[argIdx[argIx]] = this->lookupVal(params[mlArgs[argIx]]->get_name());
     }
+    int extraIx = -1;
     if (extraObj != nullptr) {
-	gcArgs[argIdx[argIx++]] = extraObj;
+	extraIx = argIdx[argIx++];
+	gcArgs[extraIx] = extraObj;
     }
     else if (rawObj != nullptr) {
-	gcArgs[argIdx[argIx++]] = rawObj;
+	extraIx = argIdx[argIx++];
+	gcArgs[extraIx] = rawObj;
     }
   // null out any uninitialized arguments
     int nActualArgs = gcArgs.size() - argBase;
     for (int i = nActualArgs;  i < numGCArgs;  ++i) {
-llvm::dbgs() << "gcArgs[" << argIdx[argIx] << "] = UNIT\n";
 	gcArgs[argIdx[argIx++]] = this->uConst(1); // == SML unit value
     }
 
@@ -644,34 +646,78 @@ llvm::dbgs() << "gcArgs[" << argIdx[argIx] << "] = UNIT\n";
 	    hwIx++;
 	}
     }
+  // extract the rest of the fields from the return struct
     for (unsigned i = argBase;  i < gcArgs.size();  i++) {
 	gcArgs[i] = this->_builder.CreateExtractValue(call, { i });
     }
 
   // the arguments for the return to the limit test
-    Args_t retArgs = this->createArgs (kind, numParams);
+    Value *retArgs[numParams];
 
-  // restore registers from the extra and raw objects
+  // restore ML Value parameters and the rawObj pointer from the extra object
     if (extraObj != nullptr) {
-assert (false && "extra stuff");
+	extraObj = this->asObjPtr (gcArgs[extraIx]);
+	int n = (rawObj == nullptr) ? mlArgs.size() : mlArgs.size() - 1;
+      // get the extra ML pointer values
+	for (int i = numGCArgs - 1;  i < n;  ++i) {
+	    retArgs[mlArgs[i]] = this->createLoad (
+		this->mlValueTy,
+		this->createGEP (extraObj, i));
+	}
+	if (rawObj != nullptr) {
+	  // get the raw object pointer
+	    rawObj = this->createLoad (this->mlValueTy, this->createGEP (extraObj, n));
+	}
     }
     else if (rawObj != nullptr) {
-assert (false && "raw stuff");
+      // get the raw object pointer
+	rawObj = gcArgs[extraIx];
     }
-    else { // no extra work required
-	for (int i = 0;  i < numParams;  ++i) {
-	    Value *v = gcArgs[argIdx[i]];
-	    if (v->getType() != paramTys[i]) {
-		v = this->castTy (v->getType(), paramTys[i], v);
-	    }
-	    retArgs.push_back (v);
+
+    if (rawObj != nullptr) {
+      // restore raw parameter values from raw object
+	rawObj = this->createBitCast (rawObj, this->bytePtrTy);
+      // get 32-bit values first
+	unsigned int offset = 0;
+	for (auto ix : raw32Args) {
+	    auto ty = paramTys[ix];
+	    retArgs[ix] = this->_builder.CreateAlignedLoad (
+		ty,
+		this->createBitCast(this->createGEP(rawObj, offset), ty->getPointerTo()),
+		4);
+	    offset += 4;
 	}
+      // pad the offset to 64-bits
+	offset = (offset + 7) & ~7;
+      // get 64-bit values
+	for (auto ix : raw64Args) {
+	    auto ty = paramTys[ix];
+	    retArgs[ix] = this->_builder.CreateAlignedLoad (
+		ty,
+		this->createBitCast(this->createGEP(rawObj, offset), ty->getPointerTo()),
+		8);
+	    offset += 8;
+	}
+    }
+
+  // get the parameters that are in registers
+    for (int i = 0;  i < nPassThrough;  ++i) {
+	Value *v = gcArgs[argIdx[i]];
+	retArgs[i]= v;
+    }
+
+  // create the actual list of return arguments that includes the machine registers
+    Args_t args = this->createArgs (kind, numParams);
+    for (int i = 0;  i < numParams;  ++i) {
+	assert (retArgs[i] && "null return arg");
+	args.push_back (retArgs[i]);
     }
 
   // transfer control back to the limit test
     if (kind == frag_kind::INTERNAL) {
       // update fragment's PHI nodes
 assert (false && "phi nodes");
+/* TODO: need to recompute the basePtr too! */
 	this->createBr (frag->bb());
     } else {
       // args[0] holds the entry address of the cluster, so we transfer control to it.
@@ -679,7 +725,7 @@ assert (false && "phi nodes");
 	llvm::CallInst *call = this->_builder.CreateCall(
 	    fnTy,
 	    this->createBitCast(retArgs[0], fnTy->getPointerTo()),
-	    retArgs);
+	    args);
 	call->setCallingConv (llvm::CallingConv::JWA);
 	call->setTailCallKind (llvm::CallInst::TCK_Tail);
       // terminate the block
@@ -755,6 +801,7 @@ Value *code_buffer::castTy (Type *srcTy, Type *tgtTy, Value *v)
 	return this->_builder.CreateBitCast(v, this->mlValueTy);
     }
     else {
+llvm::dbgs() << "castTy (" << *srcTy << ", " << *tgtTy << ", -)\n";
 	assert (false && "invalid type cast");
 	return nullptr;
     }

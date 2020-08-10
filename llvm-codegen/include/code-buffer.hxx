@@ -656,15 +656,6 @@ class code_buffer {
     llvm::Function *_readReg;
     llvm::MDNode *_spRegMD;
 
-#ifdef TODO
-  // GC support
-    int _numGCArgs;				// number of GC args
-    std::vector<int> _funArgIdx;		// indices for STD_FUN & INTERNAL GC calls
-    std::vector<int> _contArgIdx;		// indices for STD_CONT GC calls
-
-    void _initGC ();
-#endif
-
   // helper function for getting an intrinsic when it has not yet
   // been loaded for the current module.
   //

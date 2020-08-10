@@ -1,20 +1,22 @@
 # Makefile for compiling the C++ test driver
 #
-# Note: we assume that you have gmp installed using macports (i.e., in /opt/local).
 
 SHELL =		/bin/sh
 
 SML_ROOT =	../..
+LLVM_DIR =	../llvm-debug
 
 CXX =		clang++ --std=c++14
-CPP_FLAGS =	-I../include -I$(SML_ROOT)/include -I../llvm/include/ -I/opt/local/include
-CXX_FLAGS =	-g
-LD_FLAGS =	-L../../lib -L/opt/local/include
+CPP_FLAGS =	-I../include -I$(SML_ROOT)/include -I$(LLVM_DIR)/include/ -I/opt/local/include
+CXX_FLAGS =	-g -O1
+LD_FLAGS =	-L../../lib
 LIBS =		-lasdl
 
-LLVM_LD_FLAGS =	$(shell ../llvm/bin/llvm-config --ldflags)
-LLVM_LIBS =	$(shell ../llvm/bin/llvm-config --libs x86 aarch64 orcjit) \
-		$(shell ../llvm/bin/llvm-config --system-libs)
+LLVM_CONFIG =	$(LLVM_DIR)/bin/llvm-config
+
+LLVM_LD_FLAGS =	$(shell $(LLVM_CONFIG) --ldflags)
+LLVM_LIBS =	$(shell $(LLVM_CONFIG) --libs x86 aarch64 orcjit) \
+		$(shell $(LLVM_CONFIG) --system-libs)
 
 CODEGEN_OBJS =	$(wildcard ../build/*.o)
 OBJS =		main.o $(CODEGEN_OBJS)

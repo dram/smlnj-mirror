@@ -5,11 +5,11 @@
 SHELL =		/bin/sh
 
 SML_ROOT =	../..
+LLVM_DIR =	../llvm-debug
 
 CXX =		clang++ --std=c++14
-CPP_FLAGS =	-I../include -I$(SML_ROOT)/include -I../llvm/include/ -I/opt/local/include
-CXX_FLAGS =	-g
-LD_FLAGS =	-L../llvm/lib -L/opt/local/include
+CPP_FLAGS =	-I../include -I$(SML_ROOT)/include -I$(LLVM_DIR)/include/
+CXX_FLAGS =	-g -O1
 
 VPATH =		../src
 
