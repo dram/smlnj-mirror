@@ -180,6 +180,12 @@ namespace CFG_Prim {
                 auto fto = asdl::read_int(is);
                 return new EXTEND(fsigned, ffrom, fto);
             }
+          case _con_TRUNC:
+            {
+                auto ffrom = asdl::read_int(is);
+                auto fto = asdl::read_int(is);
+                return new TRUNC(ffrom, fto);
+            }
           case _con_INT_TO_REAL:
             {
                 auto ffrom = asdl::read_int(is);
@@ -199,6 +205,7 @@ namespace CFG_Prim {
     pure::~pure () { }
     PURE_ARITH::~PURE_ARITH () { }
     EXTEND::~EXTEND () { }
+    TRUNC::~TRUNC () { }
     INT_TO_REAL::~INT_TO_REAL () { }
     PURE_SUBSCRIPT::~PURE_SUBSCRIPT () { }
     PURE_RAW_SUBSCRIPT::~PURE_RAW_SUBSCRIPT () { }

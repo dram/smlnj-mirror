@@ -273,7 +273,7 @@ namespace CFG {
 
       // create the switch; note that we use the last case as the default
 	llvm::SwitchInst *sw = buf->build().CreateSwitch(
-	    buf->build().CreateTrunc(buf->asInt(arg), buf->i32Ty),
+	    buf->createTrunc(buf->asInt(arg), buf->i32Ty),
 	    this->_v1[nCases]->bb(),
 	    nCases);
 

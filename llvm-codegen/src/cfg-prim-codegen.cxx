@@ -225,6 +225,12 @@ namespace CFG_Prim {
 
     } // EXTEND::codegen
 
+    Value *TRUNC::codegen (code_buffer * buf, Args_t const &args)
+    {
+	return buf->createTrunc (args[0], buf->iType(this->_v_to));
+
+    } // TRUNC::codegen
+
     Value *INT_TO_REAL::codegen (code_buffer * buf, Args_t const &args)
     {
 	return buf->createSIToFP (args[0], buf->fType(this->_v_to));

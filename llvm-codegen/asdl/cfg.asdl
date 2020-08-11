@@ -97,6 +97,8 @@ module CFG_Prim {
       | EXTEND (bool signed, int from, int to)	-- extend a smaller value to a larger
 						-- one (from < to) by zeros (signed is
 						-- false) or the sign (signed is true)
+      | TRUNC (int from, int to)		-- truncate a larger value to a smaller
+						-- one (from > to).
       | INT_TO_REAL (int from, int to)		-- int to float conversion
       | PURE_SUBSCRIPT				-- indexed load of ML value
       | PURE_RAW_SUBSCRIPT(numkind kind, int sz) -- indexed load of raw value

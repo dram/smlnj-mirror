@@ -475,6 +475,7 @@ namespace CFG_Prim {
         enum _tag_t {
             _con_PURE_ARITH = 1,
             _con_EXTEND,
+            _con_TRUNC,
             _con_INT_TO_REAL,
             _con_PURE_SUBSCRIPT,
             _con_PURE_RAW_SUBSCRIPT
@@ -548,6 +549,35 @@ namespace CFG_Prim {
 
       private:
         bool _v_signed;
+        int _v_from;
+        int _v_to;
+    };
+    class TRUNC : public pure {
+      public:
+        TRUNC (int p_from, int p_to)
+            : pure(pure::_con_TRUNC), _v_from(p_from), _v_to(p_to)
+        { }
+        ~TRUNC ();
+        // pickler method suppressed
+        int get_from () const
+        {
+            return this->_v_from;
+        }
+        void set_from (int v)
+        {
+            this->_v_from = v;
+        }
+        int get_to () const
+        {
+            return this->_v_to;
+        }
+        void set_to (int v)
+        {
+            this->_v_to = v;
+        }
+        Value *codegen (code_buffer *buf, Args_t const &args);
+
+      private:
         int _v_from;
         int _v_to;
     };

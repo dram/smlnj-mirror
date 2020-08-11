@@ -374,13 +374,17 @@ structure CFG_PrimMemoryPickle : CFG__PRIM_PICKLE
               ASDLMemoryPickle.writeBool (outS, signed);
               ASDLMemoryPickle.writeInt (outS, from);
               ASDLMemoryPickle.writeInt (outS, to))
-            | CFG_Prim.INT_TO_REAL{from, to} => (
+            | CFG_Prim.TRUNC{from, to} => (
               ASDLMemoryPickle.writeTag8 (outS, 0w3);
               ASDLMemoryPickle.writeInt (outS, from);
               ASDLMemoryPickle.writeInt (outS, to))
-            | CFG_Prim.PURE_SUBSCRIPT => ASDLMemoryPickle.writeTag8 (outS, 0w4)
+            | CFG_Prim.INT_TO_REAL{from, to} => (
+              ASDLMemoryPickle.writeTag8 (outS, 0w4);
+              ASDLMemoryPickle.writeInt (outS, from);
+              ASDLMemoryPickle.writeInt (outS, to))
+            | CFG_Prim.PURE_SUBSCRIPT => ASDLMemoryPickle.writeTag8 (outS, 0w5)
             | CFG_Prim.PURE_RAW_SUBSCRIPT{kind, sz} => (
-              ASDLMemoryPickle.writeTag8 (outS, 0w5);
+              ASDLMemoryPickle.writeTag8 (outS, 0w6);
               write_numkind (outS, kind);
               ASDLMemoryPickle.writeInt (outS, sz)))
     fun read_pure inS = (case ASDLMemoryPickle.readTag8 inS
@@ -401,10 +405,16 @@ structure CFG_PrimMemoryPickle : CFG__PRIM_PICKLE
               val from = ASDLMemoryPickle.readInt inS
               val to = ASDLMemoryPickle.readInt inS
               in
+                  CFG_Prim.TRUNC {from = from, to = to}
+              end
+            | 0w4 => let
+              val from = ASDLMemoryPickle.readInt inS
+              val to = ASDLMemoryPickle.readInt inS
+              in
                   CFG_Prim.INT_TO_REAL {from = from, to = to}
               end
-            | 0w4 => CFG_Prim.PURE_SUBSCRIPT
-            | 0w5 => let
+            | 0w5 => CFG_Prim.PURE_SUBSCRIPT
+            | 0w6 => let
               val kind = read_numkind inS
               val sz = ASDLMemoryPickle.readInt inS
               in

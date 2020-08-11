@@ -374,13 +374,17 @@ structure CFG_PrimFilePickle : CFG__PRIM_PICKLE
               ASDLFilePickle.writeBool (outS, signed);
               ASDLFilePickle.writeInt (outS, from);
               ASDLFilePickle.writeInt (outS, to))
-            | CFG_Prim.INT_TO_REAL{from, to} => (
+            | CFG_Prim.TRUNC{from, to} => (
               ASDLFilePickle.writeTag8 (outS, 0w3);
               ASDLFilePickle.writeInt (outS, from);
               ASDLFilePickle.writeInt (outS, to))
-            | CFG_Prim.PURE_SUBSCRIPT => ASDLFilePickle.writeTag8 (outS, 0w4)
+            | CFG_Prim.INT_TO_REAL{from, to} => (
+              ASDLFilePickle.writeTag8 (outS, 0w4);
+              ASDLFilePickle.writeInt (outS, from);
+              ASDLFilePickle.writeInt (outS, to))
+            | CFG_Prim.PURE_SUBSCRIPT => ASDLFilePickle.writeTag8 (outS, 0w5)
             | CFG_Prim.PURE_RAW_SUBSCRIPT{kind, sz} => (
-              ASDLFilePickle.writeTag8 (outS, 0w5);
+              ASDLFilePickle.writeTag8 (outS, 0w6);
               write_numkind (outS, kind);
               ASDLFilePickle.writeInt (outS, sz)))
     fun read_pure inS = (case ASDLFilePickle.readTag8 inS
@@ -401,10 +405,16 @@ structure CFG_PrimFilePickle : CFG__PRIM_PICKLE
               val from = ASDLFilePickle.readInt inS
               val to = ASDLFilePickle.readInt inS
               in
+                  CFG_Prim.TRUNC {from = from, to = to}
+              end
+            | 0w4 => let
+              val from = ASDLFilePickle.readInt inS
+              val to = ASDLFilePickle.readInt inS
+              in
                   CFG_Prim.INT_TO_REAL {from = from, to = to}
               end
-            | 0w4 => CFG_Prim.PURE_SUBSCRIPT
-            | 0w5 => let
+            | 0w5 => CFG_Prim.PURE_SUBSCRIPT
+            | 0w6 => let
               val kind = read_numkind inS
               val sz = ASDLFilePickle.readInt inS
               in

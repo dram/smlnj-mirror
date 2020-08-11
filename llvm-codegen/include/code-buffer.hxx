@@ -528,6 +528,10 @@ class code_buffer {
     {
 	return this->_builder.CreateZExt (v, ty);
     }
+    Value *createTrunc (Value *v, Type *ty)
+    {
+	return this->_builder.CreateTrunc(v, ty),
+    }
 
   /***** shorthand for LLVM floating-point instructions *****/
     Value *createFAdd (Value *a, Value *b) { return this->_builder.CreateFAdd (a, b); }

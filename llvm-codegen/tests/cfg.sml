@@ -98,6 +98,7 @@ structure CFG_Prim = struct
     datatype pure
       = PURE_ARITH of {oper : pureop, sz : int}
       | EXTEND of {signed : bool, from : int, to : int}
+      | TRUNC of {from : int, to : int}
       | INT_TO_REAL of {from : int, to : int}
       | PURE_SUBSCRIPT
       | PURE_RAW_SUBSCRIPT of {kind : numkind, sz : int}
