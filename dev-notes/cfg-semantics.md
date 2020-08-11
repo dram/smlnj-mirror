@@ -57,9 +57,9 @@ The **CFG** IR has two main types:
 
     * `RAW_STORE (numkind kind, int sz)`
 
-    * `SET_HDLR`
+    * `SET_HDLR` -- sets the exception-handler register
 
-    * `SET_VAR`
+    * `SET_VAR` -- sets the var-pointer register
 
 * `APPLY(f, args, tys)` makes the call `f (args)` using the standard calling
   convention for escaping functions.  The `tys` are the types of the arguments
@@ -82,6 +82,20 @@ The **CFG** IR has two main types:
   executed.  The `prob` field is an integer in the range `0..999`, representing
   the likelihood that the test will return true.  A probability value of `0`
   means that there is no prediction of the branch.
+  The conditionl primops are:
+
+    * `CMP{oper, signed, sz}` -- these define signed and unsigned integer comparisons
+      of the specified number of bits (`sz` must be a power of 2).  The comparisons
+      are the standard ones (`GT`, `GTE`, `LT`, `LTE`, `EQL`, `NEQ`).
+
+    * `FCMP{oper, sz}` -- these define floating-point comparisons.
+
+    * `FSGN sz` -- tests the sign bit of a floating-point argument and evaluates
+      to `true` if it is set.
+
+    * `PEQL` -- compares two pointer/tagged values for equality.
+
+    * `PNEQ` -- compares two pointer/tagged values for inequality.
 
 * `RCC{reentrant, linkage, proto, args, results, live, k}`
 
