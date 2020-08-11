@@ -66,15 +66,15 @@
  *      FUN v309 (v339, v338, v337, v336, v335, v334, v333, v332, v331, v330) =
  *         LET SELECT(0, VAR v330) -> v340
  *         LET SELECT(1, VAR v330) -> v341
- *         LET SELECT(1, VAR v330) -> v342
+ *         LET SELECT(2, VAR v330) -> v342
  *         LET SELECT(3, VAR v330) -> v343
- *	      SWITCH (SUB (VAR v333, NUM(1:i64)))
+ *	      SWITCH (RSHIFT (VAR v333, NUM(1:i64)))
  *	         case 0: LET SELECT(0, VAR v332) -> v344
  *		    APPLY (VAR v344) (
  *                     VAR v344, VAR v332, VAR v337, VAR v336, VAR v335, VAR v334, VAR v343, NUM 0)
- *	         case 1: LET SELECT(0, VAR v331) -> v346
- *                  APPLY (VAR v346) (
- *                     VAR v346, VAR v331, VAR v337, VAR v336, VAR v335, VAR v334, VAR v343, NUM 1)
+ *	         case 1: LET SELECT(0, VAR v331) -> v345
+ *                  APPLY (VAR v345) (
+ *                     VAR v345, VAR v331, VAR v337, VAR v336, VAR v335, VAR v334, VAR v343, NUM 1)
  *               case 2: LET SELECT(0, VAR v340) -> v346
  *		    APPLY (VAR v346) (
  *                     VAR v346, VAR v340, VAR v337, VAR v336, VAR v335, VAR v334, VAR v343, NUM 2)
@@ -105,6 +105,7 @@ structure Ex6 =
 	    in
 	      C.ALLOC(P.RECORD{desc = desc, mut = false}, flds, x, k)
 	    end
+      fun select (idx, arg) = C.SELECT{idx=idx, arg=arg}
       fun pureOp (oper, args) = C.PURE{oper=P.PURE_ARITH{oper=oper, sz=64}, args=args}
       fun attrs bp = { (* cluster attrs *)
 	      alignHP = 8, needsBasePtr = bp, hasTrapArith = false, hasRCC = false
@@ -129,32 +130,57 @@ structure Ex6 =
 		},
 	      frags = []
 	    }
-      fun return res = C.THROW (V 187,
-	    [V 187, V 186, V 185, V 184, num 0],
-	    [C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.NUMt{sz=64}])
       val fn302 = C.Cluster{
 	      attrs = attrs true,
 	      entry = C.Frag{
 		  kind = C.STD_FUN,
 		  lab = v 302,
 		  params = mkParams [
-		      (v 189, C.PTRt), (v 188, C.PTRt), (v 187, C.CNTt), (v 186, C.PTRt),
-		      (v 185, C.PTRt), (v 184, C.PTRt), (v 183, C.PTRt)
+		      (v 329, C.PTRt), (v 328, C.PTRt), (v 327, C.CNTt),
+		      (v 326, C.PTRt), (v 325, C.PTRt), (v 324, C.PTRt),
+		      (v 323, C.PTRt)
 		    ],
 		  allocChk = SOME 0w0,
-		  body = C.SWITCH(pureOp(P.SUB, [V 183, num 1]), [
-		      return 0,
-		      return 1,
-		      return 2,
-		      return 3,
-		      return 4,
-		      return 5
-		    ])
+		  body = record ([LAB 309], v 349,
+		    C.THROW (V 327,
+		      [V 327, V 326, V 325, V 324, V 349],
+		      [C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.PTRt]))
+		},
+	      frags = []
+	    }
+      fun rule (clos, f, n) = C.LET(select(0, V clos), mkParam(v f, C.FUNt),
+	    C.APPLY (V f,
+	      [V f, V clos, V 337, V 336, V 335, V 334, V 343, num n],
+	      [C.FUNt, C.PTRt, C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.PTRt, C.NUMt{sz=64}]))
+      val fn309 = C.Cluster{
+	      attrs = attrs true,
+	      entry = C.Frag{
+		  kind = C.STD_FUN,
+		  lab = v 309,
+		  params = mkParams [
+		      (v 339, C.PTRt), (v 338, C.PTRt), (v 337, C.CNTt),
+		      (v 336, C.PTRt), (v 335, C.PTRt), (v 334, C.PTRt),
+		      (v 333, C.NUMt{sz=64}), (v 332, C.FUNt), (v 331, C.FUNt),
+		      (v 330, C.PTRt)
+		    ],
+		  allocChk = SOME 0w0,
+		  body =
+		    C.LET(select(0, V 330), mkParam(v 340, C.FUNt),
+		    C.LET(select(1, V 330), mkParam(v 341, C.FUNt),
+		    C.LET(select(2, V 330), mkParam(v 342, C.FUNt),
+		    C.LET(select(3, V 330), mkParam(v 343, C.FUNt),
+		      C.SWITCH(pureOp(P.RSHIFT, [V 333, num 1]), [
+			  rule (332, 344, 0),
+			  rule (331, 345, 1),
+			  rule (340, 346, 2),
+			  rule (341, 347, 3),
+			  rule (342, 348, 4)
+			])))))
 		},
 	      frags = []
 	    }
     in
-    val cu = {srcFile = "switch.sml", entry = fn321, fns = [fn302]}
+    val cu = {srcFile = "switch.sml", entry = fn321, fns = [fn302, fn309]}
     end (* local *)
 
   end

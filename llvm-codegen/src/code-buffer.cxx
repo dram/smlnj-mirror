@@ -650,22 +650,30 @@ llvm::BasicBlock *code_buffer::invokeGC (CFG::frag const *frag, frag_kind kind)
 	gcArgs[i] = this->_builder.CreateExtractValue(call, { i });
     }
 
-  // the arguments for the return to the limit test
+  // the arguments for the return to the limit test that correspond
+  // to the fragment parameters (i.e., they do not include the special
+  // machine registers
     Value *retArgs[numParams];
+#ifndef NDEBUG
+    for (int i = 0;  i < numParams;  ++i) {
+	retArgs[i] = nullptr;
+    }
+#endif // !NDEBUG
 
   // restore ML Value parameters and the rawObj pointer from the extra object
     if (extraObj != nullptr) {
 	extraObj = this->asObjPtr (gcArgs[extraIx]);
-	int n = (rawObj == nullptr) ? mlArgs.size() : mlArgs.size() - 1;
       // get the extra ML pointer values
-	for (int i = numGCArgs - 1;  i < n;  ++i) {
+	for (int i = numGCArgs - 1;  i < mlArgs.size();  ++i) {
 	    retArgs[mlArgs[i]] = this->createLoad (
 		this->mlValueTy,
 		this->createGEP (extraObj, i));
 	}
 	if (rawObj != nullptr) {
 	  // get the raw object pointer
-	    rawObj = this->createLoad (this->mlValueTy, this->createGEP (extraObj, n));
+	    rawObj = this->createLoad (
+		this->mlValueTy,
+		this->createGEP (extraObj, mlArgs.size()));
 	}
     }
     else if (rawObj != nullptr) {
@@ -709,7 +717,13 @@ llvm::BasicBlock *code_buffer::invokeGC (CFG::frag const *frag, frag_kind kind)
     Args_t args = this->createArgs (kind, numParams);
     for (int i = 0;  i < numParams;  ++i) {
 	assert (retArgs[i] && "null return arg");
-	args.push_back (retArgs[i]);
+	assert (paramTys[i] && "null parameter type");
+	Type *ty = retArgs[i]->getType();
+	if (ty != paramTys[i]) {
+	    args.push_back (this->castTy(ty, paramTys[i], retArgs[i]));
+	} else {
+	    args.push_back (retArgs[i]);
+	}
     }
 
   // transfer control back to the limit test
@@ -719,11 +733,20 @@ assert (false && "phi nodes");
 /* TODO: need to recompute the basePtr too! */
 	this->createBr (frag->bb());
     } else {
-      // args[0] holds the entry address of the cluster, so we transfer control to it.
+	Value *fn;
+	if (kind == frag_kind::STD_FUN) {
+	  // the STD_LINK register, which is the first non-special argument,
+	  // holds the address of the cluster, so we transfer control to it.
+	    fn = args[this->_regInfo.numMachineRegs()];
+	} else {
+	  // the STD_CONT register, which is the third non-special argument,
+	  // holds the address of the cluster, so we transfer control to it.
+	    fn = args[this->_regInfo.numMachineRegs() + 2];
+	}
 	auto fnTy = this->_curCluster->fn()->getFunctionType();
 	llvm::CallInst *call = this->_builder.CreateCall(
 	    fnTy,
-	    this->createBitCast(retArgs[0], fnTy->getPointerTo()),
+	    this->createBitCast(fn, fnTy->getPointerTo()),
 	    args);
 	call->setCallingConv (llvm::CallingConv::JWA);
 	call->setTailCallKind (llvm::CallInst::TCK_Tail);

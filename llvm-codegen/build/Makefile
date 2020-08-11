@@ -9,7 +9,7 @@ LLVM_DIR =	../llvm-debug
 
 CXX =		clang++ --std=c++14
 CPP_FLAGS =	-I../include -I$(SML_ROOT)/include -I$(LLVM_DIR)/include/
-CXX_FLAGS =	-g -O1
+CXX_FLAGS =	-g
 
 VPATH =		../src
 

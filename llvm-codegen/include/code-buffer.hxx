@@ -530,7 +530,7 @@ class code_buffer {
     }
     Value *createTrunc (Value *v, Type *ty)
     {
-	return this->_builder.CreateTrunc(v, ty),
+	return this->_builder.CreateTrunc(v, ty);
     }
 
   /***** shorthand for LLVM floating-point instructions *****/
