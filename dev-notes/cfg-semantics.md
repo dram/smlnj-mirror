@@ -61,15 +61,15 @@ The **CFG** IR has two main types:
 
     * `SET_VAR`
 
-* `APPLY(f::args, tys)` makes the call `f (f, args)` using the standard calling
+* `APPLY(f, args, tys)` makes the call `f (args)` using the standard calling
   convention for escaping functions.  The `tys` are the types of the arguments
-  list (including the function `f`, which is the first argument in a standard call).
+  list.
 
-* `THROW(k::args, tys)` makes the call `k (k, args)` using the standard calling
+* `THROW(k, args, tys)` makes the call `k (args)` using the standard calling
   convention for escaping continuations.  The `tys` are the types of the arguments
-  list (including the continuation `k`).
+  list.
 
-* `GOTO(cc, lab, args, tys)` transfers control to the label `lab` with arguments
+* `GOTO(lab, args, tys)` transfers control to the label `lab` with arguments
   `args` using the calling convention specified by `cc`.  The `tys` are the types
    of the arguments list.
 
@@ -79,87 +79,128 @@ The **CFG** IR has two main types:
 * `BRANCH(p, args, prob, kTrue, kFalse)` evaluates the `args` and then applies the
   conditional primop `p` to the argument results.  If the result is true, then the
   `kTrue` continuation is executed, otherwise the `kFalse` continuation is
-  executed.  The `prob` field is an integer in the range `0..99`, representing
+  executed.  The `prob` field is an integer in the range `0..999`, representing
   the likelihood that the test will return true.  A probability value of `0`
   means that there is no prediction of the branch.
 
-* `RCC{reentrant, name, proto, args, results, live, k}`
+* `RCC{reentrant, linkage, proto, args, results, live, k}`
 
 ## The Semantics of CFG Expressions
 
 CFG expressions are *pure* in that they do not allocate or modify memory,
 or raise exceptions.
 
-* `VAR x` evaluates the the value bound to `x`
+* `VAR{name}` evaluates the the value bound to `name`
 
-* `LABEL lab` evaluates the the address of the label `lab`
+* `LABEL{name}` evaluates the the address of the label `name`
 
-* `NUM{iv, signed, sz}` evaluates to an signed or unsigned integer of `sz` bits.
+* `NUM{iv, sz}` evaluates to an integer of `sz` bits.
 
-* `LOOKER(p, args)` evaluates the argument expressions and then applies the
-  primop to the results.  The `looker` primops are
+* `LOOKER{oper, args}` evaluates the argument expressions and then applies the
+  primop `oper` to the results.  The `looker` primops are
 
     * `DEREF` fetches the contents of the reference cell specified by the argument.
 
-    * `SUBSCRIPT`
+    * `SUBSCRIPT` -- polymorphic-array subscript; this operation works directly
+      on the array's data object and does not do bounds checking.
 
-    * `RAW_SUBSCRIPT(INT, sz)`
+    * `RAW_SUBSCRIPT{kind, sz}` -- packed numeric-array subscript, where `sz` is the
+      size of the values and `kind` specifies either integer or floating-point
+      values.  This operation works directly on the array's data object and does
+      not do bounds checking.
 
-    * `RAW_SUBSCRIPT(FLT, sz)`
+    * `RAW_SUBSCRIPT(FLT, sz)` -- packed floating-point-array subscript, where `sz`
+      is thesize of the integer values; this operation works directly on the
+      array's data object and does not do bounds checking.
 
-    * `GET_HDLR`
+    * `GET_HDLR` -- reads the exception-handler register, which contains a function
+      closure that represents the current exception handler.
 
-    * `GET_VAR`
+    * `GET_VAR` -- reads the "var" register, which implements a thread-local-storage
+      mechanism.
 
-* `PURE(p, args)` evaluates the argument expressions and then applies the
-  primop to the results.  The `pure` primops are
+* `PURE{oper, args}` evaluates the argument expressions and then applies the
+  primop to the results.  The `pure` primops are further divided into classes:
 
-    * `ADD`
+    * `PURE_ARITH{oper, sz}` -- these are pure arithmetic operations on integer
+      values of `sz` bits (`sz` must be a power of 2).  The pure arithmetic
+      operators are:
 
-    * `SUB`
+	  * `ADD` -- 2's complement addition
 
-    * `SMUL`
+	  * `SUB` -- 2's complement subtraction
 
-    * `SDIV`
+	  * `SMUL` -- 2's complement signed multiplication (note that signed
+	    and unsigned multiplication are the same operation, but are made
+	    distinct because **MLRISC** makes the distinction).
 
-    * `SREM`
+	  * `SDIV` -- 2's complement signed division; we assume that zero divisors
+	    have been ruled out by explicit tests.  This operation rounds toward zero.
 
-    * `UMUL`
+	  * `SREM` -- 2's complement signed remainder; we assume that zero divisors
+	    have been ruled out by explicit tests.
 
-    * `UDIV`
+	  * `UMUL` -- 2's complement unsigned multiplication (note that signed
+	    and unsigned multiplication are the same operation, but are made
+	    distinct because **MLRISC** makes the distinction).
 
-    * `UREM`
+	  * `UDIV` -- 2's complement unsigned division; we assume that zero divisors
+	    have been ruled out by explicit tests.
 
-    * `LSHIFT`
+	  * `UREM` -- 2's complement unsigned remainder; we assume that zero divisors
+	    have been ruled out by explicit tests.
 
-    * `RSHIFT`
+	  * `LSHIFT` -- left shift operation; the shift amount is guaranteed to be
+	    less than the word size.
 
-    * `RSHIFTL`
+	  * `RSHIFT` -- arithmetic-right shift operation (*i.e.*, with sign-extension);
+	    the shift amount is guaranteed to be less than the word size.
 
-    * `ORB`
+	  * `RSHIFTL` -- logical-right shift operation (*i.e.*, with zero-extension);
+	    the shift amount is guaranteed to be less than the word size.
 
-    * `XORB`
+	  * `ORB` -- bit-wise logical or
 
-    * `ANDB`
+	  * `XORB` -- bit-wise logical-exclusive or
 
-    * `FADD`
+	  * `ANDB` -- bit-wise logical and
 
-    * `FSUB`
+	  * `FADD` -- floating-point addition
 
-    * `FMUL`
+	  * `FSUB` -- floating-point subtraction
 
-    * `FDIV`
+	  * `FMUL` -- floating-point multiplication
 
-    * `FNEG`
+	  * `FDIV` -- floating-point division
 
-    * `FABS`
+	  * `FNEG` -- floating-point negation
 
-    * `FSQRT`
+	  * `FABS` -- floating-point absolute value
 
-* `SELECT(i, arg)` extracts the `i`th element from the record specified by
+	  * `FSQRT` -- floating-point square root
+
+    * `EXTEND{signed, from, to}` -- extend a smaller integer representation
+      (`from` bits) to a larger size (`to` bits); if `signed` is `true`, then
+      the extension uses the sign bit, otherwise it uses zero to extend the value.
+
+    * `TRUNC{from, to}` -- truncate a larger integer representation (`from` bits)
+      to a smaller representation (`to` bits).
+
+    * `INT_TO_REAL{from, to}` -- convert an integer value of size `from` bits to a
+      floating-point value of size `to` bits.
+
+    * `PURE_SUBSCRIPT` -- polymorphic-vector subscript; this operation works directly
+      on the array's data object and does not do bounds checking.
+
+    * `PURE_RAW_SUBSCRIPT{kind, sz}` -- packed numeric-vector subscript, where
+      `sz` is the size of the values and `kind` specifies either integer or
+      floating-point values.  This operation works directly on the array's data
+      object and does not do bounds checking.
+
+* `SELECT{idx, arg}` extracts the `idx`th element from the record specified by
   `arg` (0-based).  The selected value should a valid SML value; *i.e.*,
   either a pointer or a tagged integer.
 
-* `OFFSET(i, arg)` extracts the `i`th element from the record specified by
+* `OFFSET{idx, arg}` extracts the `idx`th element from the record specified by
   `arg` (0-based).
 
