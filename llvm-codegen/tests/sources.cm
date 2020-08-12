@@ -16,6 +16,7 @@ Library
   structure Ex4		(* Int64 factorial *)
   structure Ex5		(* try wrapper *)
   structure Ex6		(* switch *)
+  structure Ex8		(* example for paper *)
 
 is
 
@@ -33,6 +34,7 @@ is
   ex4.sml
   ex5.sml
   ex6.sml
+  ex8.sml
   dump.sml
   load.sml
   obj-desc.sml

@@ -25,35 +25,34 @@ void usage ()
 int main (int argc, char **argv)
 {
     output out = output::PrintAsm;
-    std::string src;
+    std::string src = "";
 
     if (argc < 2) {
 	usage();
     }
 
-    if (argv[1][0] == '-') {
-	if (argc != 3) {
-	    usage();
+    for (int i = 1;  i < argc;  i++) {
+	if (argv[i][0] == '-') {
+	    std::string flag(argv[i]);
+	    if (flag == "-o") {
+		out = output::ObjFile;
+	    } else if (flag == "-S") {
+		out = output::AsmFile;
+	    } else if (flag == "-c") {
+		out = output::Memory;
+	    } else if (flag == "-nogc") {
+		disableGC = true;
+	    } else {
+		usage();
+	    }
 	}
-	std::string flag(argv[1]);
-	if (flag == "-o") {
-	    out = output::ObjFile;
-	} else if (flag == "-S") {
-	    out = output::AsmFile;
-	} else if (flag == "-c") {
-	    out = output::Memory;
+	else if ((i < argc-1) || (src != "")) {
+	    std::cerr << "usage: codegen [ -o | -S ] <pkl-file>\n";
+	    exit (1);
 	}
 	else {
-	    usage();
+	    src = argv[i];
 	}
-	src = argv[2];
-    }
-    else if (argc == 2) {
-	src = argv[1];
-    }
-    else {
-	std::cerr << "usage: codegen [ -o | -S ] <pkl-file>\n";
-	exit (1);
     }
 
     llvm::InitializeAllTargetInfos();
