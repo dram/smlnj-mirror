@@ -11,6 +11,7 @@
 
 #include "cfg.hxx"
 #include "target-info.hxx"
+#include "codegen.hxx"
 
 namespace CFG {
 
@@ -373,7 +374,7 @@ namespace CFG {
 	}
 
       // generate the heap-limit check, if required
-	if (! this->_v_allocChk.isEmpty()) {
+	if (! this->_v_allocChk.isEmpty() && (! disableGC)) {
 	    reg_state saveRegs;
 	    buf->saveSMLRegState (saveRegs);
 	    unsigned int amt = this->_v_allocChk.valOf();

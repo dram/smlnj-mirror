@@ -13,6 +13,10 @@
 #include "codegen.hxx"
 #include <iostream>
 
+// Some global flags for controlling the code generator.
+// These are just for testing purposes
+bool disableGC = false;
+
 // timer support
 #include <time.h>
 
