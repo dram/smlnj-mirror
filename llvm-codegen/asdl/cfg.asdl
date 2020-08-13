@@ -221,7 +221,7 @@ module CFG (
 	  param* live,			-- live variables across call (with types)
 	  stm k)			-- the continuation
 
-    frag_kind = STD_FUN | STD_CONT | INTERNAL
+    frag_kind = STD_FUN | STD_CONT | KNOWN_FUN | INTERNAL
 
   -- a cluster fragment is an extended basic block.  The fields are:
   --    kind            the kind of fragment, which determines its calling convention
