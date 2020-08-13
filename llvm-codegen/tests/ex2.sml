@@ -143,7 +143,7 @@ structure Ex2 =
 		    [C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.PTRt]))
 	    }
       val fn122 = C.Cluster{
-	      attrs = attrs true,
+	      attrs = attrs false,
 	      entry = C.Frag{
 		  kind = C.STD_FUN,
 		  lab = v 122,

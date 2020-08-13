@@ -10,6 +10,7 @@ Library
   structure Dump
   structure Load
 
+  structure Ex0		(* id function w/o linking code *)
   structure Ex1		(* id function *)
   structure Ex2		(* list rev *)
   structure Ex3		(* floating-point madd *)
@@ -28,6 +29,7 @@ is
 
   cfg.cm
 
+  ex0.sml
   ex1.sml
   ex2.sml
   ex3.sml

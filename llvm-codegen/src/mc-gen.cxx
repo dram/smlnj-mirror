@@ -22,6 +22,16 @@
 
 #include "llvm/ExecutionEngine/Orc/JITTargetMachineBuilder.h"
 
+/* define DEBUG_MC to enable printing of the IR after every internal LLVM step.
+ * Warning: this produces 1000's of lines of output for even the smallest
+ * example!!!
+ */
+//#define DEBUG_MC
+#ifdef DEBUG_MC
+#include "llvm/InitializePasses.h"
+#include "llvm/Support/CommandLine.h"
+#endif
+
 mc_gen::mc_gen (llvm::LLVMContext &context, target_info const *target)
 {
   // set up the target machine builder
@@ -32,14 +42,16 @@ mc_gen::mc_gen (llvm::LLVMContext &context, target_info const *target)
     tgtBuilder.setRelocationModel (llvm::Reloc::PIC_);
     tgtBuilder.setCodeGenOptLevel (llvm::CodeGenOpt::Less);
 
-    llvm::TargetOptions tgtOpts;
-    tgtOpts.GuaranteedTailCallOpt = true;
-    tgtBuilder.setOptions (tgtOpts);
-
     auto tgtMachine = tgtBuilder.createTargetMachine();
     if (!tgtMachine) {
         assert(false);
     }
+
+  // make sure that tail calls are optimized
+    llvm::TargetOptions tgtOpts = (*tgtMachine)->Options;
+    tgtOpts.GuaranteedTailCallOpt = true;
+    (*tgtMachine)->Options = tgtOpts;
+
     this->_tgtMachine = std::move(*tgtMachine);
 
 } // mc_gen constructor
@@ -169,6 +181,39 @@ void mc_gen::dumpCode (llvm::Module *module, std::string const & stem, bool asmC
     else {
         outFile = stem;
     }
+
+#ifdef DEBUG_MC
+    llvm::PassRegistry *Registry = llvm::PassRegistry::getPassRegistry();
+    llvm::initializeCore(*Registry);
+    llvm::initializeCodeGen(*Registry);
+    llvm::initializeLoopStrengthReducePass(*Registry);
+    llvm::initializeLowerIntrinsicsPass(*Registry);
+    llvm::initializeEntryExitInstrumenterPass(*Registry);
+    llvm::initializePostInlineEntryExitInstrumenterPass(*Registry);
+    llvm::initializeUnreachableBlockElimLegacyPassPass(*Registry);
+    llvm::initializeConstantHoistingLegacyPassPass(*Registry);
+    llvm::initializeScalarOpts(*Registry);
+    llvm::initializeVectorization(*Registry);
+    llvm::initializeScalarizeMaskedMemIntrinPass(*Registry);
+    llvm::initializeExpandReductionsPass(*Registry);
+    llvm::initializeHardwareLoopsPass(*Registry);
+
+    // Initialize debugging passes.
+    llvm::initializeScavengerTestPass(*Registry);
+
+    // Register the target printer for --version.
+    llvm::cl::AddExtraVersionPrinter(
+	llvm::TargetRegistry::printRegisteredTargetsForVersion);
+
+    const char *argv[] = {
+	"codegen",
+	"--print-after-all"
+      };
+    llvm::cl::ParseCommandLineOptions(2, argv, "codegen\n");
+#endif
+
+//    LLVMTargetMachine &LLVMTM = static_cast<LLVMTargetMachine &>(*Target);
+//    MachineModuleInfoWrapperPass *MMIWP = new MachineModuleInfoWrapperPass(&LLVMTM);
 
     std::error_code EC;
     llvm::raw_fd_ostream outStrm(outFile, EC, llvm::sys::fs::OF_None);

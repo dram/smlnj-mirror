@@ -230,8 +230,12 @@ namespace CFG {
       // add outgoing values as incoming values to the destination's
       // phi nodes
 	buf->setInsertPoint (dstFrag->bb());
+llvm::dbgs() << "# GOTO: " << args.size() << " arguments\n";
 	for (int i = 0;  i < args.size();  ++i) {
 	  // make sure that the type match!
+llvm::dbgs() << "## arg[" << i << "] = ";
+if (args[i]) { llvm::dbgs() << *(args[i]) << "\n"; } else { llvm::dbgs() << "nullptr\n"; }
+	    assert (args[i]);
 	    Type *srcTy = args[i]->getType();
 	    Type *tgtTy = dstFrag->paramTy(i);
 	    if (srcTy != tgtTy) {

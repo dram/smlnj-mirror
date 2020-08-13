@@ -673,6 +673,20 @@ class code_buffer {
   // function for setting a special memory register
     void _storeMemReg (sml_reg_id r, Value *v);
 
+  // information about JWA arguments
+    struct arg_info {
+	int nExtra;	// number of extra args for special SML registers that
+			// are mapped to machine registers
+	int basePtr;	// == 1 if there is a base-pointer arg, 0 otherwise
+	int nUnused;	// unused args (for STD_CONT convention)
+
+	int numArgs (int n) { return n + this->nExtra + this->basePtr + this->nUnused; }
+
+    };
+
+  // get information about JWA arguments for a fragment in the current cluster
+    arg_info _getArgInfo (frag_kind kind) const;
+
   // constructor
     code_buffer (struct target_info const *target);
 

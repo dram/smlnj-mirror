@@ -161,6 +161,42 @@ llvm::Function *code_buffer::newFunction (
 
 }
 
+// helper function to get the numbers of arguments/parameters for
+// a fragment
+code_buffer::arg_info code_buffer::_getArgInfo (frag_kind kind) const
+{
+    code_buffer::arg_info info;
+
+    info.nExtra = this->_regInfo.numMachineRegs();
+
+    switch (kind) {
+      case frag_kind::STD_FUN:
+	info.nUnused = 0;
+	info.basePtr = 0;
+	break;
+      case frag_kind::STD_CONT:
+      // standard continuations do not use the first two registers of
+      // the JWA convention (STD_LINK and STD_CLOS).
+	info.nUnused = 2;
+	info.basePtr = 0;
+	break;
+      case frag_kind::INTERNAL:
+	info.nUnused = 0;
+	if (this->_regInfo.usesBasePtr()
+	&& this->_curCluster->get_attrs()->get_needsBasePtr()) {
+	  // we need an extra argument for threading the base pointer
+	    info.basePtr = 1;
+	}
+	else {
+	    info.basePtr = 0;
+	}
+	break;
+    }
+
+    return info;
+
+}
+
 llvm::FunctionType *code_buffer::createFnTy (frag_kind kind, std::vector<Type *> const & tys) const
 {
     std::vector<Type *> allParams = this->createParamTys (kind, tys.size());
@@ -180,18 +216,13 @@ llvm::FunctionType *code_buffer::createFnTy (frag_kind kind, std::vector<Type *>
 std::vector<Type *> code_buffer::createParamTys (frag_kind kind, int n) const
 {
     std::vector<Type *> tys;
+    arg_info info = this->_getArgInfo (kind);
 
-    int nExtra = this->_regInfo.numMachineRegs();
-
-  // standard continuations do not use the first two registers of
-  // the JWA convention (STD_LINK and STD_CLOS).
-    int nUnused = (kind == frag_kind::STD_CONT) ? 2 : 0;
-
-    tys.reserve(tys.size() + nExtra + nUnused);
+    tys.reserve (info.numArgs(n));
 
   // the parameter list starts with the special registers (i.e., alloc ptr, ...),
   //
-    for (int i = 0;  i < nExtra;  ++i) {
+    for (int i = 0;  i < info.nExtra;  ++i) {
 	if (this->_regInfo.machineReg(i)->id() <= sml_reg_id::STORE_PTR) {
 	    tys.push_back (this->objPtrTy);
 	} else {
@@ -199,8 +230,12 @@ std::vector<Type *> code_buffer::createParamTys (frag_kind kind, int n) const
 	}
     }
 
+    if (info.basePtr) {
+	tys.push_back (this->bytePtrTy);
+    }
+
   // we give the unused registers the ML value type
-    for (int i = 0;  i < nUnused;  ++i) {
+    for (int i = 0;  i < info.nUnused;  ++i) {
 	tys.push_back (this->mlValueTy);
     }
 
@@ -211,22 +246,21 @@ std::vector<Type *> code_buffer::createParamTys (frag_kind kind, int n) const
 Args_t code_buffer::createArgs (frag_kind kind, int n)
 {
     Args_t args;
+    arg_info info = this->_getArgInfo (kind);
 
-    int nExtra = this->_regInfo.numMachineRegs();
-
-  // standard continuations do not use the first two registers of
-  // the JWA convention (STD_LINK and STD_CLOS).
-    int nUnused = (kind == frag_kind::STD_CONT) ? 2 : 0;
-
-    args.reserve (n + nExtra + nUnused);
+    args.reserve (info.numArgs(n));
 
   // seed the args array with the extra arguments
-    for (int i = 0;  i < nExtra;  ++i) {
+    for (int i = 0;  i < info.nExtra;  ++i) {
 	args.push_back (this->_regState.get (this->_regInfo.machineReg(i)));
     }
 
+    if (info.basePtr) {
+	args.push_back (this->_regState.getBasePtr());
+    }
+
   // we assign the unused argument registers the undefined value
-    for (int i = 0;  i < nUnused;  ++i) {
+    for (int i = 0;  i < info.nUnused;  ++i) {
 	args.push_back (llvm::UndefValue::get(this->mlValueTy));
     }
 
@@ -256,12 +290,7 @@ void code_buffer::setupStdEntry (CFG::attrs *attrs, CFG::frag *frag)
 
     llvm::Function *fn = this->_curFn;
 
-  // initialize the base pointer (if necessary)
-    if (attrs->get_needsBasePtr() && this->_regInfo.usesBasePtr()) {
-/* FIXME: need different code for continuations!!! */
-      // STDLINK holds the function's address and is the first non-special argument.
-	this->_regState.setBasePtr (this->_curFn->getArg(this->_regInfo.numMachineRegs()));
-    }
+    arg_info info = this->_getArgInfo(frag->get_kind());
 
   // initialize the register state
     for (int i = 0, hwIx = 0;  i < reg_info::NUM_REGS;  ++i) {
@@ -278,31 +307,49 @@ void code_buffer::setupStdEntry (CFG::attrs *attrs, CFG::frag *frag)
 	}
     }
 
-    int nExtra = this->_regInfo.numMachineRegs();
-    int nUnused = ((frag->get_kind() == frag_kind::STD_CONT) ? 2 : 0);
-
-    std::vector<CFG::param *> params = frag->get_params();
-    for (int i = 0;  i < params.size();  i++) {
-	params[i]->bind (this, fn->getArg(nExtra + i));
+  // initialize the base pointer (if necessary)
+    if (this->_regInfo.usesBasePtr()
+    && this->_curCluster->get_attrs()->get_needsBasePtr()) {
+      // get the index of the register that holds the base address of the cluster
+	int baseIx = (frag->get_kind() == frag_kind::STD_FUN)
+	  // STDLINK holds the function's address and is the first non-special argument.
+	    ? this->_regInfo.numMachineRegs()
+	  // STDCONT holds the function's address and is the third non-special argument.
+	    : this->_regInfo.numMachineRegs() + 2;
+      // get base address of cluster and cast to `char *`
+	this->_regState.setBasePtr (
+	    this->createBitCast (this->_curFn->getArg(baseIx), this->bytePtrTy));
     }
 
-// FIXME: need initialize the base pointer
+    std::vector<CFG::param *> params = frag->get_params();
+    int baseIx = info.nExtra + info.nUnused;
+    for (int i = 0;  i < params.size();  i++) {
+	params[i]->bind (this, fn->getArg(baseIx + i));
+    }
+
 }
 
 void code_buffer::setupFragEntry (CFG::frag *frag, std::vector<llvm::PHINode *> &phiNodes)
 {
-    int nExtra = this->_regInfo.numMachineRegs();
+    assert (frag->get_kind() == frag_kind::INTERNAL && "not an internal fragment");
+
+    arg_info info = this->_getArgInfo (frag->get_kind());
 
   // initialize the register state
-    for (int i = 0;  i < nExtra;  ++i) {
-	reg_info const *info = this->_regInfo.machineReg(i);
-	this->_regState.set (info->id(), phiNodes[i]);
+    for (int i = 0;  i < info.nExtra;  ++i) {
+	reg_info const *rInfo = this->_regInfo.machineReg(i);
+	this->_regState.set (rInfo->id(), phiNodes[i]);
+    }
+
+    if (info.basePtr) {
+      // we are using a base pointer
+	this->_regState.setBasePtr (phiNodes[info.nExtra]);
     }
 
   // bind the formal parameters to the remaining PHI nodes
     std::vector<CFG::param *> params = frag->get_params();
     for (int i = 0;  i < params.size();  i++) {
-	params[i]->bind (this, phiNodes[nExtra + i]);
+	params[i]->bind (this, phiNodes[info.nExtra + info.basePtr + i]);
     }
 
 } // code_buffer::setupFragEntry
@@ -806,21 +853,19 @@ llvm::MDNode *code_buffer::overflowWeights ()
 
 } // code_buffer::overflowWeights
 
-// generate a type cast for an actual to formal transfer.  The type of the
-// formal (`tgtTy`) is limited to be an objPtrTy, mlValueTy, intTy, or realTy.
-// We should never need a cast in the latter two cases.
+// generate a type cast for an actual to formal transfer.
 //
 Value *code_buffer::castTy (Type *srcTy, Type *tgtTy, Value *v)
 {
-    if (tgtTy == this->mlValueTy) {
+    if (tgtTy->isPointerTy()) {
 	if (srcTy->isPointerTy()) {
-	    return this->_builder.CreateBitCast(v, this->mlValueTy);
+	    return this->_builder.CreateBitCast(v, tgtTy);
 	} else {
-	    return this->_builder.CreateIntToPtr(v, this->mlValueTy);
+	    return this->_builder.CreateIntToPtr(v, tgtTy);
 	}
     }
-    else if (tgtTy == this->objPtrTy) {
-	return this->_builder.CreateBitCast(v, this->mlValueTy);
+    else if (tgtTy->isIntegerTy() && srcTy->isPointerTy()) {
+	return this->_builder.CreatePtrToInt(v, tgtTy);
     }
     else {
 llvm::dbgs() << "castTy (" << *srcTy << ", " << *tgtTy << ", -)\n";

@@ -12,6 +12,7 @@ structure Dump =
     val dump = ASDLFilePickle.toFile CFGFilePickle.write_comp_unit
 
     fun dumpAll () = List.app dump [
+	    ("ex0.pkl", Ex0.cu),
 	    ("ex1.pkl", Ex1.cu),
 	    ("ex2.pkl", Ex2.cu),
 	    ("ex3.pkl", Ex3.cu),
