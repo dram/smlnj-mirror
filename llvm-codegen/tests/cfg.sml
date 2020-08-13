@@ -131,11 +131,11 @@ structure CFG = struct
       | INTERNAL
     type probability = int
     datatype ty
-      = NUMt of {sz : int}
-      | FLTt of {sz : int}
+      = LABt
       | PTRt
-      | FUNt
-      | CNTt
+      | TAGt
+      | NUMt of {sz : int}
+      | FLTt of {sz : int}
     type param = {name : LambdaVar.lvar, ty : ty}
     datatype exp
       = VAR of {name : LambdaVar.lvar}

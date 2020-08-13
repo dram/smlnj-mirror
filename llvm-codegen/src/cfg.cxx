@@ -331,6 +331,12 @@ namespace CFG {
     {
         _tag_t tag = static_cast<_tag_t>(asdl::read_tag8(is));
         switch (tag) {
+          case _con_LABt:
+            return new LABt;
+          case _con_PTRt:
+            return new PTRt;
+          case _con_TAGt:
+            return new TAGt;
           case _con_NUMt:
             {
                 auto fsz = asdl::read_int(is);
@@ -341,20 +347,14 @@ namespace CFG {
                 auto fsz = asdl::read_int(is);
                 return new FLTt(fsz);
             }
-          case _con_PTRt:
-            return new PTRt;
-          case _con_FUNt:
-            return new FUNt;
-          case _con_CNTt:
-            return new CNTt;
         }
     }
     ty::~ty () { }
+    LABt::~LABt () { }
+    PTRt::~PTRt () { }
+    TAGt::~TAGt () { }
     NUMt::~NUMt () { }
     FLTt::~FLTt () { }
-    PTRt::~PTRt () { }
-    FUNt::~FUNt () { }
-    CNTt::~CNTt () { }
     // ty_seq pickler suppressed
     std::vector<ty *> read_ty_seq (asdl::instream & is)
     {

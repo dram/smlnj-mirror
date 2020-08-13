@@ -17,6 +17,24 @@ namespace CFG {
 
   /***** code generation for the `ty` type *****/
 
+    Type *LABt::codegen (code_buffer * buf)
+    {
+	return buf->mlValueTy;
+
+    } // LABt::codegen
+
+    Type *PTRt::codegen (code_buffer * buf)
+    {
+	return buf->mlValueTy;
+
+    } // PTRt::codegen
+
+    Type *TAGt::codegen (code_buffer * buf)
+    {
+	return buf->intTy;
+
+    } // TAGt::codegen
+
     Type *NUMt::codegen (code_buffer * buf)
     {
 	return buf->iType (this->_v_sz);
@@ -28,24 +46,6 @@ namespace CFG {
 	return buf->fType (this->_v_sz);
 
     } // FLTt::codegen
-
-    Type *PTRt::codegen (code_buffer * buf)
-    {
-	return buf->mlValueTy;
-
-    } // PTRt::codegen
-
-    Type *FUNt::codegen (code_buffer * buf)
-    {
-	return buf->mlValueTy;
-
-    } // FUNt::codegen
-
-    Type *CNTt::codegen (code_buffer * buf)
-    {
-	return buf->mlValueTy;
-
-    } // CNTt::codegen
 
   // code generation for a vector of types
     static std::vector<Type *> genTypes (code_buffer * buf, std::vector<ty *> const &tys)

@@ -584,21 +584,21 @@ structure CFGFilePickle : CFGPICKLE
     fun write_probability (outS, obj) = ASDLFilePickle.writeInt (outS, obj)
     fun read_probability inS = ASDLFilePickle.readInt inS
     fun write_ty (outS, obj) = (case obj
-           of CFG.NUMt{sz} => (
-              ASDLFilePickle.writeTag8 (outS, 0w1);
+           of CFG.LABt => ASDLFilePickle.writeTag8 (outS, 0w1)
+            | CFG.PTRt => ASDLFilePickle.writeTag8 (outS, 0w2)
+            | CFG.TAGt => ASDLFilePickle.writeTag8 (outS, 0w3)
+            | CFG.NUMt{sz} => (
+              ASDLFilePickle.writeTag8 (outS, 0w4);
               ASDLFilePickle.writeInt (outS, sz))
             | CFG.FLTt{sz} => (
-              ASDLFilePickle.writeTag8 (outS, 0w2);
-              ASDLFilePickle.writeInt (outS, sz))
-            | CFG.PTRt => ASDLFilePickle.writeTag8 (outS, 0w3)
-            | CFG.FUNt => ASDLFilePickle.writeTag8 (outS, 0w4)
-            | CFG.CNTt => ASDLFilePickle.writeTag8 (outS, 0w5))
+              ASDLFilePickle.writeTag8 (outS, 0w5);
+              ASDLFilePickle.writeInt (outS, sz)))
     fun read_ty inS = (case ASDLFilePickle.readTag8 inS
-           of 0w1 => let val sz = ASDLFilePickle.readInt inS in CFG.NUMt {sz = sz} end
-            | 0w2 => let val sz = ASDLFilePickle.readInt inS in CFG.FLTt {sz = sz} end
-            | 0w3 => CFG.PTRt
-            | 0w4 => CFG.FUNt
-            | 0w5 => CFG.CNTt
+           of 0w1 => CFG.LABt
+            | 0w2 => CFG.PTRt
+            | 0w3 => CFG.TAGt
+            | 0w4 => let val sz = ASDLFilePickle.readInt inS in CFG.NUMt {sz = sz} end
+            | 0w5 => let val sz = ASDLFilePickle.readInt inS in CFG.FLTt {sz = sz} end
             | _ => raise ASDL.DecodeError)
     fun write_param (outS, obj) = let
           val {name, ty} = obj

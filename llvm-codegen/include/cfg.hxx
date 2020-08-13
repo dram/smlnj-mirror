@@ -71,7 +71,7 @@ namespace CTypes {
         { }
         ~C_unsigned ();
         // pickler method suppressed
-        c_int get_0 () const
+        c_int get_0 ()
         {
             return this->_v0;
         }
@@ -89,7 +89,7 @@ namespace CTypes {
         { }
         ~C_signed ();
         // pickler method suppressed
-        c_int get_0 () const
+        c_int get_0 ()
         {
             return this->_v0;
         }
@@ -114,7 +114,7 @@ namespace CTypes {
         { }
         ~C_ARRAY ();
         // pickler method suppressed
-        c_type * get_0 () const
+        c_type * get_0 ()
         {
             return this->_v0;
         }
@@ -122,7 +122,7 @@ namespace CTypes {
         {
             this->_v0 = v;
         }
-        int get_1 () const
+        int get_1 ()
         {
             return this->_v1;
         }
@@ -141,7 +141,7 @@ namespace CTypes {
         { }
         ~C_STRUCT ();
         // pickler method suppressed
-        std::vector<c_type *> get_0 () const
+        std::vector<c_type *> get_0 ()
         {
             return this->_v0;
         }
@@ -159,7 +159,7 @@ namespace CTypes {
         { }
         ~C_UNION ();
         // pickler method suppressed
-        std::vector<c_type *> get_0 () const
+        std::vector<c_type *> get_0 ()
         {
             return this->_v0;
         }
@@ -184,7 +184,7 @@ namespace CTypes {
         ~c_proto ();
         // pickler method suppressed
         static c_proto * read (asdl::instream & is);
-        calling_convention get_conv () const
+        calling_convention get_conv ()
         {
             return this->_v_conv;
         }
@@ -192,7 +192,7 @@ namespace CTypes {
         {
             this->_v_conv = v;
         }
-        c_type * get_retTy () const
+        c_type * get_retTy ()
         {
             return this->_v_retTy;
         }
@@ -200,7 +200,7 @@ namespace CTypes {
         {
             this->_v_retTy = v;
         }
-        std::vector<c_type *> get_paramTys () const
+        std::vector<c_type *> get_paramTys ()
         {
             return this->_v_paramTys;
         }
@@ -254,7 +254,7 @@ namespace CFG_Prim {
         { }
         ~RECORD ();
         // pickler method suppressed
-        asdl::integer get_desc () const
+        asdl::integer get_desc ()
         {
             return this->_v_desc;
         }
@@ -262,7 +262,7 @@ namespace CFG_Prim {
         {
             this->_v_desc = v;
         }
-        bool get_mut () const
+        bool get_mut ()
         {
             return this->_v_mut;
         }
@@ -284,7 +284,7 @@ namespace CFG_Prim {
         { }
         ~RAW_RECORD ();
         // pickler method suppressed
-        asdl::integer get_desc () const
+        asdl::integer get_desc ()
         {
             return this->_v_desc;
         }
@@ -292,7 +292,7 @@ namespace CFG_Prim {
         {
             this->_v_desc = v;
         }
-        numkind get_kind () const
+        numkind get_kind ()
         {
             return this->_v_kind;
         }
@@ -300,7 +300,7 @@ namespace CFG_Prim {
         {
             this->_v_kind = v;
         }
-        int get_sz () const
+        int get_sz ()
         {
             return this->_v_sz;
         }
@@ -323,7 +323,7 @@ namespace CFG_Prim {
         { }
         ~RAW_ALLOC ();
         // pickler method suppressed
-        asdl::option<asdl::integer> get_desc () const
+        asdl::option<asdl::integer> get_desc ()
         {
             return this->_v_desc;
         }
@@ -331,7 +331,7 @@ namespace CFG_Prim {
         {
             this->_v_desc = v;
         }
-        int get_align () const
+        int get_align ()
         {
             return this->_v_align;
         }
@@ -339,7 +339,7 @@ namespace CFG_Prim {
         {
             this->_v_align = v;
         }
-        int get_len () const
+        int get_len ()
         {
             return this->_v_len;
         }
@@ -378,7 +378,7 @@ namespace CFG_Prim {
         { }
         ~ARITH ();
         // pickler method suppressed
-        arithop get_oper () const
+        arithop get_oper ()
         {
             return this->_v_oper;
         }
@@ -386,7 +386,7 @@ namespace CFG_Prim {
         {
             this->_v_oper = v;
         }
-        int get_sz () const
+        int get_sz ()
         {
             return this->_v_sz;
         }
@@ -408,7 +408,7 @@ namespace CFG_Prim {
         { }
         ~REAL_TO_INT ();
         // pickler method suppressed
-        rounding_mode get_mode () const
+        rounding_mode get_mode ()
         {
             return this->_v_mode;
         }
@@ -416,7 +416,7 @@ namespace CFG_Prim {
         {
             this->_v_mode = v;
         }
-        int get_from () const
+        int get_from ()
         {
             return this->_v_from;
         }
@@ -424,7 +424,7 @@ namespace CFG_Prim {
         {
             this->_v_from = v;
         }
-        int get_to () const
+        int get_to ()
         {
             return this->_v_to;
         }
@@ -492,7 +492,7 @@ namespace CFG_Prim {
         { }
         ~PURE_ARITH ();
         // pickler method suppressed
-        pureop get_oper () const
+        pureop get_oper ()
         {
             return this->_v_oper;
         }
@@ -500,7 +500,7 @@ namespace CFG_Prim {
         {
             this->_v_oper = v;
         }
-        int get_sz () const
+        int get_sz ()
         {
             return this->_v_sz;
         }
@@ -521,7 +521,7 @@ namespace CFG_Prim {
         { }
         ~EXTEND ();
         // pickler method suppressed
-        bool get_signed () const
+        bool get_signed ()
         {
             return this->_v_signed;
         }
@@ -529,7 +529,7 @@ namespace CFG_Prim {
         {
             this->_v_signed = v;
         }
-        int get_from () const
+        int get_from ()
         {
             return this->_v_from;
         }
@@ -537,7 +537,7 @@ namespace CFG_Prim {
         {
             this->_v_from = v;
         }
-        int get_to () const
+        int get_to ()
         {
             return this->_v_to;
         }
@@ -559,7 +559,7 @@ namespace CFG_Prim {
         { }
         ~TRUNC ();
         // pickler method suppressed
-        int get_from () const
+        int get_from ()
         {
             return this->_v_from;
         }
@@ -567,7 +567,7 @@ namespace CFG_Prim {
         {
             this->_v_from = v;
         }
-        int get_to () const
+        int get_to ()
         {
             return this->_v_to;
         }
@@ -588,7 +588,7 @@ namespace CFG_Prim {
         { }
         ~INT_TO_REAL ();
         // pickler method suppressed
-        int get_from () const
+        int get_from ()
         {
             return this->_v_from;
         }
@@ -596,7 +596,7 @@ namespace CFG_Prim {
         {
             this->_v_from = v;
         }
-        int get_to () const
+        int get_to ()
         {
             return this->_v_to;
         }
@@ -626,7 +626,7 @@ namespace CFG_Prim {
         { }
         ~PURE_RAW_SUBSCRIPT ();
         // pickler method suppressed
-        numkind get_kind () const
+        numkind get_kind ()
         {
             return this->_v_kind;
         }
@@ -634,7 +634,7 @@ namespace CFG_Prim {
         {
             this->_v_kind = v;
         }
-        int get_sz () const
+        int get_sz ()
         {
             return this->_v_sz;
         }
@@ -694,7 +694,7 @@ namespace CFG_Prim {
         { }
         ~RAW_SUBSCRIPT ();
         // pickler method suppressed
-        numkind get_kind () const
+        numkind get_kind ()
         {
             return this->_v_kind;
         }
@@ -702,7 +702,7 @@ namespace CFG_Prim {
         {
             this->_v_kind = v;
         }
-        int get_sz () const
+        int get_sz ()
         {
             return this->_v_sz;
         }
@@ -723,7 +723,7 @@ namespace CFG_Prim {
         { }
         ~RAW_LOAD ();
         // pickler method suppressed
-        numkind get_kind () const
+        numkind get_kind ()
         {
             return this->_v_kind;
         }
@@ -731,7 +731,7 @@ namespace CFG_Prim {
         {
             this->_v_kind = v;
         }
-        int get_sz () const
+        int get_sz ()
         {
             return this->_v_sz;
         }
@@ -829,7 +829,7 @@ namespace CFG_Prim {
         { }
         ~RAW_UPDATE ();
         // pickler method suppressed
-        numkind get_kind () const
+        numkind get_kind ()
         {
             return this->_v_kind;
         }
@@ -837,7 +837,7 @@ namespace CFG_Prim {
         {
             this->_v_kind = v;
         }
-        int get_sz () const
+        int get_sz ()
         {
             return this->_v_sz;
         }
@@ -858,7 +858,7 @@ namespace CFG_Prim {
         { }
         ~RAW_STORE ();
         // pickler method suppressed
-        numkind get_kind () const
+        numkind get_kind ()
         {
             return this->_v_kind;
         }
@@ -866,7 +866,7 @@ namespace CFG_Prim {
         {
             this->_v_kind = v;
         }
-        int get_sz () const
+        int get_sz ()
         {
             return this->_v_sz;
         }
@@ -940,7 +940,7 @@ namespace CFG_Prim {
         { }
         ~CMP ();
         // pickler method suppressed
-        cmpop get_oper () const
+        cmpop get_oper ()
         {
             return this->_v_oper;
         }
@@ -948,7 +948,7 @@ namespace CFG_Prim {
         {
             this->_v_oper = v;
         }
-        bool get_signed () const
+        bool get_signed ()
         {
             return this->_v_signed;
         }
@@ -956,7 +956,7 @@ namespace CFG_Prim {
         {
             this->_v_signed = v;
         }
-        int get_sz () const
+        int get_sz ()
         {
             return this->_v_sz;
         }
@@ -978,7 +978,7 @@ namespace CFG_Prim {
         { }
         ~FCMP ();
         // pickler method suppressed
-        fcmpop get_oper () const
+        fcmpop get_oper ()
         {
             return this->_v_oper;
         }
@@ -986,7 +986,7 @@ namespace CFG_Prim {
         {
             this->_v_oper = v;
         }
-        int get_sz () const
+        int get_sz ()
         {
             return this->_v_sz;
         }
@@ -1007,7 +1007,7 @@ namespace CFG_Prim {
         { }
         ~FSGN ();
         // pickler method suppressed
-        int get_0 () const
+        int get_0 ()
         {
             return this->_v0;
         }
@@ -1059,11 +1059,38 @@ namespace CFG {
 	bool isFLTt () { return this->_tag == _con_FLTt; }
 
       protected:
-        enum _tag_t {_con_NUMt = 1, _con_FLTt, _con_PTRt, _con_FUNt, _con_CNTt};
+        enum _tag_t {_con_LABt = 1, _con_PTRt, _con_TAGt, _con_NUMt, _con_FLTt};
         ty (_tag_t tag)
             : _tag(tag)
         { }
         _tag_t _tag;
+    };
+    struct LABt : public ty {
+        LABt ()
+            : ty(ty::_con_LABt)
+        { }
+        ~LABt ();
+        // pickler method suppressed
+        Type *codegen (code_buffer *buf);
+
+    };
+    struct PTRt : public ty {
+        PTRt ()
+            : ty(ty::_con_PTRt)
+        { }
+        ~PTRt ();
+        // pickler method suppressed
+        Type *codegen (code_buffer *buf);
+
+    };
+    struct TAGt : public ty {
+        TAGt ()
+            : ty(ty::_con_TAGt)
+        { }
+        ~TAGt ();
+        // pickler method suppressed
+        Type *codegen (code_buffer *buf);
+
     };
     class NUMt : public ty {
       public:
@@ -1072,7 +1099,7 @@ namespace CFG {
         { }
         ~NUMt ();
         // pickler method suppressed
-        int get_sz () const
+        int get_sz ()
         {
             return this->_v_sz;
         }
@@ -1092,7 +1119,7 @@ namespace CFG {
         { }
         ~FLTt ();
         // pickler method suppressed
-        int get_sz () const
+        int get_sz ()
         {
             return this->_v_sz;
         }
@@ -1104,33 +1131,6 @@ namespace CFG {
 
       private:
         int _v_sz;
-    };
-    struct PTRt : public ty {
-        PTRt ()
-            : ty(ty::_con_PTRt)
-        { }
-        ~PTRt ();
-        // pickler method suppressed
-        Type *codegen (code_buffer *buf);
-
-    };
-    struct FUNt : public ty {
-        FUNt ()
-            : ty(ty::_con_FUNt)
-        { }
-        ~FUNt ();
-        // pickler method suppressed
-        Type *codegen (code_buffer *buf);
-
-    };
-    struct CNTt : public ty {
-        CNTt ()
-            : ty(ty::_con_CNTt)
-        { }
-        ~CNTt ();
-        // pickler method suppressed
-        Type *codegen (code_buffer *buf);
-
     };
     // ty_seq pickler suppressed
     std::vector<ty *> read_ty_seq (asdl::instream & is);
@@ -1163,7 +1163,7 @@ namespace CFG {
         { }
         ~VAR ();
         // pickler method suppressed
-        LambdaVar::lvar get_name () const
+        LambdaVar::lvar get_name ()
         {
             return this->_v_name;
         }
@@ -1183,7 +1183,7 @@ namespace CFG {
         { }
         ~LABEL ();
         // pickler method suppressed
-        LambdaVar::lvar get_name () const
+        LambdaVar::lvar get_name ()
         {
             return this->_v_name;
         }
@@ -1203,7 +1203,7 @@ namespace CFG {
         { }
         ~NUM ();
         // pickler method suppressed
-        asdl::integer get_iv () const
+        asdl::integer get_iv ()
         {
             return this->_v_iv;
         }
@@ -1211,7 +1211,7 @@ namespace CFG {
         {
             this->_v_iv = v;
         }
-        int get_sz () const
+        int get_sz ()
         {
             return this->_v_sz;
         }
@@ -1232,7 +1232,7 @@ namespace CFG {
         { }
         ~LOOKER ();
         // pickler method suppressed
-        CFG_Prim::looker * get_oper () const
+        CFG_Prim::looker * get_oper ()
         {
             return this->_v_oper;
         }
@@ -1240,7 +1240,7 @@ namespace CFG {
         {
             this->_v_oper = v;
         }
-        std::vector<exp *> get_args () const
+        std::vector<exp *> get_args ()
         {
             return this->_v_args;
         }
@@ -1261,7 +1261,7 @@ namespace CFG {
         { }
         ~PURE ();
         // pickler method suppressed
-        CFG_Prim::pure * get_oper () const
+        CFG_Prim::pure * get_oper ()
         {
             return this->_v_oper;
         }
@@ -1269,7 +1269,7 @@ namespace CFG {
         {
             this->_v_oper = v;
         }
-        std::vector<exp *> get_args () const
+        std::vector<exp *> get_args ()
         {
             return this->_v_args;
         }
@@ -1290,7 +1290,7 @@ namespace CFG {
         { }
         ~SELECT ();
         // pickler method suppressed
-        int get_idx () const
+        int get_idx ()
         {
             return this->_v_idx;
         }
@@ -1298,7 +1298,7 @@ namespace CFG {
         {
             this->_v_idx = v;
         }
-        exp * get_arg () const
+        exp * get_arg ()
         {
             return this->_v_arg;
         }
@@ -1319,7 +1319,7 @@ namespace CFG {
         { }
         ~OFFSET ();
         // pickler method suppressed
-        int get_idx () const
+        int get_idx ()
         {
             return this->_v_idx;
         }
@@ -1327,7 +1327,7 @@ namespace CFG {
         {
             this->_v_idx = v;
         }
-        exp * get_arg () const
+        exp * get_arg ()
         {
             return this->_v_arg;
         }
@@ -1351,7 +1351,7 @@ namespace CFG {
         ~param ();
         // pickler method suppressed
         static param * read (asdl::instream & is);
-        LambdaVar::lvar get_name () const
+        LambdaVar::lvar get_name ()
         {
             return this->_v_name;
         }
@@ -1359,7 +1359,7 @@ namespace CFG {
         {
             this->_v_name = v;
         }
-        ty * get_ty () const
+        ty * get_ty ()
         {
             return this->_v_ty;
         }
@@ -1413,7 +1413,7 @@ namespace CFG {
         { }
         ~LET ();
         // pickler method suppressed
-        exp * get_0 () const
+        exp * get_0 ()
         {
             return this->_v0;
         }
@@ -1421,7 +1421,7 @@ namespace CFG {
         {
             this->_v0 = v;
         }
-        param * get_1 () const
+        param * get_1 ()
         {
             return this->_v1;
         }
@@ -1429,7 +1429,7 @@ namespace CFG {
         {
             this->_v1 = v;
         }
-        stm * get_2 () const
+        stm * get_2 ()
         {
             return this->_v2;
         }
@@ -1452,7 +1452,7 @@ namespace CFG {
         { }
         ~ALLOC ();
         // pickler method suppressed
-        CFG_Prim::alloc * get_0 () const
+        CFG_Prim::alloc * get_0 ()
         {
             return this->_v0;
         }
@@ -1460,7 +1460,7 @@ namespace CFG {
         {
             this->_v0 = v;
         }
-        std::vector<exp *> get_1 () const
+        std::vector<exp *> get_1 ()
         {
             return this->_v1;
         }
@@ -1468,7 +1468,7 @@ namespace CFG {
         {
             this->_v1 = v;
         }
-        LambdaVar::lvar get_2 () const
+        LambdaVar::lvar get_2 ()
         {
             return this->_v2;
         }
@@ -1476,7 +1476,7 @@ namespace CFG {
         {
             this->_v2 = v;
         }
-        stm * get_3 () const
+        stm * get_3 ()
         {
             return this->_v3;
         }
@@ -1500,7 +1500,7 @@ namespace CFG {
         { }
         ~APPLY ();
         // pickler method suppressed
-        exp * get_0 () const
+        exp * get_0 ()
         {
             return this->_v0;
         }
@@ -1508,7 +1508,7 @@ namespace CFG {
         {
             this->_v0 = v;
         }
-        std::vector<exp *> get_1 () const
+        std::vector<exp *> get_1 ()
         {
             return this->_v1;
         }
@@ -1516,7 +1516,7 @@ namespace CFG {
         {
             this->_v1 = v;
         }
-        std::vector<ty *> get_2 () const
+        std::vector<ty *> get_2 ()
         {
             return this->_v2;
         }
@@ -1539,7 +1539,7 @@ namespace CFG {
         { }
         ~THROW ();
         // pickler method suppressed
-        exp * get_0 () const
+        exp * get_0 ()
         {
             return this->_v0;
         }
@@ -1547,7 +1547,7 @@ namespace CFG {
         {
             this->_v0 = v;
         }
-        std::vector<exp *> get_1 () const
+        std::vector<exp *> get_1 ()
         {
             return this->_v1;
         }
@@ -1555,7 +1555,7 @@ namespace CFG {
         {
             this->_v1 = v;
         }
-        std::vector<ty *> get_2 () const
+        std::vector<ty *> get_2 ()
         {
             return this->_v2;
         }
@@ -1578,7 +1578,7 @@ namespace CFG {
         { }
         ~GOTO ();
         // pickler method suppressed
-        LambdaVar::lvar get_0 () const
+        LambdaVar::lvar get_0 ()
         {
             return this->_v0;
         }
@@ -1586,7 +1586,7 @@ namespace CFG {
         {
             this->_v0 = v;
         }
-        std::vector<exp *> get_1 () const
+        std::vector<exp *> get_1 ()
         {
             return this->_v1;
         }
@@ -1608,7 +1608,7 @@ namespace CFG {
         { }
         ~SWITCH ();
         // pickler method suppressed
-        exp * get_0 () const
+        exp * get_0 ()
         {
             return this->_v0;
         }
@@ -1616,7 +1616,7 @@ namespace CFG {
         {
             this->_v0 = v;
         }
-        std::vector<stm *> get_1 () const
+        std::vector<stm *> get_1 ()
         {
             return this->_v1;
         }
@@ -1638,7 +1638,7 @@ namespace CFG {
         { }
         ~BRANCH ();
         // pickler method suppressed
-        CFG_Prim::branch * get_0 () const
+        CFG_Prim::branch * get_0 ()
         {
             return this->_v0;
         }
@@ -1646,7 +1646,7 @@ namespace CFG {
         {
             this->_v0 = v;
         }
-        std::vector<exp *> get_1 () const
+        std::vector<exp *> get_1 ()
         {
             return this->_v1;
         }
@@ -1654,7 +1654,7 @@ namespace CFG {
         {
             this->_v1 = v;
         }
-        probability get_2 () const
+        probability get_2 ()
         {
             return this->_v2;
         }
@@ -1662,7 +1662,7 @@ namespace CFG {
         {
             this->_v2 = v;
         }
-        stm * get_3 () const
+        stm * get_3 ()
         {
             return this->_v3;
         }
@@ -1670,7 +1670,7 @@ namespace CFG {
         {
             this->_v3 = v;
         }
-        stm * get_4 () const
+        stm * get_4 ()
         {
             return this->_v4;
         }
@@ -1695,7 +1695,7 @@ namespace CFG {
         { }
         ~ARITH ();
         // pickler method suppressed
-        CFG_Prim::arith * get_0 () const
+        CFG_Prim::arith * get_0 ()
         {
             return this->_v0;
         }
@@ -1703,7 +1703,7 @@ namespace CFG {
         {
             this->_v0 = v;
         }
-        std::vector<exp *> get_1 () const
+        std::vector<exp *> get_1 ()
         {
             return this->_v1;
         }
@@ -1711,7 +1711,7 @@ namespace CFG {
         {
             this->_v1 = v;
         }
-        param * get_2 () const
+        param * get_2 ()
         {
             return this->_v2;
         }
@@ -1719,7 +1719,7 @@ namespace CFG {
         {
             this->_v2 = v;
         }
-        stm * get_3 () const
+        stm * get_3 ()
         {
             return this->_v3;
         }
@@ -1743,7 +1743,7 @@ namespace CFG {
         { }
         ~SETTER ();
         // pickler method suppressed
-        CFG_Prim::setter * get_0 () const
+        CFG_Prim::setter * get_0 ()
         {
             return this->_v0;
         }
@@ -1751,7 +1751,7 @@ namespace CFG {
         {
             this->_v0 = v;
         }
-        std::vector<exp *> get_1 () const
+        std::vector<exp *> get_1 ()
         {
             return this->_v1;
         }
@@ -1759,7 +1759,7 @@ namespace CFG {
         {
             this->_v1 = v;
         }
-        stm * get_2 () const
+        stm * get_2 ()
         {
             return this->_v2;
         }
@@ -1784,7 +1784,7 @@ namespace CFG {
         { }
         ~RCC ();
         // pickler method suppressed
-        bool get_reentrant () const
+        bool get_reentrant ()
         {
             return this->_v_reentrant;
         }
@@ -1792,7 +1792,7 @@ namespace CFG {
         {
             this->_v_reentrant = v;
         }
-        std::string get_linkage () const
+        std::string get_linkage ()
         {
             return this->_v_linkage;
         }
@@ -1800,7 +1800,7 @@ namespace CFG {
         {
             this->_v_linkage = v;
         }
-        CTypes::c_proto * get_proto () const
+        CTypes::c_proto * get_proto ()
         {
             return this->_v_proto;
         }
@@ -1808,7 +1808,7 @@ namespace CFG {
         {
             this->_v_proto = v;
         }
-        std::vector<exp *> get_args () const
+        std::vector<exp *> get_args ()
         {
             return this->_v_args;
         }
@@ -1816,7 +1816,7 @@ namespace CFG {
         {
             this->_v_args = v;
         }
-        std::vector<param *> get_results () const
+        std::vector<param *> get_results ()
         {
             return this->_v_results;
         }
@@ -1824,7 +1824,7 @@ namespace CFG {
         {
             this->_v_results = v;
         }
-        std::vector<param *> get_live () const
+        std::vector<param *> get_live ()
         {
             return this->_v_live;
         }
@@ -1832,7 +1832,7 @@ namespace CFG {
         {
             this->_v_live = v;
         }
-        stm * get_k () const
+        stm * get_k ()
         {
             return this->_v_k;
         }
@@ -1866,7 +1866,7 @@ namespace CFG {
         ~frag ();
         // pickler method suppressed
         static frag * read (asdl::instream & is);
-        frag_kind get_kind () const
+        frag_kind get_kind ()
         {
             return this->_v_kind;
         }
@@ -1874,7 +1874,7 @@ namespace CFG {
         {
             this->_v_kind = v;
         }
-        LambdaVar::lvar get_lab () const
+        LambdaVar::lvar get_lab ()
         {
             return this->_v_lab;
         }
@@ -1882,7 +1882,7 @@ namespace CFG {
         {
             this->_v_lab = v;
         }
-        std::vector<param *> get_params () const
+        std::vector<param *> get_params ()
         {
             return this->_v_params;
         }
@@ -1890,7 +1890,7 @@ namespace CFG {
         {
             this->_v_params = v;
         }
-        asdl::option<unsigned int> get_allocChk () const
+        asdl::option<unsigned int> get_allocChk ()
         {
             return this->_v_allocChk;
         }
@@ -1898,7 +1898,7 @@ namespace CFG {
         {
             this->_v_allocChk = v;
         }
-        stm * get_body () const
+        stm * get_body ()
         {
             return this->_v_body;
         }
@@ -1935,7 +1935,7 @@ namespace CFG {
         ~attrs ();
         // pickler method suppressed
         static attrs * read (asdl::instream & is);
-        int get_alignHP () const
+        int get_alignHP ()
         {
             return this->_v_alignHP;
         }
@@ -1943,7 +1943,7 @@ namespace CFG {
         {
             this->_v_alignHP = v;
         }
-        bool get_needsBasePtr () const
+        bool get_needsBasePtr ()
         {
             return this->_v_needsBasePtr;
         }
@@ -1951,7 +1951,7 @@ namespace CFG {
         {
             this->_v_needsBasePtr = v;
         }
-        bool get_hasTrapArith () const
+        bool get_hasTrapArith ()
         {
             return this->_v_hasTrapArith;
         }
@@ -1959,7 +1959,7 @@ namespace CFG {
         {
             this->_v_hasTrapArith = v;
         }
-        bool get_hasRCC () const
+        bool get_hasRCC ()
         {
             return this->_v_hasRCC;
         }
@@ -1981,7 +1981,7 @@ namespace CFG {
         ~cluster ();
         // pickler method suppressed
         static cluster * read (asdl::instream & is);
-        attrs * get_attrs () const
+        attrs * get_attrs ()
         {
             return this->_v_attrs;
         }
@@ -1989,7 +1989,7 @@ namespace CFG {
         {
             this->_v_attrs = v;
         }
-        frag * get_entry () const
+        frag * get_entry ()
         {
             return this->_v_entry;
         }
@@ -1997,7 +1997,7 @@ namespace CFG {
         {
             this->_v_entry = v;
         }
-        std::vector<frag *> get_frags () const
+        std::vector<frag *> get_frags ()
         {
             return this->_v_frags;
         }
@@ -2026,7 +2026,7 @@ namespace CFG {
         ~comp_unit ();
         // pickler method suppressed
         static comp_unit * read (asdl::instream & is);
-        std::string get_srcFile () const
+        std::string get_srcFile ()
         {
             return this->_v_srcFile;
         }
@@ -2034,7 +2034,7 @@ namespace CFG {
         {
             this->_v_srcFile = v;
         }
-        cluster * get_entry () const
+        cluster * get_entry ()
         {
             return this->_v_entry;
         }
@@ -2042,7 +2042,7 @@ namespace CFG {
         {
             this->_v_entry = v;
         }
-        std::vector<cluster *> get_fns () const
+        std::vector<cluster *> get_fns ()
         {
             return this->_v_fns;
         }
