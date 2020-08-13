@@ -573,11 +573,13 @@ structure CFGMemoryPickle : CFGPICKLE
     fun write_frag_kind (outS, obj) = (case obj
            of CFG.STD_FUN => ASDLMemoryPickle.writeTag8 (outS, 0w1)
             | CFG.STD_CONT => ASDLMemoryPickle.writeTag8 (outS, 0w2)
-            | CFG.INTERNAL => ASDLMemoryPickle.writeTag8 (outS, 0w3))
+            | CFG.KNOWN_FUN => ASDLMemoryPickle.writeTag8 (outS, 0w3)
+            | CFG.INTERNAL => ASDLMemoryPickle.writeTag8 (outS, 0w4))
     fun read_frag_kind inS = (case ASDLMemoryPickle.readTag8 inS
            of 0w1 => CFG.STD_FUN
             | 0w2 => CFG.STD_CONT
-            | 0w3 => CFG.INTERNAL
+            | 0w3 => CFG.KNOWN_FUN
+            | 0w4 => CFG.INTERNAL
             | _ => raise ASDL.DecodeError)
     fun write_probability (outS, obj) = ASDLMemoryPickle.writeInt (outS, obj)
     fun read_probability inS = ASDLMemoryPickle.readInt inS

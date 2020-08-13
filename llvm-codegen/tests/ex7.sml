@@ -104,26 +104,93 @@ structure Ex7 =
 	    }
       val unkProb = 0
 
-      val fn130 = C.Cluster{
+      val fn127 = C.Cluster{
 	      attrs = attrs true,
 	      entry = C.Frag{
 		  kind = C.STD_FUN,
-		  lab = v 130,
-		  params = mkParams [ [
-		      (v 131, C.PTRt), (v 31, C.PTRt), (v 111, C.CNTt), (v 112, C.PTRt),
-		      (v 113, C.PTRt), (v 114, C.PTRt), (v 53, C.PTRt)
+		  lab = v 127,
+		  params = mkParams [
+		      (v 128, C.PTRt), (v 62, C.PTRt), (v 106, C.CNTt),
+		      (v 107, C.PTRt), (v 108, C.PTRt), (v 109, C.PTRt),
+		      (v 72, C.PTRt)
 		    ],
 		  allocChk = SOME 0w0,
-		  body = record ([LAB 115], v 156,
-		    record ([V 156], v 157,
-		      C.THROW (V 111,
-			[V 111, V 112, V 113, V 114, V 157],
+		  body = record ([LAB 110], v 160,
+		    record ([V 160], v 161,
+		      C.THROW (V 106,
+			[V 106, V 107, V 108, V 109, V 161],
 			[C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
 		},
 	      frags = []
 	    }
+      val fn110 = C.Cluster{
+	      attrs = attrs false,
+	      entry = C.Frag{
+		  kind = C.STD_FUN,
+		  lab = v 110,
+		  params = mkParams [
+		      (v 135, C.PTRt), (v 134, C.PTRt), (v 133, C.CNTt),
+		      (v 132, C.PTRt), (v 131, C.PTRt), (v 130, C.PTRt),
+		      (v 129, C.PTRt)
+		    ],
+		  allocChk = SOME 0w0,
+		  body =
+		},
+	      frags = []
+	    }
+      val fr117 = C.Frag{
+	      kind = C.INTERNAL,
+	      lab = v 117,
+	      params = mkParams [
+		],
+	      allocChk = SOME 0w0,
+	      body =
+	    }
+      val fn1170 = C.Cluster{
+	      attrs = attrs true,
+	      entry = C.Frag{
+		  kind = C.KNOWN_FUN,
+		  lab = v 1170,
+		  params = mkParams [
+		    ],
+		  allocChk = SOME 0w0,
+		  body =
+		},
+	      frags = [fn117]
+	    }
+      val fn122 = C.Cluster{
+	      attrs = attrs true,
+	      entry = C.Frag{
+		  kind = C.STD_CONT,
+		  lab = v 122,
+		  params = mkParams [
+		     (v 149, C.PTRt), (v 148, C.PTRt), (v 147, C.PTRt),
+		     (v 146, C.PTRt), (v 145, C.TAGt)
+		    ],
+		  allocChk = SOME 0w0,
+(* NOTE: we add an extra argument (LAB 1170) so that the callee can compute the base ptr *)
+		  body = C.APPLY (LAB 1170,
+		    [LAB 1170, LAB 125, V 148, V 145, V 146, V 147],
+		    [C.FUNt, C.CNTt, C.PTRt, C.NUMt{sz=64}, C.PTRt, C.PTRt])
+		},
+	      frags = []
+	    }
+      val fn125 = C.Cluster{
+	      attrs = attrs false,
+	      entry = C.Frag{
+		  kind = C.STD_CONT,
+		  lab = v 125,
+		  params = mkParams [
+		      (v 154, C.PTRt), (v 153, C.PTRt), (v 152, C.TAGt),
+		      (v 151, C.PTRt), (v 150, C.TAGt)
+		    ],
+		  allocChk = SOME 0w0,
+		  body =
+		},
+	      frags = []
+	    }
     in
-    val cu = {srcFile = "tree-add.sml", entry = fn130, fns = [fn115, fn122]}
+    val cu = {srcFile = "tree-add.sml", entry = fn127, fns = [fn110, fn1170, fn122, fn125]}
     end (* local *)
 
   end

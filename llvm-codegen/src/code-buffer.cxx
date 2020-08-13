@@ -171,6 +171,7 @@ code_buffer::arg_info code_buffer::_getArgInfo (frag_kind kind) const
 
     switch (kind) {
       case frag_kind::STD_FUN:
+      case frag_kind::KNOWN_FUN:
 	info.nUnused = 0;
 	info.basePtr = 0;
 	break;

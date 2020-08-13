@@ -1854,7 +1854,7 @@ namespace CFG {
     };
     // stm_seq pickler suppressed
     std::vector<stm *> read_stm_seq (asdl::instream & is);
-    enum class frag_kind {STD_FUN = 1, STD_CONT, INTERNAL};
+    enum class frag_kind {STD_FUN = 1, STD_CONT, KNOWN_FUN, INTERNAL};
     // pickler suppressed for frag_kind
     frag_kind read_frag_kind (asdl::instream & is);
     class frag {

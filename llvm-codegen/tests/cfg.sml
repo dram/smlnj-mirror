@@ -127,6 +127,7 @@ structure CFG = struct
     datatype frag_kind
       = STD_FUN
       | STD_CONT
+      | KNOWN_FUN
       | INTERNAL
     type probability = int
     datatype ty
