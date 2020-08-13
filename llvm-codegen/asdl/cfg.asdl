@@ -163,11 +163,11 @@ module CFG (
   -- CFG types.
   --
     ty
-      = NUMt (int sz)	-- integers of given size
+      = LABt		-- function and continuation code addresses
+      | PTRt		-- pointer or tagged value
+      | TAGt		-- native-size tagged integer value
+      | NUMt (int sz)	-- integers of given size
       | FLTt (int sz) 	-- float of given size
-      | PTRt		-- pointer
-      | FUNt		-- function
-      | CNTt		-- continuation
 
   -- expressions; note that reals and strings are represented by access into the
   -- literal table, so we do not include them here.
