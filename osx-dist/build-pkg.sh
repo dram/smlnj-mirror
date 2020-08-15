@@ -101,6 +101,14 @@ rm *tgz
 #
 cd $ROOT
 
+# TODO: here is probably where we should use codesign to enable the hardened runtime
+# for the runtime executable.  Something like the following command:
+#
+#    codesign --force --options runtime --sign $SIGN bin/.run/run.amd64-darwin
+#
+# we may also need to add the --entitlements flag to enable things like executing
+# the code that we generate
+
 # create the resources directory and fill it
 #
 if [ -d $RSRC ] ; then
