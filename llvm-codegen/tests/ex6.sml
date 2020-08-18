@@ -118,7 +118,7 @@ structure Ex6 =
 		  kind = C.STD_FUN,
 		  lab = v 321,
 		  params = mkParams [
-		      (v 322, C.PTRt), (v 233, C.PTRt), (v 298, C.CNTt), (v 299, C.PTRt),
+		      (v 322, C.PTRt), (v 233, C.PTRt), (v 298, C.LABt), (v 299, C.PTRt),
 		      (v 300, C.PTRt), (v 301, C.PTRt), (v 263, C.PTRt)
 		    ],
 		  allocChk = SOME 0w0,
@@ -126,7 +126,7 @@ structure Ex6 =
 		    record ([V 190], v 350,
 		      C.THROW (V 298,
 			[V 298, V 299, V 300, V 301, V 350],
-			[C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
+			[C.LABt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
 		},
 	      frags = []
 	    }
@@ -136,7 +136,7 @@ structure Ex6 =
 		  kind = C.STD_FUN,
 		  lab = v 302,
 		  params = mkParams [
-		      (v 329, C.PTRt), (v 328, C.PTRt), (v 327, C.CNTt),
+		      (v 329, C.PTRt), (v 328, C.PTRt), (v 327, C.LABt),
 		      (v 326, C.PTRt), (v 325, C.PTRt), (v 324, C.PTRt),
 		      (v 323, C.PTRt)
 		    ],
@@ -144,31 +144,31 @@ structure Ex6 =
 		  body = record ([LAB 309], v 349,
 		    C.THROW (V 327,
 		      [V 327, V 326, V 325, V 324, V 349],
-		      [C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.PTRt]))
+		      [C.LABt, C.PTRt, C.PTRt, C.PTRt, C.PTRt]))
 		},
 	      frags = []
 	    }
-      fun rule (clos, f, n) = C.LET(select(0, V clos), mkParam(v f, C.FUNt),
+      fun rule (clos, f, n) = C.LET(select(0, V clos), mkParam(v f, C.LABt),
 	    C.APPLY (V f,
-	      [V f, V clos, V 337, V 336, V 335, V 334, V 343, num n],
-	      [C.FUNt, C.PTRt, C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.PTRt, C.NUMt{sz=64}]))
+	      [V f, V clos, V 337, V 336, V 335, V 334, V 343, num(2*n + 1)],
+	      [C.LABt, C.PTRt, C.LABt, C.PTRt, C.PTRt, C.PTRt, C.PTRt, C.TAGt]))
       val fn309 = C.Cluster{
 	      attrs = attrs true,
 	      entry = C.Frag{
 		  kind = C.STD_FUN,
 		  lab = v 309,
 		  params = mkParams [
-		      (v 339, C.PTRt), (v 338, C.PTRt), (v 337, C.CNTt),
+		      (v 339, C.PTRt), (v 338, C.PTRt), (v 337, C.LABt),
 		      (v 336, C.PTRt), (v 335, C.PTRt), (v 334, C.PTRt),
-		      (v 333, C.NUMt{sz=64}), (v 332, C.FUNt), (v 331, C.FUNt),
+		      (v 333, C.NUMt{sz=64}), (v 332, C.LABt), (v 331, C.LABt),
 		      (v 330, C.PTRt)
 		    ],
 		  allocChk = SOME 0w0,
 		  body =
-		    C.LET(select(0, V 330), mkParam(v 340, C.FUNt),
-		    C.LET(select(1, V 330), mkParam(v 341, C.FUNt),
-		    C.LET(select(2, V 330), mkParam(v 342, C.FUNt),
-		    C.LET(select(3, V 330), mkParam(v 343, C.FUNt),
+		    C.LET(select(0, V 330), mkParam(v 340, C.LABt),
+		    C.LET(select(1, V 330), mkParam(v 341, C.LABt),
+		    C.LET(select(2, V 330), mkParam(v 342, C.LABt),
+		    C.LET(select(3, V 330), mkParam(v 343, C.LABt),
 		      C.SWITCH(pureOp(P.RSHIFT, [V 333, num 1]), [
 			  rule (332, 344, 0),
 			  rule (331, 345, 1),

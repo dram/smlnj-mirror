@@ -117,7 +117,7 @@ structure Ex5 =
 		  kind = C.STD_FUN,
 		  lab = v 333,
 		  params = mkParams [
-		      (v 334, C.PTRt), (v 263, C.PTRt), (v 303, C.CNTt), (v 304, C.PTRt),
+		      (v 334, C.PTRt), (v 263, C.PTRt), (v 303, C.LABt), (v 304, C.PTRt),
 		      (v 305, C.PTRt), (v 306, C.PTRt), (v 279, C.PTRt)
 		    ],
 		  allocChk = SOME 0w0,
@@ -125,7 +125,7 @@ structure Ex5 =
 		    record ([V 377], v 378,
 		      C.THROW (V 303,
 			[V 303, V 304, V 305, V 306, V 378],
-			[C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
+			[C.LABt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
 		},
 	      frags = []
 	    }
@@ -135,14 +135,14 @@ structure Ex5 =
 		  kind = C.STD_FUN,
 		  lab = v 307,
 		  params = mkParams [
-		      (v 341, C.PTRt), (v 340, C.PTRt), (v 339, C.CNTt), (v 338, C.PTRt),
+		      (v 341, C.PTRt), (v 340, C.PTRt), (v 339, C.LABt), (v 338, C.PTRt),
 		      (v 337, C.PTRt), (v 336, C.PTRt), (v 335, C.PTRt)
 		    ],
 		  allocChk = SOME 0w0,
 		  body = record ([LAB 314], v 376,
 		    C.THROW (V 339,
 		      [V 339, V 338, V 337, V 336, V 376],
-		      [C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.PTRt]))
+		      [C.LABt, C.PTRt, C.PTRt, C.PTRt, C.PTRt]))
 		},
 	      frags = []
 	    }
@@ -152,19 +152,19 @@ structure Ex5 =
 		  kind = C.STD_FUN,
 		  lab = v 314,
 		  params = mkParams [
-		      (v 350, C.PTRt), (v 349, C.PTRt), (v 348, C.CNTt), (v 347, C.PTRt),
-		      (v 346, C.PTRt), (v 345, C.PTRt), (v 344, C.FUNt), (v 343, C.FUNt),
+		      (v 350, C.PTRt), (v 349, C.PTRt), (v 348, C.LABt), (v 347, C.PTRt),
+		      (v 346, C.PTRt), (v 345, C.PTRt), (v 344, C.LABt), (v 343, C.LABt),
 		      (v 342, C.PTRt)
 		    ],
 		  allocChk = SOME 0w0,
-		  body = C.LET(C.LOOKER{oper=P.GET_HDLR, args=[]}, mkParam(v 293, C.FUNt),
+		  body = C.LET(C.LOOKER{oper=P.GET_HDLR, args=[]}, mkParam(v 293, C.LABt),
 		    record([LAB 321, V 343, V 293, V 348, V 347, V 346, V 345], v 365,
 		    setHdlr(V 365,
 		    record([V 293, V 348, V 347], v 374,
-		    C.LET(select(0, V 344), mkParam(v 375, C.FUNt),
+		    C.LET(select(0, V 344), mkParam(v 375, C.LABt),
 		      C.APPLY(V 375,
 			[V 375, V 344, LAB 329, V 374, V 346, V 345, V 342],
-			[C.FUNt, C.PTRt, C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.PTRt]))))))
+			[C.LABt, C.PTRt, C.LABt, C.PTRt, C.PTRt, C.PTRt, C.PTRt]))))))
 		},
 	      frags = []
 	    }
@@ -174,17 +174,17 @@ structure Ex5 =
 		  kind = C.STD_FUN,
 		  lab = v 321,
 		  params = mkParams [
-		      (v 357, C.PTRt), (v 356, C.PTRt), (v 355, C.CNTt), (v 354, C.PTRt),
+		      (v 357, C.PTRt), (v 356, C.PTRt), (v 355, C.LABt), (v 354, C.PTRt),
 		      (v 353, C.PTRt), (v 352, C.PTRt), (v 351, C.PTRt)
 		    ],
 		  allocChk = SOME 0w0,
 		  body = setHdlr(select(2, V 356),
-		    C.LET(select(0, V 356), mkParam(v 364, C.FUNt),
+		    C.LET(select(0, V 356), mkParam(v 364, C.LABt),
 		      C.APPLY(V 364, [
 			    V 364, select(1, V 356), select(3, V 356), select(4, V 356),
 			    select(5, V 356), select(6, V 356), V 351
 			  ],
-			[C.FUNt, C.FUNt, C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
+			[C.LABt, C.LABt, C.LABt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
 		},
 	      frags = []
 	    }
@@ -199,10 +199,10 @@ structure Ex5 =
 		    ],
 		  allocChk = SOME 0w0,
 		  body = setHdlr(select(0, V 369),
-		    C.LET(select(1, V 369), mkParam(v 373, C.CNTt),
+		    C.LET(select(1, V 369), mkParam(v 373, C.LABt),
 		      C.THROW(V 373,
 			[V 373, select(2, V 369), V 368, V 367, V 366],
-			[C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
+			[C.LABt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
 		},
 	      frags = []
 	    }

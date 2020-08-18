@@ -12,6 +12,7 @@
 #ifndef _SML_REGISTERS_HXX_
 #define _SML_REGISTERS_HXX_
 
+#include "llvm/IR/Type.h"
 #include "llvm/IR/Value.h"
 
 #include <string>
@@ -130,7 +131,11 @@ class reg_state {
     llvm::Value *getBasePtr () const { return this->_basePtr; }
 
   // set the base-address pointer
-    void setBasePtr (llvm::Value *v) { this->_basePtr = v; }
+    void setBasePtr (llvm::Value *v)
+    {
+	assert (v->getType()->isIntegerTy() && "base pointer should have intTy");
+	this->_basePtr = v;
+    }
 
     void copyFrom (reg_state const & cache);
 

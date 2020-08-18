@@ -268,6 +268,14 @@ class code_buffer {
 	}
     }
 
+  // create an alias for the expression `f1 - f2`, where `f1` and `f2` are
+  // then labels of the two functions.
+    llvm::Constant *labelDiff (llvm::Function *f1, llvm::Function *f2);
+
+  // create an alias for the expression `lab - entry`, where `lab` is the
+  // block label of `bb` and `entry` is the label of the current function.
+    llvm::Constant *blockDiff (llvm::BasicBlock *bb);
+
   // evaluate a LABEL (which maps to the given function) to an absolute address
     Value *evalLabel (llvm::Function *fn);
 
@@ -325,11 +333,17 @@ class code_buffer {
 	this->_builder.SetInsertPoint (bb);
     }
 
+  // get the current function
+    llvm::Function *getCurFn () const { return this->_curFn; }
+
   // get the current basic block
     llvm::BasicBlock *getCurBB ()
     {
 	return this->_builder.GetInsertBlock ();
     }
+
+  // get the current value of the base pointer as an integer value
+    Value *basePtr () const { return this->_regState.getBasePtr(); }
 
   // utility function for allocating a record of ML values (pointers or
   // tagged ints).
@@ -337,7 +351,7 @@ class code_buffer {
 
   // Create a GC invocation where `params` are the live variables and `frag` is nullptr
   // for GC checks at standard entries and is the fragment for GC checks at known functions.
-    llvm::BasicBlock *invokeGC (CFG::frag const *frag, frag_kind kind);
+    llvm::BasicBlock *invokeGC (CFG::frag *frag, frag_kind kind);
 
   // return the basic-block that contains the Overflow trap generator
     llvm::BasicBlock *getOverflowBB ();
@@ -599,6 +613,12 @@ class code_buffer {
 	    this->createBitCast (base, ty),
 	    { this->i32Const(idx) });
     }
+
+  // create an unamed global alias
+    llvm::Constant *createGlobalAlias (
+	Type *ty,
+	llvm::Twine const &name,
+	llvm::Constant *v);
 
   /***** Code generation *****/
 

@@ -53,7 +53,7 @@ structure Ex1 =
 		  kind = C.STD_FUN,
 		  lab = v 78,
 		  params = mkParams [
-		      (v 79, C.PTRt), (v 38, C.PTRt), (v 60, C.CNTt), (v 61, C.PTRt),
+		      (v 79, C.PTRt), (v 38, C.PTRt), (v 60, C.LABt), (v 61, C.PTRt),
 		      (v 62, C.PTRt), (v 63, C.PTRt), (v 45, C.PTRt)
 		    ],
 		  allocChk = SOME 0w0,
@@ -61,7 +61,7 @@ structure Ex1 =
 		    record ([V 95], v 96,
 		      C.THROW (V 60,
 			[V 60, V 61, V 62, V 63, V 96],
-			[C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
+			[C.LABt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
 		},
 	      frags = []
 	    }
@@ -71,7 +71,7 @@ structure Ex1 =
 		  kind = C.STD_FUN,
 		  lab = v 64,
 		  params = mkParams [
-		      (v 86, C.PTRt), (v 85, C.PTRt), (v 84, C.CNTt),
+		      (v 86, C.PTRt), (v 85, C.PTRt), (v 84, C.LABt),
 		      (v 83, C.PTRt), (v 82, C.PTRt), (v 81, C.PTRt), (v 80, C.PTRt)
 		    ],
 		  allocChk = SOME 0w0,
@@ -88,7 +88,7 @@ structure Ex1 =
 		  kind = C.STD_FUN,
 		  lab = v 71,
 		  params = mkParams [
-		      (v 93, C.PTRt), (v 92, C.PTRt), (v 91, C.CNTt), (v 90, C.PTRt),
+		      (v 93, C.PTRt), (v 92, C.PTRt), (v 91, C.LABt), (v 90, C.PTRt),
 		      (v 89, C.PTRt), (v 88, C.PTRt), (v 87, C.PTRt)
 		    ],
 		  allocChk = SOME 0w0,

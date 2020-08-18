@@ -105,7 +105,7 @@ structure Ex4 =
 		  kind = C.STD_FUN,
 		  lab = v 96,
 		  params = mkParams [
-		      (v 97, C.PTRt), (v 40, C.PTRt), (v 76, C.CNTt), (v 77, C.PTRt),
+		      (v 97, C.PTRt), (v 40, C.PTRt), (v 76, C.LABt), (v 77, C.PTRt),
 		      (v 78, C.PTRt), (v 79, C.PTRt), (v 53, C.PTRt)
 		    ],
 		  allocChk = SOME 0w0,
@@ -113,7 +113,7 @@ structure Ex4 =
 		    record ([V 121], v 122,
 		      C.THROW (V 76,
 			[V 76, V 77, V 78, V 79, V 122],
-			[C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
+			[C.LABt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
 		},
 	      frags = []
 	    }
@@ -121,7 +121,7 @@ structure Ex4 =
 	      kind = C.INTERNAL,
 	      lab = v 87,
 	      params = mkParams [
-		  (v 109, C.CNTt), (v 108, C.PTRt), (v 107, C.PTRt),
+		  (v 109, C.LABt), (v 108, C.PTRt), (v 107, C.PTRt),
 		  (v 106, C.PTRt), (v 105, C.NUMt{sz=64})
 		],
 	      allocChk = SOME 0w0,
@@ -137,7 +137,7 @@ structure Ex4 =
 		(* else *)
 		  C.THROW(V 109,
 		    [V 109, V 108, V 107, V 106, num 1],
-		    [C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.NUMt{sz=64}]))
+		    [C.LABt, C.PTRt, C.PTRt, C.PTRt, C.NUMt{sz=64}]))
 	    }
       val fn80 = C.Cluster{
 	      attrs = { (* function attrs *)
@@ -148,7 +148,7 @@ structure Ex4 =
 		  kind = C.STD_FUN,
 		  lab = v 80,
 		  params = mkParams [
-		      (v 104, C.PTRt), (v 103, C.PTRt), (v 102, C.CNTt),
+		      (v 104, C.PTRt), (v 103, C.PTRt), (v 102, C.LABt),
 		      (v 101, C.PTRt), (v 100, C.PTRt), (v 99, C.PTRt),
 		      (v 98, C.NUMt{sz=64})
 		    ],
@@ -169,10 +169,10 @@ structure Ex4 =
 		  allocChk = SOME 0w0,
 		  body =
 		    arith(P.IMUL, [rawSelect(0, select(2, V 113)), V 110], v 42,
-		    C.LET(select(0, V 113), mkParam(v 118, C.CNTt),
+		    C.LET(select(0, V 113), mkParam(v 118, C.LABt),
 		      C.THROW (V 118,
 			[V 118, select(1, V 113), V 112, V 111, V 42],
-			[C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.NUMt{sz=64}])))
+			[C.LABt, C.PTRt, C.PTRt, C.PTRt, C.NUMt{sz=64}])))
 		},
 	      frags = []
 	    }

@@ -110,7 +110,7 @@ structure Ex7 =
 		  kind = C.STD_FUN,
 		  lab = v 127,
 		  params = mkParams [
-		      (v 128, C.PTRt), (v 62, C.PTRt), (v 106, C.CNTt),
+		      (v 128, C.PTRt), (v 62, C.PTRt), (v 106, C.LABt),
 		      (v 107, C.PTRt), (v 108, C.PTRt), (v 109, C.PTRt),
 		      (v 72, C.PTRt)
 		    ],
@@ -119,7 +119,7 @@ structure Ex7 =
 		    record ([V 160], v 161,
 		      C.THROW (V 106,
 			[V 106, V 107, V 108, V 109, V 161],
-			[C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
+			[C.LABt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
 		},
 	      frags = []
 	    }
@@ -129,7 +129,7 @@ structure Ex7 =
 		  kind = C.STD_FUN,
 		  lab = v 110,
 		  params = mkParams [
-		      (v 135, C.PTRt), (v 134, C.PTRt), (v 133, C.CNTt),
+		      (v 135, C.PTRt), (v 134, C.PTRt), (v 133, C.LABt),
 		      (v 132, C.PTRt), (v 131, C.PTRt), (v 130, C.PTRt),
 		      (v 129, C.PTRt)
 		    ],
@@ -171,7 +171,7 @@ structure Ex7 =
 (* NOTE: we add an extra argument (LAB 1170) so that the callee can compute the base ptr *)
 		  body = C.APPLY (LAB 1170,
 		    [LAB 1170, LAB 125, V 148, V 145, V 146, V 147],
-		    [C.FUNt, C.CNTt, C.PTRt, C.NUMt{sz=64}, C.PTRt, C.PTRt])
+		    [C.LABt, C.LABt, C.PTRt, C.NUMt{sz=64}, C.PTRt, C.PTRt])
 		},
 	      frags = []
 	    }

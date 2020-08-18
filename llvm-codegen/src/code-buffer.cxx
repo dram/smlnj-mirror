@@ -13,11 +13,17 @@
 #include "mc-gen.hxx"
 #include "cfg.hxx" // for argument setup
 
+#include "llvm/IR/Constants.h"
 #include "llvm/IR/GlobalValue.h"
 #include "llvm/IR/InlineAsm.h"
 #include "llvm/IR/Verifier.h"
 
 #include <exception>
+
+/* control the adding of symbolic names to some values for easier debugging */
+#ifdef NDEBUG
+#  define NO_NAMES
+#endif
 
 /* FIXME: for now, these are all zero, but we should do something else */
 /* address spaces for various kinds of ML data that are necessarily disjoint */
@@ -171,7 +177,6 @@ code_buffer::arg_info code_buffer::_getArgInfo (frag_kind kind) const
 
     switch (kind) {
       case frag_kind::STD_FUN:
-      case frag_kind::KNOWN_FUN:
 	info.nUnused = 0;
 	info.basePtr = 0;
 	break;
@@ -181,11 +186,13 @@ code_buffer::arg_info code_buffer::_getArgInfo (frag_kind kind) const
 	info.nUnused = 2;
 	info.basePtr = 0;
 	break;
+      case frag_kind::KNOWN_FUN:
       case frag_kind::INTERNAL:
 	info.nUnused = 0;
 	if (this->_regInfo.usesBasePtr()
 	&& this->_curCluster->get_attrs()->get_needsBasePtr()) {
 	  // we need an extra argument for threading the base pointer
+/* TODO: for KNOWN_FUN, we might have to pass the basePtr in memory! */
 	    info.basePtr = 1;
 	}
 	else {
@@ -298,7 +305,7 @@ void code_buffer::setupStdEntry (CFG::attrs *attrs, CFG::frag *frag)
 	reg_info const *info = this->_regInfo.info(static_cast<sml_reg_id>(i));
 	if (info->isMachineReg()) {
 	    llvm::Argument *arg = this->_curFn->getArg(hwIx++);
-#ifndef NDEBUG
+#ifndef NO_NAMES
 	    arg->setName (info->name());
 #endif
 	    this->_regState.set (info->id(), arg);
@@ -317,9 +324,12 @@ void code_buffer::setupStdEntry (CFG::attrs *attrs, CFG::frag *frag)
 	    ? this->_regInfo.numMachineRegs()
 	  // STDCONT holds the function's address and is the third non-special argument.
 	    : this->_regInfo.numMachineRegs() + 2;
-      // get base address of cluster and cast to `char *`
-	this->_regState.setBasePtr (
-	    this->createBitCast (this->_curFn->getArg(baseIx), this->bytePtrTy));
+      // get base address of cluster and cast to the native int type
+	auto basePtr = this->createPtrToInt (this->_curFn->getArg(baseIx));
+	this->_regState.setBasePtr (basePtr);
+#ifndef NO_NAMES
+	basePtr->setName ("basePtr");
+#endif
     }
 
     std::vector<CFG::param *> params = frag->get_params();
@@ -355,47 +365,74 @@ void code_buffer::setupFragEntry (CFG::frag *frag, std::vector<llvm::PHINode *> 
 
 } // code_buffer::setupFragEntry
 
+llvm::Constant *code_buffer::createGlobalAlias (
+    Type *ty,
+    llvm::Twine const &name,
+    llvm::Constant *v)
+{
+    auto alias = llvm::GlobalAlias::create (
+	ty,
+	0,
+	llvm::GlobalValue::PrivateLinkage,
+	name,
+	v,
+	this->_module);
+    alias->setUnnamedAddr (llvm::GlobalValue::UnnamedAddr::Global);
+
+    return alias;
+}
+
+llvm::Constant *code_buffer::labelDiff (llvm::Function *f1, llvm::Function *f2)
+{
+  // define an alias for the value `(lab - curFn)`
+    return this->createGlobalAlias (
+	this->intTy,
+	f1->getName() + "_sub_" + f2->getName(),
+	llvm::ConstantExpr::getIntToPtr(
+	    llvm::ConstantExpr::getSub (
+		llvm::ConstantExpr::getPtrToInt(f1, this->intTy),
+		llvm::ConstantExpr::getPtrToInt(f2, this->intTy)),
+	    this->mlValueTy));
+
+}
+
+llvm::Constant *code_buffer::blockDiff (llvm::BasicBlock *bb)
+{
+    return this->createGlobalAlias (
+	this->intTy,
+	bb->getName() + "_sub_" + this->_curFn->getName(),
+	llvm::ConstantExpr::getIntToPtr(
+	    llvm::ConstantExpr::getSub (
+		llvm::ConstantExpr::getPtrToInt(this->blockAddr(bb), this->intTy),
+		llvm::ConstantExpr::getPtrToInt(this->_curFn, this->intTy)),
+	    this->mlValueTy));
+
+}
+
 Value *code_buffer::evalLabel (llvm::Function *fn)
 {
     Value *basePtr = this->_regState.getBasePtr();
 
     if (basePtr == nullptr) {
       // define an alias for `(lab - 0)`
-	auto alias = llvm::GlobalAlias::create (
+	return this->createGlobalAlias (
 	    this->intTy,
-	    0,
-	    llvm::GlobalValue::PrivateLinkage,
 	    fn->getName() + "_alias",
 	    llvm::ConstantExpr::getIntToPtr(
 		llvm::ConstantExpr::getSub (
 		    llvm::ConstantExpr::getPtrToInt(fn, this->intTy),
 		    llvm::Constant::getNullValue(this->intTy)),
-		this->mlValueTy),
-	    this->_module);
-	alias->setUnnamedAddr (llvm::GlobalValue::UnnamedAddr::Global);
-	return alias;
+		this->mlValueTy));
     }
     else {
-      // define an alias for the value `(lab - curFn)`
-	auto delta = llvm::GlobalAlias::create (
-	    this->intTy,
-	    0,
-	    llvm::GlobalValue::PrivateLinkage,
-	    fn->getName() + "_sub_" + this->_curFn->getName(),
-	    llvm::ConstantExpr::getIntToPtr(
-		llvm::ConstantExpr::getSub (
-		    llvm::ConstantExpr::getPtrToInt(fn, this->intTy),
-		    llvm::ConstantExpr::getPtrToInt(this->_curFn, this->intTy)),
-		this->mlValueTy),
-	    this->_module);
-	delta->setUnnamedAddr (llvm::GlobalValue::UnnamedAddr::Global);
-
       // compute basePtr + (lab - curFn)
-	return this->_builder.CreateIntToPtr(
-	    this->createAdd (
-		this->_builder.CreatePtrToInt(basePtr, this->intTy),
-		delta),
+	auto labAdr = this->_builder.CreateIntToPtr(
+	    this->createAdd (basePtr, this->labelDiff (fn, this->_curFn)),
 	    this->mlValueTy);
+#ifndef NO_NAMES
+	labAdr->setName ("L_" + fn->getName());
+#endif
+	return labAdr;
     }
 
 } // code_buffer::evalLabel
@@ -474,15 +511,16 @@ Value *code_buffer::allocRecord (uint64_t desc, Args_t const & args)
 // for packaging up excess live variables into heap objects and then
 // restoring them after the garbage collection.
 //
-llvm::BasicBlock *code_buffer::invokeGC (CFG::frag const *frag, frag_kind kind)
+llvm::BasicBlock *code_buffer::invokeGC (CFG::frag *frag, frag_kind kind)
 {
     std::vector<CFG::param *> params = frag->get_params();
     int numParams = params.size();
+    arg_info info = this->_getArgInfo (frag->get_kind());
 
   // switch to a new block to the code
     llvm::BasicBlock *saveBB = this->_builder.GetInsertBlock ();
-    llvm::BasicBlock *bb = this->newBB();
-    this->_builder.SetInsertPoint (bb);
+    llvm::BasicBlock *invokeGCBB = this->newBB();
+    this->_builder.SetInsertPoint (invokeGCBB);
 
   // In addition to the special "SML" registers, the GC calling convention
   // uses the standard linkage registers (STD_LINK, STD_CLOS, STD_CONT),
@@ -630,7 +668,7 @@ llvm::BasicBlock *code_buffer::invokeGC (CFG::frag const *frag, frag_kind kind)
   // mapping from parameter indices to gcArg indices
     std::vector<int> argIdx;
     argIdx.reserve (numGCArgs);
-    int argBase = this->_regInfo.numMachineRegs();
+    int argBase = info.nExtra;
     if (kind == frag_kind::STD_CONT) {
       // map to STD_CONT, MISC0, MISC1, ... */
 	for (int i = 0;  i < numCalleeSaves + 1;  ++i) {
@@ -761,8 +799,16 @@ llvm::BasicBlock *code_buffer::invokeGC (CFG::frag const *frag, frag_kind kind)
 	retArgs[i]= v;
     }
 
+    if (info.basePtr) {
+/* TODO: need to recompute the basePtr too! */
+
+    }
+
   // create the actual list of return arguments that includes the machine registers
     Args_t args = this->createArgs (kind, numParams);
+    for (int i = 0;  i < info.nUnused;  ++i) {
+	args.push_back ();
+    }
     for (int i = 0;  i < numParams;  ++i) {
 	assert (retArgs[i] && "null return arg");
 	assert (paramTys[i] && "null parameter type");
@@ -777,19 +823,30 @@ llvm::BasicBlock *code_buffer::invokeGC (CFG::frag const *frag, frag_kind kind)
   // transfer control back to the limit test
     if (kind == frag_kind::INTERNAL) {
       // update fragment's PHI nodes
-assert (false && "phi nodes");
-/* TODO: need to recompute the basePtr too! */
+	for (int i = 0;  i < args.size();  ++i) {
+	  // make sure that the types match!
+	    assert (args[i]);
+	    Type *srcTy = args[i]->getType();
+	    Type *tgtTy = frag->paramTy(i);
+	    if (srcTy != tgtTy) {
+		frag->addIncoming (i, this->castTy(srcTy, tgtTy, args[i]), invokeGCBB);
+	    } else {
+		frag->addIncoming (i, args[i], invokeGCBB);
+	    }
+	}
 	this->createBr (frag->bb());
+    } else if (kind == frag_kind::KNOWN_FUN) {
+assert (false && "KNOWN_FUN");
     } else {
 	Value *fn;
 	if (kind == frag_kind::STD_FUN) {
 	  // the STD_LINK register, which is the first non-special argument,
 	  // holds the address of the cluster, so we transfer control to it.
-	    fn = args[this->_regInfo.numMachineRegs()];
+	    fn = args[info.nExtra];
 	} else {
 	  // the STD_CONT register, which is the third non-special argument,
 	  // holds the address of the cluster, so we transfer control to it.
-	    fn = args[this->_regInfo.numMachineRegs() + 2];
+	    fn = args[info.nExtra + 2];
 	}
 	auto fnTy = this->_curCluster->fn()->getFunctionType();
 	llvm::CallInst *call = this->_builder.CreateCall(
@@ -804,7 +861,7 @@ assert (false && "phi nodes");
 
     this->_builder.SetInsertPoint (saveBB);
 
-    return bb;
+    return invokeGCBB;
 
 } // code_buffer::invokeGC
 

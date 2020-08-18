@@ -249,36 +249,53 @@ if (args[i]) { llvm::dbgs() << *(args[i]) << "\n"; } else { llvm::dbgs() << "nul
 
     void SWITCH::codegen (code_buffer * buf)
     {
-      // evaluate the argument
-// FIXME: do we need to downcast to 32 bits?
-	Value *arg = this->_v0->codegen(buf);
+      // evaluate the argument and truncate to 32 bits
+	Value *arg = buf->createTrunc(buf->asInt(this->_v0->codegen(buf)), buf->i32Ty);
 
+//#define EXPLICIT_JUMP_TABLE
 #ifdef EXPLICIT_JUMP_TABLE
 	int nCases = this->_v1.size();
 
 	std::vector<llvm::BasicBlock *>blks;
 	blks.reserve(nCases);
 	std::vector<llvm::Constant *>offsets;
-	addrs.reserve(nCases);
+	offsets.reserve(nCases);
 	for (auto it = this->_v1.begin();  it != this->_v1.end();  ++it) {
 	    blks.push_back ((*it)->bb());
-	    auto offset = llvm::ConstantExpr::getSub (
-		llvm::ConstantExpr::getPtrToInt(buf->blockAddr((*it)->bb())),
-		llvm::ConstantExpr::getPtrToInt(this->_curFn, this->intTy));
+	    auto offset = llvm::ConstantExpr::getPtrToInt(
+		buf->blockDiff ((*it)->bb()),
+		buf->i32Ty)
 	    offsets.push_back (offset);
 	}
       // allocate the array of offsets
-	auto jmpTbl = llvm::ConstantArray::get (
-	    llvm::ArrayType::get(buf->intTy, nCases),
-	    offsets);
-	buf->blockAddr()
+	auto jmpTblTy = llvm::ArrayType::get(buf->i32Ty, nCases);
+	auto jmpTbl = new llvm::GlobalVariable(
+	    jmpTblTy,
+	    true,
+	    llvm::GlobalValue::PrivateLinkage,
+	    llvm::ConstantArray::get (jmpTblTy, offsets));
+      // compute the jump address
+	auto jmpAdr = buf->createAdd (
+	    buf->basePtr(),
+	    buf->createSExt(
+		buf->build().CreateAlignedLoad(
+		    buf->build().CreateInBoundsGEP(
+			buf->createBitCast(jmpTbl, jmpTblTy->getPointerTo()),
+			{buf->i32Const(0), arg}),
+		    4),
+		buf->intTy));
+      // create the jump instruction
+	auto jmp = buf->build().CreateIndirectBr (jmpAdr, nCases);
+	for (auto it = this->_v1.begin();  it != this->_v1.end();  ++it) {
+	    jmp->addDestination ((*it)->bb());
+	}
 #else
       // the number of non-default cases; we use the last case as the default
 	int nCases = this->_v1.size() - 1;
 
       // create the switch; note that we use the last case as the default
 	llvm::SwitchInst *sw = buf->build().CreateSwitch(
-	    buf->createTrunc(buf->asInt(arg), buf->i32Ty),
+	    arg,
 	    this->_v1[nCases]->bb(),
 	    nCases);
 

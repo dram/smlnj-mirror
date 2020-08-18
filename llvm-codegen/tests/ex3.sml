@@ -64,7 +64,7 @@ structure Ex3 =
 		  kind = C.STD_FUN,
 		  lab = v 80,
 		  params = mkParams [
-		      (v 81, C.PTRt), (v 44, C.PTRt), (v 69, C.CNTt), (v 70, C.PTRt),
+		      (v 81, C.PTRt), (v 44, C.PTRt), (v 69, C.LABt), (v 70, C.PTRt),
 		      (v 71, C.PTRt), (v 72, C.PTRt), (v 57, C.PTRt)
 		    ],
 		  allocChk = SOME 0w0,
@@ -72,7 +72,7 @@ structure Ex3 =
 		    record ([V 91], v 92,
 		      C.THROW (V 69,
 			[V 69, V 70, V 71, V 72, V 92],
-			[C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
+			[C.LABt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
 		},
 	      frags = []
 	    }
@@ -82,7 +82,7 @@ structure Ex3 =
 		  kind = C.STD_FUN,
 		  lab = v 73,
 		  params = mkParams [
-		      (v 90, C.PTRt), (v 89, C.PTRt), (v 88, C.CNTt),
+		      (v 90, C.PTRt), (v 89, C.PTRt), (v 88, C.LABt),
 		      (v 87, C.PTRt), (v 86, C.PTRt), (v 85, C.PTRt),
 		      (v 84, C.FLTt{sz=64}), (v 83, C.FLTt{sz=64}), (v 82, C.FLTt{sz=64})
 		    ],
