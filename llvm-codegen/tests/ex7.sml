@@ -114,7 +114,6 @@ structure Ex7 =
 		      (v 107, C.PTRt), (v 108, C.PTRt), (v 109, C.PTRt),
 		      (v 72, C.PTRt)
 		    ],
-		  allocChk = SOME 0w0,
 		  body = record ([LAB 110], v 160,
 		    record ([V 160], v 161,
 		      C.THROW (V 106,
@@ -133,7 +132,6 @@ structure Ex7 =
 		      (v 132, C.PTRt), (v 131, C.PTRt), (v 130, C.PTRt),
 		      (v 129, C.PTRt)
 		    ],
-		  allocChk = SOME 0w0,
 		  body =
 		},
 	      frags = []
@@ -143,7 +141,6 @@ structure Ex7 =
 	      lab = v 117,
 	      params = mkParams [
 		],
-	      allocChk = SOME 0w0,
 	      body =
 	    }
       val fn1170 = C.Cluster{
@@ -153,7 +150,6 @@ structure Ex7 =
 		  lab = v 1170,
 		  params = mkParams [
 		    ],
-		  allocChk = SOME 0w0,
 		  body =
 		},
 	      frags = [fn117]
@@ -167,7 +163,6 @@ structure Ex7 =
 		     (v 149, C.PTRt), (v 148, C.PTRt), (v 147, C.PTRt),
 		     (v 146, C.PTRt), (v 145, C.TAGt)
 		    ],
-		  allocChk = SOME 0w0,
 (* NOTE: we add an extra argument (LAB 1170) so that the callee can compute the base ptr *)
 		  body = C.APPLY (LAB 1170,
 		    [LAB 1170, LAB 125, V 148, V 145, V 146, V 147],
@@ -184,7 +179,6 @@ structure Ex7 =
 		      (v 154, C.PTRt), (v 153, C.PTRt), (v 152, C.TAGt),
 		      (v 151, C.PTRt), (v 150, C.TAGt)
 		    ],
-		  allocChk = SOME 0w0,
 		  body =
 		},
 	      frags = []

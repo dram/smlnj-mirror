@@ -40,8 +40,6 @@ int main (int argc, char **argv)
 		out = output::AsmFile;
 	    } else if (flag == "-c") {
 		out = output::Memory;
-	    } else if (flag == "-nogc") {
-		disableGC = true;
 	    } else {
 		usage();
 	    }

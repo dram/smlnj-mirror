@@ -121,7 +121,6 @@ structure Ex6 =
 		      (v 322, C.PTRt), (v 233, C.PTRt), (v 298, C.LABt), (v 299, C.PTRt),
 		      (v 300, C.PTRt), (v 301, C.PTRt), (v 263, C.PTRt)
 		    ],
-		  allocChk = SOME 0w0,
 		  body = record ([LAB 302], v 190,
 		    record ([V 190], v 350,
 		      C.THROW (V 298,
@@ -140,7 +139,6 @@ structure Ex6 =
 		      (v 326, C.PTRt), (v 325, C.PTRt), (v 324, C.PTRt),
 		      (v 323, C.PTRt)
 		    ],
-		  allocChk = SOME 0w0,
 		  body = record ([LAB 309], v 349,
 		    C.THROW (V 327,
 		      [V 327, V 326, V 325, V 324, V 349],
@@ -163,7 +161,6 @@ structure Ex6 =
 		      (v 333, C.NUMt{sz=64}), (v 332, C.LABt), (v 331, C.LABt),
 		      (v 330, C.PTRt)
 		    ],
-		  allocChk = SOME 0w0,
 		  body =
 		    C.LET(select(0, V 330), mkParam(v 340, C.LABt),
 		    C.LET(select(1, V 330), mkParam(v 341, C.LABt),

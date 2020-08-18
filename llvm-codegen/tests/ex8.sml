@@ -71,7 +71,6 @@ structure Ex8 =
 		      (v 204, C.PTRt), (v 205, C.PTRt), (v 206, C.PTRt),
 		      (v 191, C.PTRt)
 		    ],
-		  allocChk = SOME 0w0,
 		  body = record ([LAB 207], v 223,
 		    record ([V 223], v 224,
 		      C.THROW (V 203,
@@ -90,7 +89,6 @@ structure Ex8 =
 		      (v 219, C.PTRt), (v 218, C.PTRt), (v 217, C.PTRt),
 		      (v 216, C.NUMt{sz=64})
 		    ],
-		  allocChk = SOME 0w0,
 		  body = arith(P.IADD, [V 216, num 42], v 186,
 		      C.THROW(V 220,
 			[V 220, V 219, V 218, V 217, V 186],

@@ -101,6 +101,15 @@ namespace CFG {
 
     } // SETTER::init
 
+    void CALLGC::init (code_buffer * buf, bool blkEntry)
+    {
+	this->_initBB (buf, blkEntry);
+
+      // continue initialization
+	this->_v2->init (buf, false);
+
+    } // CALLGC::init
+
     void RCC::init (code_buffer * buf, bool blkEntry)
     {
 	this->_initBB (buf, blkEntry);

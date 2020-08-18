@@ -17,6 +17,5 @@ void codegen (std::string const & src, output out);
 
 // Some global flags for controlling the code generator.
 // These are just for testing purposes
-extern bool disableGC;	// set to true to disable the generation of GC invocation code
 
 #endif // !_CODEGEN_HXX_

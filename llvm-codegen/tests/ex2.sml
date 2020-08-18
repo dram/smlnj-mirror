@@ -96,7 +96,6 @@ structure Ex2 =
 		      (v 131, C.PTRt), (v 31, C.PTRt), (v 111, C.LABt), (v 112, C.PTRt),
 		      (v 113, C.PTRt), (v 114, C.PTRt), (v 53, C.PTRt)
 		    ],
-		  allocChk = SOME 0w0,
 		  body = record ([LAB 115], v 156,
 		    record ([V 156], v 157,
 		      C.THROW (V 111,
@@ -114,7 +113,6 @@ structure Ex2 =
 		      (v 138, C.PTRt), (v 137, C.PTRt), (v 136, C.LABt),
 		      (v 135, C.PTRt), (v 134, C.PTRt), (v 133, C.PTRt), (v 132, C.PTRt)
 		    ],
-		  allocChk = SOME 0w0,
 		  body = record ([LAB 122], v 155,
 		    C.THROW (V 136,
 		      [V 136, V 135, V 134, V 133, V 155],
@@ -129,7 +127,6 @@ structure Ex2 =
 		  (v 151, C.PTRt), (v 150, C.PTRt), (v 149, C.LABt),
 		  (v 148, C.PTRt), (v 147, C.PTRt), (v 146, C.PTRt)
 		],
-	      allocChk = SOME 0w0,
 	      body = C.BRANCH(
 		P.CMP{oper=P.EQL, signed=false, sz=64},
 		[pureOp(P.ANDB, [V 151, num 1]), num 0],
@@ -151,7 +148,6 @@ structure Ex2 =
 		      (v 145, C.PTRt), (v 144, C.PTRt), (v 143, C.LABt), (v 142, C.PTRt),
 		      (v 141, C.PTRt), (v 140, C.PTRt), (v 139, C.PTRt)
 		    ],
-		  allocChk = NONE,
 		  body = C.GOTO (v 129, [V 139, num 1, V 143, V 142, V 141, V 140])
 		},
 	      frags = [fn129]

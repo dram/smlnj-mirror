@@ -317,6 +317,11 @@ namespace CFG_Prim {
             return new PEQL;
           case _con_PNEQ:
             return new PNEQ;
+          case _con_LIMIT:
+            {
+                auto f0 = asdl::read_uint(is);
+                return new LIMIT(f0);
+            }
         }
     }
     branch::~branch () { }
@@ -325,6 +330,7 @@ namespace CFG_Prim {
     FSGN::~FSGN () { }
     PEQL::~PEQL () { }
     PNEQ::~PNEQ () { }
+    LIMIT::~LIMIT () { }
 } // namespace CFG_Prim
 namespace CFG {
     ty * ty::read (asdl::instream & is)
@@ -521,6 +527,13 @@ namespace CFG {
                 auto f2 = stm::read(is);
                 return new SETTER(f0, f1, f2);
             }
+          case _con_CALLGC:
+            {
+                auto f0 = read_exp_seq(is);
+                auto f1 = LambdaVar::read_lvar_seq(is);
+                auto f2 = stm::read(is);
+                return new CALLGC(f0, f1, f2);
+            }
           case _con_RCC:
             {
                 auto freentrant = asdl::read_bool(is);
@@ -576,6 +589,10 @@ namespace CFG {
         delete this->_v0;
         delete this->_v2;
     }
+    CALLGC::~CALLGC ()
+    {
+        delete this->_v2;
+    }
     RCC::~RCC ()
     {
         delete this->_v_proto;
@@ -596,9 +613,8 @@ namespace CFG {
         auto fkind = read_frag_kind(is);
         auto flab = LambdaVar::read_lvar(is);
         auto fparams = read_param_seq(is);
-        auto fallocChk = asdl::read_uint_option(is);
         auto fbody = stm::read(is);
-        return new frag(fkind, flab, fparams, fallocChk, fbody);
+        return new frag(fkind, flab, fparams, fbody);
     }
     frag::~frag ()
     {

@@ -146,6 +146,7 @@ module CFG_Prim {
       | FCMP (fcmpop oper, int sz)
       | FSGN (int)
       | PEQL | PNEQ
+      | LIMIT (uint)
 
 }
 
@@ -209,9 +210,19 @@ module CFG (
       -- `BRANCH(br, args, p, trueExp, falseExp)` is a two-way conditional branch,
       -- where `p` is the probability that the branch is taken
       | BRANCH (CFG_Prim.branch, exp*, probability, stm, stm)
-      -- "raw C call"
+      -- `ARITH(p, args, x, k)` applies the trapping arithmetic operator `p` to the
+      -- arguments and binds the result (assuming no Overflow) to the parameter `x`
+      -- and then executes `k`
       | ARITH (CFG_Prim.arith, exp*, param, stm)
+      -- `SETTER(p, args, k)` applies the setter operation `p` to the `args` and
+      -- then executes `k`
       | SETTER (CFG_Prim.setter, exp*, stm)
+      -- `CALLGC(roots, newRoots, k)` invokes the GC with the given roots.  Upon
+      -- return, the new roots are bound to the lvars `newRoots` and then `k` is
+      -- executed.  The number of roots and newRoots are the same and are fixed
+      -- by the GC protocol (std-link, std-clos, std-cont, callee saves, and std-arg).
+      | CALLGC (exp*, LambdaVar.lvar*, stm)
+      -- "raw C call"
       | RCC (
 	  bool reentrant,		-- true for reentrant calls
 	  string linkage,		-- ??
@@ -227,11 +238,9 @@ module CFG (
   --    kind            the kind of fragment, which determines its calling convention
   --    lab		the fragment's label
   --	params		the lvar parameters and parameter types
-  --	allocChk	optional allocation check; empty means no check, we use 0 for the
-  --			standard check
   --	body		the root of the extended basic block
   --
-    frag = Frag (frag_kind kind, LambdaVar.lvar lab, param* params, uint? allocChk, stm body)
+    frag = Frag (frag_kind kind, LambdaVar.lvar lab, param* params, stm body)
 
   -- meta data about a cluster
   --

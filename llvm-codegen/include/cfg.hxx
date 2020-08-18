@@ -927,7 +927,8 @@ namespace CFG_Prim {
         virtual Value *codegen (code_buffer *buf, Args_t const &args) = 0;
 
       protected:
-        enum _tag_t {_con_CMP = 1, _con_FCMP, _con_FSGN, _con_PEQL, _con_PNEQ};
+        enum _tag_t {_con_CMP = 1, _con_FCMP, _con_FSGN, _con_PEQL, _con_PNEQ, _con_LIMIT
+        };
         branch (_tag_t tag)
             : _tag(tag)
         { }
@@ -1037,6 +1038,26 @@ namespace CFG_Prim {
         // pickler method suppressed
         Value *codegen (code_buffer *buf, Args_t const &args);
 
+    };
+    class LIMIT : public branch {
+      public:
+        LIMIT (unsigned int p0)
+            : branch(branch::_con_LIMIT), _v0(p0)
+        { }
+        ~LIMIT ();
+        // pickler method suppressed
+        unsigned int get_0 () const
+        {
+            return this->_v0;
+        }
+        void set_0 (unsigned int v)
+        {
+            this->_v0 = v;
+        }
+        Value *codegen (code_buffer *buf, Args_t const &args);
+
+      private:
+        unsigned int _v0;
     };
 } // namespace CFG_Prim
 namespace CFG {
@@ -1396,6 +1417,7 @@ namespace CFG {
             _con_BRANCH,
             _con_ARITH,
             _con_SETTER,
+            _con_CALLGC,
             _con_RCC
         };
         stm (_tag_t tag)
@@ -1775,6 +1797,45 @@ namespace CFG {
         std::vector<exp *> _v1;
         stm * _v2;
     };
+    class CALLGC : public stm {
+      public:
+        CALLGC (std::vector<exp *> p0, std::vector<LambdaVar::lvar> p1, stm * p2)
+            : stm(stm::_con_CALLGC), _v0(p0), _v1(p1), _v2(p2)
+        { }
+        ~CALLGC ();
+        // pickler method suppressed
+        std::vector<exp *> get_0 () const
+        {
+            return this->_v0;
+        }
+        void set_0 (std::vector<exp *> v)
+        {
+            this->_v0 = v;
+        }
+        std::vector<LambdaVar::lvar> get_1 () const
+        {
+            return this->_v1;
+        }
+        void set_1 (std::vector<LambdaVar::lvar> v)
+        {
+            this->_v1 = v;
+        }
+        stm * get_2 () const
+        {
+            return this->_v2;
+        }
+        void set_2 (stm * v)
+        {
+            this->_v2 = v;
+        }
+        void init (code_buffer *buf, bool blkEntry);
+        void codegen (code_buffer *buf);
+
+      private:
+        std::vector<exp *> _v0;
+        std::vector<LambdaVar::lvar> _v1;
+        stm * _v2;
+    };
     class RCC : public stm {
       public:
         RCC (bool p_reentrant, std::string p_linkage, CTypes::c_proto * p_proto, std::vector<exp *> p_args, std::vector<param *> p_results, std::vector<param *> p_live, stm * p_k)
@@ -1859,9 +1920,8 @@ namespace CFG {
     frag_kind read_frag_kind (asdl::instream & is);
     class frag {
       public:
-        frag (frag_kind p_kind, LambdaVar::lvar p_lab, std::vector<param *> p_params, asdl::option<unsigned int> p_allocChk, stm * p_body)
-            : _v_kind(p_kind), _v_lab(p_lab), _v_params(p_params),
-            _v_allocChk(p_allocChk), _v_body(p_body)
+        frag (frag_kind p_kind, LambdaVar::lvar p_lab, std::vector<param *> p_params, stm * p_body)
+            : _v_kind(p_kind), _v_lab(p_lab), _v_params(p_params), _v_body(p_body)
         { }
         ~frag ();
         // pickler method suppressed
@@ -1890,14 +1950,6 @@ namespace CFG {
         {
             this->_v_params = v;
         }
-        asdl::option<unsigned int> get_allocChk () const
-        {
-            return this->_v_allocChk;
-        }
-        void set_allocChk (asdl::option<unsigned int> v)
-        {
-            this->_v_allocChk = v;
-        }
         stm * get_body () const
         {
             return this->_v_body;
@@ -1919,7 +1971,6 @@ namespace CFG {
         frag_kind _v_kind;
         LambdaVar::lvar _v_lab;
         std::vector<param *> _v_params;
-        asdl::option<unsigned int> _v_allocChk;
         stm * _v_body;
         std::vector<llvm::PHINode *> _phiNodes;
 

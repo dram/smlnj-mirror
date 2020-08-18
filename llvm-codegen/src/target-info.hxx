@@ -37,6 +37,9 @@ struct target_info {
 
     static target_info const *InfoForTarget (std::string const &name);
 
+  // GC roots are std-link, std-clos, std-cont, callee saves, std-arg
+    int numGCRoots () const { return this->numCalleeSaves + 4; }
+
 };
 
 #endif // !_TARGET_INFO_HXX_

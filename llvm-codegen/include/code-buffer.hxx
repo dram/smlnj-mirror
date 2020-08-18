@@ -349,9 +349,8 @@ class code_buffer {
   // tagged ints).
     Value *allocRecord (uint64_t desc, Args_t const & args);
 
-  // Create a GC invocation where `params` are the live variables and `frag` is nullptr
-  // for GC checks at standard entries and is the fragment for GC checks at known functions.
-    llvm::BasicBlock *invokeGC (CFG::frag *frag, frag_kind kind);
+  // call the garbage collector.
+    void callGC (Args_t const & roots, std::vector<LambdaVar::lvar> const & newRoots);
 
   // return the basic-block that contains the Overflow trap generator
     llvm::BasicBlock *getOverflowBB ();

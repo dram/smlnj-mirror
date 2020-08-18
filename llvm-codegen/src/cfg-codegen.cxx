@@ -156,6 +156,7 @@ namespace CFG {
 	LABEL *lab = dynamic_cast<LABEL *>(this->_v0);
 	if (lab == nullptr) {
 	    fnTy = buf->createFnTy (frag_kind::STD_FUN, genTypes (buf, this->_v2));
+llvm::dbgs() << "APPLY: fnTy = " << *fnTy << "\n";
 	    fn = buf->build().CreateBitCast(
 		this->_v0->codegen (buf),
 		fnTy->getPointerTo());
@@ -172,6 +173,11 @@ namespace CFG {
 	    args.push_back (arg->codegen (buf));
 	}
 
+llvm::dbgs() << "    arg tys =";
+for (auto arg : args) {
+    llvm::dbgs() << " " << *(arg->getType());
+}
+llvm::dbgs() << "\n";
 	llvm::CallInst *call = buf->build().CreateCall(fnTy, fn, args);
 	call->setCallingConv (llvm::CallingConv::JWA);
 	call->setTailCallKind (llvm::CallInst::TCK_Tail);
@@ -358,7 +364,7 @@ if (args[i]) { llvm::dbgs() << *(args[i]) << "\n"; } else { llvm::dbgs() << "nul
       // record mapping from the parameter to the compiled expression
 	this->_v2->bind (buf, this->_v0->codegen (buf, args));
       // compile continuation
-	this->_v3->codegen(buf);
+	this->_v3->codegen (buf);
 
     } // ARITH::codegen
 
@@ -370,9 +376,24 @@ if (args[i]) { llvm::dbgs() << *(args[i]) << "\n"; } else { llvm::dbgs() << "nul
 	}
 	this->_v0->codegen (buf, args);
       // compile continuation
-	this->_v2->codegen(buf);
+	this->_v2->codegen (buf);
 
     } // SETTER::codegen
+
+    void CALLGC::codegen (code_buffer * buf)
+    {
+      // evaluate the roots
+	Args_t roots = buf->createArgs (frag_kind::STD_FUN, this->_v0.size());
+	for (auto it = this->_v0.begin(); it != this->_v0.end(); ++it) {
+	    roots.push_back ((*it)->codegen (buf));
+	}
+
+	buf->callGC (roots, this->_v1);
+
+      // compile continuation
+	this->_v2->codegen (buf);
+
+    } // CALLGC::codegen
 
     void RCC::codegen (code_buffer * buf)
     {
@@ -392,34 +413,6 @@ if (args[i]) { llvm::dbgs() << *(args[i]) << "\n"; } else { llvm::dbgs() << "nul
 	    buf->setupStdEntry (cluster->get_attrs(), this);
 	} else {
 	    buf->setupFragEntry (this, this->_phiNodes);
-	}
-
-      // generate the heap-limit check, if required
-	if (! this->_v_allocChk.isEmpty() && (! disableGC)) {
-	    reg_state saveRegs;
-	    buf->saveSMLRegState (saveRegs);
-	    unsigned int amt = this->_v_allocChk.valOf();
-	    unsigned int allocSlop = buf->targetInfo()->allocSlopSzb;
-	    Value *limitTst;
-	    if (amt > allocSlop) {
-		limitTst = buf->createICmp(llvm::ICmpInst::ICMP_UGT,
-		    buf->createAdd (
-			buf->mlReg(sml_reg_id::ALLOC_PTR),
-			buf->uConst(amt - allocSlop)),
-		    buf->asInt (buf->mlReg(sml_reg_id::LIMIT_PTR)));
-	    } else {
-		limitTst = buf->createICmp(llvm::ICmpInst::ICMP_UGT,
-		    buf->asInt (buf->mlReg(sml_reg_id::ALLOC_PTR)),
-		    buf->asInt (buf->mlReg(sml_reg_id::LIMIT_PTR)));
-	    }
-	    llvm::BasicBlock *nextBB = buf->newBB();
-	    llvm::BasicBlock *callGCBB = buf->invokeGC (this, this->_v_kind);
-// TODO: for the entry fragment, we can use the link register to get back to the
-// beginning of the function.  This allows us to merge GC invocations for multiple
-// functions to reduce code size
-	    buf->build().CreateCondBr(limitTst, callGCBB, nextBB, buf->branchProb(1));
-	    buf->setInsertPoint (nextBB);
-	    buf->restoreSMLRegState (saveRegs);
 	}
 
       // generate code for the fragment

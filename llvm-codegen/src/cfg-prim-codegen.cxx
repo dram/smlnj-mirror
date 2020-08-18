@@ -10,6 +10,7 @@
 ///
 
 #include "cfg.hxx"
+#include "target-info.hxx"
 
 namespace CFG_Prim {
 
@@ -476,5 +477,23 @@ namespace CFG_Prim {
 	return buf->createICmpNE(args[0], args[1]);
 
     } // PNEQ::codegen
+
+    Value *LIMIT::codegen (code_buffer * buf, Args_t const &args)
+    {
+	unsigned int amt = this->_v0;
+	unsigned int allocSlop = buf->targetInfo()->allocSlopSzb;
+	if (amt > allocSlop) {
+	    return buf->createICmp(llvm::ICmpInst::ICMP_UGT,
+		buf->createAdd (
+		    buf->mlReg(sml_reg_id::ALLOC_PTR),
+		    buf->uConst(amt - allocSlop)),
+		buf->asInt (buf->mlReg(sml_reg_id::LIMIT_PTR)));
+	} else {
+	    return buf->createICmp(llvm::ICmpInst::ICMP_UGT,
+		buf->asInt (buf->mlReg(sml_reg_id::ALLOC_PTR)),
+		buf->asInt (buf->mlReg(sml_reg_id::LIMIT_PTR)));
+	}
+
+    } // LIMIT::codegen
 
 } // namespace CFG_Prim

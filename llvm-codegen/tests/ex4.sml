@@ -108,7 +108,6 @@ structure Ex4 =
 		      (v 97, C.PTRt), (v 40, C.PTRt), (v 76, C.LABt), (v 77, C.PTRt),
 		      (v 78, C.PTRt), (v 79, C.PTRt), (v 53, C.PTRt)
 		    ],
-		  allocChk = SOME 0w0,
 		  body = record ([LAB 80], v 121,
 		    record ([V 121], v 122,
 		      C.THROW (V 76,
@@ -124,7 +123,6 @@ structure Ex4 =
 		  (v 109, C.LABt), (v 108, C.PTRt), (v 107, C.PTRt),
 		  (v 106, C.PTRt), (v 105, C.NUMt{sz=64})
 		],
-	      allocChk = SOME 0w0,
 	      body = C.BRANCH(
 		P.CMP{oper=P.GT, signed=true, sz=64}, [V 105, num 1],
 		unkProb,
@@ -152,7 +150,6 @@ structure Ex4 =
 		      (v 101, C.PTRt), (v 100, C.PTRt), (v 99, C.PTRt),
 		      (v 98, C.NUMt{sz=64})
 		    ],
-		  allocChk = NONE,
 		  body = C.GOTO (v 87, [V 102, V 101, V 100, V 99, V 98])
 		},
 	      frags = [fn87]
@@ -166,7 +163,6 @@ structure Ex4 =
 		      (v 114, C.PTRt), (v 113, C.PTRt), (v 112, C.PTRt),
 		      (v 111, C.PTRt), (v 110, C.NUMt{sz=64})
 		    ],
-		  allocChk = SOME 0w0,
 		  body =
 		    arith(P.IMUL, [rawSelect(0, select(2, V 113)), V 110], v 42,
 		    C.LET(select(0, V 113), mkParam(v 118, C.LABt),

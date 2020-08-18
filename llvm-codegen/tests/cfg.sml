@@ -54,6 +54,7 @@ structure CFG_Prim = struct
       | FSGN of int
       | PEQL
       | PNEQ
+      | LIMIT of word
     datatype numkind
       = INT
       | FLT
@@ -155,8 +156,9 @@ structure CFG = struct
       | BRANCH of CFG_Prim.branch * exp list * probability * stm * stm
       | ARITH of CFG_Prim.arith * exp list * param * stm
       | SETTER of CFG_Prim.setter * exp list * stm
+      | CALLGC of exp list * LambdaVar.lvar list * stm
       | RCC of {reentrant : bool, linkage : string, proto : CTypes.c_proto, args : exp list, results : param list, live : param list, k : stm}
-    datatype frag = Frag of {kind : frag_kind, lab : LambdaVar.lvar, params : param list, allocChk : word option, body : stm}
+    datatype frag = Frag of {kind : frag_kind, lab : LambdaVar.lvar, params : param list, body : stm}
     datatype cluster = Cluster of {attrs : attrs, entry : frag, frags : frag list}
     type comp_unit = {srcFile : string, entry : cluster, fns : cluster list}
   end
