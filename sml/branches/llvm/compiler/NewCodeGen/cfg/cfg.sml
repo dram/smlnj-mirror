@@ -51,9 +51,7 @@ structure CFG_Prim =
     datatype pure
       = PURE_ARITH of {oper : pureop, sz : int}
       | EXTEND of {signed : bool, from : int, to : int}
-(* may need this
       | TRUNC of {from : int, to : int}
-*)
       | INT_TO_REAL of {from : int, to : int}
       | PURE_SUBSCRIPT
       | PURE_RAW_SUBSCRIPT of {kind : numkind, sz : int}
@@ -86,6 +84,7 @@ structure CFG_Prim =
       | FCMP of {oper: fcmpop, sz: int}
       | FSGN of int
       | PEQL | PNEQ
+      | LIMIT of word
 
   end
 
@@ -93,28 +92,14 @@ structure CFG =
   struct
 
     datatype ty
-      = NUMt of int
-      | FLTt of int
+      = LABt
       | PTRt
-      | FUNt
-      | CNTt
-
-    datatype frag_kind
-      = GC_CHECK
-      | INTERNAL
-
-    datatype calling_conv
-      = STD_FUN		(* escaping function *)
-      | STD_CONT	(* escaping continuation *)
-      | KNOWN_CHK	(* non-escaping function with GC check *)
-      | KNOWN		(* non-escaping function *)
-
-    datatype rcc_kind
-      = FAST_RCC
-      | REENTRANT_RCC
+      | TAGt
+      | NUMt of {sz : int}
+      | FLTt of {sz : int}
 
   (* fragment/function parameters *)
-    type param = LambdaVar.lvar * ty
+    type param = {name : LambdaVar.lvar, ty : ty}
 
   (* branch probabilities are measured in thousandths (1..999).  We use 0 to
    * represent the absence of probability information.
@@ -122,13 +107,13 @@ structure CFG =
     type probability = int
 
     datatype exp
-      = VAR of LambdaVar.lvar
-      | LABEL of LambdaVar.lvar
+      = VAR of {name : LambdaVar.lvar}
+      | LABEL of {name : LambdaVar.lvar}
       | NUM of {iv : IntInf.int, sz : int}
-      | LOOKER of CFG_Prim.looker * exp list
-      | PURE of CFG_Prim.pure * exp list
-      | SELECT of int * exp
-      | OFFSET of int * exp
+      | LOOKER of {oper : CFG_Prim.looker, args : exp list}
+      | PURE of {oper : CFG_Prim.pure, args : exp list}
+      | SELECT of {idx : int, arg : exp}
+      | OFFSET of {idx : int, arg : exp}
 
     datatype stm
       = LET of exp * param * stm
@@ -140,6 +125,7 @@ structure CFG =
       | BRANCH of CFG_Prim.branch * exp list * probability * stm * stm
       | ARITH of CFG_Prim.arith * exp list * param * stm
       | SETTER of CFG_Prim.setter * exp list * stm
+      | CALLGC of exp list * LambdaVar.lvar list * stm
       | RCC of {
 	    reentrant : bool,		(* true for reentrant functions *)
 	    linkage : string,		(*  *)
@@ -152,42 +138,37 @@ structure CFG =
 	    k : stm			(* the continuation *)
 	  }
 
-
+  (* the different kinds of fragments *)
     datatype frag_kind
-      = STD_FUN				(* escaping function *)
-      | STD_CONT			(* escaping continuation *)
-      | KNOWN_FUN			(* known function (introduced during clustering) *)
+      = STD_FUN				(* entry fragment for escaping function *)
+      | STD_CONT			(* entry fragment for escaping continuation *)
+      | KNOWN_FUN			(* entry fragment for known function (introduced
+					 * during clustering)
+					 *)
       | INTERNAL			(* internal to a cluster *)
 
   (* an extended basic block *)
     datatype frag = Frag of {
-	kind : frag_kind,		(* fragment kind *)
-	lab : LambdaVar.lvar,		(* fragment label *)
-	params : param list,		(* typed parameter list *)
-	body : stm			(* function body *)
+	kind : frag_kind,		(* the fragment's kind *)
+	lab : LambdaVar.lvar,		(* the fragment's label *)
+	params : param list,		(* the parameters (with types) *)
+	body : stm			(* the fragment's body *)
       }
 
-  (* cluster attributes *)
+  (* per-cluster attributes *)
     type attrs = {
-	isCont : bool,		(* true if cluster is a continuation *)
 	alignHP : int,		(* alignment requirement in bytes for heap pointer *)
 	needsBasePtr : bool,	(* true if cluster does PC-relative addressing *)
+	hasTrapArith : bool,	(* true if cluster contains `ARITH` operations *)
 	hasRCC : bool		(* true if cluster contains raw C Calls *)
       }
 
   (* a cluster is a maximal flow graph where every known call is to a
    * fragment in the the cluster.
    *)
-    datatype cluster = Cluster of {
-	attrs : attrs,
-	entry : frag,
-	fns : frag list
-      }
+    datatype cluster = Cluster of {attrs : attrs, frags : frag list}
 
-    type comp_unit = {
-	srcFile : string,
-	entry : cluster,
-	fns : cluster list
-      }
+  (* a compilation unit *)
+    type comp_unit = {srcFile : string, entry : cluster, fns : cluster list}
 
   end

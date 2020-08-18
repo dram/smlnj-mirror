@@ -260,10 +260,17 @@ structure PPCfg : sig
 	    | C.INTERNAL => say "frag"
 	  (* end case *);
 	  say " (L)"; sayv lab; say " "; sayList sayParam params; say " {\n";
+	  case allocChk
+	   of SOME 0 => (space (n+2); say "check_gc\n")
+	    | SOME n => (space (n+2); say(concat[
+		  "check_gc(", Word.fmt StringCvt.DEC n, ")\n"
+		]))
+	    | NONE => ()
+	  (* end case *);
 	  prStm (n+2) stm;
 	  space n; say "}\n")
 
-    fun prCluster (C.Cluster(attrs, frags)) = (
+    fun prCluster (C.Cluster{attrs, frags}) = (
 	  say "# CLUSTER";
 	  say ("; align " ^ Int.toString(#alignHP attrs));
 	  if (#needsBasePtr attrs) then say "; base-ptr" else ();
