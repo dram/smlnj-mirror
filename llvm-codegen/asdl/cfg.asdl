@@ -254,7 +254,7 @@ module CFG (
   -- a cluster is a maximal flow graph where every known call is to a fragment in the
   -- the cluster.
   --
-    cluster = Cluster (attrs attrs, frag entry, frag* frags)
+    cluster = Cluster (attrs attrs, frag* frags)
 
     comp_unit = (string srcFile, cluster entry, cluster* fns)
 
