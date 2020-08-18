@@ -285,6 +285,8 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 		  | RECORD(_, flds, x, k) => allocRecord (
 		      D.makeDesc' (length flds, D.tag_record),
 		      flds, x, bindVarIn(x, k))
+		  | SELECT(i, v, x, INTt sz, k) =>
+		  | SELECT(i, v, x, FLTt sz, k) =>
 		  | SELECT(i, v, x, ty, k) =>
 		      genCont (CFG.SELECT(i, genV v), x, ty, k)
 		  | OFFSET(i, v, x, k) =>

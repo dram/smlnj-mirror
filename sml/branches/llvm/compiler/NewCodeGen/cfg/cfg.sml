@@ -32,8 +32,6 @@ structure CFG_Prim =
 
     datatype arith
       = ARITH of {oper : arithop, sz : int}
-      | TEST of {from : int, to : int}
-      | TESTU of {from : int, to : int}
       | REAL_TO_INT of {mode : rounding_mode, from : int, to : int}
 
   (* arithmetic operations that do not overflow; for the division operators,
@@ -53,7 +51,9 @@ structure CFG_Prim =
     datatype pure
       = PURE_ARITH of {oper : pureop, sz : int}
       | EXTEND of {signed : bool, from : int, to : int}
+(* may need this
       | TRUNC of {from : int, to : int}
+*)
       | INT_TO_REAL of {from : int, to : int}
       | PURE_SUBSCRIPT
       | PURE_RAW_SUBSCRIPT of {kind : numkind, sz : int}
@@ -86,7 +86,6 @@ structure CFG_Prim =
       | FCMP of {oper: fcmpop, sz: int}
       | FSGN of int
       | PEQL | PNEQ
-      | STREQL of int					(* string data equality test *)
 
   end
 
@@ -134,9 +133,9 @@ structure CFG =
     datatype stm
       = LET of exp * param * stm
       | ALLOC of CFG_Prim.alloc * exp list * LambdaVar.lvar * stm
-      | APPLY of exp list * ty list
-      | THROW of exp list * ty list
-      | GOTO of calling_conv * LambdaVar.lvar * exp list * ty list
+      | APPLY of exp * exp list * ty list
+      | THROW of exp * exp list * ty list
+      | GOTO of LambdaVar.lvar * exp list
       | SWITCH of exp * stm list
       | BRANCH of CFG_Prim.branch * exp list * probability * stm * stm
       | ARITH of CFG_Prim.arith * exp list * param * stm
@@ -153,13 +152,24 @@ structure CFG =
 	    k : stm			(* the continuation *)
 	  }
 
+
+    datatype frag_kind
+      = STD_FUN				(* escaping function *)
+      | STD_CONT			(* escaping continuation *)
+      | KNOWN_FUN			(* known function (introduced during clustering) *)
+      | INTERNAL			(* internal to a cluster *)
+
   (* an extended basic block *)
-    datatype frag = Frag of frag_kind * LambdaVar.lvar * param list * stm
+    datatype frag = Frag of {
+	kind : frag_kind,		(* fragment kind *)
+	lab : LambdaVar.lvar,		(* fragment label *)
+	params : param list,		(* typed parameter list *)
+	body : stm			(* function body *)
+      }
 
-  (* the entry fragment of a cluster *)
-    datatype entry = Entry of calling_conv * LambdaVar.lvar * param list * stm
-
+  (* cluster attributes *)
     type attrs = {
+	isCont : bool,		(* true if cluster is a continuation *)
 	alignHP : int,		(* alignment requirement in bytes for heap pointer *)
 	needsBasePtr : bool,	(* true if cluster does PC-relative addressing *)
 	hasRCC : bool		(* true if cluster contains raw C Calls *)
@@ -168,6 +178,16 @@ structure CFG =
   (* a cluster is a maximal flow graph where every known call is to a
    * fragment in the the cluster.
    *)
-    datatype cluster = Cluster of attrs * entry * frag list
+    datatype cluster = Cluster of {
+	attrs : attrs,
+	entry : frag,
+	fns : frag list
+      }
+
+    type comp_unit = {
+	srcFile : string,
+	entry : cluster,
+	fns : cluster list
+      }
 
   end

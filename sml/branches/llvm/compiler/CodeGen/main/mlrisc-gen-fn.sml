@@ -28,6 +28,9 @@
  *	  `from` will either be the native word size or the default
  *	  tagged integer size.  All other `TEST` operators have been
  *	  replaced with explicit limit checks.
+ *
+ * 	- STREQL and STRNEQ operations have been lowered to explicit
+ *	  tests against literal values
  *)
 
 signature MLRISCGEN =

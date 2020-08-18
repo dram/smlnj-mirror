@@ -8,6 +8,8 @@ structure PPCfg : sig
 
     val prCluster : CFG.cluster -> unit
 
+    val prCompUnit : CFG.comp_unit -> unit
+
     val expToString : CFG.exp -> string
 
   (* string conversions for various CFG_Prim types *)
@@ -55,7 +57,7 @@ structure PPCfg : sig
 	    | P.FSGN sz => concat["f", Int.toString sz, "sgn"]
 	    | P.PEQL => "peql"
 	    | P.PNEQ => "pneq"
-	    | P.STREQL n => "streql" ^ Int.toString n
+	    | P.LIMIT n => concat["needGC(", Word.fmt StringCvt.DEC n, ")"]
 	  (* end case *))
 
     fun allocToString (P.RECORD{desc, mut=false}) =
@@ -97,8 +99,6 @@ structure PPCfg : sig
 	  concat[prefix, "_", i2s from, "_to_", i2s to]
 
     fun arithToString (P.ARITH{oper, sz}) = arithopToString oper ^ i2s sz
-      | arithToString (P.TEST{from, to}) = cvtParams ("test_", from, to)
-      | arithToString (P.TESTU{from, to}) = cvtParams ("testu_", from, to)
       | arithToString (P.REAL_TO_INT{mode, from, to}) = let
 	  fun toS prefix = concat[prefix, i2s from, "_i", i2s to]
 	  in
@@ -184,6 +184,9 @@ structure PPCfg : sig
     fun prStm n = let
 	  fun sayExp e = say(expToString e)
 	  fun sayApp (prefix, args) = (say(appToS(prefix, args)); say "\n")
+	  fun sayBr (P.LIMIT 0w0, []) = say "needsGC"
+	    | sayBr (oper as P.LIMIT _, []) = say(branchToString oper)
+	    | sayBr (oper, args) = sayApp (branchToString p, args)
 	  fun pr stm = (
 		space n;
 		case stm
@@ -194,20 +197,12 @@ structure PPCfg : sig
 		  | C.ALLOC(p, args, x, stm) => (
 		      sayApp (allocToString p, args);
 		      say " -> "; sayv x; say "\n"; pr stm)
-		  | C.APPLY(args as f::_, tys) => (
+		  | C.APPLY(f, args, tys) => (
 		      say "apply "; sayExp f; sayArgs (args, tys); say "\n")
-		  | C.APPLY _ => raise Fail "malformed APPLY"
-		  | C.THROW(f::args, fTy::tys) => (
+		  | C.THROW(f, args, tys) => (
 		      say "throw "; sayExp f; sayArgs (args, tys); say "\n")
-		  | C.THROW _ => raise Fail "malformed THROW"
-		  | C.GOTO(cc, lab, args, tys) => (
-		      case cc
-		       of C.STD_FUN => say "goto std_fun "
-			| C.STD_CONT => say "goto std_cont "
-			| C.KNOWN_CHK => say "goto known_chk "
-			| C.KNOWN => say "goto known "
-		      (* end case *);
-		      say ("L_" ^ LV.lvarName lab); sayArgs (args, tys); say "\n")
+		  | C.GOTO(lab, args) =>
+		      sayApp ("goto L_" ^ LV.lvarName lab, args)
 		  | C.SWITCH(arg, cases) =>  let
 		      fun sayCase (i, e) = (
 			    space n; say "case "; say(i2s i);
@@ -218,17 +213,17 @@ structure PPCfg : sig
 			space n; say "}\n"
 		      end
 		  | C.BRANCH(p, args, 0, stm1, stm2) => (
-		      say "if "; sayApp (branchToString p, args); say " {\n";
+		      say "if "; sayBr (p, args); say " {\n";
 		      prStm (n+2) stm1;
 		      space n; say "} else {\n";
 		      prStm (n+2) stm2;
 		      space n; say "}\n")
 		  | C.BRANCH(p, args, prob, stm1, stm2) => (
-		      say "if "; sayApp (branchToString p, args);
-		      say " { ["; say(Int.toString prob); say "/100]\n";
+		      say "if "; sayBr (p, args);
+		      say " { ["; say(Int.toString prob); say "/1000]\n";
 		      prStm (n+2) stm1;
 		      space n; say "} else { [";
-		      say(Int.toString(100-prob)); say "/100]\n";
+		      say(Int.toString(100-prob)); say "/1000]\n";
 		      prStm (n+2) stm2;
 		      space n; say "}\n")
 		  | C.ARITH(p, args, x, stm) => (
@@ -236,6 +231,12 @@ structure PPCfg : sig
 		      say " -> "; sayParam x; say "\n"; pr stm)
 		  | C.SETTER(p, args, stm) => (
 		      sayApp (setterToString p, args); say "\n"; pr stm)
+		  | C.CALLGC(roots, newRoots, stm) => (
+		      sayApp ("callgc", roots);
+		      say " -> (";
+		      say (String.concatWithMap "," LV.lvarName newRoots);
+		      say ")\n";
+		      pr stm)
 		  | C.RCC{reentrant, linkage, proto, args, results, live, k} => (
 		      if reentrant
 			then say "reentrant c_call "
@@ -250,28 +251,32 @@ structure PPCfg : sig
 	    pr
 	  end
 
-    fun prFrag n (C.Frag(fk, lab, params, stm)) = (
+    fun prFrag n (C.Frag{kind, lab, params, body}) = (
 	  space n;
-	  case fk
-	   of C.GC_CHECK => say "GC_CHECK "
-	    | C.INTERNAL => ()
+	  case kind
+	   of C.STD_FUN => say "std_fun"
+	    | C.STD_CONT => say "std_cont"
+	    | C.KNOWN_FUN => say "known_fun"
+	    | C.INTERNAL => say "frag"
 	  (* end case *);
-	  say "(L)"; sayv lab; say " "; sayList sayParam params; say " {\n";
+	  say " (L)"; sayv lab; say " "; sayList sayParam params; say " {\n";
 	  prStm (n+2) stm;
 	  space n; say "}\n")
 
-    fun prCluster (C.Cluster(attrs, C.Entry(cc, f, params, stm), frags)) = (
-	  case cc
-	   of C.STD_FUN => say "std_fun "
-	    | C.STD_CONT => say "std_cont "
-	    | C.KNOWN_CHK => say "known_chk "
-	    | C.KNOWN => say "known "
-	  (* end case *);
-	  say "(L)"; sayv f; say " "; sayList sayParam params; say " {\n";
-	  say "  entry {\n";
-	  prStm 4 stm;
-	  say "  }\n";
+    fun prCluster (C.Cluster(attrs, frags)) = (
+	  say "# CLUSTER";
+	  say ("; align " ^ Int.toString(#alignHP attrs));
+	  if (#needsBasePtr attrs) then say "; base-ptr" else ();
+	  if (#hasTrapArith attrs) then say "; overflow" else ();
+	  if (#hasRCC attrs) then say "; raw-cc" else ();
+	  say " {\n";
 	  List.app (prFrag 2) frags;
 	  say "}\n")
+
+    fun prCompUnit {srcFile, entry, fns} = (
+	  say (concat["########## ", srcFile, "\n"]);
+	  prCluster entry;
+	  List.app (fn f => (say "#####\n"; prCluster f)) fns;
+	  say "##########\n")
 
   end

@@ -20,7 +20,7 @@ structure CFGUtil : sig
     fun tyToString (CFG.NUMt sz) = "i" ^ Int.toString sz
       | tyToString (CFG.FLTt sz) = "f" ^ Int.toString sz
       | tyToString CFG.PTRt = "ptr"
-      | tyToString CFG.FUNt = "fun"
-      | tyToString CFG.CNTt = "cont"
+      | tyToString CFG.LABt = "label"
+      | tyToString CFG.TAGt = "int"
 
   end

@@ -598,8 +598,6 @@ functor NewMLRiscGenFn (
 			      divOp(sz, M.DIVT, M.DIV_TO_ZERO, a, b)
 			  | (P.ARITH{oper=P.IREM, sz}, [a, b]) =>
 			      divOp(sz, M.REMS, M.DIV_TO_ZERO, a, b)
-			  | (P.TEST{from, to}, [a]) => ??
-			  | (P.TESTU{from, to}, [a]) => ??
 			  | (P.REAL_TO_INT{mode, from, to}, [a]) => let
 (* NOTE: currently, the REAL_TO_INT primop is never generated because Real.floor, etc.
  * functions are mapped to the Assembly.A.floor function.

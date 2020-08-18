@@ -41,7 +41,9 @@ signature INVOKE_GC =
     val knwCheckLimit : stream -> t -> unit
 
   (* generate a check limit for optimized, known function *)
+(* no longer used
     val optimizedKnwCheckLimit : stream -> t -> unit
+*)
 
   (* generate a long jump to call gc *)
     val emitLongJumpsToGCInvocation : stream -> unit

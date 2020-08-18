@@ -7,6 +7,9 @@
 signature LIMIT =
   sig
 
+  (* returns list of function and mapping from function names to pairs of allocation
+   * amount and number of instructions.
+   *)
     val nolimit : CPS.function list -> CPS.function list * (CPS.lvar -> (int * int))
 
   end (* signature LIMIT *)
