@@ -24,6 +24,8 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
     structure P = CPS.P
   (* target primops *)
     structure TP = CFG_Prim
+  (* target IR *)
+    structure C = CFG
   (* object descriptors *)
     structure D = MS.ObjDesc
 
@@ -44,7 +46,6 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
     val addrTy = MS.addressBitWidth	(* naturalsize of address arithmetic *)
     val wordsPerDbl = 8 div ws
     val wordsPerDbl' = IntInf.fromInt wordsPerDbl
-    val cfgITy = CFG.NUMt ity
 
   (* return true if integers of `sz` bits are represented as tagged values *)
     fun isTaggedInt sz = (sz <= defaultIntSz)
@@ -56,9 +57,9 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
     val BOGty = CPSUtil.BOGt
 
   (* CFG integer constants *)
-    fun num iv = CFG.NUM{iv = iv, sz = ity}
-    fun num' iv = CFG.NUM{iv = IntInf.fromInt iv, sz = ity}
-    fun szNum sz iv = CFG.NUM{iv = iv, sz = sz}
+    fun num iv = C.NUM{iv = iv, sz = ity}
+    fun num' iv = C.NUM{iv = IntInf.fromInt iv, sz = ity}
+    fun szNum sz iv = C.NUM{iv = iv, sz = sz}
     fun w2Num iv = num(Word.toLargeInt iv)
     fun mlInt' n = num(n+n+1)
     fun mlInt n = mlInt'(IntInf.fromInt n)
@@ -75,13 +76,37 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 
   (* convert CPS types to CFG types *)
     fun cvtTy cpsTy = (case cpsTy
-	   of CPS.NUMt{sz, tag=true} => cfgITy
-	    | CPS.NUMt{sz, ...} => CFG.NUMt sz
-	    | CPS.FLTt sz => CFG.FLTt sz
-	    | CPS.PTRt _ => CFG.PTRt
-	    | CPS.FUNt => CFG.FUNt
-	    | CPS.CNTt => CFG.CNTt
+	   of CPS.NUMt{sz, tag=true} => C.TAGt
+	    | CPS.NUMt{sz, ...} => C.NUMt{sz=sz}
+	    | CPS.FLTt sz => C.FLTt{sz=sz}
+	    | CPS.PTRt _ => C.PTRt
+	    | CPS.FUNt => C.LABt
+	    | CPS.CNTt => C.LABt
 	  (* end case *))
+
+  (* helpers for constructing expressions *)
+    fun var x = C.VAR{name = x}
+    fun label x = C.LABEL{name = x}
+    fun pure (oper, args) = C.PURE{oper = oper, args = args}
+    fun pureOp (oper, sz, args) = pure(TP.PURE_ARITH{oper=oper, sz=sz}, args)
+    fun select (i, arg) = C.SELECT{idx = i, arg = arg}
+    fun looker (oper, args) = C.LOOKER{oper = oper, args = args}
+
+    fun zExt (from, to, arg) = pure (TP.EXTEND{signed=false, from=from, to=to}, [arg])
+    fun sExt (from, to, arg) = pure (TP.EXTEND{signed=true, from=from, to=to}, [arg])
+
+    fun param (x, ty) = {name = x, ty = ty}
+
+    fun letVar (exp, ty, k) = let
+	  val x = LV.mkLvar()
+	  in
+	    C.LET(exp, param(x, ty), k (var x))
+	  end
+
+  (* Tagged integer utilities *)
+    fun addTag e   = pureOp (TP.ADD, ity, [e, one])
+    fun stripTag e = pureOp (TP.SUB, ity, [e, one])
+    fun orTag e    = pureOp (TP.ORB, ity, [e, one])
 
   (* Tracking expressions that are bound to variables that are used more than
    * once.
@@ -96,19 +121,21 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
     datatype info = Info of {
 	modes : use_mode LTbl.hash_table,	(* maps LVars to uses *)
 	typs : CPS.cty LTbl.hash_table,
-	attrs : CFG.attrs			(* cluster attributes *)
+	attrs : C.attrs			(* cluster attributes *)
       }
 
     fun lookupMode (Info{modes, ...}) = LTbl.lookup modes
 
     fun typeOfVar (Info{typs, ...}) = LTbl.lookup typs
 
+(* unclear where/if this function is used *)
     fun typeOf info = let
 	  val typeOfVar = typeOfVar info
 	  in
-	    fn (C.VAR x) => typeOfVar x
-	     | (C.LABEL lab) => typeOfVar lab
-	     | (C.NUM{ty, ...}) => C.NUMt ty
+	    fn (CPS.VAR x) => cvtTy(typeOfVar x)
+	     | (CPS.LABEL lab) => C.LABt
+	     | (CPS.NUM{ty={tag=true, ...}, ...}) => C.TAGt
+	     | (CPS.NUM{ty={sz, ...}, ...}) => C.NUMt{sz=sz}
 	     | v => error ["unexpected ", PPCps.value2str v]
 	  end
 
@@ -133,6 +160,7 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 	  val typs = LTbl.mkTable(32, Fail "typs")
 	  val recordTy = LTbl.insert typs
 	  val needsBasePtr = ref false
+	  val hasTrapArith = ref false
 	  val hasRCC = ref false
 	  val alignHP = ref MS.valueSize
 	  fun align sz = if !alignHP < sz then alignHP := sz else ()
@@ -162,6 +190,7 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 		  | SETTER(_, vs, k) => (List.app useVal vs; init k)
 		  | LOOKER(_, vs, x, ty, k) => (recordTy (x, ty); useVals vs; init k)
 		  | ARITH(_, vs, x, ty, k) => (
+		      hasTrapArith := true;
 		      bindVar x;
 		      recordTy (x, ty); useVals vs; init k)
 		  | PURE(P.WRAP(P.FLOAT _), vs, x, ty, k) => (
@@ -191,6 +220,7 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 		attrs = {
 		    alignHP = !alignHP,
 		    needsBasePtr = !needsBasePtr,
+		    hasTrapArith = !hasTrapArith,
 		    hasRCC = !hasRCC
 		  }
 	      }
@@ -199,19 +229,17 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
     fun record desc = TP.RECORD{desc=desc, mut=false}
     fun mutRecord desc = TP.RECORD{desc=desc, mut=true}
 
-    fun pureOp (oper, sz, args) = CFG.PURE(TP.PURE_ARITH{oper=oper, sz=sz}, args)
-
     fun signExtendTo (from, to, arg) =
-	  CFG.PURE(TP.EXTEND{signed=true, from=from, to=to}, [arg])
+	  pure(TP.EXTEND{signed=true, from=from, to=to}, [arg])
     fun signExtend (from, arg) = signExtendTo (from, ity, arg)
 
     fun zeroExtendTo (from, to, arg) =
-	  CFG.PURE(TP.EXTEND{signed=false, from=from, to=to}, [arg])
+	  pure(TP.EXTEND{signed=false, from=from, to=to}, [arg])
     fun zeroExtend (from, arg) = zeroExtendTo (from, ity, arg)
 
   (* get the descriptor of a heap object *)
     fun getDescriptor obj =
-	  CFG.LOOKER(TP.RAW_LOAD{kind=TP.INT, sz=ity}, [obj, num'(~ws)])
+	  looker(TP.RAW_LOAD{kind=TP.INT, sz=ity}, [obj, num'(~ws)])
 
   (* get length field of a heap object as tagged integer *)
     fun getObjLength obj =
@@ -221,26 +249,29 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 	    ])
 
   (* get the data pointer of a sequence (vector, array, string, ...) *)
-    fun getSeqData obj = CFG.SELECT(0, obj)
+    fun getSeqData obj = select(0, obj)
   (* get the length field of a sequence *)
-    fun getSeqLen obj = CFG.SELECT(1, obj)
+    fun getSeqLen obj = select(1, obj)
+
+    fun rawSelect (kind, sz, i, arg) =
+	  pure(TP.PURE_RAW_SUBSCRIPT{kind = kind, sz = sz}, [arg, num' i])
 
   (* translate CPS RAWLOAD primop based on kind *)
     fun rawLoad (P.INT sz, args) = let
-	  val load = CFG.LOOKER(TP.RAW_LOAD{kind=TP.INT, sz = sz}, args)
+	  val load = looker(TP.RAW_LOAD{kind=TP.INT, sz = sz}, args)
 	  in
 	    if (sz < ity)
 		then signExtend (sz, load)
 		else load
 	  end
       | rawLoad (P.UINT sz, args) = let
-	  val load = CFG.LOOKER(TP.RAW_LOAD{kind=TP.INT, sz = sz}, args)
+	  val load = looker(TP.RAW_LOAD{kind=TP.INT, sz = sz}, args)
 	  in
 	    if (sz < ity)
 		then zeroExtend (sz, load)
 		else load
 	  end
-      | rawLoad (P.FLOAT sz, args) = CFG.LOOKER(TP.RAW_LOAD{kind=TP.FLT, sz = sz}, args)
+      | rawLoad (P.FLOAT sz, args) = looker(TP.RAW_LOAD{kind=TP.FLT, sz = sz}, args)
 
     fun rawStore (P.INT sz) = TP.RAW_STORE{kind=TP.INT, sz = sz}
       | rawStore (P.UINT sz) = TP.RAW_STORE{kind=TP.INT, sz = sz}
@@ -255,7 +286,7 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 	  val bind = LTbl.insert exps
 	(* convert a CPS value to a CFG expression *)
 	  fun genV (VAR x) = binding x
-	    | genV (LABEL lab) = CFG.LABEL lab
+	    | genV (LABEL lab) = label lab
 	    | genV (NUM{ty={tag=true, ...}, ival}) = mlInt' ival
 	    | genV (NUM{ty={sz, ...}, ival}) = szNum sz ival
 	    | genV v = error ["unexepected ", PPCps.value2str v]
@@ -263,9 +294,9 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 	  val genTagged = TaggedArith.trapping genV
 	  fun genCont (cfgExp, x, ty, k) = (case lookupMode x
 		 of TREE => (bind (x, cfgExp); genE k)
-		  | BOUND => CFG.LET(cfgExp, (x, cvtTy ty), bindVarIn(x, k))
+		  | BOUND => C.LET(cfgExp, param(x, cvtTy ty), bindVarIn(x, k))
 		(* end case *))
-	  and bindVarIn (x, k) = (bind (x, CFG.VAR x); genE k)
+	  and bindVarIn (x, k) = (bind (x, var x); genE k)
 	  and genE cexp = (case cexp
 		 of RECORD(CPS.RK_VECTOR, flds, x, k) => let
 		    (* A vector has a data record and a header record *)
@@ -274,7 +305,7 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 		      val dataP = LV.mkLvar()
 		      in
 			allocRecord (dataDesc, flds, dataP,
-			  CFG.ALLOC(record D.desc_polyvec, [CFG.VAR dataP, mlInt len], x,
+			  C.ALLOC(record D.desc_polyvec, [var dataP, mlInt len], x,
 			    bindVarIn(x, k)))
 		      end
 (* REAL32: FIXME *)
@@ -285,19 +316,21 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 		  | RECORD(_, flds, x, k) => allocRecord (
 		      D.makeDesc' (length flds, D.tag_record),
 		      flds, x, bindVarIn(x, k))
-		  | SELECT(i, v, x, INTt sz, k) =>
-		  | SELECT(i, v, x, FLTt sz, k) =>
+		  | SELECT(i, v, x, ty as CPS.NUMt{sz, ...}, k) =>
+		      genCont (rawSelect(TP.INT, sz, i, genV v), x, ty, k)
+		  | SELECT(i, v, x, ty as CPS.FLTt sz, k) =>
+		      genCont (rawSelect(TP.FLT, sz, i, genV v), x, ty, k)
 		  | SELECT(i, v, x, ty, k) =>
-		      genCont (CFG.SELECT(i, genV v), x, ty, k)
+		      genCont (select(i, genV v), x, ty, k)
 		  | OFFSET(i, v, x, k) =>
-		      genCont (CFG.OFFSET(i, genV v), x, BOGty, k)
+		      genCont (C.OFFSET{idx=i, arg=genV v}, x, BOGty, k)
 		  | APP(LABEL lab, vs) =>
 ??
 		  | APP(f, vs) =>
 ??
 		  | FIX _ => error ["unexpected FIX"]
 		  | SWITCH(v, _, cases) =>
-		      CFG.SWITCH(genV v, List.map genE cases)
+		      C.SWITCH(genV v, List.map genE cases)
 		  | BRANCH(test, vs, _, k1, k2) =>
 		      genBranch (test, vs, genE k1, genE k2)
 		  | SETTER(oper, vs, k) =>
@@ -309,18 +342,15 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 			then let
 			  val tmp = LV.mkLvar()
 			  fun tag v =
-				CFG.ARITH(TP.ARITH{oper=TP.IADD, sz=ity}, [v, v], (tmp, cfgITy),
-				  genCont (pureOp(TP.ADD, ity, [CFG.VAR tmp, one]),
+				C.ARITH(TP.ARITH{oper=TP.IADD, sz=ity}, [v, v],
+				  param(tmp, C.TAGt),
+				  genCont (pureOp(TP.ADD, ity, [var tmp, one]),
 				    x, ty, k))
 			  in
 			    case genV v
-			     of v' as CFG.VAR _ => tag v'
-			      | v' as CFG.NUM _ => tag v'
-			      | v' => let
-				  val tmp' = LV.mkLvar()
-				  in
-				    CFG.LET(v', (tmp', cfgITy), tag (CFG.VAR tmp'))
-				  end
+			     of v' as C.VAR _ => tag v'
+			      | v' as C.NUM _ => tag v'
+			      | v' => letVar (v', C.TAGt, tag)
 			    (* end case *)
 			  end
 			else error ["unsupported sizes for TEST"]
@@ -332,17 +362,17 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 			 * then this addition will cause a trap.
 			 *)
 			  val dummy = LV.mkLvar()
-			  val x' = CFG.VAR x
+			  val x' = var x
 			  in
 			    bind (x, x');
-			    CFG.LET(genV v, (x, cvtTy ty),
-			      CFG.ARITH(TP.ARITH{oper=TP.IADD, sz=ity}, [x', signBit],
-				(dummy, cfgITy), genE k))
+			    C.LET(genV v, param(x, cvtTy ty),
+			      C.ARITH(TP.ARITH{oper=TP.IADD, sz=ity}, [x', signBit],
+				param(dummy, C.TAGt), genE k))
 			  end
 			else error ["unsupported sizes for TESTU"]
 		  | ARITH(P.IARITH{oper, sz}, vs, x, ty, k) => if isTaggedInt sz
 		      then let
-			fun continue (CFG.VAR _) = bindVarIn (x, k)
+			fun continue (C.VAR _) = bindVarIn (x, k)
 			  | continue exp =
 			      genCont(exp, x, CPS.NUMt{sz=defaultIntSz, tag=true}, k)
 			in
@@ -350,7 +380,7 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 			end
 		      else let
 			fun arith (oper, vs) =
-			      CFG.ARITH(TP.ARITH{oper=oper, sz=sz}, vs, (x, cvtTy ty),
+			      C.ARITH(TP.ARITH{oper=oper, sz=sz}, vs, param(x, cvtTy ty),
 				bindVarIn (x, k))
 			in
 			  case (oper, List.map genV vs)
@@ -365,12 +395,12 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 			end
 		(* handle pure operators that are actually allocations *)
 		  | PURE(P.MAKEREF, [v], x, _, k) =>
-		      CFG.ALLOC(mutRecord D.desc_ref, [genV v], x, bindVarIn(x, k))
+		      C.ALLOC(mutRecord D.desc_ref, [genV v], x, bindVarIn(x, k))
 		  | PURE(P.NEWARRAY0, [], x, _, k) => let
 		      val dataP = LV.mkLvar()
 		      in
-			CFG.ALLOC(mutRecord D.desc_ref, [mlInt' 0], dataP,
-			CFG.ALLOC(record D.desc_polyarr, [mlInt' 0, CFG.VAR dataP], x,
+			C.ALLOC(mutRecord D.desc_ref, [mlInt' 0], dataP,
+			C.ALLOC(record D.desc_polyarr, [mlInt' 0, var dataP], x,
 			  bindVarIn(x, k)))
 		      end
 		  | PURE(P.WRAP(P.INT sz), [v], x, _, k) => if (sz = ity)
@@ -381,7 +411,7 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 				  sz = ity
 				}
 			  in
-			    CFG.ALLOC(oper, [genV v], x, bindVarIn(x, k))
+			    C.ALLOC(oper, [genV v], x, bindVarIn(x, k))
 			  end
 		      else if (sz < ity)
 			then error ["wrap for tagged ints is not implemented"]
@@ -395,7 +425,7 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 			      sz = 64
 			    }
 		      in
-			CFG.ALLOC(oper, [genV v], x, bindVarIn(x, k))
+			C.ALLOC(oper, [genV v], x, bindVarIn(x, k))
 		      end
 		  | PURE(P.RAWRECORD rk, [NUM{ty={tag=true, ...}, ival}], x, _, k) =>
 		      let
@@ -414,7 +444,7 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 		      val len = n * scale
 		      val oper = TP.RAW_ALLOC{desc = desc, align = scale, len = len}
 		      in
-			CFG.ALLOC(oper, [], x, bindVarIn(x, k))
+			C.ALLOC(oper, [], x, bindVarIn(x, k))
 		      end
 		(* handle the non-allocating pure operators *)
 		  | PURE(oper, vs, x, ty, k) =>
@@ -425,33 +455,33 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 	(***** ALLOCATION *****)
 	  and getField (v, CPS.OFFp 0) = genV v
 	    | getField (v, p) = let
-		fun getPath (v, CPS.OFFp n) = CFG.SELECT(n, v)
-		  | getPath (v, CPS.SELp(n, CPS.OFFp 0)) = CFG.SELECT(n, v)
-		  | getPath (v, CPS.SELp(n, p)) = getPath (CFG.SELECT(n, v), p)
+		fun getPath (v, CPS.OFFp n) = select(n, v)
+		  | getPath (v, CPS.SELp(n, CPS.OFFp 0)) = select(n, v)
+		  | getPath (v, CPS.SELp(n, p)) = getPath (select(n, v), p)
 		in
 		  getPath (genV v, p)
 		end
 	  and allocRecord (desc, fields, x, k) =
-		CFG.ALLOC(record desc, List.map getField fields, x, k)
+		C.ALLOC(record desc, List.map getField fields, x, k)
 (* REAL32: FIXME *)
 	(* Allocate a record with real components *)
 	  and allocFltRecord (fields, x, k) = let
 		val desc = D.makeDesc'(wordsPerDbl * length fields, D.tag_raw64)
 		val oper = TP.RAW_RECORD{desc = desc, kind = TP.FLT, sz = 64}
 		in
-		  CFG.ALLOC(oper, List.map getField fields, x, bindVarIn(x, k))
+		  C.ALLOC(oper, List.map getField fields, x, bindVarIn(x, k))
 		end
 	(* Allocate a record with machine-int-sized components *)
 	  and allocIntRecord (fields, x, k) = let
 		val desc = D.makeDesc' (length fields, D.tag_raw)
 		val oper = TP.RAW_RECORD{desc = desc, kind = TP.INT, sz = 64}
 		in
-		  CFG.ALLOC(oper, List.map getField fields, x, bindVarIn(x, k))
+		  C.ALLOC(oper, List.map getField fields, x, bindVarIn(x, k))
 		end
 	(***** SETTER *****)
 	  and genSetter (oper, args : value list, k) = (case (oper, args)
 		 of (P.NUMUPDATE{kind}, [arr, ix, v]) => let
-		      fun set oper = CFG.SETTER(
+		      fun set oper = C.SETTER(
 			    oper, [getSeqData(genV arr), untagSigned ix, genV v],
 			    k)
 		      in
@@ -462,24 +492,24 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 			(* end case *)
 		      end
 		  | (P.UNBOXEDUPDATE, [arr, ix, v]) =>
-		      CFG.SETTER(TP.UNBOXED_UPDATE,
+		      C.SETTER(TP.UNBOXED_UPDATE,
 			[getSeqData(genV arr), untagSigned ix, genV v],
 			k)
 		  | (P.UPDATE, [arr, ix, v]) =>
-		      CFG.SETTER(TP.UPDATE,
+		      C.SETTER(TP.UPDATE,
 			[getSeqData(genV arr), untagSigned ix, genV v],
 			k)
 		  | (P.UNBOXEDASSIGN, [r, v]) =>
-		      CFG.SETTER(TP.UNBOXED_ASSIGN, [genV r, genV v], k)
+		      C.SETTER(TP.UNBOXED_ASSIGN, [genV r, genV v], k)
 		  | (P.ASSIGN, [r, v]) =>
-		      CFG.SETTER(TP.ASSIGN, [genV r, genV v], k)
+		      C.SETTER(TP.ASSIGN, [genV r, genV v], k)
 		  | (P.SETHDLR, [v]) =>
-		      CFG.SETTER(TP.SET_HDLR, [genV v], k)
+		      C.SETTER(TP.SET_HDLR, [genV v], k)
 		  | (P.SETVAR, [v]) =>
-		      CFG.SETTER(TP.SET_VAR, [genV v], k)
+		      C.SETTER(TP.SET_VAR, [genV v], k)
 		  | (P.SETSPECIAL, [v]) => let
 		      fun set desc =
-			    CFG.SETTER(
+			    C.SETTER(
 			      TP.RAW_STORE{kind=TP.INT, sz=ity},
 			      [genV v, num'(~ws), desc],
 			      k)
@@ -494,25 +524,25 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 			(* end case *)
 		      end
 		  | (P.RAWSTORE{kind}, [adr, v]) =>
-		      CFG.SETTER(rawStore kind, [genV adr, zero ity, genV v], k)
+		      C.SETTER(rawStore kind, [genV adr, zero ity, genV v], k)
 		  | (P.RAWSTORE{kind}, [adr, offset, v]) =>
-		      CFG.SETTER(rawStore kind, [genV adr, genV offset, genV v], k)
+		      C.SETTER(rawStore kind, [genV adr, genV offset, genV v], k)
 		  | (P.RAWUPDATE(CPS.FLTt 64), [v, i, w]) =>
-		      CFG.SETTER(
+		      C.SETTER(
 			TP.RAW_UPDATE{kind=TP.FLT, sz=64}, [genV v, genV i, genV w],
 			k)
 		  | (P.RAWUPDATE _, [v, i, w]) =>
-		      CFG.SETTER(
+		      C.SETTER(
 			TP.RAW_UPDATE{kind=TP.INT, sz=ity}, [genV v, genV i, genV w],
 			k)
 		  | _ => error ["bogus setter: ", PPCps.setterToString oper]
 		(* end case *))
 	(***** LOOKER *****)
 	  and genLooker (oper, args : value list) = (case (oper, args)
-		 of (P.DEREF, _) => CFG.LOOKER(TP.DEREF, List.map genV args)
+		 of (P.DEREF, _) => looker(TP.DEREF, List.map genV args)
 		  | (P.SUBSCRIPT, [arr, ix]) =>
-		      CFG.LOOKER(TP.SUBSCRIPT, [
-			  CFG.SELECT(0, genV arr), untagSigned ix
+		      looker(TP.SUBSCRIPT, [
+			  select(0, genV arr), untagSigned ix
 			])
 		  | (P.NUMSUBSCRIPT{kind=P.INT sz}, [arr, ix]) =>
 		      genRawIntSubscript (sz, arr, ix)
@@ -521,8 +551,8 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 		  | (P.NUMSUBSCRIPT{kind=P.FLOAT sz}, [arr, ix]) =>
 		      genRawSubscript (TP.FLT, sz, arr, ix)
 		  | (P.GETSPECIAL, [obj]) => getObjLength (genV obj)
-		  | (P.GETHDLR, _) => CFG.LOOKER(TP.GET_HDLR, List.map genV args)
-		  | (P.GETVAR, _)=> CFG.LOOKER(TP.GET_VAR, List.map genV args)
+		  | (P.GETHDLR, _) => looker(TP.GET_HDLR, List.map genV args)
+		  | (P.GETVAR, _)=> looker(TP.GET_VAR, List.map genV args)
 		  | (P.RAWLOAD{kind}, [adr]) => rawLoad (kind, [genV adr, zero ity])
 		  | (P.RAWLOAD{kind}, [adr, ix]) => rawLoad (kind, [genV adr, genV ix])
 		(* end case *))
@@ -598,29 +628,53 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 		      if (from = to)
 			then genV v
 		      else if (from = defaultIntSz) andalso (to = ity)
+		      (* shift right by one preserves sign and nukes tag bit *)
 			then pureOp (TP.RSHIFT, ity, [genV v, one])
-		      else if (from < defaultIntSz)
+		      else if isTaggedInt from
 			then let
-			(* shift left so that sign bit is leftmost bit *)
-			  val exp = pureOp (TP.LSHIFT, ity, [genV v, num'(defaultIntSz - from)])
+(* QUESTION: do we need to zero-extend the argument to ity width? *)
+			(* shift left amount so that sign bit is leftmost bit *)
+			  val sa = IntInf.fromInt(defaultIntSz - from)
+			  val exp = pureOp (TP.LSHIFT, ity, [genV v, num sa])
 			  in
-			    if (to <= defaultIntSz)
-			      then addTag (
-				pureOp (TP.RSHIFT, ity, [exp, num'(ity - from)]),
-				num'(defaultIntSz - from)
-			      ]))
-			else pureOp(TP.EXTEND{from=from, to=to}, [genV v]
+			    if isTaggedInt to
+			    (* note that result already has its tag *)
+			      then pureOp (TP.RSHIFT, ity, [exp, num sa])
+			    (* shift by one more bit to nuke the tag *)
+			      else pureOp (TP.RSHIFT, ity, [exp, num(sa+1)])
+			  end
+			else sExt(from, to, genV v)
 		  | (P.TRUNC{from, to}, [v]) =>
-??
+		      if (from = to)
+			then genV v
+		      else if (to = defaultIntSz) andalso (from = ity)
+			then orTag(pureOp(TP.LSHIFT, ity, [genV v, one]))
+		      else if not (isTaggedInt to)
+			then pure(TP.TRUNC{from=from, to=to}, [genV v])
+		      else if isTaggedInt from
+			then let
+			(* we include the tag bit in the mask *)
+			  val mask = IntInf.<<(1, Word.fromInt(to+1)) - 1
+			  in
+			    pureOp(TP.ANDB, ity, [genV v, num mask])
+			  end
+			else let
+			  val mask = IntInf.<<(1, Word.fromInt to) - 1
+			  in
+			    addTag (pureOp (TP.LSHIFT, ity, [
+				pureOp(TP.ANDB, ity, [genV v, num mask]),
+				one
+			      ]))
+			  end
 		  | (P.INT_TO_REAL{from, to}, [v]) => let
 		      val e = if isTaggedInt from
 			    then untagSigned v
 			    else genV v
 		      in
-			CFG.PURE(TP.INT_TO_REAL{from=ity, to=to}, [e])
+			pure(TP.INT_TO_REAL{from=ity, to=to}, [e])
 		      end
 		  | (P.SUBSCRIPTV, [v1, v2]) =>
-		      CFG.PURE(TP.PURE_SUBSCRIPT, [
+		      pure(TP.PURE_SUBSCRIPT, [
 			  getSeqData (genV v1),
 			  untagSigned v2
 			])
@@ -630,31 +684,31 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 			  num(D.powTagWidth-1)
 			]))
 		  | (P.CAST, [v]) => genV v
-		  | (P.GETCON, [v]) => CFG.SELECT(0, genV v)
-		  | (P.GETEXN, [v]) => CFG.SELECT(0, genV v)
+		  | (P.GETCON, [v]) => select(0, genV v)
+		  | (P.GETEXN, [v]) => select(0, genV v)
 		  | (P.BOX, [v]) => genV v	(* does this operation ever occur? *)
 		  | (P.UNBOX, [v]) => genV v	(* does this operation ever occur? *)
 		  | (P.UNWRAP(P.INT sz), [v]) =>
-		      CFG.LOOKER(TP.RAW_LOAD{sz=sz, kind=TP.INT}, [genV v, zero ity])
+		      looker(TP.RAW_LOAD{sz=sz, kind=TP.INT}, [genV v, zero ity])
 		  | (P.UNWRAP(P.FLOAT sz), [v]) =>
-		      CFG.LOOKER(TP.RAW_LOAD{sz=sz, kind=TP.FLT}, [genV v, zero ity])
+		      looker(TP.RAW_LOAD{sz=sz, kind=TP.FLT}, [genV v, zero ity])
 		  | (P.GETSEQDATA, [v]) => getSeqData (genV v)
 		  | (P.RECSUBSCRIPT, [v1, NUM{ty={tag=true, ...}, ival}]) =>
-		      CFG.SELECT(IntInf.toInt ival, genV v1)
+		      select(IntInf.toInt ival, genV v1)
 		  | (P.RECSUBSCRIPT, [v1, v2]) =>
-		      CFG.PURE(TP.PURE_SUBSCRIPT, [genV v1, untagSigned v2])
+		      pure(TP.PURE_SUBSCRIPT, [genV v1, untagSigned v2])
 		  | (P.RAW64SUBSCRIPT, [v1, v2]) =>
 (* REAL32: FIXME *)
-		      CFG.PURE(TP.PURE_RAW_SUBSCRIPT{kind=TP.FLT, sz=64},
+		      pure(TP.PURE_RAW_SUBSCRIPT{kind=TP.FLT, sz=64},
 			[genV v1, untagSigned v2])
 		  | _ => error[".genPure: ", PPCps.pureToString p]
 		(* end case *))
 	(***** BRANCH *****)
 	  and genBranch (test, args, k1, k2) = let
-		fun mkBr test' = CFG.BRANCH(test', List.map genV args, unkProb, k1, k2)
+		fun mkBr test' = C.BRANCH(test', List.map genV args, unkProb, k1, k2)
 	      (* translate a boxity test *)
 		fun boxedTest (v, kBoxed, kUnboxed) =
-		      CFG.BRANCH(
+		      C.BRANCH(
 			TP.CMP{oper=P.EQL, signed=false, sz=ity},
 			  [pureOp(TP.ANDB, ity, [v, one]), zero ity],
 			unkProb,
@@ -678,7 +732,7 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 		end
 	(* subscript from packed numeric vector *)
 	  and genRawSubscript (kind, sz, vec, idx) =
-		CFG.PURE(TP.PURE_RAW_SUBSCRIPT{kind=kind, sz=sz}, [
+		pure(TP.PURE_RAW_SUBSCRIPT{kind=kind, sz=sz}, [
 		    getSeqData(genV vec), untagSigned idx
 		  ])
 	  and genRawIntSubscript (sz, vec, idx) =

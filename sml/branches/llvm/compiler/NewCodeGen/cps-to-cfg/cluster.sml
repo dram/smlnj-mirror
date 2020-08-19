@@ -2,25 +2,174 @@
  *
  * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
- *
  *)
 
 structure Cluster : sig
 
-  (* Group the functions of a compilation unit into "clusters".
-   * using a union-find data structure.
+  (* `cluster (singleEntry, fns)` groups the functions `fns` of a compilation
+   * unit into "clusters" using a union-find data structure.  A cluster is
+   * a maximal graph of CPS functions connects by `APPLY(LABEL lab, ...)`
+   * edges.
    *
-   * First function in the function list must be the first function
-   * in the first cluster. This is achieved by ensuring that the first
-   * function is mapped to the smallest id in a dense enumeration.
-   * This function id will map to the smallest cluster id.
-   * The function ids are then iterated in descending order.
+   * If `singleEntry` is true, then each cluster will have a single entry
+   * point.  This restriction may require introducing additional CPS
+   * functions to act as join points.
+   *
+   * The first function in `fns` must be the first function in the first
+   * result cluster. This is achieved by ensuring that the first function
+   * is mapped to the smallest id in a dense enumeration. This function
+   * id will map to the smallest cluster id. The function ids are then
+   * iterated in descending order.
    *)
-    val cluster : CPS.function list -> CPS.function list list
+    val cluster : bool * CPS.function list -> CPS.function list list
 
   end = struct
 
     fun error msg = ErrorMsg.impossible ("Cluster." ^ msg)
+
+  (* set up a mapping from lvars to function IDs *)
+    fun mkTables funcs = let
+	  val numFuncs = length funcs
+	(* mapping of function names to a dense integer range *)
+	  exception FuncId
+	  val funcToIdTbl : int LambdaVar.Tbl.hash_table =
+		LambdaVar.Tbl.mkTable(numFuncs, FuncId)
+	(* mapping of ids to functions *)
+	  val idToFuncTbl = let
+		val tbl = Array.array(numFuncs, hd funcs)
+		val add = LambdaVar.Tbl.insert funcToIdTbl
+		in
+		  List.appi
+		    (fn (id, func as (_,f,_,_,_)) => (
+			add(f, id); Array.update(tbl, id, func)))
+		      funcs;
+		  tbl
+		end
+	  in {
+	    numFuncs = numFuncs,
+	    funcToID = LambdaVar.Tbl.funcToID funcToIdTbl,
+	    idToFunc = fn id => Array.sub(idToFuncTbl, id)
+	  } end
+
+  (* create a call graph for the functions, represented as an array `g` of integer
+   * IDs, where `Array.sub(g, id)` is the list of function IDs that the function
+   * with ID `id` calls.
+   *)
+    fun mkCallGraph ({numFuncs, funcToID, idToFunc}, funcs) = let
+	  val graph = Array.array(numFuncs, [])
+	  fun addEdges (id, (_, _, _, body)) = let
+		fun addEdge f = Array.modify (fn succs => funcToID f :: succs) graph
+		fun calls (CPS.APP(CPS.LABEL l, _)) = addEdge l
+		  | calls (CPS.APP _) = ()
+		  | calls (CPS.RECORD(_, _, _, e)) = calls e
+		  | calls (CPS.SELECT(_, _, _, _, e)) = calls e
+		  | calls (CPS.OFFSET(_, _, _, e)) = calls e
+		  | calls (CPS.SWITCH(_, _, es)) = List.app calls es
+		  | calls (CPS.BRANCH(_, _, _, e1, e2)) = (calls e1; calls e2)
+		  | calls (CPS.SETTER(_, _, e)) = calls e
+		  | calls (CPS.LOOKER(_, _, _, _, e)) = calls e
+		  | calls (CPS.ARITH(_, _, _, _, e)) = calls e
+		  | calls (CPS.PURE(_, _, _, _, e)) = calls e
+		  | calls (CPS.RCC(_, _, _, _, _, e)) = calls e
+		  | calls (CPS.FIX _) = error "unexpected FIX"
+		in
+		  calls body
+		end (* addEdges *)
+	  in
+	    List.appi addEdges funcs;
+	    graph
+	  end
+
+  (* group functions into clusters *)
+    fun group ({numFuncs, funcToID, idToFunc}, callGraph) = let
+	(* union-find structure -- initially each function in its own cluster *)
+	  val trees = Array.tabulate(numFuncs, fn i => i)
+	  fun ascend u = let
+		val v = Array.sub(trees, u)
+		in
+		  if v = u then u else ascend(v)
+		end
+	  fun union (t1, t2) = let
+		val r1 = ascend t1
+		val r2 = ascend t2
+		in
+		  if r1 = r2
+		    then () (* already in the same set *)
+		  else if r1 < r2
+		    then Array.update(trees, r2, r1)
+		    else Array.update(trees, r1, r2)
+		end
+	(* build union-find structure *)
+	  val _ = let
+		fun doFn (caller, callees) =
+		      List.app (fn id => union(caller, id)) callees
+		in
+		  Array.appi doFn callGraph
+		end
+	(* extract the clusters.
+	 * The first func in the funcs list must be the first function
+	 * in the first cluster.
+	 *)
+	  fun extract() = let
+		val clusters = Array.array(numFuncs, [])
+		fun collect n = let
+		      val root = ascend n
+		      val func = idToFunc n
+		      val cluster = Array.sub(clusters, root)
+		      in
+			Array.update(clusters, root, func::cluster);
+			collect (n-1)
+		      end
+		fun finish (~1, acc) = acc
+		  | finish (n, acc) = (case Array.sub(clusters, n)
+		       of [] => finish (n-1, acc)
+			| cluster => finish(n-1, cluster::acc)
+		      (* end case *))
+		in
+		  collect (numFuncs-1) handle _ => ();
+		  finish (numFuncs-1, [])
+		end
+	  in
+	    build funcs;
+	    extract()
+	  end (* group *)
+
+    structure ISet = IntRedBlackSet
+
+  (* if a cluster has multiple entry points, then split it into one function
+   * per entry-point, plus additional functions for shared code.  We also
+   * guarantee that there are no back edges to an entry function.
+   *)
+    fun split ({numFuncs, funcToID, idToFunc}, funcs) = let
+	  fun isEntry (CONT, _, _, _, _) = true
+	    | isEntry (ESCAPE, _, _, _, _) = true
+	    | isEntry _ = false
+	(* is there a path from `f` to `g`? *)
+	  fun reachable (f, g) = let
+	      (* depth-first search looking for `g`; visited is the set of IDs that
+	       * have been visited.
+	       *)
+		fun dfs visited h = (h = g)
+		      orelse (not ISet.member(visited, h)
+			andalso List.exists
+			  (dfs (ISet.add(visited, h)))
+			    (Array.sub(callGraph, h)))
+		in
+		  dfs f
+		end
+	  fun split' (clstr as f1 :: (frest as _::_)) = (
+		case List.filter isEntry frest
+		 of [] => clstr
+		  | entries => let
+		    (* partition the cluster into `length entries + 1` subgraphs
+		     * with the property that
+		      in
+		      end
+		(* end case *))
+	    | split' clstr = clstr
+	  in
+	    split'
+	  end (* split *)
 
   (* print clusters if requested *)
     fun print clusters = let
@@ -35,88 +184,20 @@ structure Cluster : sig
 	    clusters
 	  end
 
-    fun cluster funcs = let
-	  val numOfFuncs = length funcs
-	(* mapping of function names to a dense integer range *)
-	  exception FuncId
-	  val funcToIdTbl : int LambdaVar.Tbl.hash_table =
-		LambdaVar.Tbl.mkTable(numOfFuncs, FuncId)
-	  val lookup = LambdaVar.Tbl.lookup funcToIdTbl
-	(* mapping of ids to functions *)
-	  val idToFuncTbl = let
-		val tbl = Array.array(numOfFuncs, hd funcs)
-		val add = LambdaVar.Tbl.insert funcToIdTbl
-		in
-		  List.appi
-		    (fn (id, func as (_,f,_,_,_)) => (add(f, id); Array.update(tbl, id, func)))
-		      funcs;
-		  tbl
-		end
-	(* union-find structure -- initially each function in its own cluster *)
-	  val trees = Array.tabulate(numOfFuncs, fn i => i)
-	  fun ascend u = let
-		val v = Array.sub(trees, u)
-		in
-		  if v = u then u else ascend(v)
-		end
-	  fun union(t1, t2) = let
-		val r1 = ascend t1
-		val r2 = ascend t2
-		in
-		  if r1 = r2
-		    then () (* already in the same set *)
-		  else if r1 < r2
-		    then Array.update(trees, r2, r1)
-		    else Array.update(trees, r1, r2)
-		end
-	(* build union-find structure *)
-	  fun build [] = ()
-	    | build ((_,f,_,_,body)::rest) = let
-		val fId = lookup f
-		fun calls (CPS.APP(CPS.LABEL l,_))  = union(fId, lookup l)
-		  | calls (CPS.APP _)		    = ()
-		  | calls (CPS.RECORD(_,_,_,e))     = calls e
-		  | calls (CPS.SELECT(_,_,_,_,e))   = calls e
-		  | calls (CPS.OFFSET(_,_,_,e))     = calls e
-		  | calls (CPS.SWITCH(_,_,es))      = List.app calls es
-		  | calls (CPS.BRANCH(_,_,_,e1,e2)) = (calls e1; calls e2)
-		  | calls (CPS.SETTER(_,_,e))       = calls e
-		  | calls (CPS.LOOKER(_,_,_,_,e))   = calls e
-		  | calls (CPS.ARITH(_,_,_,_,e))    = calls e
-		  | calls (CPS.PURE(_,_,_,_,e))     = calls e
-		  | calls (CPS.RCC(_,_,_,_,_,e))    = calls e
-		  | calls (CPS.FIX _)               = error "calls.f:FIX"
-		in
-		  calls body; build rest
-		end (* build *)
-	(* extract the clusters.
-	 * The first func in the funcs list must be the first function
-	 * in the first cluster.
-	 *)
-	  fun extract() = let
-		val clusters = Array.array(numOfFuncs, [])
-		fun collect n = let
-		      val root = ascend n
-		      val func = Array.sub(idToFuncTbl, n)
-		      val cluster = Array.sub(clusters, root)
-		      in
-			Array.update(clusters, root, func::cluster);
-			collect (n-1)
-		      end
-		fun finish (~1, acc) = acc
-		  | finish (n, acc) = (case Array.sub(clusters, n)
-		       of [] => finish (n-1, acc)
-			| cluster => finish(n-1, cluster::acc)
-		      (* end case *))
-		in
-		  collect (numOfFuncs-1) handle _ => ();
-		  finish (numOfFuncs-1, [])
-		end
+  (* main function *)
+    fun cluster (singleEntry, funcs) = let
+	  val tbls = mkTables funcs
+	  val callGraph = mkCallGraph (tbls, funcs)
+	  val clusters = group (tbls, callGraph)
+	  val clusters = if singleEntry
+		then let
+		  val split = List.foldr
+		  (fn (clstr, clstrs) => split clstr @ clstrs)
+		    [] clusters
+		else clusters
 	  in
-	    build funcs;
-	    if !Control.CG.printClusters
-	      then print (extract())
-	      else extract()
-	  end (* cluster *)
+	    if !Control.CG.printClusters then print clusters else ();
+	    clusters
+	  end
 
   end

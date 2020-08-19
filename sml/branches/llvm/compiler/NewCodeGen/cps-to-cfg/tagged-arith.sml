@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Support for tagged arithmetic, which we lower to machine arithmetic
- * as part of the translation to CFG.  A tagged integer "n" is represented
+ * as part of the translation to C.  A tagged integer "n" is represented
  * as "2*n + 1" (i.e., its low bit is always 1).
  *)
 
@@ -31,12 +31,15 @@ structure TaggedArith : sig
     fun error msg = ErrorMsg.impossible(String.concat("TaggedArith" :: msg))
 
     val ity = Target.mlValueSz
-    val ity' = CFG.NUMt ity
+    val ity' = C.NUMt{sz = ity}
 
-    fun pureOp (rator, sz, args) = C.PURE(P.PURE_ARITH{oper=rator, sz=sz}, args)
+    fun pureOp (rator, sz, args) =
+	  C.PURE{oper=P.PURE_ARITH{oper=rator, sz=sz}, args=args}
+
+    fun var x = C.VAR{name=x}
 
   (* CFG integer constants *)
-    fun num iv = CFG.NUM{iv = iv, sz = ity}
+    fun num iv = C.NUM{iv = iv, sz = ity}
     fun w2Num iv = num(Word.toLargeInt iv)
     val zero = num 0
     val one = num 1
@@ -133,12 +136,13 @@ structure TaggedArith : sig
 
     fun trapping comp (rator, args, x, k) = let
 	  fun arith oper = P.ARITH{oper = oper, sz = ity}
+	  fun param (x, ty) = {name = x, ty = ty}
 	  fun continue (oper, args) =
-		CFG.ARITH(arith oper, args, (x, ity'), k(CFG.VAR x))
+		C.ARITH(arith oper, args, param(x, ity'), k(var x))
 	  fun tagResult (oper, args) = let
 		val tmp = LambdaVar.mkLvar()
 		in
-		  CFG.ARITH(arith oper, args, (tmp, ity'), k(addTag(CFG.VAR tmp)))
+		  C.ARITH(arith oper, args, param(tmp, ity'), k(addTag(var tmp)))
 		end
 	(* The only way a tagged-int div can overflow is when the result
 	 * gets retagged, therefore we can use a pure operation for the division.
@@ -158,9 +162,9 @@ structure TaggedArith : sig
 			    pureOp(oper, ity, [untagInt(comp a), untagInt(comp b)])
 		      (* end case *))
 		in
-		  CFG.LET(exp, (tmp, ity'),
-		  CFG.ARITH(arith P.IADD, [CFG.VAR tmp1, CFG.VAR tmp1], (tmp2, ity'),
-		    k(addTag(CFG.VAR tmp2))))
+		  C.LET(exp, param(tmp, ity'),
+		  C.ARITH(arith P.IADD, [var tmp1, var tmp1], param(tmp2, ity'),
+		    k(addTag(var tmp2))))
 		end
 	  in
 	    case (rator, args)
