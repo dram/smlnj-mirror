@@ -4,13 +4,25 @@ This is a list of things (both major and minor) that should be fixed/improved/ch
 in the SML/NJ compiler.  It is organized into short-term goals by proposed release
 target plus an additional "wish-list" of long-term goals.
 
-## For 110.98
+## For 110.99
+
+  * fix pretty-printer bugs
 
   * check if the problem with IntInf literals has gone away.
 
-## Future work
+  * Rewrite of pattern-match compilation to be an source to source translation of the
+    `Absyn` IR.  Include direct translation of "or" patterns and support for Successor
+    ML views.
+
+## High priority future work
 
   * 64-bit support for Windows
+
+  * LLVM code generator (prototype under construction)
+
+  * 64-bit ARM support.
+
+## Future work
 
   * Better type error messages:
     - Do not use the **same** name to refer to types that are **different**
@@ -43,6 +55,14 @@ target plus an additional "wish-list" of long-term goals.
     type to represent variables.  There should be distinct types for these to avoid
     potential confusion and errors.
 
+  * The handling of int/word types in FLINT/CPS should be overhauled.  Currently we
+    make a distinction between wrapped and unwrapped native integers, which allows
+    them to be represented in unboxed form across function applications.  We should
+    do something similar for tagged int/word types (e.g., Word8).  In particular,
+    this could avoid some overhead when reading/writing 8-bit data from vectors
+    and arrays, but should also allow us to take advantage of native hardware
+    support for 32-bit arithmetic on 64-bit hardware.
+
   * FLINT types (`FLINT/kernel`) need a thorough overhaul. There are too
     many layers of type representations, and the complexity of Nadathur
     closures is probably unjustified. Even the hash-consing of types may
@@ -55,10 +75,6 @@ target plus an additional "wish-list" of long-term goals.
 
   * New post-typechecking Absyn representation that makes the polymorphic type machinery
     explicit (*i.e.*, type abstraction and applications explicit).
-
-  * Rewrite of pattern-match compilation to be an source to source translation of the
-    `Absyn` IR.  Include direct translation of "or" patterns and support for Successor
-    ML views.
 
   * Functor specialization in the compiler.  This feature would allow more code
     sharing in the libraries (since functors could be used to generate multiple
@@ -87,9 +103,5 @@ target plus an additional "wish-list" of long-term goals.
     for slices.
 
   * New-new-runtime: new GC and core services with old version of C functions.
-
-  * LLVM code generator: use ASDL to export CPS representation to runtime-system code
-    generator.  This probably requires a specialized calling convention.  We can then
-    use this code generator to add ARM support.
 
   * FLINT replacement (switch to 3CPS?)
