@@ -139,6 +139,7 @@ structure PPCfg : sig
 	  cvtParams ("sign_extend_", from, to)
       | pureToString (P.EXTEND{signed=false, from, to}) =
 	  cvtParams ("zero_extend_", from, to)
+      | pureToString (P.TRUNC{from, to}) = cvtParams ("trunc_", from, to)
       | pureToString (P.INT_TO_REAL{from, to}) = cvtParams ("real", from, to)
       | pureToString P.PURE_SUBSCRIPT = "vector_sub"
       | pureToString (P.PURE_RAW_SUBSCRIPT{kind, sz}) =
@@ -147,14 +148,14 @@ structure PPCfg : sig
     fun space n = say(CharVector.tabulate(n, fn _ => #" "))
 
     fun expToString e = (case e
-	   of C.VAR x => LV.lvarName x
-	    | C.LABEL lab => "L_" ^ LV.lvarName lab
+	   of C.VAR{name} => LV.lvarName name
+	    | C.LABEL{name} => "L_" ^ LV.lvarName name
 	    | C.NUM{iv, sz} =>
 		concat["(i", i2s sz, ")", IntInf.toString iv]
-	    | C.LOOKER(p, args) => appToS(lookerToString p, args)
-	    | C.PURE(p, args) => appToS(pureToString p, args)
-	    | C.SELECT(i, e) => appToS("#" ^ i2s i, [e])
-	    | C.OFFSET(i, e) => appToS("@" ^ i2s i, [e])
+	    | C.LOOKER{oper, args} => appToS(lookerToString oper, args)
+	    | C.PURE{oper, args} => appToS(pureToString oper, args)
+	    | C.SELECT{idx, arg} => appToS("#" ^ i2s idx, [arg])
+	    | C.OFFSET{idx, arg} => appToS("@" ^ i2s idx, [arg])
 	  (* end case *))
 
     and appToS (prefix, es) = String.concat[
@@ -172,7 +173,7 @@ structure PPCfg : sig
 
     fun sayTy cty = say(CFGUtil.tyToString cty)
 
-    fun sayParam (x, ty) = (sayv x; say ":"; sayTy ty)
+    fun sayParam {name, ty} = (sayv name; say ":"; sayTy ty)
     fun sayArg (e, ty) = (say(expToString e); say ":"; sayTy ty)
 
     fun sayArgs ([], []) = say "()"
@@ -180,13 +181,14 @@ structure PPCfg : sig
 	  say "("; sayArg (arg, ty);
 	  ListPair.app (fn arg => (say ","; sayArg arg)) (args, tys);
 	  say ")")
+      | sayArgs _ = raise Match
 
     fun prStm n = let
 	  fun sayExp e = say(expToString e)
 	  fun sayApp (prefix, args) = (say(appToS(prefix, args)); say "\n")
 	  fun sayBr (P.LIMIT 0w0, []) = say "needsGC"
 	    | sayBr (oper as P.LIMIT _, []) = say(branchToString oper)
-	    | sayBr (oper, args) = sayApp (branchToString p, args)
+	    | sayBr (oper, args) = sayApp (branchToString oper, args)
 	  fun pr stm = (
 		space n;
 		case stm
@@ -260,14 +262,7 @@ structure PPCfg : sig
 	    | C.INTERNAL => say "frag"
 	  (* end case *);
 	  say " (L)"; sayv lab; say " "; sayList sayParam params; say " {\n";
-	  case allocChk
-	   of SOME 0 => (space (n+2); say "check_gc\n")
-	    | SOME n => (space (n+2); say(concat[
-		  "check_gc(", Word.fmt StringCvt.DEC n, ")\n"
-		]))
-	    | NONE => ()
-	  (* end case *);
-	  prStm (n+2) stm;
+	  prStm (n+2) body;
 	  space n; say "}\n")
 
     fun prCluster (C.Cluster{attrs, frags}) = (

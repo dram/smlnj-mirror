@@ -60,7 +60,7 @@ structure NumScan64 : sig
     fun scanOct isWord getc cs = (case (U.scanPrefix (U.octPat isWord) getc cs)
 	   of NONE => NONE
 	    | (SOME{neg, next, rest}) => let
-		val chkOverflow = chkOverflow 0wxE0000000
+		val chkOverflow = chkOverflow 0wxE000000000000000
 		fun cvt (w, rest) = (case (getc rest)
 		       of NONE => SOME{neg=neg, word=w, rest=rest}
 			| SOME(c, rest') => let val d = U.code c
@@ -103,7 +103,7 @@ structure NumScan64 : sig
     fun scanHex isWord getc cs = (case (U.scanPrefix (U.hexPat isWord) getc cs)
 	   of NONE => NONE
 	    | (SOME{neg, next, rest}) => let
-		val chkOverflow = chkOverflow 0wxF0000000
+		val chkOverflow = chkOverflow 0wxF000000000000000
 		fun cvt (w, rest) = (case (getc rest)
 		       of NONE => SOME{neg=neg, word=w, rest=rest}
 			| SOME(c, rest') => let val d = U.code c

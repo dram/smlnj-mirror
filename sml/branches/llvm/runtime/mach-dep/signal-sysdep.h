@@ -313,7 +313,8 @@ extern void SetFSR(int);
 #    define SIG_ZeroLimitPtr(scp)	{ ML_X86Frame[LIMITPTR_X86OFFSET] = 0; }
 
 /* macro to check if SIGSEGV was caused by `into` instruction */
-#    define SIG_IS_OVERFLOW_TRAP(pc)	(((Byte_t*)pc)[-1] == 0xce)
+#    define SIG_IS_OVERFLOW_TRAP(sig,pc) \
+	(((Byte_t*)pc)[-1] == 0xce)
 
 #  elif defined(OPSYS_NETBSD2)
     /** x86, NetBSD (version 2.x) **/
@@ -402,9 +403,14 @@ extern void SetFSR(int);
 
 #  elif defined(OPSYS_LINUX)
     /** amd64, LINUX **/
-/* on linux, the "int 4" instruction causes a SIGSEGV */
+/* on linux, overflow can occur in two ways:
+ *  (1) "int 4" instruction, which is invoked for addition and multiplication
+ *      overflow, causes a SIGSEGV.
+ *  (2) Division of the most negative number by -1 causes a SIGFPE.
+ */
 
 #    define SIG_OVERFLOW		SIGSEGV
+#    define SIG_OVERFLOW2		SIGFPE
 
 #    define SIG_GetCode(info,scp)	((scp)->uc_mcontext.gregs[REG_RIP])
 /* for linux, SIG_GetCode simply returns the address of the fault */
@@ -413,8 +419,9 @@ extern void SetFSR(int);
 #    define SIG_ZeroLimitPtr(scp)	{ (scp)->uc_mcontext.gregs[REG_R14] = 0; }
 
 /* macro to check if SIGSEGV was caused by `int 4` instruction */
-#    define SIG_IS_OVERFLOW_TRAP(pc)	\
-	((((Byte_t*)pc)[-2] == 0xcd) && (((Byte_t*)pc)[-1] == 0x04))
+#    define SIG_IS_OVERFLOW_TRAP(sig,pc)					\
+	(((sig) == SIG_OVERFLOW2) ||						\
+	    ((((Byte_t*)pc)[-2] == 0xcd) && (((Byte_t*)pc)[-1] == 0x04)))
 
 #  elif defined(OPSYS_NETBSD)
     /** amd64, NetBSD (version 3.x) **/

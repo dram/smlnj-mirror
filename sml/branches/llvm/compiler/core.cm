@@ -154,7 +154,9 @@ Group
 (* new codegen structures *)
 	structure CFG
 	structure PPCfg
+(*
 	functor NewMLRiscGenFn
+*)
 
 is
 
@@ -348,13 +350,16 @@ CodeGen/main/spill-table.sml
 NewCodeGen/cfg/cfg.sml
 NewCodeGen/cfg/ppcfg.sml
 NewCodeGen/cfg/cfg-util.sml
+(*
 NewCodeGen/cfg-to-mlrisc/arg-passing-fn.sml
 NewCodeGen/cfg-to-mlrisc/cfg-regions.sml
 NewCodeGen/cfg-to-mlrisc/invoke-gc-fn.sml
 NewCodeGen/cfg-to-mlrisc/mlrisc-gen-fn.sml
+*)
 (*
 NewCodeGen/cps-to-cfg/cluster.sml
 *)
+NewCodeGen/cps-to-cfg/cps-info.sml
 NewCodeGen/cps-to-cfg/cps-to-cfg-fn.sml
 NewCodeGen/cps-to-cfg/tagged-arith.sml
 

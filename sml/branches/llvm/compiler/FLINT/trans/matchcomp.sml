@@ -937,7 +937,7 @@ fun generate (dt, matchRep, rootVar, (toTyc, toLty), giis) =
       (* moved to trans/translate.sml for new match compiler *)
       fun genswitch (sv, sign, [(DATAcon((_, DA.REF, lt), ts, x), e)], NONE) =
             LET(x, APP (PRIM (Primop.DEREF, LT.lt_swap lt, ts), sv), e)
-        | genswitch(sv, sign, [(DATAcon((_, DA.SUSP(SOME(_, DA.LVAR f)), lt),
+        | genswitch (sv, sign, [(DATAcon((_, DA.SUSP(SOME(_, DA.LVAR f)), lt),
                                         ts, x), e)], NONE) =
             let val v = mkv()
              in LET(x, LET(v, TAPP(VAR f, ts), APP(VAR v, sv)), e)
@@ -975,10 +975,7 @@ fun generate (dt, matchRep, rootVar, (toTyc, toLty), giis) =
         | pass2 (CASETEST(path, sign, cases, dft), env, rhs) =
             let val switchVar = VAR(lookupPath(path, env))
 		val switchCases = pass2cases(path,cases,env,rhs)
-		val switchDefault =
-                    (case dft
-                       of NONE => NONE
-                        | SOME subtree => SOME(pass2(subtree,env,rhs)))
+		val switchDefault = Option.map (fn subtree => pass2(subtree,env,rhs)) dft
              in genswitch(switchVar, sign, switchCases, switchDefault)
             end
         | pass2 (RHS n, env, rhs) = pass2rhs(n, env, rhs)

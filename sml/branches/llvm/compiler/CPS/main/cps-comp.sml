@@ -75,7 +75,7 @@ functor CPSCompFn (
 				    }
 			      in
 				say "***** CFG *****\n";
-				List.app PPCfg.prCluster cfg;
+				PPCfg.prCompUnit cfg;
 				say "***** END CFG *****\n"
 			      end
 			    else ()

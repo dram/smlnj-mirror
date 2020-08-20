@@ -12,7 +12,7 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 	    source : string,
 	    funcs : CPS.function list,
 	    limits :  CPS.lvar -> int * int
-	  } -> CFG.cluster list
+	  } -> CFG.comp_unit
 
   end = struct
 
@@ -32,6 +32,8 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
   (* import CPS expression constructors *)
     datatype value = datatype CPS.value
     datatype cexp = datatype CPS.cexp
+
+    datatype use_mode = datatype CPSInfo.use_mode
 
     fun error msg = ErrorMsg.impossible(String.concat("CPStoCFGFn: " :: msg))
 
@@ -108,124 +110,6 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
     fun stripTag e = pureOp (TP.SUB, ity, [e, one])
     fun orTag e    = pureOp (TP.ORB, ity, [e, one])
 
-  (* Tracking expressions that are bound to variables that are used more than
-   * once.
-   *)
-
-  (* abstraction of a use count: a TREE variable has just one use, and
-   * a BOUND variable has multiple uses.  Unused variables do not appear
-   * in the table.
-   *)
-    datatype use_mode = TREE | BOUND
-
-    datatype info = Info of {
-	modes : use_mode LTbl.hash_table,	(* maps LVars to uses *)
-	typs : CPS.cty LTbl.hash_table,
-	attrs : C.attrs			(* cluster attributes *)
-      }
-
-    fun lookupMode (Info{modes, ...}) = LTbl.lookup modes
-
-    fun typeOfVar (Info{typs, ...}) = LTbl.lookup typs
-
-(* unclear where/if this function is used *)
-    fun typeOf info = let
-	  val typeOfVar = typeOfVar info
-	  in
-	    fn (CPS.VAR x) => cvtTy(typeOfVar x)
-	     | (CPS.LABEL lab) => C.LABt
-	     | (CPS.NUM{ty={tag=true, ...}, ...}) => C.TAGt
-	     | (CPS.NUM{ty={sz, ...}, ...}) => C.NUMt{sz=sz}
-	     | v => error ["unexpected ", PPCps.value2str v]
-	  end
-
-    fun numVars (Info{modes, ...}) = LTbl.numItems modes
-
-  (* initialize a table that maps variables to use modes for a CPS expression *)
-    fun initUseModes cexp = let
-	  val modes = LTbl.mkTable(32, Fail "modes")
-	  val getMode = LTbl.find modes
-	  val setMode = LTbl.insert modes
-	  fun useVar x = (case getMode x
-		 of NONE => setMode (x, TREE)
-		  | SOME TREE => setMode (x, BOUND)
-		  | _ => ()
-		(* end case *))
-	  fun useVal (VAR x) = useVar x
-	    | useVal _ = ()
-	(* mark a variable as "BOUND" since it will map to a CFG variable *)
-	  fun bindVar x = setMode (x, BOUND)
-	  val useVals = List.app useVal
-(* QUESTION: should we track CFG types instead of CPS types? *)
-	  val typs = LTbl.mkTable(32, Fail "typs")
-	  val recordTy = LTbl.insert typs
-	  val needsBasePtr = ref false
-	  val hasTrapArith = ref false
-	  val hasRCC = ref false
-	  val alignHP = ref MS.valueSize
-	  fun align sz = if !alignHP < sz then alignHP := sz else ()
-	  fun init cexp = (case cexp
-		 of RECORD(rk, flds, x, k) => let
-		      fun useField (VAR x, _) = useVar x
-			| useField (LABEL l, _) = (needsBasePtr := true)
-			| useField _ = ()
-		      in
-			case rk
-			 of CPS.RK_FCONT => align 8
-			  | CPS.RK_RAW64BLOCK => align 8
-			  | _ => ()
-			(* end case *);
-		        recordTy (x, BOGty);
-			List.app useField flds;
-			init k
-		      end
-		  | SELECT(_, v, x, ty, k) => (recordTy (x, ty); useVal v; init k)
-		  | OFFSET(_, v, x, k) => (recordTy (x, BOGty); useVal v; init k)
-		  | APP(f, vs) => (useVal f; useVals vs)
-		  | FIX _ => raise Fail "unexpected FIX"
-		  | SWITCH(v, _, ks) => (
-		      needsBasePtr := true;
-		      useVal v; List.app init ks)
-		  | BRANCH(_, vs, _, k1, k2) => (useVals vs; init k1; init k2)
-		  | SETTER(_, vs, k) => (List.app useVal vs; init k)
-		  | LOOKER(_, vs, x, ty, k) => (recordTy (x, ty); useVals vs; init k)
-		  | ARITH(_, vs, x, ty, k) => (
-		      hasTrapArith := true;
-		      bindVar x;
-		      recordTy (x, ty); useVals vs; init k)
-		  | PURE(P.WRAP(P.FLOAT _), vs, x, ty, k) => (
-		      align 8; recordTy (x, ty); useVals vs; init k)
-		  | PURE(rator, vs, x, ty, k) => (
-		    (* check for pure operations that map to other forms in CFG *)
-		      case rator
-		       of P.MAKEREF => bindVar x
-			| P.NEWARRAY0 => bindVar x
-			| P.WRAP(P.INT sz) => bindVar x
-			| P.WRAP(P.FLOAT sz) => (align 8; bindVar x)
-			| P.RAWRECORD(SOME CPS.RK_RAW64BLOCK) => (
-			    align 8; bindVar x)
-			| P.RAWRECORD _ => bindVar x
-			| _ => ()
-		      (* end case *);
-		      recordTy (x, ty); useVals vs; init k)
-		  | RCC(_, _, _, vs, xs, k) => (
-		      hasRCC := true;
-		      List.app (bindVar o #1) xs;
-		      List.app recordTy xs; useVals vs; init k)
-		(* end case *))
-	  in
-	    init cexp;
-	    Info{
-		modes = modes, typs = typs,
-		attrs = {
-		    alignHP = !alignHP,
-		    needsBasePtr = !needsBasePtr,
-		    hasTrapArith = !hasTrapArith,
-		    hasRCC = !hasRCC
-		  }
-	      }
-	  end
-
     fun record desc = TP.RECORD{desc=desc, mut=false}
     fun mutRecord desc = TP.RECORD{desc=desc, mut=true}
 
@@ -278,10 +162,14 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
       | rawStore (P.FLOAT sz) = TP.RAW_STORE{kind=TP.FLT, sz = sz}
 
     fun gen info = let
-	  val lookupMode = lookupMode info
-	  val typeOfVar = typeOfVar info
-	  val typeOf = typeOf info
-	  val exps = LTbl.mkTable (numVars info, Fail "exps")
+	  val isEntry = CPSInfo.isEntry info
+	  val modeOf = CPSInfo.modeOf info
+	  val typeOf = CPSInfo.typeOf info
+	  fun typeOfVal (VAR x) = typeOf x
+	    | typeOfVal (LABEL lab) = typeOf lab
+	    | typeOfVal (NUM{ty, ...}) = CPS.NUMt ty
+	    | typeOfVal v = error ["gen.typeOfVal: unexpected ", PPCps.value2str v]
+	  val exps = LTbl.mkTable (CPSInfo.numVars info, Fail "exps")
 	  val binding = LTbl.lookup exps
 	  val bind = LTbl.insert exps
 	(* convert a CPS value to a CFG expression *)
@@ -289,10 +177,10 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 	    | genV (LABEL lab) = label lab
 	    | genV (NUM{ty={tag=true, ...}, ival}) = mlInt' ival
 	    | genV (NUM{ty={sz, ...}, ival}) = szNum sz ival
-	    | genV v = error ["unexepected ", PPCps.value2str v]
+	    | genV v = error ["gen.genV: unexepected ", PPCps.value2str v]
 	  val genPureTagged = TaggedArith.pure genV
 	  val genTagged = TaggedArith.trapping genV
-	  fun genCont (cfgExp, x, ty, k) = (case lookupMode x
+	  fun genCont (cfgExp, x, ty, k) = (case modeOf x
 		 of TREE => (bind (x, cfgExp); genE k)
 		  | BOUND => C.LET(cfgExp, param(x, cvtTy ty), bindVarIn(x, k))
 		(* end case *))
@@ -324,10 +212,22 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 		      genCont (select(i, genV v), x, ty, k)
 		  | OFFSET(i, v, x, k) =>
 		      genCont (C.OFFSET{idx=i, arg=genV v}, x, BOGty, k)
-		  | APP(LABEL lab, vs) =>
-??
-		  | APP(f, vs) =>
-??
+		  | APP(f as LABEL lab, vs) => let
+		      val args = List.map genV vs
+		      in
+			if isEntry lab
+			  then C.APPLY(label lab, args, List.map (cvtTy o typeOfVal) vs)
+			  else C.GOTO(lab, args)
+		      end
+		  | APP(f, vs) => let
+		      val args = List.map genV vs
+		      val argTys = List.map (cvtTy o typeOfVal) vs
+		      in
+			case typeOfVal f
+			 of CPS.CNTt => C.THROW(genV f, args, argTys)
+			  | _ => C.APPLY(genV f, args, argTys)
+			(* end case *)
+		      end
 		  | FIX _ => error ["unexpected FIX"]
 		  | SWITCH(v, _, cases) =>
 		      C.SWITCH(genV v, List.map genE cases)
@@ -760,15 +660,57 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 	    genE
 	  end
 
-  (* convert a single cluster of CPS functions to a CFG cluster. *)
-    fun doCluster (entryFn :: frags) = let
+    fun doFun init isEntry (func as (fk, f, params, paramTys, body)) = let
+	  val info = init func
+	  val kind = (case (fk, isEntry)
+		 of (CPS.CONT, true) => C.STD_CONT
+		  | (CPS.ESCAPE, true) => C.STD_FUN
+		  | (_, true) => C.KNOWN_FUN
+		  | (CPS.CONT, false) => error ["non-entry CONT ", LV.prLvar f]
+		  | (CPS.ESCAPE, false) => error ["non-entry ESCAPE ", LV.prLvar f]
+		  | _ => C.INTERNAL
+		(* end case *))
+	(* convert parameters to CFG parameters *)
+	  val params' = ListPair.foldrEq
+		(fn (x, cty, ps) => {name=x, ty=cvtTy cty} :: ps)
+		  [] (params, paramTys)
 	  in
-??
+	  (* add parameters to the local info *)
+	    CPSInfo.addParams (info, params, paramTys);
+	    C.Frag{
+		kind = kind,
+		lab = f,
+		params = params',
+		body = gen info body
+	      }
 	  end
 
-    fun translate {source, funcs, limits} = let
+  (* convert a single cluster of CPS functions to a CFG cluster. *)
+    fun doCluster gInfo (entry :: rest) = let
+	  val doFun = doFun (CPSInfo.newCluster gInfo)
+	  val frags = (doFun true entry) :: List.map (doFun false) rest
 	  in
-??
+	    C.Cluster{
+		frags = frags,
+		attrs = CPSInfo.clusterAttrs gInfo
+	      }
 	  end
+      | doCluster _ _ = error ["empty cluster"]
+
+  (* translate a CPS compilation unit into the CFG IR *)
+    fun translate {source, funcs, limits} = let
+(*
+	  val clusters = Cluster.cluster (
+		!Control.CG.singleEntry orelse !Control.CG.llvmBackend,
+		funcs)
+*)
+val clusters = Cluster.cluster funcs
+	  val globalInfo = CPSInfo.analyze clusters
+	  val entry::rest = List.map (doCluster globalInfo) clusters
+	  in {
+	    srcFile = source,
+	    entry = entry,
+	    fns = rest
+	  } end
 
   end
