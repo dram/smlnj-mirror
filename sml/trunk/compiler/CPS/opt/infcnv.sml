@@ -10,8 +10,6 @@
 
 structure IntInfCnv : sig
 
-    val elim : CPS.function -> CPS.function
-
   (* `toInf (prim, sz, [x, f], v, t, e)` generates code to convert a fixed-size
    * number to an intinf.  The arguments are:
    *	prim		-- the primop (COPY or EXTEND) for converting a tagged
@@ -148,41 +146,5 @@ end = struct
 		end
 	  end
       | testInf _ = bug "testInf: incorrect number of arguments"
-
-    fun elim cfun = let
-	  fun cexp (C.RECORD (rk, xl, v, e)) =
-		C.RECORD (rk, xl, v, cexp e)
-	    | cexp (C.SELECT (i, x, v, t, e)) =
-		C.SELECT (i, x, v, t, cexp e)
-	    | cexp (C.OFFSET (i, v, x, e)) =
-		C.OFFSET (i, v, x, cexp e)
-	    | cexp (C.APP (x, xl)) =
-		C.APP (x, xl)
-	    | cexp (C.FIX (fl, e)) =
-		C.FIX (map function fl, cexp e)
-	    | cexp (C.SWITCH (x, v, el)) =
-		C.SWITCH (x, v, map cexp el)
-	    | cexp (C.BRANCH (b, xl, v, e1, e2)) =
-		C.BRANCH (b, xl, v, cexp e1, cexp e2)
-	    | cexp (C.SETTER (s, xl, e)) =
-		C.SETTER (s, xl, cexp e)
-	    | cexp (C.LOOKER (l, xl, v, t, e)) =
-		C.LOOKER (l, xl, v, t, cexp e)
-	    | cexp (C.PURE (C.P.COPY_INF sz, args, v, t, e)) =
-		toInf (C.P.COPY, sz, args, v, t, cexp e)
-	    | cexp (C.PURE (C.P.EXTEND_INF sz, args, v, t, e)) =
-		toInf (C.P.EXTEND, sz, args, v, t, cexp e)
-	    | cexp (C.PURE (C.P.TRUNC_INF sz, args, v, t, e)) =
-		truncInf (sz, args, v, t, cexp e)
-	    | cexp (C.ARITH (C.P.TEST_INF sz, args, v, t, e)) =
-		testInf (sz, args, v, t, cexp e)
-	    | cexp (C.ARITH (a, xl, v, t, e)) = C.ARITH (a, xl, v, t, cexp e)
-	    | cexp (C.PURE (p, xl, v, t, e)) = C.PURE (p, xl, v, t, cexp e)
-	    | cexp (C.RCC (k, s, p, xl, vtl, e)) = C.RCC (k, s, p, xl, vtl, cexp e)
-
-	  and function (fk, f, vl, tl, e) = (fk, f, vl, tl, cexp e)
-	  in
-	    function cfun
-	  end
 
   end

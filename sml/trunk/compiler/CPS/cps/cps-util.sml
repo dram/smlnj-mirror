@@ -57,9 +57,9 @@ structure CPSUtil : sig
       | opp (P.FSGN _) = bug "FSGN has no opposite"
       | opp P.BOXED = P.UNBOXED
       | opp P.UNBOXED = P.BOXED
-      | opp (P.STREQL _) = bug "STREQL has no opposite"
       | opp P.PEQL = P.PNEQ
       | opp P.PNEQ = P.PEQL
+      | opp (P.STREQL _) = bug "STREQL has no opposite"
     end (* local *)
 
     fun hasRCC cexp = (case cexp
