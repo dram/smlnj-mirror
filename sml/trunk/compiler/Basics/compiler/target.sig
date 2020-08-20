@@ -10,9 +10,9 @@ signature TARGET =
   (* the size of a machine address in bits *)
     val pointerSz : int
 
-  (* the size of an ML value (aka "word") on the target; usually this is the
-   * natural pointer size, but some 64-bit targets (e.g., the Alpha) have
-   * used 32-bits for ML words.
+  (* the size of an ML value (aka "word") in bits on the target; usually this
+   * is the natural pointer size, but some 64-bit targets (e.g., the Alpha)
+   * have used 32-bits for ML words in the past.
    *)
     val mlValueSz : int
 
