@@ -170,7 +170,13 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 	    | typeOfVal (NUM{ty, ...}) = CPS.NUMt ty
 	    | typeOfVal v = error ["gen.typeOfVal: unexpected ", PPCps.value2str v]
 	  val exps = LTbl.mkTable (CPSInfo.numVars info, Fail "exps")
+(*
 	  val binding = LTbl.lookup exps
+*)
+	  fun binding x = (case LTbl.find exps x
+		 of NONE => var x
+		  | SOME e => e
+		(* end case *))
 	  val bind = LTbl.insert exps
 	(* convert a CPS value to a CFG expression *)
 	  fun genV (VAR x) = binding x
@@ -666,8 +672,8 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 		 of (CPS.CONT, true) => C.STD_CONT
 		  | (CPS.ESCAPE, true) => C.STD_FUN
 		  | (_, true) => C.KNOWN_FUN
-		  | (CPS.CONT, false) => error ["non-entry CONT ", LV.prLvar f]
-		  | (CPS.ESCAPE, false) => error ["non-entry ESCAPE ", LV.prLvar f]
+		  | (CPS.CONT, false) => error ["non-entry CONT ", LV.lvarName f]
+		  | (CPS.ESCAPE, false) => error ["non-entry ESCAPE ", LV.lvarName f]
 		  | _ => C.INTERNAL
 		(* end case *))
 	(* convert parameters to CFG parameters *)

@@ -68,6 +68,7 @@ functor CPSCompFn (
 		      val carg = globalfix fx
 		      val carg = spill carg
 		      val (carg, limit) = limit carg
+(* TODO: move clustering to here *)
 		      val _ = if !Control.CG.dumpCFG
 			    then let
 			      val cfg = CPStoCFG.translate {

@@ -185,7 +185,7 @@ structure PPCfg : sig
 
     fun prStm n = let
 	  fun sayExp e = say(expToString e)
-	  fun sayApp (prefix, args) = (say(appToS(prefix, args)); say "\n")
+	  fun sayApp (prefix, args) = (say(appToS(prefix, args)))
 	  fun sayBr (P.LIMIT 0w0, []) = say "needsGC"
 	    | sayBr (oper as P.LIMIT _, []) = say(branchToString oper)
 	    | sayBr (oper, args) = sayApp (branchToString oper, args)
@@ -266,12 +266,11 @@ structure PPCfg : sig
 	  space n; say "}\n")
 
     fun prCluster (C.Cluster{attrs, frags}) = (
-	  say "# CLUSTER";
-	  say ("; align " ^ Int.toString(#alignHP attrs));
+	  say ("# CLUSTER; align " ^ Int.toString(#alignHP attrs));
 	  if (#needsBasePtr attrs) then say "; base-ptr" else ();
 	  if (#hasTrapArith attrs) then say "; overflow" else ();
 	  if (#hasRCC attrs) then say "; raw-cc" else ();
-	  say " {\n";
+	  say "\n{\n";
 	  List.app (prFrag 2) frags;
 	  say "}\n")
 

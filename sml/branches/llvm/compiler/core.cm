@@ -296,7 +296,9 @@ CPS/opt/num64cnv.sml
 CPS/opt/streqlcnv.sml
 CPS/opt/testcnv.sml
 CPS/opt/uncurry.sml
+CPS/main/cluster.sml
 CPS/main/cps-comp.sml
+CPS/main/limit.sml
 CPS/main/literals.sml
 CPS/main/new-literals.sml
 
@@ -304,7 +306,6 @@ CPS/main/new-literals.sml
 CodeGen/cpscompile/argPassing.sig
 CodeGen/cpscompile/argPassing.sml
 CodeGen/cpscompile/check-gc.sml
-CodeGen/cpscompile/cluster.sml
 CodeGen/cpscompile/cps-aliasing.sml
 CodeGen/cpscompile/cps-c-calls.sml
 CodeGen/cpscompile/cpsBranchProb.sml
@@ -316,7 +317,6 @@ CodeGen/cpscompile/frag.sig
 CodeGen/cpscompile/frag.sml
 CodeGen/cpscompile/invokegc.sig
 CodeGen/cpscompile/invokegc.sml
-CodeGen/cpscompile/limit.sml
 (* deprecated
 CodeGen/cpscompile/memAliasing.sml
 CodeGen/cpscompile/memDisambig.sml
