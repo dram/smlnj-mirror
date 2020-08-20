@@ -12,7 +12,7 @@
  * -- Allen
  *)
 
-functor InvokeGC (
+functor InvokeGCFn (
     structure MS    : MACH_SPEC
     structure C     : CPSREGS
 		        where T.Region=CPSRegions

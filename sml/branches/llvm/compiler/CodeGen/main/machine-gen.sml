@@ -98,7 +98,7 @@ struct
 	    val reverseDirection = ref false)
 
     structure InvokeGC =
-       InvokeGC
+       InvokeGCFn
 	   (structure C     = CpsRegs
 	    structure MS    = MachSpec
 	    structure CFG   = CFG
