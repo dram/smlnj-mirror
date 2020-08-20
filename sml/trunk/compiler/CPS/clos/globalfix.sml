@@ -14,7 +14,7 @@ structure GlobalFix : GLOBALFIX =
 
     open CPS
 
-    fun globalfix(fk,f,vl,cl,cexp) = let
+    fun globalfix (fk, f, vl, cl, cexp) = let
 	  fun gfix ce = (case ce
 		 of FIX(fl,c) =>
 		     let val (n,c') = gfix c
@@ -53,9 +53,9 @@ structure GlobalFix : GLOBALFIX =
 		  | RCC(k,l,p,vl,wtl,c) => let val (f,c') = gfix c
 		      in (f,RCC(k,l,p,vl,wtl,c')) end
 		(* end case *))
-	  val (l,body) = gfix cexp
+	  val (l, body) = gfix cexp
 	  in
-	    (fk,f,vl,cl,body) :: l
+	    (fk, f, vl, cl, body) :: l
 	  end
 
   end (* structure GlobalFix *)
