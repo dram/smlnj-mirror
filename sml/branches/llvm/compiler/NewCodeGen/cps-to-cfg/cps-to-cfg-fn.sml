@@ -357,6 +357,7 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 		      genCont (genPure (oper, vs), x, ty, k)
 		  | RCC(reentrant, linkage, proto, args, results, k) =>
 		      raise Fail "FIXME: RCC not implemented yet"
+		  | _ => error ["gen.genE: bogus CPS"]
 		(* end case *))
 	(***** ALLOCATION *****)
 	  and getField (v, CPS.OFFp 0) = genV v
@@ -461,6 +462,7 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 		  | (P.GETVAR, _)=> looker(TP.GET_VAR, List.map genV args)
 		  | (P.RAWLOAD{kind}, [adr]) => rawLoad (kind, [genV adr, zero ity])
 		  | (P.RAWLOAD{kind}, [adr, ix]) => rawLoad (kind, [genV adr, genV ix])
+		  | _ => error ["bogus looker: ", PPCps.lookerToString oper]
 		(* end case *))
 	(***** PURE *****)
 	  and genPure (p, vs : value list) = (case (p, vs)
