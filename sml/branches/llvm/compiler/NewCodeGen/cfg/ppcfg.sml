@@ -64,10 +64,9 @@ structure PPCfg : sig
 	  concat["record[0x", IntInf.fmt StringCvt.HEX desc, "]"]
       | allocToString (P.RECORD{desc, mut=true}) =
 	  concat["mut_record[0x", IntInf.fmt StringCvt.HEX desc, "]"]
-      | allocToString (P.RAW_RECORD{desc, kind, sz}) = concat(
-	  "raw_" :: numkindToString(kind, sz) @ [
-	      "_record[0x", IntInf.fmt StringCvt.HEX desc, "]"
-	    ])
+      | allocToString (P.RAW_RECORD{desc, ...}) = concat[
+	    "raw_record[0x", IntInf.fmt StringCvt.HEX desc, "]"
+	  ]
       | allocToString (P.RAW_ALLOC{desc, align, len}) = concat(
 	  "raw_" :: i2s align :: "_alloc[" ::
 	  (case desc
@@ -203,8 +202,8 @@ structure PPCfg : sig
 		      say "apply "; sayExp f; sayArgs (args, tys); say "\n")
 		  | C.THROW(f, args, tys) => (
 		      say "throw "; sayExp f; sayArgs (args, tys); say "\n")
-		  | C.GOTO(lab, args) =>
-		      sayApp ("goto L_" ^ LV.lvarName lab, args)
+		  | C.GOTO(lab, args) => (
+		      sayApp ("goto L_" ^ LV.lvarName lab, args); say "\n")
 		  | C.SWITCH(arg, cases) =>  let
 		      fun sayCase (i, e) = (
 			    space n; say "case "; say(i2s i);

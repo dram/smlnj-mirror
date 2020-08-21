@@ -11,7 +11,7 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
     val translate : {
 	    source : string,
 	    funcs : CPS.function list,
-	    limits :  CPS.lvar -> int * int
+	    limits : CPS.lvar -> int * int
 	  } -> CFG.comp_unit
 
   end = struct
@@ -94,6 +94,13 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
     fun select (i, arg) = C.SELECT{idx = i, arg = arg}
     fun looker (oper, args) = C.LOOKER{oper = oper, args = args}
 
+  (* raw record with uniform fields *)
+    fun rawRecord (desc, kind, sz, n) = let
+	  val ty = {kind = kind, sz = sz}
+	  in
+	    TP.RAW_RECORD{desc = desc, fields = List.tabulate(n, fn _ => ty)}
+	  end
+
     fun zExt (from, to, arg) = pure (TP.EXTEND{signed=false, from=from, to=to}, [arg])
     fun sExt (from, to, arg) = pure (TP.EXTEND{signed=true, from=from, to=to}, [arg])
 
@@ -113,13 +120,8 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
     fun record desc = TP.RECORD{desc=desc, mut=false}
     fun mutRecord desc = TP.RECORD{desc=desc, mut=true}
 
-    fun signExtendTo (from, to, arg) =
-	  pure(TP.EXTEND{signed=true, from=from, to=to}, [arg])
-    fun signExtend (from, arg) = signExtendTo (from, ity, arg)
-
-    fun zeroExtendTo (from, to, arg) =
-	  pure(TP.EXTEND{signed=false, from=from, to=to}, [arg])
-    fun zeroExtend (from, arg) = zeroExtendTo (from, ity, arg)
+    fun signExtend (from, arg) = sExt (from, ity, arg)
+    fun zeroExtend (from, arg) = zExt (from, ity, arg)
 
   (* get the descriptor of a heap object *)
     fun getDescriptor obj =
@@ -311,11 +313,8 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 		      end
 		  | PURE(P.WRAP(P.INT sz), [v], x, _, k) => if (sz = ity)
 			then let
-			  val oper = TP.RAW_RECORD{
-				  desc = D.makeDesc' (1, D.tag_raw),
-				  kind = TP.INT,
-				  sz = ity
-				}
+			  val desc = D.makeDesc'(1, D.tag_raw)
+			  val oper = rawRecord (desc, TP.INT, ity, 1)
 			  in
 			    C.ALLOC(oper, [genV v], x, bindVarIn(x, k))
 			  end
@@ -325,11 +324,8 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 		  | PURE(P.WRAP(P.FLOAT 32), [v], x, _, k) => (* REAL32: FIXME *)
 		      error ["wrap for 32-bit floats is not implemented"]
 		  | PURE(P.WRAP(P.FLOAT 64), [v], x, _, k) => let
-		      val oper = TP.RAW_RECORD{
-			      desc = D.makeDesc'(wordsPerDbl, D.tag_raw),
-			      kind = TP.INT,
-			      sz = 64
-			    }
+		      val desc = D.makeDesc'(wordsPerDbl, D.tag_raw)
+		      val oper = rawRecord (desc, TP.FLT, 64, 1)
 		      in
 			C.ALLOC(oper, [genV v], x, bindVarIn(x, k))
 		      end
@@ -371,17 +367,19 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 	  and allocRecord (desc, fields, x, k) =
 		C.ALLOC(record desc, List.map getField fields, x, k)
 (* REAL32: FIXME *)
-	(* Allocate a record with real components *)
+	(* Allocate a record with 64-bit real components *)
 	  and allocFltRecord (fields, x, k) = let
-		val desc = D.makeDesc'(wordsPerDbl * length fields, D.tag_raw64)
-		val oper = TP.RAW_RECORD{desc = desc, kind = TP.FLT, sz = 64}
+		val len = length fields
+		val desc = D.makeDesc'(wordsPerDbl * len, D.tag_raw64)
+		val oper = rawRecord (desc, TP.FLT, 64, len)
 		in
 		  C.ALLOC(oper, List.map getField fields, x, bindVarIn(x, k))
 		end
 	(* Allocate a record with machine-int-sized components *)
 	  and allocIntRecord (fields, x, k) = let
-		val desc = D.makeDesc' (length fields, D.tag_raw)
-		val oper = TP.RAW_RECORD{desc = desc, kind = TP.INT, sz = 64}
+		val len = length fields
+		val desc = D.makeDesc'(wordsPerDbl * len, D.tag_raw)
+		val oper = rawRecord (desc, TP.INT, ity, len)
 		in
 		  C.ALLOC(oper, List.map getField fields, x, bindVarIn(x, k))
 		end
@@ -668,42 +666,81 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 	    genE
 	  end
 
-    fun doFun init isEntry (func as (fk, f, params, paramTys, body)) = let
+    val skidPad = 1024
+    val gcProb : C.probability = 1
+
+  (* add a heap limit check to the beginning of the fragment; this transformation
+   * may require splitting the fragment into a header and internal fragment, so
+   * we get back a list of fragments.
+   *)
+    fun addLimitCheck (info, maxAllocW, C.Frag{kind=C.KNOWN_FUN, lab, params, body}) = let
+	(* for a `KNOWN_FUN`, the GC return is going to be a `GOTO`,
+	 * so we need to create a header fragment.  Note that clustering
+	 * should have guaranteed that there are no gotos to entry
+	 * fragments.
+	 *)
+	  val lab' = LV.mkLvar()
+	  val params' = List.map (fn {ty, ...} => {name=LV.mkLvar(), ty=ty}) params
+	  val hdrFrag = C.Frag{
+		  kind = C.KNOWN_FUN, lab = lab, params = params',
+		  body = C.GOTO(lab', List.map (fn {name, ...} => var name) params')
+		}
+	  val frag' = C.Frag{
+		  kind = C.INTERNAL, lab = lab', params = params, body = body
+		}
+	  in
+	    hdrFrag :: addLimitCheck (info, maxAllocW, frag')
+	  end
+      | addLimitCheck (info, maxAllocW, C.Frag{kind, lab, params, body}) = let
+	  val limitChk = if maxAllocW > skidPad
+		then TP.LIMIT(Word.fromInt(MS.wordByteWidth * maxAllocW))
+		else TP.LIMIT 0w0
+	  val callgc = CPSInfo.invokeGC (info, kind, lab, params)
+	  val body' = C.BRANCH(limitChk, [], gcProb, callgc, body)
+	  in
+	    [C.Frag{kind=kind, lab=lab, params=params, body=body'}]
+	  end
+
+  (* when a standard function or continuation's body is just a jump to a
+   * KNOWN_CHECK function, when we can omit the GC test of the standard
+   * function/continuation.
+   *)
+    fun reallyNeedsGC (info, APP(LABEL f, _)) = (case CPSInfo.funKindOf info f
+	   of CPS.KNOWN_CHECK => false
+	    | _ => true
+	  (* end case *))
+      | reallyNeedsGC _ = true
+
+    fun doFun (limits : LV.lvar -> (int * int), init) isEntry (func, frags) = let
+	  val (fk, f, params, paramTys, body) = func
 	  val info = init func
-	  val kind = (case (fk, isEntry)
-		 of (CPS.CONT, true) => C.STD_CONT
-		  | (CPS.ESCAPE, true) => C.STD_FUN
-		  | (_, true) => C.KNOWN_FUN
+	  val (kind, needsGC) = (case (fk, isEntry)
+		 of (CPS.CONT, true) => (C.STD_CONT, reallyNeedsGC (info, body))
+		  | (CPS.ESCAPE, true) => (C.STD_FUN, reallyNeedsGC (info, body))
+		  | (CPS.KNOWN_CHECK, true) => (C.KNOWN_FUN, true)
+		  | (_, true) => (C.KNOWN_FUN, false)
 		  | (CPS.CONT, false) => error ["non-entry CONT ", LV.lvarName f]
 		  | (CPS.ESCAPE, false) => error ["non-entry ESCAPE ", LV.lvarName f]
-		  | _ => C.INTERNAL
+		  | (CPS.KNOWN_CHECK, false) => (C.INTERNAL, true)
+		  | _ => (C.INTERNAL, false)
 		(* end case *))
 	(* convert parameters to CFG parameters *)
 	  val params' = ListPair.foldrEq
 		(fn (x, cty, ps) => {name=x, ty=cvtTy cty} :: ps)
 		  [] (params, paramTys)
+	(* add parameters to the local info *)
+	  val _ = CPSInfo.addParams (info, params, paramTys)
+	  val frag = C.Frag{
+		  kind = kind,
+		  lab = f,
+		  params = params',
+		  body = gen info body
+		}
 	  in
-	  (* add parameters to the local info *)
-	    CPSInfo.addParams (info, params, paramTys);
-	    C.Frag{
-		kind = kind,
-		lab = f,
-		params = params',
-		body = gen info body
-	      }
+	    if needsGC
+	      then addLimitCheck (info, #1(limits f), frag) @ frags
+	      else frag::frags
 	  end
-
-  (* convert a single cluster of CPS functions to a CFG cluster. *)
-    fun doCluster gInfo (entry :: rest) = let
-	  val doFun = doFun (CPSInfo.newCluster gInfo)
-	  val frags = (doFun true entry) :: List.map (doFun false) rest
-	  in
-	    C.Cluster{
-		frags = frags,
-		attrs = CPSInfo.clusterAttrs gInfo
-	      }
-	  end
-      | doCluster _ _ = error ["empty cluster"]
 
   (* translate a CPS compilation unit into the CFG IR *)
     fun translate {source, funcs, limits} = let
@@ -713,12 +750,24 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 		funcs)
 *)
 val clusters = Cluster.cluster funcs
-	  val globalInfo = CPSInfo.analyze clusters
-	  val entry::rest = List.map (doCluster globalInfo) clusters
+	  val gInfo = CPSInfo.analyze clusters
+	(* convert a single cluster of CPS functions to a CFG cluster. *)
+	  fun doCluster (entry :: rest) = let
+		val doFun = doFun (limits, CPSInfo.newCluster gInfo)
+		val frags = doFun true (entry, List.foldr (doFun false) [] rest)
+		in
+		  C.Cluster{
+		      frags = frags,
+		      attrs = CPSInfo.clusterAttrs gInfo
+		    }
+		end
+	    | doCluster _ = error ["empty cluster"]
+	  val entry::rest = List.map doCluster clusters
+	  val gcClusters = CPSInfo.getGCCode gInfo
 	  in {
 	    srcFile = source,
 	    entry = entry,
-	    fns = rest
+	    fns = rest @ gcClusters
 	  } end
 
   end

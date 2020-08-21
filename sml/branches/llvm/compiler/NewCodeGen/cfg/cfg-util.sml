@@ -11,6 +11,8 @@ structure CFGUtil : sig
 
     val tyToString : CFG.ty -> string
 
+    val compareTy : CFG.ty * CFG.ty -> order
+
   end = struct
 
     structure C = CFG
@@ -22,5 +24,19 @@ structure CFGUtil : sig
       | tyToString CFG.PTRt = "ptr"
       | tyToString CFG.LABt = "label"
       | tyToString CFG.TAGt = "int"
+
+    fun compareTy (CFG.NUMt{sz}, CFG.NUMt{sz=sz'}) = Int.compare(sz, sz')
+      | compareTy (CFG.NUMt _, _) = LESS
+      | compareTy (_, CFG.NUMt _) = GREATER
+      | compareTy (CFG.FLTt{sz}, CFG.FLTt{sz=sz'}) = Int.compare(sz, sz')
+      | compareTy (CFG.FLTt _, _) = LESS
+      | compareTy (_, CFG.FLTt _) = GREATER
+      | compareTy (CFG.PTRt, CFG.PTRt) = EQUAL
+      | compareTy (_, CFG.PTRt) = LESS
+      | compareTy (CFG.PTRt, _) = GREATER
+      | compareTy (CFG.LABt, CFG.LABt) = EQUAL
+      | compareTy (CFG.LABt, _) = LESS
+      | compareTy (_, CFG.LABt) = GREATER
+      | compareTy (CFG.TAGt, CFG.TAGt) = EQUAL
 
   end

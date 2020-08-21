@@ -360,6 +360,7 @@ NewCodeGen/cfg-to-mlrisc/mlrisc-gen-fn.sml
 NewCodeGen/cps-to-cfg/cluster.sml
 *)
 NewCodeGen/cps-to-cfg/cps-info.sml
+NewCodeGen/cps-to-cfg/invoke-gc.sml
 NewCodeGen/cps-to-cfg/cps-to-cfg-fn.sml
 NewCodeGen/cps-to-cfg/tagged-arith.sml
 

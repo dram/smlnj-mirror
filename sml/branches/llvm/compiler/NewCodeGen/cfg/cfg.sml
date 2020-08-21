@@ -10,13 +10,13 @@ structure CFG_Prim =
   struct
     datatype numkind = INT | FLT
 
-  (* rounding modes for float conversions *)
-      datatype rounding_mode = TO_NEAREST | TO_NEGINF | TO_POSINF | TO_ZERO
+  (* type signature for a field in a `RAW_RECORD`; the `sz` is in bits *)
+    type raw_ty = {kind : numkind, sz : int}
 
   (* allocation operations *)
     datatype alloc
       = RECORD of {desc : IntInf.int, mut : bool}
-      | RAW_RECORD of {desc : IntInf.int, kind : numkind, sz : int}
+      | RAW_RECORD of {desc : IntInf.int, fields : raw_ty list}
       | RAW_ALLOC of {desc : IntInf.int option, align : int, len : int}
 
   (* arithmetic operations that may overflow; for the division operators,
@@ -29,6 +29,9 @@ structure CFG_Prim =
  * the div-by-zero and overflow tests will have to be explicit?
  *)
       | IDIV | IREM
+
+  (* rounding modes for float conversions *)
+    datatype rounding_mode = TO_NEAREST | TO_NEGINF | TO_POSINF | TO_ZERO
 
     datatype arith
       = ARITH of {oper : arithop, sz : int}
