@@ -25,19 +25,30 @@ structure Cluster : sig
 
   end = struct
 
+    structure LV = LambdaVar
+    structure LTbl = LV.Tbl
+    structure ISet = IntRedBlackSet
+
     fun error msg = ErrorMsg.impossible ("Cluster." ^ msg)
 
-  (* set up a mapping from lvars to function IDs *)
-    fun mkTables funcs = let
+  (* information about a group of CPS functions *)
+    type info = {
+	numFuncs : int,				(* the number of functions *)
+	funcToID : LambdaVar.lvar -> int,	(* mapping from lvars to function IDs *)
+	idToFunc : int -> CPS.function,		(* mapping from IDs to functions *)
+	callGraph : int list array		(* representation of call graph *)
+      }
+
+    fun mkInfo funcs = let
 	  val numFuncs = length funcs
 	(* mapping of function names to a dense integer range *)
 	  exception FuncId
-	  val funcToIdTbl : int LambdaVar.Tbl.hash_table =
-		LambdaVar.Tbl.mkTable(numFuncs, FuncId)
+	  val funcToIdTbl : int LTbl.hash_table = LTbl.mkTable(numFuncs, FuncId)
+	  val funcToID = LTbl.lookup funcToIdTbl
 	(* mapping of ids to functions *)
 	  val idToFuncTbl = let
 		val tbl = Array.array(numFuncs, hd funcs)
-		val add = LambdaVar.Tbl.insert funcToIdTbl
+		val add = LTbl.insert funcToIdTbl
 		in
 		  List.appi
 		    (fn (id, func as (_,f,_,_,_)) => (
@@ -45,17 +56,10 @@ structure Cluster : sig
 		      funcs;
 		  tbl
 		end
-	  in {
-	    numFuncs = numFuncs,
-	    funcToID = LambdaVar.Tbl.funcToID funcToIdTbl,
-	    idToFunc = fn id => Array.sub(idToFuncTbl, id)
-	  } end
-
-  (* create a call graph for the functions, represented as an array `g` of integer
-   * IDs, where `Array.sub(g, id)` is the list of function IDs that the function
-   * with ID `id` calls.
-   *)
-    fun mkCallGraph ({numFuncs, funcToID, idToFunc}, funcs) = let
+	(* create a call graph for the functions, represented as an array `g` of integer
+	 * IDs, where `Array.sub(g, id)` is the list of function IDs that the function
+	 * with ID `id` calls.
+	 *)
 	  val graph = Array.array(numFuncs, [])
 	  fun addEdges (id, (_, _, _, body)) = let
 		fun addEdge f = Array.modify (fn succs => funcToID f :: succs) graph
@@ -75,13 +79,16 @@ structure Cluster : sig
 		in
 		  calls body
 		end (* addEdges *)
-	  in
-	    List.appi addEdges funcs;
-	    graph
-	  end
+	  val _ = List.appi addEdges funcs
+	  in {
+	    numFuncs = numFuncs,
+	    funcToID = funcToID,
+	    idToFunc = idToFunc,
+	    callGraph = graph
+	  } end
 
   (* group functions into clusters *)
-    fun group ({numFuncs, funcToID, idToFunc}, callGraph) = let
+    fun group {numFuncs, funcToID, idToFunc, callGraph} = let
 	(* union-find structure -- initially each function in its own cluster *)
 	  val trees = Array.tabulate(numFuncs, fn i => i)
 	  fun ascend u = let
@@ -134,7 +141,6 @@ structure Cluster : sig
 	    extract()
 	  end (* group *)
 
-    structure ISet = IntRedBlackSet
 
   (* if a cluster has multiple entry points, then split it into one function
    * per entry-point, plus additional functions for shared code.  We also
@@ -160,11 +166,7 @@ structure Cluster : sig
 	  fun split' (clstr as f1 :: (frest as _::_)) = (
 		case List.filter isEntry frest
 		 of [] => clstr
-		  | entries => let
-		    (* partition the cluster into `length entries + 1` subgraphs
-		     * with the property that
-		      in
-		      end
+		  | entries => ??
 		(* end case *))
 	    | split' clstr = clstr
 	  in
