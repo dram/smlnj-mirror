@@ -255,6 +255,21 @@ namespace CFG_Prim {
 
     } // PURE_RAW_SUBSCRIPT::codegen
 
+    Value *RAW_SELECT::codegen (code_buffer * buf, Args_t const &args)
+    {
+	Type *elemTy = numType (buf, this->_v_kind, this->_v_sz);
+
+	Value *adr = buf->createBitCast (
+	    buf->createGEP (
+		buf->bytePtrTy,
+		buf->createBitCast(args[0], buf->bytePtrTy),
+		buf->uConst (this->_v_offset)),
+	    elemTy->getPointerTo())
+
+	return buf->createLoad (elemTy, adr);
+
+    } // RAW_SELECT::codegen
+
 
   /***** code generation for the `looker` type *****/
 

@@ -101,6 +101,18 @@ namespace CFG_Prim {
     {
         return static_cast<rounding_mode>(asdl::read_tag8(is));
     }
+    raw_ty * raw_ty::read (asdl::instream & is)
+    {
+        auto fkind = read_numkind(is);
+        auto fsz = asdl::read_int(is);
+        return new raw_ty(fkind, fsz);
+    }
+    raw_ty::~raw_ty () { }
+    // raw_ty_seq pickler suppressed
+    std::vector<raw_ty *> read_raw_ty_seq (asdl::instream & is)
+    {
+        return asdl::read_seq<raw_ty>(is);
+    }
     alloc * alloc::read (asdl::instream & is)
     {
         _tag_t tag = static_cast<_tag_t>(asdl::read_tag8(is));
@@ -114,9 +126,9 @@ namespace CFG_Prim {
           case _con_RAW_RECORD:
             {
                 auto fdesc = asdl::read_integer(is);
-                auto fkind = read_numkind(is);
-                auto fsz = asdl::read_int(is);
-                return new RAW_RECORD(fdesc, fkind, fsz);
+                auto falign = asdl::read_int(is);
+                auto ffields = read_raw_ty_seq(is);
+                return new RAW_RECORD(fdesc, falign, ffields);
             }
           case _con_RAW_ALLOC:
             {
@@ -200,6 +212,13 @@ namespace CFG_Prim {
                 auto fsz = asdl::read_int(is);
                 return new PURE_RAW_SUBSCRIPT(fkind, fsz);
             }
+          case _con_RAW_SELECT:
+            {
+                auto fkind = read_numkind(is);
+                auto fsz = asdl::read_int(is);
+                auto foffset = asdl::read_int(is);
+                return new RAW_SELECT(fkind, fsz, foffset);
+            }
         }
     }
     pure::~pure () { }
@@ -209,6 +228,7 @@ namespace CFG_Prim {
     INT_TO_REAL::~INT_TO_REAL () { }
     PURE_SUBSCRIPT::~PURE_SUBSCRIPT () { }
     PURE_RAW_SUBSCRIPT::~PURE_RAW_SUBSCRIPT () { }
+    RAW_SELECT::~RAW_SELECT () { }
     looker * looker::read (asdl::instream & is)
     {
         _tag_t tag = static_cast<_tag_t>(asdl::read_tag8(is));
@@ -637,14 +657,12 @@ namespace CFG {
     cluster * cluster::read (asdl::instream & is)
     {
         auto fattrs = attrs::read(is);
-        auto fentry = frag::read(is);
         auto ffrags = read_frag_seq(is);
-        return new cluster(fattrs, fentry, ffrags);
+        return new cluster(fattrs, ffrags);
     }
     cluster::~cluster ()
     {
         delete this->_v_attrs;
-        delete this->_v_entry;
     }
     // cluster_seq pickler suppressed
     std::vector<cluster *> read_cluster_seq (asdl::instream & is)
