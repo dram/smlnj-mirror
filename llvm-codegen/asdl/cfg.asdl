@@ -50,14 +50,17 @@ module CFG_Prim {
   -- rounding modes for float conversions *)
     rounding_mode = TO_NEAREST | TO_NEGINF | TO_POSINF | TO_ZERO
 
+  -- type signature for a field in a `RAW_RECORD`; the `sz` is in bits
+    raw_ty = (numkind kind, int sz)
+
   -- These operations bump the allocation pointer
     alloc
     -- allocates an initialized record object with the given descriptor.
     -- The `mut` field is true for mutable objects
       = RECORD(integer desc, bool mut)
     -- allocates an initialized record of raw data with the given descriptor.
-    -- The `sz` field specifies the size of the values (in bits).
-      | RAW_RECORD(integer desc, numkind kind, int sz)
+    -- The `fields`     -- The `fields` specify the kind and sizes of the components.
+      | RAW_RECORD(integer desc, int align, raw_ty* fields)
     -- Allocates an uninitialized record.  The descriptor is optional (it will
     -- be NONE for spill records).  The `align` field specifies the alignment
     -- in bytes and the `len` field is the size in bytes.
@@ -101,7 +104,11 @@ module CFG_Prim {
 						-- one (from > to).
       | INT_TO_REAL (int from, int to)		-- int to float conversion
       | PURE_SUBSCRIPT				-- indexed load of ML value
-      | PURE_RAW_SUBSCRIPT(numkind kind, int sz) -- indexed load of raw value
+      | PURE_RAW_SUBSCRIPT (numkind kind, int sz)
+						-- indexed load of raw value from
+						-- packed numeric vector
+      | RAW_SELECT (numkind kind, int sz, int offset)
+						-- select from RAW_RECORD
 
   -- These operations fetch from mutable memory.
     looker
