@@ -164,7 +164,7 @@ structure Cluster : sig
 		  dfs f
 		end
 	  fun split' (clstr as f1 :: (frest as _::_)) = (
-		case List.filter isEntry frest
+		case List.partition isEntry frest
 		 of [] => clstr
 		  | entries => ??
 		(* end case *))
