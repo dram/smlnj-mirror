@@ -103,6 +103,7 @@ structure CFG_Prim = struct
       | INT_TO_REAL of {from : int, to : int}
       | PURE_SUBSCRIPT
       | PURE_RAW_SUBSCRIPT of {kind : numkind, sz : int}
+      | RAW_SELECT of {kind : numkind, sz : int, offset : int}
     datatype arithop
       = IADD
       | ISUB
@@ -117,9 +118,10 @@ structure CFG_Prim = struct
     datatype arith
       = ARITH of {oper : arithop, sz : int}
       | REAL_TO_INT of {mode : rounding_mode, from : int, to : int}
+    type raw_ty = {kind : numkind, sz : int}
     datatype alloc
       = RECORD of {desc : IntInf.int, mut : bool}
-      | RAW_RECORD of {desc : IntInf.int, kind : numkind, sz : int}
+      | RAW_RECORD of {desc : IntInf.int, align : int, fields : raw_ty list}
       | RAW_ALLOC of {desc : IntInf.int option, align : int, len : int}
   end
 
@@ -159,7 +161,7 @@ structure CFG = struct
       | CALLGC of exp list * LambdaVar.lvar list * stm
       | RCC of {reentrant : bool, linkage : string, proto : CTypes.c_proto, args : exp list, results : param list, live : param list, k : stm}
     datatype frag = Frag of {kind : frag_kind, lab : LambdaVar.lvar, params : param list, body : stm}
-    datatype cluster = Cluster of {attrs : attrs, entry : frag, frags : frag list}
+    datatype cluster = Cluster of {attrs : attrs, frags : frag list}
     type comp_unit = {srcFile : string, entry : cluster, fns : cluster list}
   end
 

@@ -217,6 +217,7 @@ namespace CTypes {
 namespace CFG_Prim {
     enum class numkind;
     enum class rounding_mode;
+    class raw_ty;
     class alloc;
     enum class arithop;
     class arith;
@@ -233,6 +234,36 @@ namespace CFG_Prim {
     enum class rounding_mode {TO_NEAREST = 1, TO_NEGINF, TO_POSINF, TO_ZERO};
     // pickler suppressed for rounding_mode
     rounding_mode read_rounding_mode (asdl::instream & is);
+    class raw_ty {
+      public:
+        raw_ty (numkind p_kind, int p_sz)
+            : _v_kind(p_kind), _v_sz(p_sz)
+        { }
+        ~raw_ty ();
+        // pickler method suppressed
+        static raw_ty * read (asdl::instream & is);
+        numkind get_kind () const
+        {
+            return this->_v_kind;
+        }
+        void set_kind (numkind v)
+        {
+            this->_v_kind = v;
+        }
+        int get_sz () const
+        {
+            return this->_v_sz;
+        }
+        void set_sz (int v)
+        {
+            this->_v_sz = v;
+        }
+      private:
+        numkind _v_kind;
+        int _v_sz;
+    };
+    // raw_ty_seq pickler suppressed
+    std::vector<raw_ty *> read_raw_ty_seq (asdl::instream & is);
     class alloc {
       public:
         virtual ~alloc ();
@@ -278,9 +309,9 @@ namespace CFG_Prim {
     };
     class RAW_RECORD : public alloc {
       public:
-        RAW_RECORD (asdl::integer p_desc, numkind p_kind, int p_sz)
-            : alloc(alloc::_con_RAW_RECORD), _v_desc(p_desc), _v_kind(p_kind),
-            _v_sz(p_sz)
+        RAW_RECORD (asdl::integer p_desc, int p_align, std::vector<raw_ty *> p_fields)
+            : alloc(alloc::_con_RAW_RECORD), _v_desc(p_desc), _v_align(p_align),
+            _v_fields(p_fields)
         { }
         ~RAW_RECORD ();
         // pickler method suppressed
@@ -292,28 +323,28 @@ namespace CFG_Prim {
         {
             this->_v_desc = v;
         }
-        numkind get_kind () const
+        int get_align () const
         {
-            return this->_v_kind;
+            return this->_v_align;
         }
-        void set_kind (numkind v)
+        void set_align (int v)
         {
-            this->_v_kind = v;
+            this->_v_align = v;
         }
-        int get_sz () const
+        std::vector<raw_ty *> get_fields () const
         {
-            return this->_v_sz;
+            return this->_v_fields;
         }
-        void set_sz (int v)
+        void set_fields (std::vector<raw_ty *> v)
         {
-            this->_v_sz = v;
+            this->_v_fields = v;
         }
         Value *codegen (code_buffer *buf, Args_t const &args);
 
       private:
         asdl::integer _v_desc;
-        numkind _v_kind;
-        int _v_sz;
+        int _v_align;
+        std::vector<raw_ty *> _v_fields;
     };
     class RAW_ALLOC : public alloc {
       public:
@@ -478,7 +509,8 @@ namespace CFG_Prim {
             _con_TRUNC,
             _con_INT_TO_REAL,
             _con_PURE_SUBSCRIPT,
-            _con_PURE_RAW_SUBSCRIPT
+            _con_PURE_RAW_SUBSCRIPT,
+            _con_RAW_SELECT
         };
         pure (_tag_t tag)
             : _tag(tag)
@@ -647,6 +679,45 @@ namespace CFG_Prim {
       private:
         numkind _v_kind;
         int _v_sz;
+    };
+    class RAW_SELECT : public pure {
+      public:
+        RAW_SELECT (numkind p_kind, int p_sz, int p_offset)
+            : pure(pure::_con_RAW_SELECT), _v_kind(p_kind), _v_sz(p_sz),
+            _v_offset(p_offset)
+        { }
+        ~RAW_SELECT ();
+        // pickler method suppressed
+        numkind get_kind () const
+        {
+            return this->_v_kind;
+        }
+        void set_kind (numkind v)
+        {
+            this->_v_kind = v;
+        }
+        int get_sz () const
+        {
+            return this->_v_sz;
+        }
+        void set_sz (int v)
+        {
+            this->_v_sz = v;
+        }
+        int get_offset () const
+        {
+            return this->_v_offset;
+        }
+        void set_offset (int v)
+        {
+            this->_v_offset = v;
+        }
+        Value *codegen (code_buffer *buf, Args_t const &args);
+
+      private:
+        numkind _v_kind;
+        int _v_sz;
+        int _v_offset;
     };
     class looker {
       public:
@@ -2026,8 +2097,8 @@ namespace CFG {
     };
     class cluster {
       public:
-        cluster (attrs * p_attrs, frag * p_entry, std::vector<frag *> p_frags)
-            : _v_attrs(p_attrs), _v_entry(p_entry), _v_frags(p_frags)
+        cluster (attrs * p_attrs, std::vector<frag *> p_frags)
+            : _v_attrs(p_attrs), _v_frags(p_frags)
         { }
         ~cluster ();
         // pickler method suppressed
@@ -2039,14 +2110,6 @@ namespace CFG {
         void set_attrs (attrs * v)
         {
             this->_v_attrs = v;
-        }
-        frag * get_entry () const
-        {
-            return this->_v_entry;
-        }
-        void set_entry (frag * v)
-        {
-            this->_v_entry = v;
         }
         std::vector<frag *> get_frags () const
         {
@@ -2062,7 +2125,6 @@ namespace CFG {
 
       private:
         attrs * _v_attrs;
-        frag * _v_entry;
         std::vector<frag *> _v_frags;
         llvm::Function *_fn;
 

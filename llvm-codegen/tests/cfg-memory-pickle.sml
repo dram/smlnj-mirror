@@ -393,7 +393,12 @@ structure CFG_PrimMemoryPickle : CFG__PRIM_PICKLE
             | CFG_Prim.PURE_RAW_SUBSCRIPT{kind, sz} => (
               ASDLMemoryPickle.writeTag8 (outS, 0w6);
               write_numkind (outS, kind);
-              ASDLMemoryPickle.writeInt (outS, sz)))
+              ASDLMemoryPickle.writeInt (outS, sz))
+            | CFG_Prim.RAW_SELECT{kind, sz, offset} => (
+              ASDLMemoryPickle.writeTag8 (outS, 0w7);
+              write_numkind (outS, kind);
+              ASDLMemoryPickle.writeInt (outS, sz);
+              ASDLMemoryPickle.writeInt (outS, offset)))
     fun read_pure inS = (case ASDLMemoryPickle.readTag8 inS
            of 0w1 => let
               val oper = read_pureop inS
@@ -426,6 +431,13 @@ structure CFG_PrimMemoryPickle : CFG__PRIM_PICKLE
               val sz = ASDLMemoryPickle.readInt inS
               in
                   CFG_Prim.PURE_RAW_SUBSCRIPT {kind = kind, sz = sz}
+              end
+            | 0w7 => let
+              val kind = read_numkind inS
+              val sz = ASDLMemoryPickle.readInt inS
+              val offset = ASDLMemoryPickle.readInt inS
+              in
+                  CFG_Prim.RAW_SELECT {kind = kind, sz = sz, offset = offset}
               end
             | _ => raise ASDL.DecodeError)
     fun write_arithop (outS, obj) = (case obj
@@ -477,16 +489,28 @@ structure CFG_PrimMemoryPickle : CFG__PRIM_PICKLE
                   CFG_Prim.REAL_TO_INT {mode = mode, from = from, to = to}
               end
             | _ => raise ASDL.DecodeError)
+    fun write_raw_ty (outS, obj) = let
+          val {kind, sz} = obj
+          in
+            write_numkind (outS, kind);
+            ASDLMemoryPickle.writeInt (outS, sz)
+          end
+    fun read_raw_ty inS = let
+          val kind = read_numkind inS
+          val sz = ASDLMemoryPickle.readInt inS
+          in
+              {kind = kind, sz = sz}
+          end
     fun write_alloc (outS, obj) = (case obj
            of CFG_Prim.RECORD{desc, mut} => (
               ASDLMemoryPickle.writeTag8 (outS, 0w1);
               ASDLMemoryPickle.writeInteger (outS, desc);
               ASDLMemoryPickle.writeBool (outS, mut))
-            | CFG_Prim.RAW_RECORD{desc, kind, sz} => (
+            | CFG_Prim.RAW_RECORD{desc, align, fields} => (
               ASDLMemoryPickle.writeTag8 (outS, 0w2);
               ASDLMemoryPickle.writeInteger (outS, desc);
-              write_numkind (outS, kind);
-              ASDLMemoryPickle.writeInt (outS, sz))
+              ASDLMemoryPickle.writeInt (outS, align);
+              writeSeq write_raw_ty (outS, fields))
             | CFG_Prim.RAW_ALLOC{desc, align, len} => (
               ASDLMemoryPickle.writeTag8 (outS, 0w3);
               writeOption ASDLMemoryPickle.writeInteger (outS, desc);
@@ -501,10 +525,10 @@ structure CFG_PrimMemoryPickle : CFG__PRIM_PICKLE
               end
             | 0w2 => let
               val desc = ASDLMemoryPickle.readInteger inS
-              val kind = read_numkind inS
-              val sz = ASDLMemoryPickle.readInt inS
+              val align = ASDLMemoryPickle.readInt inS
+              val fields = readSeq read_raw_ty inS
               in
-                  CFG_Prim.RAW_RECORD {desc = desc, kind = kind, sz = sz}
+                  CFG_Prim.RAW_RECORD {desc = desc, align = align, fields = fields}
               end
             | 0w3 => let
               val desc = readOption ASDLMemoryPickle.readInteger inS
@@ -858,18 +882,16 @@ structure CFGMemoryPickle : CFGPICKLE
               CFG.Frag {kind = kind, lab = lab, params = params, body = body}
           end
     fun write_cluster (outS, obj) = let
-          val CFG.Cluster{attrs, entry, frags} = obj
+          val CFG.Cluster{attrs, frags} = obj
           in
             write_attrs (outS, attrs);
-            write_frag (outS, entry);
             writeSeq write_frag (outS, frags)
           end
     fun read_cluster inS = let
           val attrs = read_attrs inS
-          val entry = read_frag inS
           val frags = readSeq read_frag inS
           in
-              CFG.Cluster {attrs = attrs, entry = entry, frags = frags}
+              CFG.Cluster {attrs = attrs, frags = frags}
           end
     fun write_comp_unit (outS, obj) = let
           val {srcFile, entry, fns} = obj
