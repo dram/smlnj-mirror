@@ -139,8 +139,9 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
   (* get the length field of a sequence *)
     fun getSeqLen obj = select(1, obj)
 
-    fun rawSelect (kind, sz, i, arg) =
-	  pure(TP.PURE_RAW_SUBSCRIPT{kind = kind, sz = sz}, [arg, num' i])
+    fun rawSelect (kind, sz, i, arg) = pure(
+	  TP.RAW_SELECT{kind = kind, sz = sz, offset = i * (sz div 8)},
+	  [arg])
 
   (* translate CPS RAWLOAD primop based on kind *)
     fun rawLoad (P.INT sz, args) = let

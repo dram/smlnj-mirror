@@ -28,7 +28,7 @@ signature OBJECT_DESC =
     val tag_raw64 : tag		(* 64-bit aligned raw data *)
     val tag_special : tag
 
-  (* build a descriptor from a tag and length *)
+  (* build a descriptor from a tag and length (in words) *)
     val makeDesc : (IntInf.int * tag) -> IntInf.int
     val makeDesc' : (int * tag) -> IntInf.int
 

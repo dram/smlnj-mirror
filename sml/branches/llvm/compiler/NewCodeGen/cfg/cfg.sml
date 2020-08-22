@@ -58,6 +58,7 @@ structure CFG_Prim =
       | INT_TO_REAL of {from : int, to : int}
       | PURE_SUBSCRIPT
       | PURE_RAW_SUBSCRIPT of {kind : numkind, sz : int}
+      | RAW_SELECT of {kind : numkind, sz : int, offset : int}
 
     datatype looker
       = DEREF

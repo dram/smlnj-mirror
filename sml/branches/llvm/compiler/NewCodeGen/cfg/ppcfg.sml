@@ -12,6 +12,10 @@ structure PPCfg : sig
 
     val expToString : CFG.exp -> string
 
+    val numkindToString : CFG_Prim.numkind * int -> string
+
+    val paramToString : CFG.param -> string
+
   (* string conversions for various CFG_Prim types *)
     val allocToString : CFG_Prim.alloc -> string
     val arithopToString : CFG_Prim.arithop -> string
@@ -34,8 +38,10 @@ structure PPCfg : sig
 
     val i2s = Int.toString
 
-    fun numkindToString (P.INT, bits) = ["i", i2s bits]
-      | numkindToString (P.FLT, bits) = ["f", i2s bits]
+    fun numkind2s (P.INT, bits) = ["i", i2s bits]
+      | numkind2s (P.FLT, bits) = ["f", i2s bits]
+
+    val numkindToString = String.concat o numkind2s
 
     val cmpopToString = ArithOps.cmpopToString
     val fcmpopToString = PPCps.fcmpopToString
@@ -79,18 +85,18 @@ structure PPCfg : sig
       | setterToString P.UNBOXED_ASSIGN = "unboxedassign"
       | setterToString P.ASSIGN = "assign"
       | setterToString (P.RAW_UPDATE{kind, sz}) =
-	  concat("update_" :: numkindToString(kind, sz))
+	  concat("update_" :: numkind2s(kind, sz))
       | setterToString (P.RAW_STORE{kind, sz}) =
-	  concat("store_" :: numkindToString(kind, sz))
+	  concat("store_" :: numkind2s(kind, sz))
       | setterToString P.SET_HDLR = "sethdlr"
       | setterToString P.SET_VAR = "setvar"
 
     fun lookerToString P.DEREF = "!"
       | lookerToString P.SUBSCRIPT = "array_sub"
       | lookerToString (P.RAW_SUBSCRIPT{kind, sz}) =
-	  concat("array_sub_" :: numkindToString(kind, sz))
+	  concat("array_sub_" :: numkind2s(kind, sz))
       | lookerToString (P.RAW_LOAD{kind, sz}) =
-	  concat("load_" :: numkindToString(kind, sz))
+	  concat("load_" :: numkind2s(kind, sz))
       | lookerToString P.GET_HDLR = "gethdlr"
       | lookerToString P.GET_VAR = "getvar"
 
@@ -142,7 +148,9 @@ structure PPCfg : sig
       | pureToString (P.INT_TO_REAL{from, to}) = cvtParams ("real", from, to)
       | pureToString P.PURE_SUBSCRIPT = "vector_sub"
       | pureToString (P.PURE_RAW_SUBSCRIPT{kind, sz}) =
-	  concat("vector_sub_" :: numkindToString(kind, sz))
+	  concat("vector_sub_" :: numkind2s(kind, sz))
+      | pureToString (P.RAW_SELECT{kind, sz, offset}) =
+	  concat("select_" :: numkind2s(kind, sz) @ ["@", i2s offset])
 
     fun space n = say(CharVector.tabulate(n, fn _ => #" "))
 
@@ -172,7 +180,9 @@ structure PPCfg : sig
 
     fun sayTy cty = say(CFGUtil.tyToString cty)
 
-    fun sayParam {name, ty} = (sayv name; say ":"; sayTy ty)
+    fun paramToString {name, ty} = concat[LV.lvarName name, ":", CFGUtil.tyToString ty]
+
+    fun sayParam param = say (paramToString param)
     fun sayArg (e, ty) = (say(expToString e); say ":"; sayTy ty)
 
     fun sayArgs ([], []) = say "()"
