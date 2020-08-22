@@ -30,6 +30,8 @@ signature CFG__PRIM_PICKLE = sig
     val read_numkind : instream -> CFG_Prim.numkind
     val write_rounding_mode : outstream * CFG_Prim.rounding_mode -> unit
     val read_rounding_mode : instream -> CFG_Prim.rounding_mode
+    val write_raw_ty : outstream * CFG_Prim.raw_ty -> unit
+    val read_raw_ty : instream -> CFG_Prim.raw_ty
     val write_alloc : outstream * CFG_Prim.alloc -> unit
     val read_alloc : instream -> CFG_Prim.alloc
     val write_arithop : outstream * CFG_Prim.arithop -> unit

@@ -89,7 +89,8 @@ structure Ex2 =
 
       val fn130 = C.Cluster{
 	      attrs = attrs true,
-	      entry = C.Frag{
+	      frags = [
+	        C.Frag{
 		  kind = C.STD_FUN,
 		  lab = v 130,
 		  params = mkParams [
@@ -101,12 +102,12 @@ structure Ex2 =
 		      C.THROW (V 111,
 			[V 111, V 112, V 113, V 114, V 157],
 			[C.LABt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
-		},
-	      frags = []
+		}]
 	    }
       val fn115 = C.Cluster{
 	      attrs = attrs true,
-	      entry = C.Frag{
+	      frags = [
+	        C.Frag{
 		  kind = C.STD_FUN,
 		  lab = v 115,
 		  params = mkParams [
@@ -117,31 +118,12 @@ structure Ex2 =
 		    C.THROW (V 136,
 		      [V 136, V 135, V 134, V 133, V 155],
 		      [C.PTRt, C.PTRt, C.PTRt, C.PTRt, C.PTRt]))
-		},
-	      frags = []
-	    }
-      val fn129 = C.Frag{
-	      kind = C.INTERNAL,
-	      lab = v 129,
-	      params = mkParams [
-		  (v 151, C.PTRt), (v 150, C.PTRt), (v 149, C.LABt),
-		  (v 148, C.PTRt), (v 147, C.PTRt), (v 146, C.PTRt)
-		],
-	      body = C.BRANCH(
-		P.CMP{oper=P.EQL, signed=false, sz=64},
-		[pureOp(P.ANDB, [V 151, num 1]), num 0],
-		unkProb,
-		(* then *)
-		  record([select(0, V 151), V 150], v 154,
-		    C.GOTO(v 129, [select(1, V 151), V 154, V 149, V 148, V 147, V 146])),
-		(* else *)
-		  C.THROW(V 149,
-		    [V 149, V 148, V 147, V 146, V 150],
-		    [C.LABt, C.PTRt, C.PTRt, C.PTRt, C.PTRt]))
+		}]
 	    }
       val fn122 = C.Cluster{
 	      attrs = attrs false,
-	      entry = C.Frag{
+	      frags = [
+	        C.Frag{
 		  kind = C.STD_FUN,
 		  lab = v 122,
 		  params = mkParams [
@@ -150,7 +132,25 @@ structure Ex2 =
 		    ],
 		  body = C.GOTO (v 129, [V 139, num 1, V 143, V 142, V 141, V 140])
 		},
-	      frags = [fn129]
+		C.Frag{
+		  kind = C.INTERNAL,
+		  lab = v 129,
+		  params = mkParams [
+		      (v 151, C.PTRt), (v 150, C.PTRt), (v 149, C.LABt),
+		      (v 148, C.PTRt), (v 147, C.PTRt), (v 146, C.PTRt)
+		    ],
+		  body = C.BRANCH(
+		    P.CMP{oper=P.EQL, signed=false, sz=64},
+		    [pureOp(P.ANDB, [V 151, num 1]), num 0],
+		    unkProb,
+		    (* then *)
+		      record([select(0, V 151), V 150], v 154,
+			C.GOTO(v 129, [select(1, V 151), V 154, V 149, V 148, V 147, V 146])),
+		    (* else *)
+		      C.THROW(V 149,
+			[V 149, V 148, V 147, V 146, V 150],
+			[C.LABt, C.PTRt, C.PTRt, C.PTRt, C.PTRt]))
+		}]
 	    }
     in
     val cu = {srcFile = "rev.sml", entry = fn130, fns = [fn115, fn122]}

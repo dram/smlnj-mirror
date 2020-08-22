@@ -158,7 +158,9 @@ namespace CFG {
 
     void cluster::init (code_buffer * buf, bool isEntry)
     {
-	frag *entry = this->_v_entry;
+	assert (this->_v_frags.size() > 0);
+
+	frag *entry = this->_v_frags[0];
 
       // add the cluster to the cluster map
 	buf->insertCluster (entry->get_lab(), this);

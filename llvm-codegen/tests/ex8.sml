@@ -63,7 +63,8 @@ structure Ex8 =
 
       val fn214 = C.Cluster{
 	      attrs = attrs true,
-	      entry = C.Frag{
+	      frags = [
+	        C.Frag{
 		  kind = C.STD_FUN,
 		  lab = v 214,
 		  params = mkParams [
@@ -76,12 +77,12 @@ structure Ex8 =
 		      C.THROW (V 203,
 			[V 203, V 204, V 205, V 206, V 224],
 			[C.LABt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
-		},
-	      frags = []
+		}]
 	    }
       val fn207 = C.Cluster{
 	      attrs = attrs true,
-	      entry = C.Frag{
+	      frags = [
+	        C.Frag{
 		  kind = C.STD_FUN,
 		  lab = v 207,
 		  params = mkParams [
@@ -93,8 +94,7 @@ structure Ex8 =
 		      C.THROW(V 220,
 			[V 220, V 219, V 218, V 217, V 186],
 			[C.LABt, C.PTRt, C.PTRt, C.PTRt, C.NUMt{sz=64}]))
-		},
-	      frags = []
+		}]
 	    }
     in
     val cu = {srcFile = "ex8.sml", entry = fn214, fns = [fn207]}

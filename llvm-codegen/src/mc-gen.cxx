@@ -32,27 +32,50 @@
 #include "llvm/Support/CommandLine.h"
 #endif
 
-mc_gen::mc_gen (llvm::LLVMContext &context, target_info const *target)
+#include <iostream>
+
+
+mc_gen::mc_gen (llvm::LLVMContext &context, target_info const *info)
 {
-  // set up the target machine builder
-    llvm::Triple triple("x86_64-apple-macosx10.15.0");
-//    triple.setArch (target->arch);
-    llvm::orc::JITTargetMachineBuilder tgtBuilder(triple);
+    std::string triple = "x86_64-apple-macosx10.15.0";
 
-    tgtBuilder.setRelocationModel (llvm::Reloc::PIC_);
-    tgtBuilder.setCodeGenOptLevel (llvm::CodeGenOpt::Less);
-
-    auto tgtMachine = tgtBuilder.createTargetMachine();
-    if (!tgtMachine) {
+  // lookup the target in the registry
+    std::string errMsg;
+    auto *target = llvm::TargetRegistry::lookupTarget(triple, errMsg);
+    if (target == nullptr) {
+	std::cerr << "**** Fatal error: unable to find target\n";
         assert(false);
     }
 
-  // make sure that tail calls are optimized
-    llvm::TargetOptions tgtOpts = (*tgtMachine)->Options;
-    tgtOpts.GuaranteedTailCallOpt = true;
-    (*tgtMachine)->Options = tgtOpts;
+llvm::dbgs() << "host CPU = " << llvm::sys::getHostCPUName() << "\n";
 
-    this->_tgtMachine = std::move(*tgtMachine);
+    llvm::TargetOptions tgtOptions;
+
+  // make sure that tail calls are optimized
+  /* It turns out that setting the GuaranteedTailCallOpt flag to true causes
+   * a bug with non-tail JWA calls (the bug is a bogus stack adjustment after
+   * the call).  Fortunately, our tail calls get properly optimized even
+   * without that flag being set.
+   */
+//    tgtOpts.GuaranteedTailCallOpt = true;
+
+// see include/llvm/Support/*Parser.def for the various CPS and feature names
+// that are recognized
+    std::unique_ptr<llvm::TargetMachine> tgtMachine(target->createTargetMachine(
+	triple,
+	"native",		/* CPU name; could be "native" */
+	"",			/* features string */
+	tgtOptions,
+	llvm::Reloc::PIC_,
+	llvm::None,
+	llvm::CodeGenOpt::Less));
+
+    if (!tgtMachine) {
+	std::cerr << "**** Fatal error: unable to create target machine\n";
+        assert(false);
+    }
+
+    this->_tgtMachine = std::move(tgtMachine);
 
 } // mc_gen constructor
 

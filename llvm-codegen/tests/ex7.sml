@@ -106,7 +106,8 @@ structure Ex7 =
 
       val fn127 = C.Cluster{
 	      attrs = attrs true,
-	      entry = C.Frag{
+	      frags = [
+	        C.Frag{
 		  kind = C.STD_FUN,
 		  lab = v 127,
 		  params = mkParams [
@@ -119,12 +120,12 @@ structure Ex7 =
 		      C.THROW (V 106,
 			[V 106, V 107, V 108, V 109, V 161],
 			[C.LABt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
-		},
-	      frags = []
+		}]
 	    }
       val fn110 = C.Cluster{
 	      attrs = attrs false,
-	      entry = C.Frag{
+	      frags = [
+	        C.Frag{
 		  kind = C.STD_FUN,
 		  lab = v 110,
 		  params = mkParams [
@@ -133,8 +134,7 @@ structure Ex7 =
 		      (v 129, C.PTRt)
 		    ],
 		  body =
-		},
-	      frags = []
+		}]
 	    }
       val fr117 = C.Frag{
 	      kind = C.INTERNAL,
@@ -145,7 +145,8 @@ structure Ex7 =
 	    }
       val fn1170 = C.Cluster{
 	      attrs = attrs true,
-	      entry = C.Frag{
+	      frags = [
+	        C.Frag{
 		  kind = C.KNOWN_FUN,
 		  lab = v 1170,
 		  params = mkParams [
@@ -156,7 +157,8 @@ structure Ex7 =
 	    }
       val fn122 = C.Cluster{
 	      attrs = attrs true,
-	      entry = C.Frag{
+	      frags = [
+	        C.Frag{
 		  kind = C.STD_CONT,
 		  lab = v 122,
 		  params = mkParams [
@@ -167,12 +169,12 @@ structure Ex7 =
 		  body = C.APPLY (LAB 1170,
 		    [LAB 1170, LAB 125, V 148, V 145, V 146, V 147],
 		    [C.LABt, C.LABt, C.PTRt, C.NUMt{sz=64}, C.PTRt, C.PTRt])
-		},
-	      frags = []
+		}]
 	    }
       val fn125 = C.Cluster{
 	      attrs = attrs false,
-	      entry = C.Frag{
+	      frags = [
+	        C.Frag{
 		  kind = C.STD_CONT,
 		  lab = v 125,
 		  params = mkParams [
@@ -180,8 +182,7 @@ structure Ex7 =
 		      (v 151, C.PTRt), (v 150, C.TAGt)
 		    ],
 		  body =
-		},
-	      frags = []
+		}]
 	    }
     in
     val cu = {srcFile = "tree-add.sml", entry = fn127, fns = [fn110, fn1170, fn122, fn125]}

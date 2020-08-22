@@ -15,7 +15,7 @@ LIBS =		-lasdl
 LLVM_CONFIG =	$(LLVM_DIR)/bin/llvm-config
 
 LLVM_LD_FLAGS =	$(shell $(LLVM_CONFIG) --ldflags)
-LLVM_LIBS =	$(shell $(LLVM_CONFIG) --libs x86 aarch64 orcjit) \
+LLVM_LIBS =	$(shell $(LLVM_CONFIG) --libs x86 aarch64) \
 		$(shell $(LLVM_CONFIG) --system-libs)
 
 CODEGEN_OBJS =	$(wildcard ../build/*.o)

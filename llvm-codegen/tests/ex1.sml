@@ -51,7 +51,8 @@ structure Ex1 =
 
       val fn78 = C.Cluster{
 	      attrs = attrs true,
-	      entry = C.Frag{
+	      frags = [
+	        C.Frag{
 		  kind = C.STD_FUN,
 		  lab = v 78,
 		  params = mkParams [
@@ -69,12 +70,12 @@ structure Ex1 =
 			C.THROW (V 60,
 			  [V 60, V 61, V 62, V 63, V 96],
 			  [C.LABt, C.PTRt, C.PTRt, C.PTRt, C.PTRt]))))
-		},
-	      frags = []
+		}]
 	    }
       val fn64 = C.Cluster{
 	      attrs = attrs true,
-	      entry = C.Frag{
+	      frags = [
+	        C.Frag{
 		  kind = C.STD_FUN,
 		  lab = v 64,
 		  params = mkParams [
@@ -91,12 +92,12 @@ structure Ex1 =
 			C.THROW (V 84,
 			  [V 84, V 83, V 82, V 81, V 94],
 			  [C.PTRt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
-		},
-	      frags = []
+		}]
 	    }
       val fn71 = C.Cluster{
 	      attrs = attrs false,
-	      entry = C.Frag{
+	      frags = [
+	        C.Frag{
 		  kind = C.STD_FUN,
 		  lab = v 71,
 		  params = mkParams [
@@ -112,13 +113,13 @@ structure Ex1 =
 		      C.THROW(V 91,
 			[V 91, V 90, V 89, V 88, V 87],
 			[C.PTRt, C.PTRt, C.PTRt, C.PTRt, C.PTRt]))
-		},
-	      frags = []
+		}]
 	    }
     (* the shared GC fragment *)
       val fn100 = C.Cluster{
 	      attrs = attrs false,
-	      entry = C.Frag{
+	      frags = [
+	        C.Frag{
 		  kind = C.STD_FUN,
 		  lab = v 100,
 		  params = mkParams [
@@ -131,8 +132,7 @@ structure Ex1 =
 		      C.APPLY(V 111,
 			[V 111, V 112, V 113, V 114, V 115, V 116, V 117],
 			[C.PTRt, C.PTRt, C.PTRt, C.PTRt, C.PTRt, C.PTRt, C.PTRt]))
-		},
-	      frags = []
+		}]
 	    }
     in
     val cu = {srcFile = "id.sml", entry = fn78, fns = [fn64, fn71, fn100]}

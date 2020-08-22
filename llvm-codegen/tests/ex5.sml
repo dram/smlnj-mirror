@@ -113,7 +113,8 @@ structure Ex5 =
 
       val fn333 = C.Cluster{
 	      attrs = attrs true,
-	      entry = C.Frag{
+	      frags = [
+	        C.Frag{
 		  kind = C.STD_FUN,
 		  lab = v 333,
 		  params = mkParams [
@@ -125,12 +126,12 @@ structure Ex5 =
 		      C.THROW (V 303,
 			[V 303, V 304, V 305, V 306, V 378],
 			[C.LABt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
-		},
-	      frags = []
+		}]
 	    }
       val fn307 = C.Cluster{
 	      attrs = attrs true,
-	      entry = C.Frag{
+	      frags = [
+	        C.Frag{
 		  kind = C.STD_FUN,
 		  lab = v 307,
 		  params = mkParams [
@@ -141,12 +142,12 @@ structure Ex5 =
 		    C.THROW (V 339,
 		      [V 339, V 338, V 337, V 336, V 376],
 		      [C.LABt, C.PTRt, C.PTRt, C.PTRt, C.PTRt]))
-		},
-	      frags = []
+		}]
 	    }
       val fn314 = C.Cluster{
 	      attrs = attrs true,
-	      entry = C.Frag{
+	      frags = [
+	        C.Frag{
 		  kind = C.STD_FUN,
 		  lab = v 314,
 		  params = mkParams [
@@ -162,12 +163,12 @@ structure Ex5 =
 		      C.APPLY(V 375,
 			[V 375, V 344, LAB 329, V 374, V 346, V 345, V 342],
 			[C.LABt, C.PTRt, C.LABt, C.PTRt, C.PTRt, C.PTRt, C.PTRt]))))))
-		},
-	      frags = []
+		}]
 	    }
       val fn321 = C.Cluster{
 	      attrs = attrs false,
-	      entry = C.Frag{
+	      frags = [
+	        C.Frag{
 		  kind = C.STD_FUN,
 		  lab = v 321,
 		  params = mkParams [
@@ -181,12 +182,12 @@ structure Ex5 =
 			    select(5, V 356), select(6, V 356), V 351
 			  ],
 			[C.LABt, C.LABt, C.LABt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
-		},
-	      frags = []
+		}]
 	    }
       val fn329 = C.Cluster{
 	      attrs = attrs false,
-	      entry = C.Frag{
+	      frags = [
+	        C.Frag{
 		  kind = C.STD_CONT,
 		  lab = v 329,
 		  params = mkParams [
@@ -198,8 +199,7 @@ structure Ex5 =
 		      C.THROW(V 373,
 			[V 373, select(2, V 369), V 368, V 367, V 366],
 			[C.LABt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
-		},
-	      frags = []
+		}]
 	    }
     in
     val cu = {srcFile = "try.sml", entry = fn333, fns = [fn307, fn314, fn321, fn329]}

@@ -114,7 +114,8 @@ structure Ex6 =
 
       val fn321 = C.Cluster{
 	      attrs = attrs true,
-	      entry = C.Frag{
+	      frags = [
+	        C.Frag{
 		  kind = C.STD_FUN,
 		  lab = v 321,
 		  params = mkParams [
@@ -126,12 +127,12 @@ structure Ex6 =
 		      C.THROW (V 298,
 			[V 298, V 299, V 300, V 301, V 350],
 			[C.LABt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
-		},
-	      frags = []
+		}]
 	    }
       val fn302 = C.Cluster{
 	      attrs = attrs true,
-	      entry = C.Frag{
+	      frags = [
+	        C.Frag{
 		  kind = C.STD_FUN,
 		  lab = v 302,
 		  params = mkParams [
@@ -143,8 +144,7 @@ structure Ex6 =
 		    C.THROW (V 327,
 		      [V 327, V 326, V 325, V 324, V 349],
 		      [C.LABt, C.PTRt, C.PTRt, C.PTRt, C.PTRt]))
-		},
-	      frags = []
+		}]
 	    }
       fun rule (clos, f, n) = C.LET(select(0, V clos), mkParam(v f, C.LABt),
 	    C.APPLY (V f,
@@ -152,7 +152,8 @@ structure Ex6 =
 	      [C.LABt, C.PTRt, C.LABt, C.PTRt, C.PTRt, C.PTRt, C.PTRt, C.TAGt]))
       val fn309 = C.Cluster{
 	      attrs = attrs true,
-	      entry = C.Frag{
+	      frags = [
+	        C.Frag{
 		  kind = C.STD_FUN,
 		  lab = v 309,
 		  params = mkParams [
@@ -173,8 +174,7 @@ structure Ex6 =
 			  rule (341, 347, 3),
 			  rule (342, 348, 4)
 			])))))
-		},
-	      frags = []
+		}]
 	    }
     in
     val cu = {srcFile = "switch.sml", entry = fn321, fns = [fn302, fn309]}

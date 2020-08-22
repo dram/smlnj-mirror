@@ -280,6 +280,8 @@ if (args[i]) { llvm::dbgs() << *(args[i]) << "\n"; } else { llvm::dbgs() << "nul
 	    true,
 	    llvm::GlobalValue::PrivateLinkage,
 	    llvm::ConstantArray::get (jmpTblTy, offsets));
+      // put the table in the text segment
+	jmpTbl->setSection ("text");
       // compute the jump address
 	auto jmpAdr = buf->createAdd (
 	    buf->basePtr(),
@@ -428,15 +430,14 @@ if (args[i]) { llvm::dbgs() << *(args[i]) << "\n"; } else { llvm::dbgs() << "nul
 	buf->beginCluster (this, this->_fn);
 
       // initialize the fragments for the cluster
-	this->_v_entry->init (buf);
-	for (auto it = this->_v_frags.begin();  it != this->_v_frags.end();  ++it) {
-	    (*it)->init (buf);
+	for (auto frag : this->_v_frags) {
+	    frag->init (buf);
 	}
 
       // generate code for the cluster
-	this->_v_entry->codegen (buf, this);
-	for (auto it = this->_v_frags.begin();  it != this->_v_frags.end();  ++it) {
-	    (*it)->codegen (buf, nullptr);
+	this->_v_frags[0]->codegen (buf, this);
+	for (int i = 1;  i < this->_v_frags.size();  ++i) {
+	    this->_v_frags[i]->codegen (buf, nullptr);
 	}
 
 	buf->endCluster ();

@@ -101,7 +101,8 @@ structure Ex4 =
 
       val fn96 = C.Cluster{
 	      attrs = attrs true,
-	      entry = C.Frag{
+	      frags = [
+	        C.Frag{
 		  kind = C.STD_FUN,
 		  lab = v 96,
 		  params = mkParams [
@@ -113,36 +114,15 @@ structure Ex4 =
 		      C.THROW (V 76,
 			[V 76, V 77, V 78, V 79, V 122],
 			[C.LABt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
-		},
-	      frags = []
-	    }
-      val fn87 = C.Frag{
-	      kind = C.INTERNAL,
-	      lab = v 87,
-	      params = mkParams [
-		  (v 109, C.LABt), (v 108, C.PTRt), (v 107, C.PTRt),
-		  (v 106, C.PTRt), (v 105, C.NUMt{sz=64})
-		],
-	      body = C.BRANCH(
-		P.CMP{oper=P.GT, signed=true, sz=64}, [V 105, num 1],
-		unkProb,
-		(* then *)
-		  arith(P.ISUB, [V 105, num 1], v 44,
-		  rawRecord([V 105], v 119,
-		  record([V 109, V 108, V 119], v 120,
-		    C.GOTO(v 87,
-		      [LAB 92, V 120, V 107, V 106, V 44])))),
-		(* else *)
-		  C.THROW(V 109,
-		    [V 109, V 108, V 107, V 106, num 1],
-		    [C.LABt, C.PTRt, C.PTRt, C.PTRt, C.NUMt{sz=64}]))
+		}]
 	    }
       val fn80 = C.Cluster{
 	      attrs = { (* function attrs *)
 	          alignHP = 8, needsBasePtr = true,
 		  hasTrapArith = true, hasRCC = false
 	        },
-	      entry = C.Frag{
+	      frags = [
+	        C.Frag{
 		  kind = C.STD_FUN,
 		  lab = v 80,
 		  params = mkParams [
@@ -152,11 +132,32 @@ structure Ex4 =
 		    ],
 		  body = C.GOTO (v 87, [V 102, V 101, V 100, V 99, V 98])
 		},
-	      frags = [fn87]
+		C.Frag{
+		  kind = C.INTERNAL,
+		  lab = v 87,
+		  params = mkParams [
+		      (v 109, C.LABt), (v 108, C.PTRt), (v 107, C.PTRt),
+		      (v 106, C.PTRt), (v 105, C.NUMt{sz=64})
+		    ],
+		  body = C.BRANCH(
+		    P.CMP{oper=P.GT, signed=true, sz=64}, [V 105, num 1],
+		    unkProb,
+		    (* then *)
+		      arith(P.ISUB, [V 105, num 1], v 44,
+		      rawRecord([V 105], v 119,
+		      record([V 109, V 108, V 119], v 120,
+			C.GOTO(v 87,
+			  [LAB 92, V 120, V 107, V 106, V 44])))),
+		    (* else *)
+		      C.THROW(V 109,
+			[V 109, V 108, V 107, V 106, num 1],
+			[C.LABt, C.PTRt, C.PTRt, C.PTRt, C.NUMt{sz=64}]))
+		}]
 	    }
       val fn92 = C.Cluster{
 	      attrs = attrs false,
-	      entry = C.Frag{
+	      frags = [
+	        C.Frag{
 		  kind = C.STD_CONT,
 		  lab = v 92,
 		  params = mkParams [
@@ -169,8 +170,7 @@ structure Ex4 =
 		      C.THROW (V 118,
 			[V 118, select(1, V 113), V 112, V 111, V 42],
 			[C.LABt, C.PTRt, C.PTRt, C.PTRt, C.NUMt{sz=64}])))
-		},
-	      frags = []
+		}]
 	    }
     in
     val cu = {srcFile = "fact.sml", entry = fn96, fns = [fn80, fn92]}

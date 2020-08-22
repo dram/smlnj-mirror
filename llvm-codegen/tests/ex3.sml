@@ -71,7 +71,8 @@ structure Ex3 =
 
       val fn80 = C.Cluster{
 	      attrs = attrs true,
-	      entry = C.Frag{
+	      frags = [
+	        C.Frag{
 		  kind = C.STD_FUN,
 		  lab = v 80,
 		  params = mkParams [
@@ -89,13 +90,13 @@ structure Ex3 =
 			C.THROW (V 69,
 			  [V 69, V 70, V 71, V 72, V 92],
 			  [C.LABt, C.PTRt, C.PTRt, C.PTRt, C.PTRt]))))
-		},
-	      frags = []
+		}]
 	    }
     (* the standard GC fragment *)
       val fn100 = C.Cluster{
 	      attrs = attrs false,
-	      entry = C.Frag{
+	      frags = [
+	        C.Frag{
 		  kind = C.STD_FUN,
 		  lab = v 100,
 		  params = mkParams [
@@ -108,12 +109,12 @@ structure Ex3 =
 		      C.APPLY(V 111,
 			[V 111, V 112, V 113, V 114, V 115, V 116, V 117],
 			[C.PTRt, C.PTRt, C.PTRt, C.PTRt, C.PTRt, C.PTRt, C.PTRt]))
-		},
-	      frags = []
+		}]
 	    }
       val fn73 = C.Cluster{
 	      attrs = attrs false,
-	      entry = C.Frag{
+	      frags = [
+	        C.Frag{
 		  kind = C.STD_FUN,
 		  lab = v 73,
 		  params = mkParams [
@@ -133,13 +134,13 @@ structure Ex3 =
 			    pureOp(P.FADD, [pureOp(P.FMUL, [V 84, V 83]), V 82])
 			  ],
 			[C.PTRt, C.PTRt, C.PTRt, C.PTRt, C.FLTt{sz=64}]))
-		},
-	      frags = []
+		}]
 	    }
     (* the specialized GC fragment *)
       val fn200 = C.Cluster{
 	      attrs = attrs false,
-	      entry = C.Frag{
+	      frags = [
+	        C.Frag{
 		  kind = C.STD_FUN,
 		  lab = v 200,
 		  params = mkParams [
@@ -160,8 +161,7 @@ structure Ex3 =
 			[C.PTRt, C.PTRt, C.PTRt, C.PTRt, C.PTRt, C.PTRt,
 			    C.FLTt{sz=64}, C.FLTt{sz=64}, C.FLTt{sz=64}
 			  ])))
-		},
-	      frags = []
+		}]
 	    }
     in
     val cu = {srcFile = "fmadd.sml", entry = fn80, fns = [fn100, fn73, fn200]}

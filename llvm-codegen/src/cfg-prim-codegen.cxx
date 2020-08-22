@@ -32,6 +32,8 @@ namespace CFG_Prim {
 	int len = args.size();
 	Value *allocPtr = buf->mlReg (sml_reg_id::ALLOC_PTR);
 
+	assert (len == this->_v_fields.size() && "incorrect number of fields");
+
 /* FIXME: for 32-bit targets, we may need to align the allocation pointer */
 
       // write object descriptor
@@ -44,6 +46,23 @@ namespace CFG_Prim {
 	Value *obj = buf->createBitCast (
 	    buf->createGEP (allocPtr, 1),
 	    buf->mlValueTy);
+
+      // get a pointer to the beginning of the object that has `char *` type
+	Type *elemTy = numType (buf, this->_v_kind, this->_v_sz);
+	Value *initPtr = buf->createBitCast (obj, this->bytePtrTy);
+
+      // initialize the object's fields
+	int offset = 0;
+	for (int i = 0;  i < len;  ++i) {
+	    auto fld = this->_v_fields[i];
+	    Type *elemTy = numType (buf, fld->get_kind(), fld->get_sz());
+	    Value *adr = buf->createBitCast (
+		buf->createGEP (initPtr, offset);
+	    buf->build().CreateAlignedStore (
+		args[i],
+		adr,
+		0 /* default alignment */);
+	}
 
       // get a pointer to the beginning of the object that has the
       // right type
