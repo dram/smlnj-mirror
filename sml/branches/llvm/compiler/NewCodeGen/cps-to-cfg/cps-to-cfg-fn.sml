@@ -693,6 +693,7 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 	    hdrFrag :: addLimitCheck (info, maxAllocW, frag')
 	  end
       | addLimitCheck (info, maxAllocW, C.Frag{kind, lab, params, body}) = let
+(* FIXME: somewhere we need to account for the memory required to save GC roots *)
 	  val limitChk = if maxAllocW > skidPad
 		then TP.LIMIT(Word.fromInt(MS.wordByteWidth * maxAllocW))
 		else TP.LIMIT 0w0

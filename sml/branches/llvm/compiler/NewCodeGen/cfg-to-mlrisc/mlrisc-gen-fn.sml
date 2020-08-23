@@ -14,7 +14,7 @@ signature MLRISC_GEN =
    * object's entry point.  The client must promise to first call
    * "finish" before forcing it.
    *)
-    val codegen : string * CFG.cluster list -> (unit -> int)
+    val codegen : CFG.comp_unit -> (unit -> int)
 
   end
 
@@ -67,13 +67,6 @@ functor NewMLRiscGenFn (
 	structure C = Regs
 	structure MS = MachineSpec)
 
-  (* GC invocation *)
-    structure InvokeGC = InvokeGCFn (
-	structure MS = MS
-	structure Regs = Regs
-	structure TS = TS
-	structure CtlFlowGraph = MLTreeComp.CFG)
-
   (* C-Calls handling *)
     structure CPSCCalls = CPSCCalls(
 	structure MS = MachineSpec
@@ -82,13 +75,7 @@ functor NewMLRiscGenFn (
 	structure Cells = Cells
 	structure CCalls = CCalls)
 
-  (*
-   * If this flag is on then split the entry block.
-   * This should be on for SSA optimizations.
-   *)
-    val splitEntry = Control.MLRISC.mkFlag ("split-entry-block", "whether to split entry block")
-
-  (* if this flag is on, then annotate instructions with their source MLTree *)
+  (* if this flag is on, then annotate instructions with their srcFile MLTree *)
     val annoteFlg = Control.MLRISC.mkFlag ("annotate-instrs", "whether to annotate instructions")
 
   (* convert bit size to byte size; bit sizes should always be a power of 2 *)
@@ -125,7 +112,7 @@ functor NewMLRiscGenFn (
 	    Word.toIntX(Word.andb(Word.fromInt offset + w, Word.notb w))
 	  end
 
-  (* store a at the offset from the allocation pointer *)
+  (* store `v` at the offset `hp` from the allocation pointer *)
     fun allocWord (hp, v) = M.STORE(ity, M.ADD(ity, Regs.allocptr, LI' hp), v, R.memory)
 
   (* Assign `v` to the CPS-Machine register, which may be implemented as a stack
@@ -200,7 +187,7 @@ functor NewMLRiscGenFn (
     fun branchWithProb (br, 0) = br
       | branchWithProb (br, p) =
 	  M.ANNOTATION(br,
-	    #create MLRiscAnnotations.BRANCH_PROB(Probability.prob(p, 100)))
+	    #create MLRiscAnnotations.BRANCH_PROB(Probability.prob(p, 1000)))
   (*
    * The allocation pointer.  This must be a register
    *)
@@ -228,45 +215,29 @@ functor NewMLRiscGenFn (
 	  then M.CMP(ity, M.GT, Regs.allocptr, Regs.limitptr vfp)
 	  else M.CMP(ity, M.GTU, Regs.allocptr, Regs.limitptr vfp)
 
-  (* assign MLRisc labels to the CFG labels in the module.
-   * If the flag splitEntry is on, we also distinguish between external and
-   * internal labels, make sure that no directly branches go to the
-   * external labels.
-   *)
-    fun assignLabels (clusters : CFG.cluster list) = let
-	  val externTbl : Label.label Tbl.hash_table = Tbl.mkTable(32, Fail "extern")
-	  val addExternLabel = Tbl.insert externTbl
-	  val localTbl : Label.label Tbl.hash_table = Tbl.mkTable(32, Fail "local")
-	  val addLocalLabel = Tbl.insert localTbl
+  (* assign MLRisc labels to the CFG labels in the module *)
+    fun assignLabels (clusters : C.cluster list) = let
+	  val labelTbl : Label.label Tbl.hash_table = Tbl.mkTable(32, Fail "label-tbl")
+	  val addLabel = Tbl.insert labelTbl
 	(* assign labels for a cluster *)
-	  fun doCluster ((cc, entryLab, _, _), frags) = let
-		fun doFrag (_, lab, _, _) = addExternLabel (lab, newLabel())
+	  fun doCluster (C.Cluster{frags, ...}) = let
+		fun doFrag (C.Frag{lab, ...}) =
+		      addLabel (lab, Label.label(LambdaVar.prLvar lab) ())
 		in
-		  addExternLabel (entryLab, newLabel());
-		(* internal label *)
-		  if !splitEntry
-		    then (case cc
-		       of (C.STD_FUN | C.STD_CONT) =>
-			    addLocalLabel (entryLab,
-			      Label.label(LambdaVar.prLvar entryLab) ())
-			| _ => ()
-		      (* end case *))
-		    else ();
 		  List.app doFrag frags
 		end
 	  in
 	    List.app doCluster clusters;
-	    { externLabel = Tbl.lookup externTbl, localLabel = Tbl.lookup localTbl }
+	    Tbl.lookup labelTbl
 	  end
 
   (*
    * The main codegen function.
    *)
-    fun codegen (source, clusters : CFG.cluster list) = let
-	  val ((_, clusterEntry, _, _), _) = hd clusters
-	  val splitEntry = !splitEntry
+    fun codegen {srcFile, entry=entryCluster, fns} = let
+	  val clusters = entryCluster::fns
 	(* A mapping of function names (CPS.lvars) to labels. *)
-	  val {externLabel, localLabel} = assignLabels clusters
+	  val lookupLabel = assignLabels clusters
 	(* Known functions have parameters passed in fresh temporaries.
 	 * We track this information in a mapping from known function names
 	 * to the MLRisc registers used as their formal parameters.  We set
@@ -282,7 +253,7 @@ functor NewMLRiscGenFn (
 	  fun knownFormals (lab, tys) = (case find lab
 		 of SOME regs => regs
 		  | NONE => let (* need to initialize the formals to fresh regs *)
-		      fun assign (C.FLTt sz) = M.FPR(M.FREG(sz, Cells.newFreg()))
+		      fun assign (C.FLTt{sz}) = M.FPR(M.FREG(sz, Cells.newFreg()))
 			| assign _ = M.GPR(M.REG(ity, Cells.newReg()))
 		      val formals = List.map assign tys
 		      in
@@ -292,7 +263,7 @@ functor NewMLRiscGenFn (
 		(* end case *))
 	  end
 	(* Generate code for a cluster*)
-	  fun genCluster (cluster as (entry, frags)) = let
+	  fun genCluster (cluster as C.Cluster{attrs, frags=entry::frags}) = let
 		val _ = if !Control.debugging then PPCfg.prCluster cluster else ()
 	      (* The mltree stream *)
 		val stream as TS.S.STREAM{
@@ -351,18 +322,6 @@ functor NewMLRiscGenFn (
 			  then advBy(hp+ws)
 			  else advBy hp
 		      end
-	      (* emit a heap-limit test that sets the "exhausted" register to true if
-	       * a GC is required just prior to a control transfer.  The actual jump
-	       * to GC is done at the entry to the function.
-	       *)
-		val testLimit = let
-		      val emitGCTest = (case Regs.exhausted
-			     of SOME(M.CC(_, cc)) => (fn () => emit (M.CCMV(cc, gcTest)))
-			      | _ => (fn () => ())
-			    (* end case *))
-		      in
-			fn hp => (updateAllocPtr hp; emitGCTest())
-		      end
 	      (* A mapping of lvars to MLRisc cells (aka, pseudo registers). *)
 		val gpRegTbl : M.rexp Tbl.hash_table = Tbl.mkTable(32, Fail "GP Tbl")
 		val addBinding = Tbl.insert gpRegTbl
@@ -419,14 +378,14 @@ functor NewMLRiscGenFn (
 			advancedHP := save
 		      end
 	      (* Generate code for a statement *)
-		and gen (C.LET(e, (x, CFG.FLTt sz), k), hp) = (
-		      fbind (x, sz, genFExp e);
+		and gen (C.LET(e, {name, ty=CFG.FLTt{sz}}, k), hp) = (
+		      fbind (name, sz, genFExp e);
 		      gen (k, hp))
-		  | gen (C.LET(e, (x, CFG.NUMt sz), k), hp) = (
-		      bind (x, sz, genExp e);
+		  | gen (C.LET(e, {name, ty=CFG.NUMt{sz}}, k), hp) = (
+		      bind (name, sz, genExp e);
 		      gen (k, hp))
-		  | gen (C.LET(e, (x, _), k), hp) = (
-		      bind (x, ity, genExp e);
+		  | gen (C.LET(e, {name, ...}, k), hp) = (
+		      bind (name, ity, genExp e);
 		      gen (k, hp))
 		(** Allocation **)
 		  | gen (C.ALLOC(P.RECORD{desc, mut}, args, x, k), hp) = let
@@ -442,6 +401,8 @@ functor NewMLRiscGenFn (
 			bind (x, ity, M.ADD(ity, Regs.allocptr, LI' obj));
 			gen (k, hp)
 		      end
+		  | gen (C.ALLOC(P.RAW_RECORD{desc, fields}, args, x, k), hp) = ??
+(*
 		  | gen (C.ALLOC(P.RAW_RECORD{desc, kind, sz}, args, x, k), hp) = let
 		      val nb = byteSz sz
 		    (* align the heap offset (if necessary) *)
@@ -470,6 +431,7 @@ functor NewMLRiscGenFn (
 			emit (allocWord (hp, M.LI desc));
 			gen (k, hp)
 		      end
+*)
 		  | gen (C.ALLOC(P.RAW_ALLOC{desc=SOME d, align, len}, args, x, k), hp) = let
 		      val hp = alignOffset(hp + ws, align) - ws
 		      in
@@ -484,48 +446,27 @@ functor NewMLRiscGenFn (
 			gen (k, hp + len)
 		      end
 		(** Function/Continuation Application **)
-		  | gen (C.APPLY(args, argTys), hp) = let
+		  | gen (C.APPLY(f, args, argTys), hp) = let
 		      val (dest, formals) = ArgP.stdFun{vfp=vfp, argTys=argTys}
 		      in
 			setupArgs (formals, List.map genExp args);
-			testLimit hp;
+			updateAllocPtr hp;
 			emit (M.JMP(dest, []));
 			exitBlock (formals @ dedicated)
 		      end
-		  | gen (C.THROW(args, argTys), hp) = let
+		  | gen (C.THROW(k, args, argTys), hp) = let
 		      val (dest, formals) = ArgP.stdCont{vfp=vfp, argTys=argTys}
 		      in
 			setupArgs (formals, List.map genExp args);
-			testLimit hp;
+			updateAllocPtr hp;
 			emit (M.JMP(dest, []));
 			exitBlock (formals @ dedicated)
 		      end
-		  | gen (C.GOTO(C.STD_FUN, f, args, argTys), hp) = let
-		      val (dest, formals) = ArgP.stdFun{vfp=vfp, argTys=argTys}
-		      in
-			setupArgs (formals, List.map genExp args);
-			testLimit hp;
-			emit (M.JMP(M.LABEL(externLabel f), []))
-		      end
-		  | gen (C.GOTO(C.STD_CONT, f, args, argTys), hp) = let
-		      val (dest, formals) = ArgP.stdCont{vfp=vfp, argTys=argTys}
-		      in
-			setupArgs (formals, List.map genExp args);
-			testLimit hp;
-			emit (M.JMP(M.LABEL(externLabel f), []))
-		      end
-		  | gen (C.GOTO(C.KNOWN_CHK, f, args, argTys), hp) = let
+		  | gen (C.GOTO(f, args), hp) = let
 		      val formals = knownFormals (f, argTys)
 		      in
 			setupArgs (formals, List.map genExp args);
-			testLimit hp;
-			emit (M.JMP(M.LABEL(externLabel f), []))
-		      end
-		  | gen (C.GOTO(C.KNOWN, f, args, argTys), hp) = let
-		      val formals = knownFormals (f, argTys)
-		      in
-			setupArgs (formals, List.map genExp args);
-			emit (M.JMP(M.LABEL(externLabel f), []))
+			emit (M.JMP(M.LABEL(lookupLabel f), []))
 		      end
 		(** Conditional Control Flow **)
 		  | gen (C.SWITCH(arg, ks), hp) = let
@@ -578,12 +519,12 @@ functor NewMLRiscGenFn (
 			gen (kTrue, hp)
 		      end
 		(** Arithmetic (w/ Side Effects) **)
-		  | gen (C.ARITH(rator, args, (x, _), k), hp) = let
+		  | gen (C.ARITH(rator, args, {name, ...}, k), hp) = let
 		      fun binOp (sz, oper, a, b) = (
-			    bind(x, sz, oper(sz, genExp a, genExp b));
+			    bind(name, sz, oper(sz, genExp a, genExp b));
 			    gen (k, hp))
 		      fun divOp (sz, oper, rnd, a, b) = (
-			    bind(x, sz, oper(rnd, sz, genExp a, genExp b));
+			    bind(name, sz, oper(rnd, sz, genExp a, genExp b));
 			    gen (k, hp))
 		      in
 			case (rator, args)
@@ -591,10 +532,6 @@ functor NewMLRiscGenFn (
 			  | (P.ARITH{oper=P.ISUB, sz}, [a, b]) => binOp(sz, M.SUBT, a, b)
 			  | (P.ARITH{oper=P.IMUL, sz}, [a, b]) => binOp(sz, M.MULT, a, b)
 			  | (P.ARITH{oper=P.IDIV, sz}, [a, b]) =>
-			      divOp(sz, M.DIVT, M.DIV_TO_NEGINF, a, b)
-			  | (P.ARITH{oper=P.IMOD, sz}, [a, b]) =>
-			      divOp(sz, M.REMS, M.DIV_TO_NEGINF, a, b)
-			  | (P.ARITH{oper=P.IQUOT, sz}, [a, b]) =>
 			      divOp(sz, M.DIVT, M.DIV_TO_ZERO, a, b)
 			  | (P.ARITH{oper=P.IREM, sz}, [a, b]) =>
 			      divOp(sz, M.REMS, M.DIV_TO_ZERO, a, b)
@@ -668,6 +605,8 @@ functor NewMLRiscGenFn (
 			  | (P.SET_VAR, [a]) => (assign (varPtr, genExp a); gen(k, hp))
 			(* end case *)
 		      end
+		(** Call GC **)
+		  | gen (C.CALLGC(roots, newRoots, k), hp) = ??
 		(** C Calls **)
 (* TODO
 		  | gen (C.RCC(arg as (_, _, _, _, xs, k)), hp) = let
@@ -700,12 +639,10 @@ functor NewMLRiscGenFn (
 *)
 		  | gen (C.RCC _, _) = raise Fail "RCC not yet supported"
 	      (* translate a CFG expression to an MLRisc rexp value *)
-		and genExp (C.VAR x) = resolve x
-		  | genExp (C.LABEL l) = if splitEntry
-		      then addrOfLabel(localLabel l, 0)
-		      else addrOfLabel(externLabel l, 0)
+		and genExp (C.VAR{name}) = resolve name
+		  | genExp (C.LABEL{name}) = addrOfLabel(lookupLabel name, 0)
 		  | genExp (C.NUM{iv, ...}) = M.LI iv
-		  | genExp (C.LOOKER(rator, args)) = (case (rator, List.map genExp args)
+		  | genExp (C.LOOKER{oper, args}) = (case (oper, List.map genExp args)
 		       of (P.DEREF, [a]) =>
 			    M.LOAD(ity, a, R.memory)
 			| (P.SUBSCRIPT, [adr, idx]) =>
@@ -715,11 +652,11 @@ functor NewMLRiscGenFn (
 			| (P.GET_HDLR, _) => exnPtr
 			| (P.GET_VAR, _) => varPtr
 			| _ => error [
-			      "unexpected ", PPCfg.lookerToString rator,
+			      "unexpected ", PPCfg.lookerToString oper,
 			      " in int expression"
 			    ]
 		      (* end case *))
-		  | genExp (C.PURE(rator, args)) = (case (rator, args)
+		  | genExp (C.PURE{oper, args}) = (case (oper, args)
 		       of (P.PURE_ARITH{oper, sz}, [a, b]) => let
 			    fun binOp oper = oper(sz, genExp a, genExp b)
 			    fun divOp oper = oper(M.DIV_TO_ZERO, sz, genExp a, genExp b)
@@ -748,34 +685,35 @@ functor NewMLRiscGenFn (
 			| (P.EXTEND{signed=true, from, to}, [a]) =>
 			    M.SX(to, from, genExp a)
 			| (P.EXTEND{from, to, ...}, [a]) => M.ZX(to, from, genExp a)
-			| (P.LOAD_RAW{offset, kind=INT, sz}, [adr]) =>
-			    M.LOAD(sz, ea(genExp adr, offset), R.memory)
+			| (P.TRUNC{from, to}, [a]) => ??
 			| (P.PURE_SUBSCRIPT, [adr, idx]) =>
 			    M.LOAD(ity, scaleWord(genExp adr, genExp idx), R.memory)
 			| (P.PURE_RAW_SUBSCRIPT{kind=INT, sz}, [adr, idx]) =>
 			    M.LOAD(sz, indexAddr(genExp adr, sz, genExp idx), R.memory)
+			| (P.RAW_SELECT{kind=INT, sz, offset}, [obj]) => ??
+			    M.LOAD(sz, ea(genExp obj, offset), R.memory)
 			| _ => error [
-			      "unexpected ", PPCfg.pureToString rator,
+			      "unexpected ", PPCfg.pureToString oper,
 			      " in float expression"
 			    ]
 		      (* end case *))
-		  | genExp (C.SELECT(i, arg)) =
-		      M.LOAD(ity, scaleOffset(genExp arg, ws, i), R.memory)
-		  | genExp (C.OFFSET(i, arg)) = scaleOffset(genExp arg, ws, i)
+		  | genExp (C.SELECT{idx, arg}) =
+		      M.LOAD(ity, scaleOffset(genExp arg, ws, idx), R.memory)
+		  | genExp (C.OFFSET{idx, arg}) = scaleOffset(genExp arg, ws, idx)
 	      (* translate a CFG expression to an MLRisc fexp value *)
-		and genFExp (C.VAR x) = flookup x
+		and genFExp (C.VAR{name}) = flookup name
 		  | genFExp (C.LABEL l) = error ["unexpected LABEL in float expression"]
 		  | genFExp (C.NUM{iv, sz}) =
 		      error ["unexpected NUM in float expression"]
-		  | genFExp (C.LOOKER(rator, args)) = (case (rator, List.map genExp args)
+		  | genFExp (C.LOOKER{oper, args}) = (case (oper, List.map genExp args)
 		       of (P.RAW_SUBSCRIPT{kind=FLT, sz}, [adr, idx]) =>
 			    M.FLOAD(sz, indexAddr(adr, sz, idx), R.memory)
 			| _ => error [
-			      "unexpected ", PPCfg.lookerToString rator,
+			      "unexpected ", PPCfg.lookerToString oper,
 			      " in int expression"
 			    ]
 		      (* end case *))
-		  | genFExp (C.PURE(rator, args)) = (case (rator, args)
+		  | genFExp (C.PURE{oper, args}) = (case (oper, args)
 		       of (P.PURE_ARITH{oper, sz}, [a, b]) => (case oper
 			     of P.FADD => M.FADD(sz, genFExp a, genFExp b)
 			      | P.FSUB => M.FSUB(sz, genFExp a, genFExp b)
@@ -790,17 +728,18 @@ functor NewMLRiscGenFn (
 			| (P.PURE_ARITH{oper=P.FABS, sz}, [a]) => M.FABS(sz, genFExp a)
 			| (P.PURE_ARITH{oper=P.FSQRT, sz}, [a]) => M.FSQRT(sz, genFExp a)
 			| (P.INT_TO_REAL{from, to}, [a]) => M.CVTI2F(to, from, genExp a)
-			| (P.LOAD_RAW{offset, kind=FLT, sz}, [adr]) =>
-			    M.FLOAD(sz, ea(genExp adr, offset), R.real)
 			| (P.PURE_RAW_SUBSCRIPT{kind=FLT, sz}, [adr, idx]) =>
 			    M.FLOAD(sz, indexAddr(genExp adr, sz, genExp idx), R.memory)
+			| (P.RAW_SELECT{kind=FLT, sz, offset}, [obj]) => ??
+			    M.FLOAD(sz, ea(genExp obj, offset), R.real)
 			| _ => error [
-			      "unexpected ", PPCfg.pureToString rator,
+			      "unexpected ", PPCfg.pureToString oper,
 			      " in float expression"
 			    ]
 		      (* end case *))
-		  | genFExp (C.OFFSET(i, arg)) =
-		      error ["unexpected OFFSET in float expression"]
+		  | genFExp exp = error [
+			"unexpected float expression ", PPCfg.expToString exp
+		      ]
 	      (* translate a CFG branch primop to an MLRisc ccexp *)
 		and genCCExp (P.CMP{oper, signed=true, sz}, [a, b]) =
 		      M.CMP(sz, signedCmp oper, genExp a, genExp b)
@@ -810,6 +749,8 @@ functor NewMLRiscGenFn (
 		      M.FCMP(sz, floatCmp oper, genFExp a, genFExp b)
 		  | genCCExp (P.PEQL, [a, b]) = M.CMP(ity, M.EQ, genExp a, genExp b)
 		  | genCCExp (P.PNEQ, [a, b]) = M.CMP(ity, M.NE, genExp a, genExp b)
+		  | genCCExp (P.LIMIT 0w0, []) = gcTest
+		  | genCCExp (P.LIMIT n, []) = ??
 		  | genCCExp (tst, _) = error [
 			"unexpected ", PPCfg.branchToString tst, " in condition"
 		      ]
@@ -847,24 +788,26 @@ functor NewMLRiscGenFn (
 		      then #set An.USES_VIRTUAL_FRAME_POINTER ((), [])
 		      else []
 	      (* generate code for the entry fragment of the cluster *)
-		fun genEntry (C.STD_FUN, f, params : CFG.param list, body) = let
-		      val argTys = List.map #2 params
-		      val formals = ArgP.stdFun {vfp=vfp, argTys=argTys}
-		      in
-			pseudoOp(PB.ALIGN_SZ 2);
-			??
-		      end
-		  | genEntry (C.STD_CONT, f, params, body) = let
-		      val argTys = List.map #2 params
-		      val formals = ArgP.stdCont {vfp=vfp, argTys=argTys}
-		      in
-			pseudoOp(PB.ALIGN_SZ 2);
-			??
-		      end
-		  | genEntry _ = error ["expected standard entry"]
+		fun genEntry (C.Frag{kind, lab, params, body}) = (case kind
+		       of C.STD_FUN => let
+			    val argTys = List.map #ty params
+			    val formals = ArgP.stdFun {vfp=vfp, argTys=argTys}
+			    in
+			      pseudoOp(PB.ALIGN_SZ 2);
+			      ??
+			    end
+			| C.STD_CONT => let
+			    val argTys = List.map #ty params
+			    val formals = ArgP.stdCont {vfp=vfp, argTys=argTys}
+			    in
+			      pseudoOp(PB.ALIGN_SZ 2);
+			      ??
+			    end
+			| _ => error ["expected standard entry"]
+		      (* end case *))
 	      (* generate code for internal fragments *)
-		fun genFrag (fk, lab, params : CFG.param list, body) = let
-		      val argTys = List.map #2 params
+		fun genFrag (C.Frag{kind, lab, params, body}) = let
+		      val argTys = List.map #ty params
 		      val formals = knownFormals (lab, argTys)
 		      in
 ??
@@ -875,23 +818,24 @@ functor NewMLRiscGenFn (
 		  List.app genFrag frags;
 		  compile (endCluster (clusterAnnotations()))
 		end (* genCluster *)
-	  fun finishCompilationUnit file = let
-		val stream = MLTreeComp.selectInstructions (Flowgen.build ())
-		val TS.S.STREAM{beginCluster, pseudoOp, endCluster, ...} = stream
-		in
-		  Cells.reset();
-		  ClusterAnnotation.useVfp := false;
-		  beginCluster 0;
-		  pseudoOp PB.TEXT;
-		  InvokeGC.emitModuleGC stream;
-		  pseudoOp PB.DATA_READ_ONLY;
-		  pseudoOp (PB.EXT(CPs.FILENAME file));
-		  compile (endCluster [#create An.NO_OPTIMIZATION ()])
-		end (* finishCompilationUnit *)
+	(* generate MLRISC code for the clusters *)
+	  val _ = List.app genCluster clusters
+	(* generate native code *)
+	  val stream = MLTreeComp.selectInstructions (Flowgen.build ())
+	  val TS.S.STREAM{beginCluster, pseudoOp, endCluster, ...} = stream
 	  in
-	    List.app genCluster clusters;
-	    finishCompilationUnit source;
-	    fn () => Label.addrOf (externLabel clusterEntry)
+	    Cells.reset();
+	    ClusterAnnotation.useVfp := false;
+	    beginCluster 0;
+	  (* add srcFile file name to end of code *)
+	    pseudoOp PB.DATA_READ_ONLY;
+	    pseudoOp (PB.EXT(CPs.FILENAME srcFile));
+	    compile (endCluster [#create An.NO_OPTIMIZATION ()]);
+	    case entryCluster
+	     of C.Cluster{frags=C.Frag{lab, ...}::_, ...} =>
+		  (fn () => Label.addrOf (lookupLabel lab))
+	      | _ => raise Match (* impossible *)
+	    (* end case *)
 	  end (* codegen *)
 
   end (* functor MLRiscGenFn *)
