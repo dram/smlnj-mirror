@@ -63,7 +63,7 @@ llvm::dbgs() << "host CPU = " << llvm::sys::getHostCPUName() << "\n";
 // that are recognized
     std::unique_ptr<llvm::TargetMachine> tgtMachine(target->createTargetMachine(
 	triple,
-	"native",		/* CPU name; could be "native" */
+	"generic",		/* CPU name */
 	"",			/* features string */
 	tgtOptions,
 	llvm::Reloc::PIC_,

@@ -51,14 +51,19 @@ namespace CFG_Prim {
 	    buf->mlValueTy);
 
       // get a pointer to the beginning of the object that has `char *` type
-	Type *elemTy = numType (buf, this->_v_kind, this->_v_sz);
-	Value *initPtr = buf->createBitCast (obj, this->bytePtrTy);
+	Value *initPtr = buf->createBitCast (obj, buf->bytePtrTy);
 
       // initialize the object's fields
 	int offset = 0;
 	for (int i = 0;  i < len;  ++i) {
 	    auto fld = this->_v_fields[i];
+	    int szb = (fld->get_sz() >> 3);
+	    if ((offset & szb) != 0) {
+	      // align the offset
+		offset = (offset + (szb - 1)) & ~(szb - 1);
+	    }
 	    Type *elemTy = numType (buf, fld->get_kind(), fld->get_sz());
+	  // get a pointer to obj+offset that has the right type
 	    Value *adr = buf->createBitCast (
 		buf->createGEP (initPtr, offset),
 		elemTy->getPointerTo());
@@ -66,27 +71,15 @@ namespace CFG_Prim {
 		args[i],
 		adr,
 		0 /* default alignment */);
-
+	    offset += szb;
 	}
-
-      // get a pointer to the beginning of the object that has the
-      // right type
-	Type *elemTy = numType (buf, this->_v_kind, this->_v_sz);
-	Value *initPtr = buf->createBitCast (obj, elemTy->getPointerTo());
-
-      // initialize the object's fields
-	for (int i = 0;  i < len;  ++i) {
-	    Value *adr = buf->createGEP (initPtr, i);
-	    buf->build().CreateAlignedStore (
-		args[i],
-		adr,
-		0 /* default alignment */);
-	}
+      // align the final offset to the native word size
+	offset = (offset + (buf->wordSzInBytes() - 1)) & ~(buf->wordSzInBytes() - 1);
 
       // bump the allocation pointer
 	buf->setMLReg (sml_reg_id::ALLOC_PTR,
 	    buf->createBitCast (
-	        buf->createGEP (initPtr, len),
+	        buf->createGEP (initPtr, offset),
 		buf->objPtrTy));
 
 	return obj;
@@ -288,7 +281,7 @@ namespace CFG_Prim {
 		buf->bytePtrTy,
 		buf->createBitCast(args[0], buf->bytePtrTy),
 		buf->uConst (this->_v_offset)),
-	    elemTy->getPointerTo())
+	    elemTy->getPointerTo());
 
 	return buf->createLoad (elemTy, adr);
 
