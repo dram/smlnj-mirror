@@ -34,7 +34,10 @@ namespace CFG_Prim {
 
 	assert (len == this->_v_fields.size() && "incorrect number of fields");
 
-/* FIXME: for 32-bit targets, we may need to align the allocation pointer */
+/* FIXME: for 32-bit targets, we may need to align the allocation pointer; to do
+ * this properly, we ought to track the current alignment of the allocation pointer
+ * w.r.t. the current fragment.
+ */
 
       // write object descriptor
 	buf->build().CreateAlignedStore (
