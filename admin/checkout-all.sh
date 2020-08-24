@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# COPYRIGHT (c) 2017 The Fellowship of SML/NJ (http://www.smlnj.org)
+# COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
 # All rights reserved.
 #
 # Script to checkout a fresh copy of the SML/NJ sources.
@@ -13,11 +13,13 @@
 #	-e, --export	-- use "svn export" instead of "svn checkout"
 #	-r ARG		-- use ARG as the checkout revision
 #	--release ARG	-- checkout a release that was created with make-release.sh
+#  	--force		-- overwrite existing source trees
 #
 
 command=checkout
 revision=""
 release=""
+force=no
 
 usage() {
   echo "usage: checkout-all.sh [-e | --export] [-r ARG | --revision ARG] [--release ARG] [dir]"
@@ -46,6 +48,9 @@ while [ $# -ge 1 ] ; do
 	fi
     ;;
     --help|-h) usage 0
+    ;;
+    --force)
+	force=yes
     ;;
     -*) usage 1
     ;;
@@ -77,6 +82,11 @@ checkout(){
     source=$1/$release
     target=$2
     if [ ! -d $target ] ; then
+	echo "svn $command $revision $source $target"
+	svn $command $revision $source $target
+    elif [ $force = yes ] ; then
+	echo Replacing existing $target tree
+	rm -rf $target
 	echo "svn $command $revision $source $target"
 	svn $command $revision $source $target
     else
