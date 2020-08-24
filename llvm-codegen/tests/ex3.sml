@@ -54,8 +54,9 @@ structure Ex3 =
 	    end
       fun rawRecord (flds, x, k) = let
 	    val desc = ObjDesc.rawRecord(length flds)
+	    val fldTys = List.map (fn _ => {kind = P.FLT, sz = 64}) flds
 	    in
-	      C.ALLOC(P.RAW_RECORD{desc = desc, kind = P.FLT, sz = 64}, flds, x, k)
+	      C.ALLOC(P.RAW_RECORD{align = 8, desc = desc, fields=fldTys}, flds, x, k)
 	    end
       fun rawSelect (i, v) = C.PURE{
 	      oper = P.PURE_RAW_SUBSCRIPT{kind=P.FLT, sz=64},

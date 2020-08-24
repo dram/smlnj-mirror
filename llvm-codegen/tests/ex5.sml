@@ -103,8 +103,9 @@ structure Ex5 =
       fun setHdlr (exp, k) = C.SETTER(P.SET_HDLR, [exp], k)
       fun rawRecord (flds, x, k) = let
 	    val desc = ObjDesc.rawRecord(length flds)
+	    val fldTys = List.map (fn _ => {kind = P.INT, sz = 64}) flds
 	    in
-	      C.ALLOC(P.RAW_RECORD{desc = desc, kind = P.INT, sz = 64}, flds, x, k)
+	      C.ALLOC(P.RAW_RECORD{align = 8, desc = desc, fields=fldTys}, flds, x, k)
 	    end
       fun attrs bp = { (* cluster attrs *)
 	      alignHP = 8, needsBasePtr = bp, hasTrapArith = false, hasRCC = false

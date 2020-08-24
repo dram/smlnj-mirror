@@ -84,8 +84,9 @@ structure Ex4 =
 	    end
       fun rawRecord (flds, x, k) = let
 	    val desc = ObjDesc.rawRecord(length flds)
+	    val fldTys = List.map (fn _ => {kind = P.INT, sz = 64}) flds
 	    in
-	      C.ALLOC(P.RAW_RECORD{desc = desc, kind = P.INT, sz = 64}, flds, x, k)
+	      C.ALLOC(P.RAW_RECORD{align = 8, desc = desc, fields=fldTys}, flds, x, k)
 	    end
       fun select (idx, arg) = C.SELECT{idx=idx, arg=arg}
       fun arith (oper, args, res, k) =
