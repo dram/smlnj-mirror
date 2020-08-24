@@ -57,11 +57,13 @@ namespace CFG_Prim {
 	    auto fld = this->_v_fields[i];
 	    Type *elemTy = numType (buf, fld->get_kind(), fld->get_sz());
 	    Value *adr = buf->createBitCast (
-		buf->createGEP (initPtr, offset);
+		buf->createGEP (initPtr, offset),
+		elemTy->getPointerTo());
 	    buf->build().CreateAlignedStore (
 		args[i],
 		adr,
 		0 /* default alignment */);
+
 	}
 
       // get a pointer to the beginning of the object that has the
