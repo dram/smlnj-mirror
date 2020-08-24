@@ -74,10 +74,22 @@ functor CPSCompFn (
 			      val cfg = CPStoCFG.translate {
 				      source = source, funcs = carg, limits = limit
 				    }
+			      val pklFile = if source = "stdin"
+				    then "out.pkl"
+				    else (case OS.Path.splitBaseExt source
+				       of {base, ext=SOME "sml"} =>
+					    OS.Path.joinBaseExt{base=base, ext=SOME "pkl"}
+					| _ => source ^ ".pkl"
+				      (* end case *))
 			      in
-				say "***** CFG *****\n";
-				PPCfg.prCompUnit cfg;
-				say "***** END CFG *****\n"
+				if !Control.CG.printClusters
+				  then (
+				    say "***** CFG *****\n";
+				    PPCfg.prCompUnit cfg;
+				    say "***** END CFG *****\n")
+				  else ();
+				say (concat["## dump CFG pickle to ", pklFile, "\n"]);
+				CFGPickler.toFile (pklFile, cfg)
 			      end
 			    else ()
 		      val epthunk = codegen {

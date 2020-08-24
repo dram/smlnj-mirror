@@ -8,12 +8,12 @@ structure CFGPickler : sig
 
     val toFile : string * CFG.comp_unit -> unit
 
-    val toBytes : string * CFG.comp_unit -> Word8Vector.vector
+    val toBytes : CFG.comp_unit -> Word8Vector.vector
 
   end = struct
 
     val toFile = ASDLFilePickle.toFile CFGFilePickle.write_comp_unit
 
-    val toBytes = ASDLMemoryPickle.toVector CFGMemoryxsPickle.write_comp_unit
+    val toBytes = ASDLMemoryPickle.toVector CFGMemoryPickle.write_comp_unit
 
   end

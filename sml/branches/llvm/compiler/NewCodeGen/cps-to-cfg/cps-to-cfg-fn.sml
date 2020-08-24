@@ -97,8 +97,9 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
   (* raw record with uniform fields *)
     fun rawRecord (desc, kind, sz, n) = let
 	  val ty = {kind = kind, sz = sz}
+	  val align = sz div 8
 	  in
-	    TP.RAW_RECORD{desc = desc, fields = List.tabulate(n, fn _ => ty)}
+	    TP.RAW_RECORD{desc = desc, align = align, fields = List.tabulate(n, fn _ => ty)}
 	  end
 
     fun zExt (from, to, arg) = pure (TP.EXTEND{signed=false, from=from, to=to}, [arg])

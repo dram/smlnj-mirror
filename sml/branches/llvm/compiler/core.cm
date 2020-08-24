@@ -350,6 +350,12 @@ CodeGen/main/spill-table.sml
 NewCodeGen/cfg/cfg.sml
 NewCodeGen/cfg/ppcfg.sml
 NewCodeGen/cfg/cfg-util.sml
+$smlnj/asdl/asdl-lib.cm
+NewCodeGen/cfg-pickle/cfg-pickle.sig
+NewCodeGen/cfg-pickle/cfg-pickler.sml
+NewCodeGen/cfg-pickle/cfg-file-pickle.sml
+NewCodeGen/cfg-pickle/cfg-memory-pickle.sml
+NewCodeGen/cfg-pickle/lambda-var-pickle.sml
 (*
 NewCodeGen/cfg-to-mlrisc/arg-passing-fn.sml
 NewCodeGen/cfg-to-mlrisc/cfg-regions.sml

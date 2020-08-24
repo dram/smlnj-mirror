@@ -4,6 +4,8 @@
  * All rights reserved.
  *
  * CFG IR for SML/NJ code generation.
+ *
+ * Note: this file must match the generated file cfg-pickle/cfg.sml.
  *)
 
 structure CFG_Prim =
@@ -16,7 +18,7 @@ structure CFG_Prim =
   (* allocation operations *)
     datatype alloc
       = RECORD of {desc : IntInf.int, mut : bool}
-      | RAW_RECORD of {desc : IntInf.int, fields : raw_ty list}
+      | RAW_RECORD of {desc : IntInf.int, align : int, fields : raw_ty list}
       | RAW_ALLOC of {desc : IntInf.int option, align : int, len : int}
 
   (* arithmetic operations that may overflow; for the division operators,

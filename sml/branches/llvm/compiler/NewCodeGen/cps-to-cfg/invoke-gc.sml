@@ -259,8 +259,9 @@ val _ = prRoots roots
 		      in
 			List.foldr (get 32) (List.foldr (get 64) ([], []) raw64) raw32
 		      end
+		val align = if (n64 > 0) then 8 else 4
 		in
-		  C.ALLOC(P.RAW_RECORD{desc=desc, fields=flds}, args, tpl, k (var tpl))
+		  C.ALLOC(P.RAW_RECORD{desc=desc, align=align, fields=flds}, args, tpl, k (var tpl))
 		end
 	  val code = pack (roots, [])
 	  in
