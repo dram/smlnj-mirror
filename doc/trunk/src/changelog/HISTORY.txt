@@ -95,6 +95,18 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 == Recent updates
 
 //--------------------------------------------------------------------
+[2020/08/25]::
++
+Reverted some of the pretty printing changes that were made in 110.98
+to the 110.97 version (the renaming of `PrettyPrintNew` to `PrettyPrint`
+and the directory reorganizations were unchanged).  These changes
+fix bugs bugref:266[] (Pretty printing regression in SML/NJ 110.98),
+bugref:268[] (Polymorphic Type Pretty Printing Regression), and
+bugref:271[] (pretty printer regression for structure binding).
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2020/08/02]::
 +
 Fixed bug bugref:269[] (`Word64.fromString` causes an `Overflow` for
