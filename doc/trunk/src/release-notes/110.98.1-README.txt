@@ -1,7 +1,5 @@
-// A template for creating release notes for a version
-//
-:version: 110.99
-:date: @DATE@
+:version: 110.98.1
+:date: August 25, 2020
 :dist-dir: https://smlnj.org/dist/working/{version}/
 :history: {dist-dir}HISTORY.html
 :stem: latexmath
@@ -31,64 +29,13 @@ FILES::
 
 == Summary
 
-// **** summary description of release
-
-Also note that this release is the last *110* release.  We are switching
-our release numbering scheme to a __<year>.<relnum>__, so the next
-release will be either *2020.4* or *2021.1* (depending on when it is released).
-
-== Details
-
-// **** details: include those sections that are relevant
-
-=== Compiler
-
-=== CM
-
-=== MLRISC
-
-=== Runtime System
-
-=== Basis Library
-
-=== SML/NJ Library
-
-=== Successor ML
-
-=== ML-LPT
-
-=== Documentation
-
-=== Installation
-
-=== 32-bit macOS issues
-
-While the {dist-dir}smlnj-x86-{version}.pkg[x86 installer]
-for {version} works on **macOs** 10.14 Mojave, building from source
-requires some extra steps because the version of **Xcode**
-distributed for Mojave does not include a 32-bit SDK.
-
-Another issue that you may encounter
-when building on **macOs** 10.14 Mojave is an error message for a shell
-script of the form
-
-.....
-  /bin/sh: bad interpreter: Operation not permitted
-.....
-
-This error arises because the `com.apple.quarantine` attribute is set on the
-shell script.  To fix the problem, remove the attribute using the command
-
-[source,shell]
------
-  xattr -d com.apple.quarantine shell-script
------
-and resume the build.
+This patch release fixes a number of regressions in the *110.98* pretty
+printer.  It also has some internal changes that are part of the effort
+to migrate to a https://llvm.org[*LLVM*] backend.
 
 == Bugs
 
-Here is a list of tracked bugs fixed (or closed) since *110.98* (including
-those patched in *110.98.1*).  Please see the
+Here is a list of tracked bugs fixed (or closed) with this release, please see the
 https://smlnj-gforge.cs.uchicago.edu/projects/smlnj-bugs[bug tracker]
 for more details.
 
