@@ -363,14 +363,18 @@ and ppElement (env,depth,entityEnvOp) ppstrm (sym, spec) =
 		       else ();
                      closeBox ppstrm))
 
-	| M.VALspec{spec=typ,...} =>
-	    (openHOVBox ppstrm (PP.Rel 4);
-	       PP.string ppstrm "val";
-	       PP.break ppstrm {nsp=1,offset=0};
-	       ppSym ppstrm sym;
-	       PP.string ppstrm " : ";
-	       ppType env ppstrm typ;
-	     closeBox ppstrm)
+	| M.VALspec{spec=typ,...} => (
+	    openHOVBox ppstrm (PP.Rel 4);
+	      PP.openHBox ppstrm;
+	        PP.string ppstrm "val";
+	        PP.space ppstrm 1;
+	        ppSym ppstrm sym;
+	        PP.space ppstrm 1;
+		PP.string ppstrm ":";
+	      PP.closeBox ppstrm;
+	      PP.break ppstrm {nsp=1,offset=0};
+	      ppType env ppstrm typ;
+	    closeBox ppstrm)
 
 	| M.CONspec{spec=dcon as T.DATACON{rep=A.EXN _,...}, ...} =>
 	    ppConBinding ppstrm (dcon,env)
