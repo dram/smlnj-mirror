@@ -1,12 +1,15 @@
-(* Copyright 1992 by AT&T Bell Laboratories *)
-(* pptable.sml *)
+(* pptable.sml
+ *
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *)
 
 signature PPTABLE =
 sig
   exception PP_NOT_INSTALLED
   val pp_object : PrettyPrint.stream -> Stamps.stamp -> Unsafe.Object.object
                   -> unit
-  val install_pp : string list -> 
+  val install_pp : string list ->
                    (PrettyPrint.stream -> Unsafe.Object.object -> unit) -> unit
 end
 
@@ -28,8 +31,8 @@ struct
 
   exception PP_NOT_INSTALLED
 
-  fun error msg = 
-        (ErrorMsg.errorNoFile (ErrorMsg.defaultConsumer(),ref false) (0,0) 
+  fun error msg =
+        (ErrorMsg.errorNoFile (ErrorMsg.defaultConsumer(),ref false) (0,0)
 			      ErrorMsg.COMPLAIN
 			      msg
 			      ErrorMsg.nullErrorBody;
@@ -41,7 +44,7 @@ struct
 
   fun make_path([s],p) = SymPath.SPATH(rev(Symbol.tycSymbol(s)::p))
     | make_path(s::r,p) = make_path(r,Symbol.strSymbol(s)::p)
-    | make_path _ = error "install_pp: empty path" 
+    | make_path _ = error "install_pp: empty path"
 
   fun install_pp (path_names: string list)
                  (p: PrettyPrint.stream -> object -> unit) =

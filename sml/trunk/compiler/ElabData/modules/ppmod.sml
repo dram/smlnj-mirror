@@ -237,11 +237,11 @@ fun ppStructure ppstrm (str,env,depth) =
 			pps "sign:";
 			break {nsp=1,offset=2};
 			ppSignature0 ppstrm (sign,env,depth-1,SOME entities);
-			PP.cut ppstrm;
+			newline();
 		        pps "rlzn:";
 			break {nsp=1,offset=2};
 			ppStrEntity ppstrm (rlzn,env,depth-1);
-			PP.cut ppstrm;
+			newline();
 			(case prim
 			  of nil => ()
 			   | _ =>
@@ -347,7 +347,6 @@ and ppElement (env,depth,entityEnvOp) ppstrm (sym, spec) =
 		       case entityEnvOp
 			 of NONE =>
 			     (PP.string ppstrm "type";
-			      PP.break ppstrm {nsp=1,offset=0};
 			      ppFormals ppstrm arity;
 			      PP.break ppstrm {nsp=1,offset=0};
 			      ppSym ppstrm name)
@@ -665,7 +664,6 @@ and ppTycBind ppstrm (tyc,env) =
 		     (* abstype *)
 		     (openHVBox 0;
 		      pps "type";
-		      PP.break ppstrm {nsp=1,offset=0};
 		      ppFormals ppstrm arity;
 		      PP.break ppstrm {nsp=1,offset=0};
 		      ppSym ppstrm (IP.last path);
@@ -699,8 +697,8 @@ and ppTycBind ppstrm (tyc,env) =
 		   | _ =>
 		     (openHVBox 0;
 		        if EqTypes.isEqTycon tyc
-		        then PP.string ppstrm "eqtype"
-			else PP.string ppstrm "type";
+			  then PP.string ppstrm "eqtype"
+			  else PP.string ppstrm "type";
 			ppFormals ppstrm arity;
 			PP.break ppstrm {nsp=1,offset=0};
 			ppSym ppstrm (IP.last path);

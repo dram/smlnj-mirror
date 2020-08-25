@@ -464,9 +464,10 @@ fun ppTyfun env ppstrm (TYFUN{arity,body}) =
 (* ppFormals : PP.stream -> int -> unit *)
 fun ppFormals ppstrm =
     let fun ppF 0 = ()
-	  | ppF 1 = pps ppstrm "'a"
-	  | ppF n = ppTuple ppstrm (fn ppstrm => fn s => pps ppstrm ("'"^s))
-				    (typeFormals n)
+	  | ppF 1 = pps ppstrm " 'a"
+	  | ppF n = (pps ppstrm " ";
+		     ppTuple ppstrm (fn ppstrm => fn s => pps ppstrm ("'"^s))
+				    (typeFormals n))
      in ppF
     end
 
