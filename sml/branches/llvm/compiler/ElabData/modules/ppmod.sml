@@ -237,11 +237,11 @@ fun ppStructure ppstrm (str,env,depth) =
 			pps "sign:";
 			break {nsp=1,offset=2};
 			ppSignature0 ppstrm (sign,env,depth-1,SOME entities);
-			PP.cut ppstrm;
+			newline();
 		        pps "rlzn:";
 			break {nsp=1,offset=2};
 			ppStrEntity ppstrm (rlzn,env,depth-1);
-			PP.cut ppstrm;
+			newline();
 			(case prim
 			  of nil => ()
 			   | _ =>
@@ -347,7 +347,6 @@ and ppElement (env,depth,entityEnvOp) ppstrm (sym, spec) =
 		       case entityEnvOp
 			 of NONE =>
 			     (PP.string ppstrm "type";
-			      PP.break ppstrm {nsp=1,offset=0};
 			      ppFormals ppstrm arity;
 			      PP.break ppstrm {nsp=1,offset=0};
 			      ppSym ppstrm name)
@@ -364,14 +363,18 @@ and ppElement (env,depth,entityEnvOp) ppstrm (sym, spec) =
 		       else ();
                      closeBox ppstrm))
 
-	| M.VALspec{spec=typ,...} =>
-	    (openHOVBox ppstrm (PP.Rel 4);
-	       PP.string ppstrm "val";
-	       PP.break ppstrm {nsp=1,offset=0};
-	       ppSym ppstrm sym;
-	       PP.string ppstrm " : ";
-	       ppType env ppstrm typ;
-	     closeBox ppstrm)
+	| M.VALspec{spec=typ,...} => (
+	    openHOVBox ppstrm (PP.Rel 4);
+	      PP.openHBox ppstrm;
+	        PP.string ppstrm "val";
+	        PP.space ppstrm 1;
+	        ppSym ppstrm sym;
+	        PP.space ppstrm 1;
+		PP.string ppstrm ":";
+	      PP.closeBox ppstrm;
+	      PP.break ppstrm {nsp=1,offset=0};
+	      ppType env ppstrm typ;
+	    closeBox ppstrm)
 
 	| M.CONspec{spec=dcon as T.DATACON{rep=A.EXN _,...}, ...} =>
 	    ppConBinding ppstrm (dcon,env)
@@ -665,7 +668,6 @@ and ppTycBind ppstrm (tyc,env) =
 		     (* abstype *)
 		     (openHVBox 0;
 		      pps "type";
-		      PP.break ppstrm {nsp=1,offset=0};
 		      ppFormals ppstrm arity;
 		      PP.break ppstrm {nsp=1,offset=0};
 		      ppSym ppstrm (IP.last path);
@@ -699,8 +701,8 @@ and ppTycBind ppstrm (tyc,env) =
 		   | _ =>
 		     (openHVBox 0;
 		        if EqTypes.isEqTycon tyc
-		        then PP.string ppstrm "eqtype"
-			else PP.string ppstrm "type";
+			  then PP.string ppstrm "eqtype"
+			  else PP.string ppstrm "type";
 			ppFormals ppstrm arity;
 			PP.break ppstrm {nsp=1,offset=0};
 			ppSym ppstrm (IP.last path);

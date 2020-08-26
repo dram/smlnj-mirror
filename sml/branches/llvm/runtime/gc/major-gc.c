@@ -259,6 +259,7 @@ numBO1 = numBO2 = numBO3 = 0;
 	  /* oldest generation objects are promoted to the same generation */
 	    promoteGen = heap->gen[i-1];
 	    forwardState = BO_YOUNG; /* oldest gen has only YOUNG objects */
+	    promoteState = BO_YOUNG;
 	}
 	for (j = 0;  j < NUM_BIGOBJ_KINDS;  j++) {
 	    bigobj_desc_t   *dp, *dq, *forward, *promote;

@@ -471,7 +471,6 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
     Unsigned32_t magic, maxDepth, wordSz, maxSaved;
     ml_val_t	stk;
     ml_val_t	res;
-    double	d;
     Int32_t	availSpace, spaceReq;
     Unsigned32_t ui;
   /* we represent the saved array using a mutable data array that is allocated in
