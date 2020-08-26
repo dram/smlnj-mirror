@@ -16,5 +16,6 @@ structure Target : TARGET =
     val defaultRealSz = 64
     val is64 = false
     val bigEndian = Endianess.bigEndian
+    val alignInBytes = 4
 
   end

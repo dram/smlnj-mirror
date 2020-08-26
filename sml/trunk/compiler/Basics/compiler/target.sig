@@ -31,4 +31,7 @@ signature TARGET =
   (* true for big-endian targets (SPARC, PPC) *)
     val bigEndian : bool
 
+  (* standard alignment in bytes (= mlValueSz div 8) *)
+    val alignInBytes : int
+
   end
