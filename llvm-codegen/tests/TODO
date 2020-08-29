@@ -1,0 +1,8 @@
+[2020-07-29]
+
+Deal with the BASE_PTR and KNOWN_ENTRY functions
+
+Experiment with optimization passes
+
+Figure out how to correctly handle SWITCH statements
+

@@ -1,15 +1,15 @@
-# Makefile for compiling the C++ test driver
+# Makefile for compiling the Release version of the C++ test driver
 #
 
 SHELL =		/bin/sh
 
 SML_ROOT =	../..
-LLVM_DIR =	../llvm-debug
+LLVM_DIR =	../llvm-release
 LLVM_CONFIG =	$(LLVM_DIR)/bin/llvm-config
-BUILD_DIR =	../build
+BUILD_DIR =	../build-release
 
 CXX =		clang++ --std=c++14
-CPP_FLAGS =	-I../include -I$(SML_ROOT)/include -I/opt/local/include
+CPP_FLAGS =	-DNDEBUG -DRELEASE_BUILD -I../include -I$(SML_ROOT)/include
 CXX_FLAGS =	-g
 LD_FLAGS =	-L../../lib
 LIBS =		-lasdl

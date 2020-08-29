@@ -69,7 +69,6 @@ structure LambdaVarPickle : sig
 	  fun decode (0w0, w) = LambdaVar.fromId (Word.toIntX w)
 	    | decode (n, w) = decode (n-0w1, Word.orb(Word.<<(w, 0w8), fromByte(input1 inS)))
 	  in
-print(concat["# read_lvar: n = ", Word.fmt StringCvt.DEC n, "\n"]);
 	    decode (n, Word.andb(b0, 0wx1f))
 	  end
 

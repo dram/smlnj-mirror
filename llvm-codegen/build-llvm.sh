@@ -15,7 +15,7 @@
 #       --np <n>                Specify the number of cores to use in the build
 #
 #       --llvm-src <path>       Specify path to LLVM source tree relative to the
-#                               llvm-codegen directory [default: llvm-10.0.0.src]
+#                               llvm-codegen directory [default: llvm-10.0.1.src]
 #
 #	--release		Build a "release" build in llvm-build-release
 #				[default: "debug" build in llvm-build-debug]
@@ -90,12 +90,11 @@ while [ "$#" != "0" ] ; do
 done
 
 if [ $BUILD_TYPE = "Debug" ] ; then
-  LLVM_BUILD=llvm-build-debug
   LLVM_INSTALL=llvm-debug
 else
-  LLVM_BUILD=llvm-build-release
   LLVM_INSTALL=llvm-release
 fi
+LLVM_BUILD=build-"$LLVM_INSTALL"
 
 CMAKE_DEFS="\
   -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
