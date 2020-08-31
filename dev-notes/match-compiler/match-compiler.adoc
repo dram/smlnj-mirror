@@ -2183,7 +2183,7 @@ compound patterns have been compiled away (by transVB).
 
 
 ================================================================================
-[25] OR patterns
+[35] OR patterns
 ================================================================================
 As a first approximation we interatively merge the two patterns:
 
@@ -2207,26 +2207,26 @@ two different pares of svars in the two branches of the code (branching on
 A/B) where it is called.  The absyn produced by match compiling should look
 something like:
 
-let val rhsfun0 [lv31] =
-          (fn SfunArg [lv32] =>
-                let val y [lv20] = #0 SfunArg [lv32] in
-                  let val x [lv21] = #1 SfunArg [lv32] in
-                    Int.+ (x [lv21],y [lv20])  (* rhs *)
-                end end)
-in SWITCH <> [lv24]
-      of B <B> [lv25] =>   (* B branch with svar <B>, lvar 25 *)
-           let val <B.0> [lv26] = #0 <B> [lv25] in  (* y svar *)
-             let val <B.1> [lv27] = #1 <B> [lv25] in (* x svar *)
-               rhsfun0 (<B.1> [lv27], <B.0> [lv26])
-           end end
-       | A <A> [lv28] =>   (* A branch with svar <A>, lvar 28 *)
-           let val <A.0> [lv29] = #0 <A> [lv28] in  (* y svar *)
-             let val <A.1> [lv30] = #1 <A> [lv28] in  (* x svar *)
-               rhsfun0 (<A.1> [lv30], <A.0> [lv29])
-           end end
-end
+    let val rhsfun0 [lv31] =
+	      (fn SfunArg [lv32] =>
+		    let val y [lv20] = #0 SfunArg [lv32] in
+		      let val x [lv21] = #1 SfunArg [lv32] in
+			Int.+ (x [lv21],y [lv20])  (* rhs *)
+		    end end)
+    in SWITCH <> [lv24]
+	  of B <B> [lv25] =>   (* B branch with svar <B>, lvar 25 *)
+	       let val <B.0> [lv26] = #0 <B> [lv25] in  (* y svar *)
+		 let val <B.1> [lv27] = #1 <B> [lv25] in (* x svar *)
+		   rhsfun0 (<B.1> [lv27], <B.0> [lv26])
+	       end end
+	   | A <A> [lv28] =>   (* A branch with svar <A>, lvar 28 *)
+	       let val <A.0> [lv29] = #0 <A> [lv28] in  (* y svar *)
+		 let val <A.1> [lv30] = #1 <A> [lv28] in  (* x svar *)
+		   rhsfun0 (<A.1> [lv30], <A.0> [lv29])
+	       end end
+    end
 
-[BUG: right now (2020-8-18), 4 arguments are being passed to rhsfun0, two copies
+[BUG: Right now, 2020-8-18, 4 arguments are being passed to rhsfun0, two copies
 of x (from A and B branches) and two copies of y (from A and B branches), but
 only two of those argument variables are bound in each of the two calls.]
 
@@ -2275,98 +2275,193 @@ CHANGES:
 (1) In RuleVarMap (matchcomp/varmap.sml), add path to the (var,svar) list
 for each rule. So rulemaps are ruleno -> (var * path * svar) list.
 
-Example:
+Example [35.1]:
 
   datatype t = A of t * t | B of t * t | L of int;
 
-  fun f (A(A(L x, L y)|B(L x, L y)), B(A(L y, L x)|B(L x, L y))) = x + y;
+  fun f ( A( ( A(L x, L y) | B(L x, L y) ), L 2 ) | B (L y, L x) ) = x + y;
 
-4 versions of the variable pair (x,y), at "decision" paths A.A, A.B, B.A, B.B.
-(1) x @ <0.A.A.0.L>, y @ <0.A.A.1.L>
-(2) x @ <0.A.B.0.L>, y @ <0.A.B.1.L>
-(2) x @ <1.B.A.1.L>, y @ <1.B.A.0.L>
-(4) x @ <1.B.B.0.L>, y @ <1.B.B.1.L>
+3 versions of the variable pair (x,y), at "decision" paths A.A, A.B, B.
+(1) x @ <A.0.A.0.L>, y @ <A.0.A.1.L>
+(2) x @ <A.0.B.0.L>, y @ <A.0.B.1.L>
+(3) x @ <B.1.L>, y @ <B.0.L>
+[all at rule 0]
 
 andor:
-[<>] AND v28 {0} {}
-   [<0>] OR v29 {0} {}
-      A
-      [<0.A>] OR v30 {0} {}
-         B
-         [<0.A.B>] AND v31 {0} {}
-            [<0.A.B.0>] OR v32 {0} {}
-               L [<0.A.B.0.L>] VARS v33 (x,0) {0}
-            [<0.A.B.1>] OR v34 {0} {}
-               L [<0.A.B.1.L>] VARS v35 (y,0) {0}
-         A
-         [<0.A.A>] AND v36 {0} {}
-            [<0.A.A.0>] OR v37 {0} {}
-               L [<0.A.A.0.L>] VARS v38 (x,0) {0}
-            [<0.A.A.1>] OR v39 {0} {}
-               L [<0.A.A.1.L>] VARS v40 (y,0) {0}
-   [<1>] OR v41 {0} {}
-      B
-      [<1.B>] OR v42 {0} {}
-         B
-         [<1.B.B>] AND v43 {0} {}
-            [<1.B.B.0>] OR v44 {0} {}
-               L [<1.B.B.0.L>] VARS v45 (x,0) {0}
-            [<1.B.B.1>] OR v46 {0} {}
-               L [<1.B.B.1.L>] VARS v47 (y,0) {0}
-         A
-         [<1.B.A>] AND v48 {0} {}
-            [<1.B.A.0>] OR v49 {0} {}
-               L [<1.B.A.0.L>] VARS v50 (y,0) {0}
-            [<1.B.A.1>] OR v51 {0} {}
-               L [<1.B.A.1.L>] VARS v52 (x,0) {0}
-dectree:
-CHOICE [<0>]
-  A
-  CHOICE [<1>]
-    B
-    CHOICE [<1.B>]
-      B
-      CHOICE [<1.B.B.0>]
-        L
-        CHOICE [<1.B.B.1>]
-          L
-          CHOICE [<0.A>]
-            B CHOICE [<0.A.B.0>]
-              L CHOICE [<0.A.B.1>]
-                L DLEAF 0
-                * MATCH
-              * MATCH
-            A CHOICE [<0.A.A.0>]
-              L CHOICE [<0.A.A.1>]
-                L DLEAF 0
-                * MATCH
-              * MATCH
-            * MATCH
-          * MATCH
-        * MATCH
-      A
-      CHOICE [<1.B.A.0>]
-        L
-        CHOICE [<1.B.A.1>]
-          L
-          CHOICE [<0.A>]
-            B CHOICE [<0.A.B.0>]
-              L CHOICE [<0.A.B.1>]
-                L DLEAF 0
-                * MATCH
-              * MATCH
-            A CHOICE [<0.A.A.0>]
-              L CHOICE [<0.A.A.1>]
-                L DLEAF 0
-                * MATCH
-              * MATCH
-            * MATCH
-          * MATCH
-        * MATCH
-      * MATCH
-    * MATCH
-  * MATCH
+[<>] OR v26 {0} {}
+   B [<B>] AND v27 {0} {}
+      [<B.0>] OR v28 {0} {}
+         L [<B.0.L>] VARS v29 (y,0) {0}
+      [<B.1>] OR v30 {0} {}
+         L [<B.1.L>] VARS v31 (x,0) {0}
+   A [<A>] AND v32 {0} {}
+      [<A.0>] OR v33 {0} {}
+         B [<A.0.B>] AND v34 {0} {}
+            [<A.0.B.0>] OR v35 {0} {}
+               L [<A.0.B.0.L>] VARS v36 (x,0) {0}
+            [<A.0.B.1>] OR v37 {0} {}
+               L [<A.0.B.1.L>] VARS v38 (y,0) {0}
+         A [<A.0.A>] AND v39 {0} {}
+            [<A.0.A.0>] OR v40 {0} {}
+               L [<A.0.A.0.L>] VARS v41 (x,0) {0}
+            [<A.0.A.1>] OR v42 {0} {}
+               L [<A.0.A.1.L>] VARS v43 (y,0) {0}
+      [<A.1>] OR v44 {0} {}
+         L [<A.1.L>] OR v45 {0} {}
+            I2 LEAF {0} {}
 
+dectree:
+CHOICE [<>]
+  B CHOICE [<B.0>]
+    L CHOICE [<B.1>]
+      L DLEAF 0  <B>, <B.0.L>, <B.1.L>   -- dtrace for DLEAF
+                 <B.0.L> ~ x, <B.1.L> ~ y      longest common prefix : <B>
+                 <A.0.A.0.L> ~ x : lcp: <>
+      * MATCH    <B>, <B.0.L> <B.1.~L>    [ B(L *, ~L) ]
+    * MATCH      <B>, <B.0.~L>            [ B(~L, *) ]
+  A CHOICE [<A.1>]
+    L CHOICE [<A.1.L>]
+      I2 CHOICE [<A.0>]
+        B CHOICE [<A.0.B.0>]
+          L CHOICE [<A.0.B.1>]
+            L DLEAF 0  <A>, <A.1.L> <A.0.B>, <A.0.B.0.L> <A.0.B.1.L>   -- dtrace for DLEAF
+	               <A.0.B.0.L> ~ x,  <A.0.B.1.L> ~ y   longest common prefix: <A.0.B>
+                       <B.1.L> ~ x  longest common prefix: <>
+		       <A.0.A.0.L> ~ x  longest common prefix  <A.0>
+            * MATCH (~L)
+          * MATCH (~L)
+        A CHOICE [<A.0.A.0>]
+          L CHOICE [<A.0.A.1>]
+            L DLEAF 0  <A>, <A.1.L>, <A.0.A.0.L>, <A.0.A.1.L>   -- dtrace for DLEAF
+	               <A.0.A.0.L> ~ x,  <A.0.A.1.L> ~ y   longest common prefix: <A.0.A>
+            * MATCH (~L) [<A.0.A.1.~L>]
+          * MATCH (~L) [<A.0.A.0.~L>]
+        * MATCH (~A,B -> L)  <A.0.B.0.L>
+      * MATCH (~I2)  [<A.1.L.~I2>]  [ A(*, L(~I2)) ]
+    * MATCH (~L)  [<A.1.~L>]  [ A(*, (~L) *) ]
+  * MATCH (~A,B -> L)  [<L>]  [ L * ]
+
+>>>makeRuleMap
+I: y[22] ==> <B.0.L>[29]
+I: x[23] ==> <B.1.L>[31]     -- B
+I: x[23] ==> <A.0.B.0.L>[36]
+I: y[22] ==> <A.0.B.1.L>[38] -- A.0.B  = lcp (<A.0.B.0.L> and <A.0.B.1.L>)
+I: x[23] ==> <A.0.A.0.L>[41]  
+I: y[22] ==> <A.0.A.1.L>[43] -- A.0.A
+<<<makeRuleMap
+
+let val rhsfun0 [lv46] =
+          (fn SfunArg [lv47] =>
+                let val y [lv22] = #0 SfunArg [lv47]
+             	 in let val x [lv23] = #1 SfunArg [lv47]
+              	     in let val y [lv22] = #2 SfunArg [lv47]
+                         in let val x [lv23] = #3 SfunArg [lv47]
+                             in let val x [lv23] = #4 SfunArg [lv47]
+                                 in let val y [lv22] = #5 SfunArg [lv47]
+                                     in Int.+ (x [lv23],y [lv22])
+                end end end end end end)
+in (SWITCH <> [lv26]
+      of B <B> [lv27] =>
+           let val <B.0> [lv28] = #0 <B> [lv27]
+            in let val <B.1> [lv30] = #1 <B> [lv27]
+                in (SWITCH <B.0> [lv28]
+		      of L <B.0.L> [lv29] =>
+		           (SWITCH <B.1> [lv30]
+			      of L <B.1.L> [lv31] =>
+			         rhsfun0  (* too many args *)
+				    (<A.0.A.1.L> [lv43], <A.0.A.0.L> [lv41],
+				     <A.0.B.1.L> [lv38], <A.0.B.0.L> [lv36],
+				     <B.1.L> [lv31], <B.0.L> [lv29])
+                               | _ => raise Match)
+                         | _ => raise Match)
+           end end
+       | A <A> [lv32] =>
+         let val <A.0> [lv33] = #0 <A> [lv32]
+          in let val <A.1> [lv44] = #1 <A> [lv32]
+              in (SWITCH <A.1> [lv44]
+                    of L <A.1.L> [lv45] =>
+                         (SWITCH <A.1.L> [lv45]
+			    of I2 =>   (* int const 2 *)
+                               (SWITCH <A.0> [lv33]
+                                  of B <A.0.B> [lv34] =>
+				     let val <A.0.B.0> [lv35] = #0 <A.0.B> [lv34]
+				      in let val <A.0.B.1> [lv37] = #1 <A.0.B> [lv34]
+				          in (SWITCH <A.0.B.0> [lv35]
+					        of L <A.0.B.0.L> [lv36] =>
+						     (SWITCH <A.0.B.1> [lv37]
+						        of L <A.0.B.1.L> [lv38] =>
+							     rhsfun0 (<<the 6 variables>>)
+                                                         | _ => raise Match)
+                                                 | _ => raise Match)
+                                         end 
+                                     end
+				   | A <A.0.A> [lv39] =>
+                                     let val <A.0.A.0> [lv40] = #0 <A.0.A> [lv39]
+                                      in let val <A.0.A.1> [lv42] = #1 <A.0.A> [lv39]
+                                          in (SWITCH <A.0.A.0> [lv40]
+                                                of L <A.0.A.0.L> [lv41] =>
+                                                     (SWITCH <A.0.A.1> [lv42]
+                                                        of L <A.0.A.1.L> [lv43] =>
+                                                             rhsfun0 (<<the six variables>>)
+                                                         | _ => raise Match)
+                                                 | _ => raise Match)
+                                         end
+                                     end
+                                   | _ => raise Match)
+                             | _ => raise Match)
+                     | _ => raise Match)
+             end
+         end
+       | _ => raise Match)
+end
+
+Algorithm:
+At a RHS node for rule n (DLEAF n). Get the decision tree branch for this DLEAF
+decision tree node, say [p0, ..., pk] (the paths at decision points on the dt branch).
+
+Given a set of variable-path pairs (v,p), and the decision tree branch
+[p0, ..., pk], calculate the longest common prefix of p with
+p0, ..., pk, call it lcp.  Choose all variables v such that lcp is maximal for binding
+
+Claim 1: each chosen v is "in scope" for the DLEAF (RHS dispatch).
+
+Claim 2: Any "in scope" variable occurrence (v, p) will have the maximal length lcp
+with the branch.
+-----------------------
+
+This attempt didn't work (or wasn't chosen). Instead, instriment decision trees
+with "traces", which are lists of paths, where the path designates the choice
+points (including the choice) along a maximal branch of the decision tree, i.e.
+a branch terminating in DMATCH or DLEAF.  At a DLEAF terminal node where we
+dispatch to a RHS, the trace to that node is used to determine which source
+variables (vars) are "consistent" with the choices in the trace, and only
+consistent variables are "bound" for that RHS.  See MCUtil.consistentPath for
+definition of "consistency" used.
+
+
+================================================================================
+[36] Unique bound lvars and lvar alpha-conversion
+================================================================================
+The fcontract optimization phase (FLINT/opt/fcontract.sml) appears to require
+the property that lvar bindings are unique, i.e. that the same lvar is not bound
+more that once (even in separate nonoverlapping scopes).  t21.sml is an example
+that fails because it does not have this property.
+
+To ensure that lvars are unique, it seems that the whole algorithm involving
+the interaction of matchComp and transMatch needs to be done "top-down" rather
+than "bottom-up" (as it is initially done). This is so an lvar environment can
+be passed down from an lvar binding point to the "match subexpressions" that may
+use that lvar (or var/svar having that lvar as access). This environment can
+map "original" lvars arrising from the svars of the AND-OR tree to new
+"alpha-converting" lvars.
+
+A bottom up approach that tries to alpha-convert the exp produced by
+transMatch+matchComp would be very expensive, since lower level subexpressions
+would have to be alpha-converted repeatedly as higher-level lvar bindings
+are discovered.
+
+The top-down approach means that transMatch and matchComp need to be
+mutually recursive, passing an lvar env down through the recursive calls.
 
 
 ================================================================================
