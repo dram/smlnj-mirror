@@ -401,7 +401,7 @@ functor NewMLRiscGenFn (
 			bind (x, ity, M.ADD(ity, Regs.allocptr, LI' obj));
 			gen (k, hp)
 		      end
-		  | gen (C.ALLOC(P.RAW_RECORD{desc, fields}, args, x, k), hp) = ??
+		  | gen (C.ALLOC(P.RAW_RECORD{align, desc, fields}, args, x, k), hp) = ??
 (*
 		  | gen (C.ALLOC(P.RAW_RECORD{desc, kind, sz}, args, x, k), hp) = let
 		      val nb = byteSz sz
