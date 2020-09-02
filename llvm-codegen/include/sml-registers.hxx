@@ -137,6 +137,10 @@ class reg_state {
 	this->_basePtr = v;
     }
 
+#ifndef NDEBUG
+    void clearBasePtr () { this->_basePtr = nullptr; }
+#endif
+
     void copyFrom (reg_state const & cache);
 
   private:

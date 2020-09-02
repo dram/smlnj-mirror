@@ -331,6 +331,11 @@ void code_buffer::setupStdEntry (CFG::attrs *attrs, CFG::frag *frag)
 	basePtr->setName ("basePtr");
 #endif
     }
+#ifndef NDEBUG
+    else {
+	this->_regState.clearBasePtr ();
+    }
+#endif
 
     std::vector<CFG::param *> params = frag->get_params();
     int baseIx = info.nExtra + info.nUnused;

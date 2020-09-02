@@ -83,6 +83,10 @@ void codegen (std::string const & src, output out)
 
     CodeBuf->dump ();
 
+    if (! CodeBuf->verify ()) {
+	std::cerr << "Module verified after optimization\n";
+    }
+
   // get the stem of the filename
     std::string stem(src);
     auto pos = stem.rfind(".pkl");

@@ -343,7 +343,12 @@ class code_buffer {
     }
 
   // get the current value of the base pointer as an integer value
-    Value *basePtr () const { return this->_regState.getBasePtr(); }
+    Value *basePtr () const
+    {
+	assert ((this->_regState.getBasePtr() != nullptr)
+	    && "no base pointer for current cluster");
+	return this->_regState.getBasePtr();
+    }
 
   // utility function for allocating a record of ML values (pointers or
   // tagged ints).
