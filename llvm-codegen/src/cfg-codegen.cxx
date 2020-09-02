@@ -149,6 +149,41 @@ namespace CFG {
 
     } // ALLOC::codegen
 
+  // helper function for argument set up for APPLY and THROW
+    inline Args_t SetupStdArgs (
+	code_buffer * buf,
+	llvm::FunctionType *fnTy,
+	frag_kind fk,
+	std::vector<exp *> const &cfgArgs)
+    {
+	Args_t args = buf->createArgs (fk, cfgArgs.size());
+
+	int base = args.size(); // index of first user parameter
+	for (int i = 0;  i < cfgArgs.size();  ++i) {
+	    auto arg = cfgArgs[i]->codegen (buf);
+	    auto paramTy = fnTy->getParamType(base + i);
+	    if (paramTy != arg->getType()) {
+		arg = buf->castTy(arg->getType(), paramTy, arg);
+	    }
+	    args.push_back (arg);
+	}
+
+llvm::dbgs() << "\n# SetupStdArgs: kind = "
+<< (fk == frag_kind::STD_CONT ? "STD_CONT\n"
+  : (fk == frag_kind::STD_FUN ? "STD_FUN\n"
+  : (fk == frag_kind::KNOWN_FUN ? "KNOWN_FUN\n"
+  : "INTERNAL\n")));
+llvm::dbgs() << "## fnTy = " << *fnTy << "\n";
+llvm::dbgs() << "## arg tys =";
+for (auto arg : args) {
+    llvm::dbgs() << " " << *(arg->getType());
+}
+llvm::dbgs() << "\n";
+
+	return args;
+
+    } // SetupStdArgs
+
     void APPLY::codegen (code_buffer * buf)
     {
 	llvm::FunctionType *fnTy;
@@ -156,7 +191,6 @@ namespace CFG {
 	LABEL *lab = dynamic_cast<LABEL *>(this->_v0);
 	if (lab == nullptr) {
 	    fnTy = buf->createFnTy (frag_kind::STD_FUN, genTypes (buf, this->_v2));
-llvm::dbgs() << "APPLY: fnTy = " << *fnTy << "\n";
 	    fn = buf->build().CreateBitCast(
 		this->_v0->codegen (buf),
 		fnTy->getPointerTo());
@@ -168,16 +202,8 @@ llvm::dbgs() << "APPLY: fnTy = " << *fnTy << "\n";
 	}
 
       // evaluate the arguments
-	Args_t args = buf->createArgs (frag_kind::STD_FUN, this->_v1.size());
-	for (auto arg : this->_v1) {
-	    args.push_back (arg->codegen (buf));
-	}
+	Args_t args = SetupStdArgs (buf, fnTy, frag_kind::STD_FUN, this->_v1);
 
-llvm::dbgs() << "    arg tys =";
-for (auto arg : args) {
-    llvm::dbgs() << " " << *(arg->getType());
-}
-llvm::dbgs() << "\n";
 	llvm::CallInst *call = buf->build().CreateCall(fnTy, fn, args);
 	call->setCallingConv (llvm::CallingConv::JWA);
 	call->setTailCallKind (llvm::CallInst::TCK_Tail);
@@ -204,10 +230,7 @@ llvm::dbgs() << "\n";
 	}
 
       // evaluate the arguments
-	Args_t args = buf->createArgs (frag_kind::STD_CONT, this->_v1.size());
-	for (auto arg : this->_v1) {
-	    args.push_back (arg->codegen (buf));
-	}
+	Args_t args = SetupStdArgs (buf, fnTy, frag_kind::STD_CONT, this->_v1);
 
 	llvm::CallInst *call = buf->build().CreateCall(fnTy, fn, args);
 	call->setCallingConv (llvm::CallingConv::JWA);
