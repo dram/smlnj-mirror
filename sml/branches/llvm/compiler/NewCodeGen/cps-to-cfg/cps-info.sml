@@ -8,6 +8,8 @@
 
 structure CPSInfo : sig
 
+    type cluster = CPS.function list
+
   (* the container of various bits of information about the program *)
     type global_info
 
@@ -21,7 +23,7 @@ structure CPSInfo : sig
     datatype use_mode = TREE | BOUND
 
   (* initialize the global information from a list of clusters *)
-    val analyze : CPS.function list list -> global_info
+    val analyze : cluster list -> global_info
 
   (* initialize the info container for a cluster; this call returns a function
    * for initializing local, per-function info.
@@ -72,6 +74,8 @@ structure CPSInfo : sig
 
     datatype value = datatype CPS.value
     datatype cexp = datatype CPS.cexp
+
+    type cluster = CPS.function list
 
     datatype global_info = GInfo of {
 	gTbl : CPS.fun_kind Tbl.hash_table,	(* function kinds *)

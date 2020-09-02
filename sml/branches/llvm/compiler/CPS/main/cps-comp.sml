@@ -1,12 +1,15 @@
 (* cps-comp.sml
  *
- * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
+ *
+ * Translate CPS to machine code.
  *)
 
 functor CPSCompFn (
 
     structure Gen : MACHINE_GEN
+
     val collect : (unit -> int) -> CodeObj.code_object
 
   ) : CODE_GENERATOR = struct

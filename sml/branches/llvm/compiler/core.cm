@@ -301,6 +301,7 @@ CPS/main/cps-comp.sml
 CPS/main/limit.sml
 CPS/main/literals.sml
 CPS/main/new-literals.sml
+CPS/main/normalize-cluster.sml
 
 (* The code generator (MLRISC specialized for SML/NJ). *)
 CodeGen/cpscompile/argPassing.sig

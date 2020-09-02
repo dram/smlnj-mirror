@@ -1943,7 +1943,7 @@ raise Fail "unexpected constant branch"
 	  | entrypoint [] () = error "entrypoint: no functions"
 	in
 	  app mkGlobalTables funcs;
-	  app genCluster (Cluster.cluster funcs);
+	  app genCluster (Cluster.cluster false funcs);
 	  finishCompilationUnit source;
 	  entrypoint funcs
 	end (* codegen *)

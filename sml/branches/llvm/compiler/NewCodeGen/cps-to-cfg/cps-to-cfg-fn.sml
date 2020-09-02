@@ -747,12 +747,7 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 
   (* translate a CPS compilation unit into the CFG IR *)
     fun translate {source, funcs, limits} = let
-(*
-	  val clusters = Cluster.cluster (
-		!Control.CG.singleEntry orelse !Control.CG.llvmBackend,
-		funcs)
-*)
-val clusters = Cluster.cluster funcs
+	  val clusters = Cluster.cluster true funcs
 	  val gInfo = CPSInfo.analyze clusters
 	(* convert a single cluster of CPS functions to a CFG cluster. *)
 	  fun doCluster (entry :: rest) = let

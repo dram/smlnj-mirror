@@ -6,20 +6,25 @@
 
 structure Cluster : sig
 
-  (* Group the functions of a compilation unit into "clusters".
-   * using a union-find data structure.
+    type cluster = CPS.function list
+
+  (* `cluster singleEntry fns` groups the functions `fns` into a list of *clusters*,
+   * where a cluster is a maximal graph where each node is a CPS function (from
+   * the list `fns`) and the edges are defined by applications of known labels.
+   * The first function in the first cluster will be the first function in `fns`.
    *
-   * First function in the function list must be the first function
-   * in the first cluster. This is achieved by ensuring that the first
-   * function is mapped to the smallest id in a dense enumeration.
-   * This function id will map to the smallest cluster id.
-   * The function ids are then iterated in descending order.
+   * If the `singleEntry` flag is set, then a second pass is run, which splits
+   * clusters to guarantee that each cluster has exactly one entry, where an
+   * entry is defined as a function that has kind `ESCAPE` or `CONT`.
+
    *)
-    val cluster : CPS.function list -> CPS.function list list
+    val cluster : bool -> CPS.function list -> cluster list
 
   end = struct
 
     fun error msg = ErrorMsg.impossible ("Cluster." ^ msg)
+
+    type cluster = CPS.function list
 
   (* print clusters if requested *)
     fun print clusters = let
@@ -34,7 +39,15 @@ structure Cluster : sig
 	    clusters
 	  end
 
-    fun cluster funcs = let
+    val normalizeCluster = NormalizeCluster.transform
+
+    fun cluster singleEntry funcs = let
+	(* We guarantee that the first function in `funcs` is the first
+	 * function in the first cluster by ensuring that the first
+	 * function is mapped to the smallest id in a dense enumeration.
+	 * This function id will map to the smallest cluster id.
+	 * The function ids are then iterated in descending order.
+	 *)
 	  val numOfFuncs = length funcs
 	(* mapping of function names to a dense integer range *)
 	  exception FuncId
@@ -105,7 +118,13 @@ structure Cluster : sig
 		fun finish (~1, acc) = acc
 		  | finish (n, acc) = (case Array.sub(clusters, n)
 		       of [] => finish (n-1, acc)
-			| cluster => finish(n-1, cluster::acc)
+			| cluster => let
+			    val clusters = if singleEntry
+				  then normalizeCluster (cluster, acc)
+				  else cluster :: acc
+			    in
+			      finish (n-1, clusters)
+			    end
 		      (* end case *))
 		in
 		  collect (numOfFuncs-1) handle _ => ();
