@@ -511,6 +511,9 @@ void code_buffer::callGC (
     Args_t const & roots,
     std::vector<LambdaVar::lvar> const & newRoots)
 {
+    assert ((this->gcFnTy->getNumParams() == roots.size())
+	&& "arity mismatch in GC call");
+
   // get the address of the "call-gc" entry
     Value *callGCFn = _loadFromStack (this, this->_target->callGCOffset, "callGC");
 

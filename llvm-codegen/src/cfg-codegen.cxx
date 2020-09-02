@@ -260,6 +260,12 @@ llvm::dbgs() << "\n";
       // phi nodes
 	buf->setInsertPoint (dstFrag->bb());
 llvm::dbgs() << "# GOTO: " << args.size() << " arguments\n";
+llvm::dbgs() << "## paramTys = ";
+for (int i = 0;  i < args.size();  ++i) {
+  if (i > 0) { llvm::dbgs() << ", "; }
+  llvm::dbgs() << *(dstFrag->paramTy(i));
+}
+llvm::dbgs() << "\n";
 	for (int i = 0;  i < args.size();  ++i) {
 	  // make sure that the type match!
 llvm::dbgs() << "## arg[" << i << "] = ";
@@ -410,9 +416,17 @@ if (args[i]) { llvm::dbgs() << *(args[i]) << "\n"; } else { llvm::dbgs() << "nul
       // evaluate the roots
 	Args_t roots = buf->createArgs (frag_kind::STD_FUN, this->_v0.size());
 	for (auto it = this->_v0.begin(); it != this->_v0.end(); ++it) {
-	    roots.push_back ((*it)->codegen (buf));
+	  // all roots are SML values, so make sure they have the correct type
+	    roots.push_back (buf->asMLValue ((*it)->codegen (buf)));
 	}
 
+llvm::dbgs() << "# CALLGC: " << roots.size() << " arguments\n";
+llvm::dbgs() << "## argTys = ";
+for (int i = 0;  i < roots.size();  ++i) {
+  if (i > 0) { llvm::dbgs() << ", "; }
+  llvm::dbgs() << *(roots[i]);
+}
+llvm::dbgs() << "\n";
 	buf->callGC (roots, this->_v1);
 
       // compile continuation
