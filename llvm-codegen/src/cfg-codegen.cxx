@@ -252,13 +252,6 @@ llvm::dbgs() << "\n";
 	for (auto arg : this->_v1) {
 	    args.push_back (arg->codegen (buf));
 	}
-
-      // generate the control transfer
-	buf->createBr (dstFrag->bb());
-
-      // add outgoing values as incoming values to the destination's
-      // phi nodes
-	buf->setInsertPoint (dstFrag->bb());
 llvm::dbgs() << "# GOTO: " << args.size() << " arguments\n";
 llvm::dbgs() << "## paramTys = ";
 for (int i = 0;  i < args.size();  ++i) {
@@ -266,6 +259,9 @@ for (int i = 0;  i < args.size();  ++i) {
   llvm::dbgs() << *(dstFrag->paramTy(i));
 }
 llvm::dbgs() << "\n";
+
+      // add outgoing values as incoming values to the destination's
+      // phi nodes
 	for (int i = 0;  i < args.size();  ++i) {
 	  // make sure that the type match!
 llvm::dbgs() << "## arg[" << i << "] = ";
@@ -279,6 +275,11 @@ if (args[i]) { llvm::dbgs() << *(args[i]) << "\n"; } else { llvm::dbgs() << "nul
 		dstFrag->addIncoming (i, args[i], srcBB);
 	    }
 	}
+
+      // generate the control transfer; note that we need to do this *after*
+      // updating the PHI nodes, since any type casts introduced for the PHI
+      // nodes will be generated in the *source* block!
+	buf->createBr (dstFrag->bb());
 
     } // GOTO::codegen
 

@@ -72,16 +72,16 @@ void codegen (std::string const & src, output out)
     cu->codegen (CodeBuf);
     std::cout << " " << genTimer.msec() << "ms\n" << std::flush;
 
+    if (! CodeBuf->verify ()) {
+	std::cerr << "Module verified\n";
+    }
+
     std::cout << " optimize ..." << std::flush;;
     Timer optTimer = Timer::start();
     CodeBuf->optimize ();
     std::cout << " " << optTimer.msec() << "ms\n" << std::flush;
 
     CodeBuf->dump ();
-
-    if (! CodeBuf->verify ()) {
-	std::cerr << "\nModule verified\n";
-    }
 
   // get the stem of the filename
     std::string stem(src);
