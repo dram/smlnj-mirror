@@ -239,7 +239,7 @@ std::vector<Type *> code_buffer::createParamTys (frag_kind kind, int n) const
     }
 
     if (info.basePtr) {
-	tys.push_back (this->bytePtrTy);
+	tys.push_back (this->intTy);
     }
 
   // we give the unused registers the ML value type
