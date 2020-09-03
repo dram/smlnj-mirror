@@ -78,6 +78,7 @@ structure InvokeGC : sig
       | Record of root list	(* elements are Param or Raw only *)
       | Raw of (int * P.numkind) list * (int * P.numkind) list
 
+(* DEBUG
 fun roots2s roots = concat["[", String.concatWithMap "," root2s roots, "]"]
 and root2s Unit = "()"
   | root2s (Boxed i) = "param" ^ Int.toString i
@@ -91,6 +92,7 @@ and root2s Unit = "()"
 	concat ["<|", String.concatWith "," flds, "|>"]
       end
 fun prRoots roots = Control.Print.say (concat["Roots = ", roots2s roots, "\n"])
+*)
 
   (* GC root order: std-link, std-clos, std-cont, callee-saves, std-arg *)
     val stdRootOrder = List.tabulate (numGCRoots, Fn.id)
@@ -160,10 +162,7 @@ fun prRoots roots = Control.Print.say (concat["Roots = ", roots2s roots, "\n"])
    * values to the continuation `k`.
    *)
     fun callGC (isCont, live, k) = let
-val _ = Control.Print.say(concat["Live = [",
-String.concatWithMap "," PPCfg.paramToString live, "]\n"])
 	  val {nParams, roots} = assignRoots (isCont, live)
-val _ = prRoots roots
 	(* first we construct the code to unpack the live data from the new roots *)
 	  val results = Array.array(nParams, unit)
 	  fun setResult (i, v) = Array.update(results, i, v)
