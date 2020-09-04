@@ -426,7 +426,17 @@ namespace CFG_Prim {
 
     void RAW_STORE::codegen (code_buffer * buf, Args_t const &args)
     {
-	assert (false && "RAW_STORE not implemented yet"); /* FIXME */
+	Type *elemTy = numType (buf, this->_v_kind, this->_v_sz);
+
+      // RAW_STORE assumes byte addressing, so we compute the address as a `char *`
+      // and then bitcast to the desired pointer type for the store
+	Value *adr =
+	    buf->createPointerCast (
+	        buf->createGEP (buf->bytePtrTy, args[0], args[1]),
+		elemTy->getPointerTo());
+
+	return buf->createStore (args[2], adr, bitsToBytes(this->_v_sz));
+
     } // RAW_STORE::codegen
 
     void SET_HDLR::codegen (code_buffer * buf, Args_t const &args)
