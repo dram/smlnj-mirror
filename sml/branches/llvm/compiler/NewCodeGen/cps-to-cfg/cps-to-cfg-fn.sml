@@ -245,6 +245,11 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 		      genBranch (test, vs, genE k1, genE k2)
 		  | SETTER(oper, vs, k) =>
 		      genSetter (oper, vs, genE k)
+		  | LOOKER(oper as P.GETHDLR, vs, x, CPS.FUNt, k) =>
+		    (* Fix the incorrect type that the CPS closure phase gives to
+		     * the result of GETHDLR (it is closure object, not a label).
+		     *)
+		      genCont (genLooker (oper, vs), x, BOGty, k)
 		  | LOOKER(oper, vs, x, ty, k) =>
 		      genCont (genLooker (oper, vs), x, ty, k)
 		  | ARITH(P.TEST{from, to}, [v], x, ty, k) =>
