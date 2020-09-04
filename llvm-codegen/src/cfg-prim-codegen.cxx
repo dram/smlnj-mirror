@@ -20,6 +20,9 @@ namespace CFG_Prim {
 	return (k == numkind::INT ? buf->iType(sz) : buf->fType(sz));
     }
 
+  // helper function to convert bit size to byte size
+    inline unsigned bitsToBytes (unsigned n) { return (n >> 3); }
+
   /***** code generation for the `alloc` type *****/
     Value *RECORD::codegen (code_buffer * buf, Args_t const &args)
     {
@@ -40,10 +43,7 @@ namespace CFG_Prim {
  */
 
       // write object descriptor
-	buf->build().CreateAlignedStore (
-	    buf->createIntToPtr(buf->uConst(this->_v_desc.toUInt64()), buf->mlValueTy),
-	    allocPtr,
-	    (unsigned)buf->wordSzInBytes());
+	buf->createStoreML (buf->uConst(this->_v_desc.toUInt64()), allocPtr);
 
       // compute the object's address and cast it to an ML value
 	Value *obj = buf->createBitCast (
@@ -57,7 +57,7 @@ namespace CFG_Prim {
 	int offset = 0;
 	for (int i = 0;  i < len;  ++i) {
 	    auto fld = this->_v_fields[i];
-	    int szb = (fld->get_sz() >> 3);
+	    int szb = bitsToBytes(fld->get_sz());
 	    if ((offset & szb) != 0) {
 	      // align the offset
 		offset = (offset + (szb - 1)) & ~(szb - 1);
@@ -67,10 +67,7 @@ namespace CFG_Prim {
 	    Value *adr = buf->createBitCast (
 		buf->createGEP (initPtr, offset),
 		elemTy->getPointerTo());
-	    buf->build().CreateAlignedStore (
-		args[i],
-		adr,
-		0 /* default alignment */);
+	    buf->createStore (args[i], adr, szb);
 	    offset += szb;
 	}
       // align the final offset to the native word size
@@ -104,10 +101,7 @@ namespace CFG_Prim {
 	if (! this->_v_desc.isEmpty()) {
 	  // write object descriptor
 	    uint64_t desc = this->_v_desc.valOf().toUInt64();
-	    buf->build().CreateAlignedStore (
-		buf->createIntToPtr(buf->uConst(desc), buf->mlValueTy),
-		allocPtr,
-		(unsigned)buf->wordSzInBytes());
+	    buf->createStoreML (buf->uConst(desc), allocPtr);
 	}
 	// else tagless object for spilling
 
@@ -268,7 +262,7 @@ namespace CFG_Prim {
 
 	Value *adr = buf->createGEP (elemTy->getPointerTo(), args[0], args[1]);
 
-	return buf->createLoad (elemTy, adr);
+	return buf->createLoad (elemTy, adr, bitsToBytes(this->_v_sz));
 
     } // PURE_RAW_SUBSCRIPT::codegen
 
@@ -283,7 +277,7 @@ namespace CFG_Prim {
 		buf->uConst (this->_v_offset)),
 	    elemTy->getPointerTo());
 
-	return buf->createLoad (elemTy, adr);
+	return buf->createLoad (elemTy, adr, bitsToBytes(this->_v_sz));
 
     } // RAW_SELECT::codegen
 
@@ -317,7 +311,7 @@ namespace CFG_Prim {
 		elemTy->getPointerTo());
 
 // QUESTION: should we mark the load as volatile?
-	return buf->createLoad (elemTy, adr);
+	return buf->createLoad (elemTy, adr, bitsToBytes(this->_v_sz));
 
     } // RAW_LOAD::codegen
 
@@ -328,7 +322,7 @@ namespace CFG_Prim {
 	Value *adr = buf->createGEP (elemTy->getPointerTo(), args[0], args[1]);
 
 // QUESTION: should we mark the load as volatile?
-	return buf->createLoad (elemTy, adr);
+	return buf->createLoad (elemTy, adr, bitsToBytes(this->_v_sz));
 
     } // RAW_SUBSCRIPT::codegen
 
@@ -354,29 +348,19 @@ namespace CFG_Prim {
 	Value *storePtr = buf->mlReg (sml_reg_id::STORE_PTR);
 
       // write the address into the store-list object
-	buf->build().CreateAlignedStore (
-	    buf->asMLValue (adr),
-	    buf->createGEP (allocPtr, 0),
-	    (unsigned)buf->wordSzInBytes());
+	buf->createStoreML (adr, buf->createGEP (allocPtr, 0));
       // write the link field
-	buf->build().CreateAlignedStore (
-	    buf->asMLValue (storePtr),
-	    buf->createGEP (allocPtr, 1),
-	    (unsigned)buf->wordSzInBytes());
+	buf->createStoreML (storePtr, buf->createGEP (allocPtr, 1));
       // update the store pointer
 	buf->setMLReg (sml_reg_id::STORE_PTR, allocPtr);
       // bump the allocation pointer
-	buf->setMLReg (sml_reg_id::ALLOC_PTR,
-	    buf->createGEP (allocPtr, 2));
+	buf->setMLReg (sml_reg_id::ALLOC_PTR, buf->createGEP (allocPtr, 2));
 
     }
 
     void UNBOXED_UPDATE::codegen (code_buffer * buf, Args_t const &args)
     {
-	buf->build().CreateAlignedStore (
-	    buf->asMLValue(args[2]),
-	    buf->createGEP (buf->objPtrTy, args[0], args[1]),
-	    (unsigned)buf->wordSzInBytes());
+	buf->createStoreML (args[2], buf->createGEP (buf->objPtrTy, args[0], args[1]));
 
     } // UNBOXED_UPDATE::codegen
 
@@ -386,19 +370,15 @@ namespace CFG_Prim {
 
 	recordStore (buf, adr);
 
-	buf->build().CreateAlignedStore (
-	    buf->asMLValue(args[2]),
-	    adr,
-	    (unsigned)buf->wordSzInBytes());
+	buf->createStoreML (args[2], adr);
 
     } // UPDATE::codegen
 
     void UNBOXED_ASSIGN::codegen (code_buffer * buf, Args_t const &args)
     {
-	buf->build().CreateAlignedStore (
+	buf->createStoreML (
 	    args[1],
-	    buf->createGEP (buf->intTy->getPointerTo(), args[0], args[1]),
-	    (unsigned)buf->wordSzInBytes());
+	    buf->createGEP (buf->intTy->getPointerTo(), args[0], args[1]));
 
     } // UNBOXED_ASSIGN::codegen
 
@@ -408,16 +388,18 @@ namespace CFG_Prim {
 
 	recordStore (buf, adr);
 
-	buf->build().CreateAlignedStore (
-	    buf->asMLValue(args[1]),
-	    adr,
-	    (unsigned)buf->wordSzInBytes());
+	buf->createStoreML (args[1], adr);
 
     } // ASSIGN::codegen
 
     void RAW_UPDATE::codegen (code_buffer * buf, Args_t const &args)
     {
-	assert (false && "RAW_UPDATE not implemented yet"); /* FIXME */
+	Type *elemTy = numType (buf, this->_v_kind, this->_v_sz);
+
+	Value *adr = buf->createGEP (elemTy->getPointerTo(), args[0], args[1]);
+
+	return buf->createStore (args[2], adr, bitsToBytes(this->_v_sz));
+
     } // RAW_UPDATE::codegen
 
     void RAW_STORE::codegen (code_buffer * buf, Args_t const &args)

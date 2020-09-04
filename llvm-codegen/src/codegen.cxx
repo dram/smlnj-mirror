@@ -54,7 +54,7 @@ class Timer {
 
 static code_buffer *CodeBuf = nullptr;
 
-void codegen (std::string const & src, output out)
+void codegen (std::string const & src, bool emitLLVM, output out)
 {
     asdl::file_instream inS(src);
 
@@ -81,7 +81,9 @@ void codegen (std::string const & src, output out)
     CodeBuf->optimize ();
     std::cout << " " << optTimer.msec() << "ms\n" << std::flush;
 
-    CodeBuf->dump ();
+    if (emitLLVM) {
+	CodeBuf->dump ();
+    }
 
     if (! CodeBuf->verify ()) {
 	std::cerr << "Module verified after optimization\n";

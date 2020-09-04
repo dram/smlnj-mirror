@@ -25,6 +25,7 @@ void usage ()
 int main (int argc, char **argv)
 {
     output out = output::PrintAsm;
+    bool emitLLVM = false;
     std::string src = "";
 
     if (argc < 2) {
@@ -40,6 +41,8 @@ int main (int argc, char **argv)
 		out = output::AsmFile;
 	    } else if (flag == "-c") {
 		out = output::Memory;
+	    } else if (flag == "-emit-llvm") {
+		emitLLVM = true;
 	    } else {
 		usage();
 	    }
@@ -59,7 +62,7 @@ int main (int argc, char **argv)
     llvm::InitializeAllAsmParsers();
     llvm::InitializeAllAsmPrinters();
 
-    codegen (src, out);
+    codegen (src, emitLLVM, out);
 
     return 0;
 

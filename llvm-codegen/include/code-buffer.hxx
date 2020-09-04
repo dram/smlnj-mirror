@@ -564,10 +564,30 @@ class code_buffer {
     Value *createFSub (Value *a, Value *b) { return this->_builder.CreateFSub (a, b); }
 
   /***** shorthand for load/store instructions *****/
+    Value *createLoad (Type *ty, Value *adr, unsigned align)
+    {
+      // NOTE: our loads are always aligned to the ABI alignment requirement
+	return this->_builder.CreateAlignedLoad (ty, adr, align);
+    }
     Value *createLoad (Type *ty, Value *adr)
     {
       // NOTE: our loads are always aligned to the ABI alignment requirement
 	return this->_builder.CreateAlignedLoad (ty, adr, 0);
+    }
+  // create store of an ML value
+    void createStoreML (Value *v, Value *adr)
+    {
+	this->_builder.CreateAlignedStore (
+	    this->asMLValue(v),
+	    adr,
+	    (unsigned)this->_wordSzB);
+    }
+    void createStore (Value *v, Value *adr, unsigned align)
+    {
+	this->_builder.CreateAlignedStore (
+	    v,
+	    adr,
+	    align);
     }
 
   /***** shorthand for type cast instructions *****/

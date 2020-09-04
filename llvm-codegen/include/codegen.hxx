@@ -13,9 +13,6 @@
 
 enum class output { PrintAsm, AsmFile, ObjFile, Memory };
 
-void codegen (std::string const & src, output out);
-
-// Some global flags for controlling the code generator.
-// These are just for testing purposes
+void codegen (std::string const & src, bool emitLLVM, output out);
 
 #endif // !_CODEGEN_HXX_
