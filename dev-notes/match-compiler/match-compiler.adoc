@@ -2463,6 +2463,60 @@ are discovered.
 The top-down approach means that transMatch and matchComp need to be
 mutually recursive, passing an lvar env down through the recursive calls.
 
+** SOME INVARIANTS **
+
+* At a DLEAF node, DLEAF (r, trace), the set of variables available in the
+varenvMC at that node is exactly the set of variables in the pattern for r.
+This is also the domain of the varenvMC available at this node.
+
+* Each of these variables has exactly one svar for this rule in the
+current varenvMC (and the corresponding path is consistent with the trace).
+
+
+================================================================================
+[37] OR pattern normalization
+================================================================================
+
+Here are some examples of "funny" OR patterns:
+
+(1)   OR(x, x)     "x | x"
+(2)   OR((x,true), (x, y))   "(x,true) | (x, y)"
+
+* OR Normalization: a normalized OR pattern OR(p1,p2) is one where p1 and p2 are
+incompatible at their roots.
+
+We can reduce OR patterns to either (1) a non-OR pattern, or (2) a normalized
+OR pattern:
+
+(i)    OR(x,x)  ==>  x    -- the OR is eliminated
+
+(ii)   OR((p1,p2), (q1,q2)) ==> (OR(p1,q1), OR(p2,q2)) (for tuples and records)
+
+So (2) normalizes to (x, OR(true, y)).
+
+(iii)  OR(p, x) ==> x;   OR(x, p) ==> x   -- the OR is eliminated
+
+For (iii), consider
+
+   OR(x, 2::x)
+
+This is ambiguous (at least partly).  The nil value would match only the
+first pattern x, while [2,3] would match both sides.  For [2,3], the
+resulting binding of x could be either x -> [2,3] or x -> [3]. A reasonably way
+of resolving the ambiguity is to have the variable x dominate 2::x and reduce
+or normalize the OR pattern to x.  Similarly for OR(2::x, x).
+
+Goal: an OR pattern should translate to an OR node in the AND-OR tree.  The
+two patterns should therefore split/conflict at their top nodes. Or, in other
+words, the two patterns p1 and p2 should generate an OR-node andor tree.  We can
+push OR down through product patterns and eliminate it if one of the patterns
+is a variable.
+
+Example:
+
+      OR((x,true), (x, y))   "(x,true) | (x, y)"
+      ==> (OR(x,x), OR(true,y))
+      ==> (x, y)
 
 ================================================================================
 [NN] Literature
