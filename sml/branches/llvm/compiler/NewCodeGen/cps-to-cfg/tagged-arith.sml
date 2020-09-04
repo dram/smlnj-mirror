@@ -170,10 +170,10 @@ structure TaggedArith : sig
 	    case (rator, args)
 	     of (IADD, [NUM{ival, ...}, b]) => continue (P.IADD, [num(ival+ival), comp b])
 	      | (IADD, [a, NUM{ival, ...}]) => continue (P.IADD, [comp a, num(ival+ival)])
-	      | (IADD, [a, b]) => continue (P.IADD, [comp a, comp b])
+	      | (IADD, [a, b]) => continue (P.IADD, [comp a, stripTag(comp b)])
 	      | (ISUB, [NUM{ival, ...}, b]) => continue (P.ISUB, [num(ival+ival+2), comp b])
 	      | (ISUB, [a, NUM{ival, ...}]) => continue (P.ISUB, [comp a, num(ival+ival)])
-	      | (ISUB, [a, b]) => continue (P.ISUB, [comp a, comp b])
+	      | (ISUB, [a, b]) => continue (P.ISUB, [comp a, stripTag(comp b)])
 	      | (IMUL, [NUM{ival=m, ...}, NUM{ival=n, ...}]) =>
 		  tagResult (P.IMUL, [num(m+m), num n])
 	      | (IMUL, [NUM{ival, ...}, b]) =>
