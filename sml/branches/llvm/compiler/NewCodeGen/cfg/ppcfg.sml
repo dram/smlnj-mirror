@@ -144,7 +144,7 @@ structure PPCfg : sig
 	  cvtParams ("sign_extend_", from, to)
       | pureToString (P.EXTEND{signed=false, from, to}) =
 	  cvtParams ("zero_extend_", from, to)
-      | pureToString (P.TRUNC{from, to}) = cvtParams ("trunc_", from, to)
+      | pureToString (P.TRUNC{from, to}) = cvtParams ("trunc", from, to)
       | pureToString (P.INT_TO_REAL{from, to}) = cvtParams ("real", from, to)
       | pureToString P.PURE_SUBSCRIPT = "vector_sub"
       | pureToString (P.PURE_RAW_SUBSCRIPT{kind, sz}) =

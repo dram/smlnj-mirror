@@ -393,14 +393,21 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 	(***** SETTER *****)
 	  and genSetter (oper, args : value list, k) = (case (oper, args)
 		 of (P.NUMUPDATE{kind}, [arr, ix, v]) => let
-		      fun set oper = C.SETTER(
-			    oper, [getSeqData(genV arr), untagSigned ix, genV v],
+		      fun set (kind, sz, arg) = C.SETTER(
+			    TP.RAW_UPDATE{kind = kind, sz = sz},
+			    [getSeqData(genV arr), untagSigned ix, arg],
 			    k)
+		      fun coerceInt (sz, signed) = if (sz = defaultIntSz) orelse (sz = ity)
+			    (* IntArray.array will store values in tagged form *)
+			      then genV v
+			    else if (sz < defaultIntSz)
+			      then trunc (sz, signed, v)
+			      else error [" NUMUPDATE of unsupported size ", Int.toString sz]
 		      in
 			case kind
-			 of P.INT sz => set (TP.RAW_UPDATE{kind = TP.INT, sz = sz})
-			  | P.UINT sz => set (TP.RAW_UPDATE{kind = TP.INT, sz = sz})
-			  | P.FLOAT sz => set (TP.RAW_UPDATE{kind = TP.FLT, sz = sz})
+			 of P.INT sz => set (TP.INT, sz, coerceInt (sz, true))
+			  | P.UINT sz => set (TP.INT, sz, coerceInt (sz, false))
+			  | P.FLOAT sz => set (TP.FLT, sz, genV v)
 			(* end case *)
 		      end
 		  | (P.UNBOXEDUPDATE, [arr, ix, v]) =>
@@ -662,10 +669,15 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 		(* for default-size ints, we use the native size subscript *)
 		  then toMLWord (genRawSubscript (TP.INT, ity, vec, idx))
 		  else genRawSubscript (TP.INT, sz, vec, idx)
-	  and untagSigned (NUM{ival, ...}) = num ival
+	  and untagSigned (NUM{ty={tag=true, ...}, ival, ...}) = num ival
+	    | untagSigned (NUM _) = error["unexpected untagged integer"]
 	    | untagSigned v = pureOp (TP.RSHIFT, ity, [genV v, one])
-	  and untagUnsigned (NUM{ival, ...}) = num ival
+	  and untagUnsigned (NUM{ty={tag=true, ...}, ival, ...}) = num ival
+	    | untagUnsigned (NUM _) = error["unexpected untagged integer"]
 	    | untagUnsigned v = pureOp(TP.RSHIFTL, ity, [genV v, one])
+	  and trunc (sz, _, NUM{ival, ...}) = C.NUM{iv=ival, sz=sz}
+	    | trunc (sz, true, v) = pure(TP.TRUNC{from=ity, to=sz}, [untagSigned v])
+	    | trunc (sz, false, v) = pure(TP.TRUNC{from=ity, to=sz}, [untagUnsigned v])
 	(* convert a raw integer value to a tagged integer w/o trapping *)
 	  and toMLWord exp = (* `(exp << 1) + 1` *)
 		pureOp(TP.ADD, ity, [pureOp(TP.LSHIFT, ity, [exp, one]), one])
