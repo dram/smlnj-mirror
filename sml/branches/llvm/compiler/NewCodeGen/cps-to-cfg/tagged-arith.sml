@@ -148,7 +148,6 @@ structure TaggedArith : sig
 	 * gets retagged, therefore we can use a pure operation for the division.
 	 *)
 	  fun divOp (oper, a, b) = let
-		val tmp = LambdaVar.mkLvar()
 		val tmp1 = LambdaVar.mkLvar()
 		val tmp2 = LambdaVar.mkLvar()
 		val exp = (case (a, b)
@@ -162,7 +161,7 @@ structure TaggedArith : sig
 			    pureOp(oper, ity, [untagInt(comp a), untagInt(comp b)])
 		      (* end case *))
 		in
-		  C.LET(exp, param(tmp, ity'),
+		  C.LET(exp, param(tmp1, ity'),
 		  C.ARITH(arith P.IADD, [var tmp1, var tmp1], param(tmp2, ity'),
 		    k(addTag(var tmp2))))
 		end
