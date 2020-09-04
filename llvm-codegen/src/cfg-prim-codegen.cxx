@@ -23,6 +23,18 @@ namespace CFG_Prim {
   // helper function to convert bit size to byte size
     inline unsigned bitsToBytes (unsigned n) { return (n >> 3); }
 
+  // helper function to ensure that arguments to arithmetic operations
+  // have an LLVM integer type, since we use i64* (or i32*) as the type
+  // of ML values
+    inline Value *castArgToInt (code_buffer * buf, unsigned sz, Value *arg)
+    {
+	if (arg->getType() == buf->mlValueTy) {
+	    return buf->build().CreatePtrToInt(arg, buf->iType(sz));
+	} else {
+	    return arg;
+	}
+    }
+
   /***** code generation for the `alloc` type *****/
     Value *RECORD::codegen (code_buffer * buf, Args_t const &args)
     {
@@ -123,11 +135,20 @@ namespace CFG_Prim {
 
   /***** code generation for the `arith` type *****/
 
-    Value *ARITH::codegen (code_buffer * buf, Args_t const &args)
+    Value *ARITH::codegen (code_buffer * buf, Args_t const &argv)
     {
 	Value *pair;
+
+	assert ((argv.size() == 2) && "expected two arguments");
+
+	unsigned sz = this->_v_sz;
+	std::vector<Value *> args = {
+	    buf->asInt(sz, argv[0]), buf->asInt(sz, argv[1])
+	  };
+
 	switch (this->get_oper()) {
 	    case arithop::IADD:
+
 		pair = buf->build().CreateCall(
 		    (this->get_sz() == 32) ? buf->sadd32WOvflw() : buf->sadd64WOvflw(),
 		    args);
@@ -177,34 +198,35 @@ namespace CFG_Prim {
 
     Value *PURE_ARITH::codegen (code_buffer * buf, Args_t const &args)
     {
+	unsigned sz = this->_v_sz;
 	switch (this->get_oper()) {
 	    case pureop::ADD:
-		return buf->createAdd(args[0], args[1]);
+		return buf->createAdd(buf->asInt(sz, args[0]), buf->asInt(sz, args[1]));
 	    case pureop::SUB:
-		return buf->createSub(args[0], args[1]);
+		return buf->createSub(buf->asInt(sz, args[0]), buf->asInt(sz, args[1]));
 	    case pureop::SMUL:  // same as UMUL
 	    case pureop::UMUL:
-		return buf->createMul(args[0], args[1]);
+		return buf->createMul(buf->asInt(sz, args[0]), buf->asInt(sz, args[1]));
 	    case pureop::SDIV:
-		return buf->createSDiv(args[0], args[1]);
+		return buf->createSDiv(buf->asInt(sz, args[0]), buf->asInt(sz, args[1]));
 	    case pureop::SREM:
-		return buf->createSRem(args[0], args[1]);
+		return buf->createSRem(buf->asInt(sz, args[0]), buf->asInt(sz, args[1]));
 	    case pureop::UDIV:
-		return buf->createUDiv(args[0], args[1]);
+		return buf->createUDiv(buf->asInt(sz, args[0]), buf->asInt(sz, args[1]));
 	    case pureop::UREM:
-		return buf->createURem(args[0], args[1]);
+		return buf->createURem(buf->asInt(sz, args[0]), buf->asInt(sz, args[1]));
 	    case pureop::LSHIFT:
-		return buf->createShl(args[0], args[1]);
+		return buf->createShl(buf->asInt(sz, args[0]), buf->asInt(sz, args[1]));
 	    case pureop::RSHIFT:
-		return buf->createAShr(args[0], args[1]);
+		return buf->createAShr(buf->asInt(sz, args[0]), buf->asInt(sz, args[1]));
 	    case pureop::RSHIFTL:
-		return buf->createLShr(args[0], args[1]);
+		return buf->createLShr(buf->asInt(sz, args[0]), buf->asInt(sz, args[1]));
 	    case pureop::ORB:
-		return buf->createOr(args[0], args[1]);
+		return buf->createOr(buf->asInt(sz, args[0]), buf->asInt(sz, args[1]));
 	    case pureop::XORB:
-		return buf->createXor(args[0], args[1]);
+		return buf->createXor(buf->asInt(sz, args[0]), buf->asInt(sz, args[1]));
 	    case pureop::ANDB:
-		return buf->createAnd(args[0], args[1]);
+		return buf->createAnd(buf->asInt(sz, args[0]), buf->asInt(sz, args[1]));
 	    case pureop::FADD:
 		return buf->createFAdd(args[0], args[1]);
 	    case pureop::FSUB:
@@ -444,7 +466,10 @@ namespace CFG_Prim {
 	    idx += 1;
 	}
 
-	return buf->createICmp (ICmpMap[idx], buf->asInt(args[0]), buf->asInt(args[1]));
+	return buf->createICmp (
+	    ICmpMap[idx],
+	    buf->asInt(this->_v_sz, args[0]),
+	    buf->asInt(this->_v_sz, args[1]));
 
     } // CMP::codegen
 

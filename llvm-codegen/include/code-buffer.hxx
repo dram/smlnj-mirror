@@ -215,6 +215,18 @@ class code_buffer {
 	}
     }
 
+  // helper function to ensure that arguments to arithmetic operations
+  // have an LLVM integer type, since we use i64* (or i32*) as the type
+  // of ML values
+    Value *asInt (unsigned sz, Value *v)
+    {
+	if (v->getType() == this->mlValueTy) {
+	    return this->_builder.CreatePtrToInt(v, this->iType(sz));
+	} else {
+	    return v;
+	}
+    }
+
   // cast an argument type to match the expected target type.  We assume that the
   // types are _not_ equal!
     Value *castTy (Type *srcTy, Type *tgtTy, Value *v);

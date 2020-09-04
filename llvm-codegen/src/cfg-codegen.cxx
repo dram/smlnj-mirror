@@ -63,7 +63,12 @@ namespace CFG {
     Value *VAR::codegen (code_buffer * buf)
     {
 	Value *v = buf->lookupVal (this->_v_name);
-	assert (v && "unbound variable");
+#ifndef NDEBUG
+	if (v == nullptr) {
+	    llvm::dbgs() << "VAR: " << this->_v_name << " is unbound\n";
+	    assert (v && "unbound variable");
+	}
+#endif
 	return v;
 
     } // VAR::codegen
