@@ -103,6 +103,7 @@ void mc_gen::beginModule (llvm::Module *module)
     this->_passMngr->add(llvm::createConstantPropagationPass());        /* -constprop */
     this->_passMngr->add(llvm::createEarlyCSEPass());                   /* -early-cse */
     this->_passMngr->add(llvm::createGVNPass());                        /* -gvn */
+//    this->_passMngr->add(llvm::createSCCPPass());			/* -sccp */
     this->_passMngr->add(llvm::createDeadCodeEliminationPass());        /* -dce */
     this->_passMngr->add(llvm::createCFGSimplificationPass());          /* -simplifycfg */
     this->_passMngr->add(llvm::createInstructionCombiningPass());       /* -instcombine */
