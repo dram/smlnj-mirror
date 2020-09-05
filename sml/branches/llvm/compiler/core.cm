@@ -299,6 +299,7 @@ CPS/opt/uncurry.sml
 CPS/main/cluster.sml
 CPS/main/cps-comp.sml
 CPS/main/limit.sml
+CPS/main/old-limit.sml	(* FIXME: delete this at some point *)
 CPS/main/literals.sml
 CPS/main/new-literals.sml
 CPS/main/normalize-cluster.sml

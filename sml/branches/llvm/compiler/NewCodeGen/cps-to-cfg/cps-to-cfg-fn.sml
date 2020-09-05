@@ -10,8 +10,8 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 
     val translate : {
 	    source : string,
-	    funcs : CPS.function list,
-	    limits : CPS.lvar -> int * int
+	    clusters : Cluster.cluster list,
+	    maxAlloc : CPS.lvar -> int
 	  } -> CFG.comp_unit
 
   end = struct
@@ -731,7 +731,7 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 	  (* end case *))
       | reallyNeedsGC _ = true
 
-    fun doFun (limits : LV.lvar -> (int * int), init) isEntry (func, frags) = let
+    fun doFun (maxAlloc : LV.lvar -> int, init) isEntry (func, frags) = let
 	  val (fk, f, params, paramTys, body) = func
 	  val info = init func
 	  val (kind, needsGC) = (case (fk, isEntry)
@@ -758,17 +758,16 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 		}
 	  in
 	    if needsGC
-	      then addLimitCheck (info, #1(limits f), frag) @ frags
+	      then addLimitCheck (info, maxAlloc f, frag) @ frags
 	      else frag::frags
 	  end
 
   (* translate a CPS compilation unit into the CFG IR *)
-    fun translate {source, funcs, limits} = let
-	  val clusters = Cluster.cluster true funcs
+    fun translate {source, clusters, maxAlloc} = let
 	  val gInfo = CPSInfo.analyze clusters
 	(* convert a single cluster of CPS functions to a CFG cluster. *)
 	  fun doCluster (entry :: rest) = let
-		val doFun = doFun (limits, CPSInfo.newCluster gInfo)
+		val doFun = doFun (maxAlloc, CPSInfo.newCluster gInfo)
 		val frags = doFun true (entry, List.foldr (doFun false) [] rest)
 		in
 		  C.Cluster{
