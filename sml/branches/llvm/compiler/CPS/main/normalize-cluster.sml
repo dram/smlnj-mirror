@@ -9,6 +9,8 @@
  *	1) exactly one entry function (i.e., a `CONT` or `ESCAPE` function)
  *
  *	2) there are no internal jumps to the entry function.
+ *
+ * Note that this pass is run _before_ we do limit-check analysis (see limit.sml)
  *)
 
 structure NormalizeCluster : sig
@@ -36,6 +38,15 @@ structure NormalizeCluster : sig
 
     type cluster = C.function list
 
+(*DEBUG*)
+val say = Control.Print.say
+fun prCluster (fn1::fns) = (
+      say "***** CLUSTER START *****\n";
+      PPCps.printcps0 fn1;
+      List.app (fn f => (say "***** FRAG *****\n"; PPCps.printcps0 f)) fns;
+      say "***** CLUSTER END *****\n")
+(*DEBUG*)
+
   (***** cluster info *****)
 
     structure Info : sig
@@ -45,12 +56,16 @@ structure NormalizeCluster : sig
 	val nOther : t -> int
 	val nFuncs : t -> int
 	val idOf : t -> LV.lvar -> int
+	val labelOf : t -> int -> LV.lvar
 	val funcOf : t -> int -> C.function
 	val succs : t -> int -> int list
       (* `dfsApp info f id` does a DFS traversal of the graph starting at node `id`
        * and applies the function `f` to each reachable node as it is visited.
        *)
 	val dfsApp : t -> (int -> unit) -> int -> unit
+(*DEBUG*)
+	val dump : t -> unit
+(* DEBUG*)
       end = struct
 
       (* information about a group of CPS functions *)
@@ -77,7 +92,14 @@ structure NormalizeCluster : sig
 		      List.appi
 			(fn (id, func as (_,f,_,_,_)) => (
 			    add(f, id); Array.update(tbl, id, func)))
-			  (entries @ frags);
+			  entries;
+		      List.appi
+			(fn (i, func as (_,f,_,_,_)) => let
+			    val id = nEntries + i
+			    in
+			      add(f, id); Array.update(tbl, id, func)
+			    end)
+			  frags;
 		      tbl
 		    end
 	    (* create a call graph for the functions, represented as an array `g` of integer
@@ -85,25 +107,35 @@ structure NormalizeCluster : sig
 	     * with ID `id` calls.
 	     *)
 	      val graph = Array.array(numFuncs, [])
-	      fun addEdges (id, (_, _, _, _, body)) = let
-		    fun addEdge f = Array.modify (fn succs => funcToID f :: succs) graph
-		    fun calls (C.APP(C.LABEL l, _)) = addEdge l
-		      | calls (C.APP _) = ()
-		      | calls (C.RECORD(_, _, _, e)) = calls e
-		      | calls (C.SELECT(_, _, _, _, e)) = calls e
-		      | calls (C.OFFSET(_, _, _, e)) = calls e
-		      | calls (C.SWITCH(_, _, es)) = List.app calls es
-		      | calls (C.BRANCH(_, _, _, e1, e2)) = (calls e1; calls e2)
-		      | calls (C.SETTER(_, _, e)) = calls e
-		      | calls (C.LOOKER(_, _, _, _, e)) = calls e
-		      | calls (C.ARITH(_, _, _, _, e)) = calls e
-		      | calls (C.PURE(_, _, _, _, e)) = calls e
-		      | calls (C.RCC(_, _, _, _, _, e)) = calls e
-		      | calls (C.FIX _) = error "unexpected FIX"
+	      fun addEdges ((_, g, _, _, body), nodes) = let
+		    fun addEdge (f, succs) = let
+			  val id = funcToID f
+			  fun add ([], ids) = id :: ids
+			    | add (id' :: r, ids) = if (id <> id')
+				then add(r, id'::ids)
+				else succs
+			  in
+			    add (succs, [])
+			  end
+		    fun calls (e, succs) = (case e
+			   of C.APP(C.LABEL l, _) => addEdge (l, succs)
+			    | C.APP _ => succs
+			    | C.RECORD(_, _, _, e) => calls (e, succs)
+			    | C.SELECT(_, _, _, _, e) => calls (e, succs)
+			    | C.OFFSET(_, _, _, e) => calls (e, succs)
+			    | C.SWITCH(_, _, es) => List.foldl calls succs es
+			    | C.BRANCH(_, _, _, e1, e2) => calls (e2, calls (e1, succs))
+			    | C.SETTER(_, _, e) => calls (e, succs)
+			    | C.LOOKER(_, _, _, _, e) => calls (e, succs)
+			    | C.ARITH(_, _, _, _, e) => calls (e, succs)
+			    | C.PURE(_, _, _, _, e) => calls (e, succs)
+			    | C.RCC(_, _, _, _, _, e) => calls (e, succs)
+			    | C.FIX _ => error "unexpected FIX"
+			  (* end case *))
 		    in
-		      calls body
+		      calls (body, []) :: nodes
 		    end (* addEdges *)
-	      val _ = List.appi addEdges entries
+	      val graph = Array.fromList (Array.foldr addEdges [] idToFuncTbl)
 	      in {
 		nEntries = nEntries,
 		nOther = nOther,
@@ -117,6 +149,7 @@ structure NormalizeCluster : sig
 	fun nFuncs (info : t) = #nEntries info + #nOther info
 	fun idOf (info : t) = #funcToID info
 	fun funcOf (info : t) id = Array.sub (#idToFunc info, id)
+	fun labelOf info id = #2(funcOf info id)
 	fun succs (info : t) id = Array.sub (#callGraph info, id)
 
 	fun dfsApp (info : t) f rootId = let
@@ -131,6 +164,27 @@ structure NormalizeCluster : sig
 	      in
 		dfs rootId
 	      end
+
+(*DEBUG*)
+	fun dump ({nEntries, nOther, idToFunc, callGraph, ...} : t) = let
+	      fun id2s id = let val (_, f, _, _, _) = Array.sub(idToFunc, id)
+		    in
+		      if (id < nEntries) then "*" ^ LV.lvarName f else LV.lvarName f
+		    end
+	      fun sayNd (id, ids) = say(String.concat[
+		      "#### ", id2s id, " --> {",
+		      String.concatWithMap "," id2s ids,
+		      "}\n"
+		    ])
+	      in
+		say (concat[
+		    "### CLUSTER INFO (", Int.toString nEntries, "/",
+		    Int.toString(nEntries+nOther), " entries)\n"
+		  ]);
+		Array.appi sayNd callGraph;
+		say "###\n"
+	      end
+(* DEBUG*)
 
       end (* structure Info *)
 
@@ -249,9 +303,11 @@ structure NormalizeCluster : sig
    * plus additional shared clusters.
    *)
     fun normalize (entries, frags) = let
+val _ = say "## NormalizeCluster.normalize\n"
 	  val info = Info.mk (entries, frags)
 	  val nEntries = Info.nEntries info
 	  val nFuncs = Info.nFuncs info
+val _ = Info.dump info
 	(* a mapping from "other" functions to their signatures *)
 	  val idToSig = Array.array(nFuncs, FSig.empty)
 	(* starting with the given entry function, do a DFS traversal to identify those
@@ -268,6 +324,7 @@ structure NormalizeCluster : sig
 	(* partition the fragments by signature.  Note that the number of elements
 	 * in `sigMap` is a lower bound on the number of clusters.
 	 *)
+val _ = say "### compute sigMap\n"
 	  val sigMap = let
 		fun ins (id, sign, sMap) = let
 		      val ids = (case FSig.Map.find(sMap, sign)
@@ -299,8 +356,11 @@ structure NormalizeCluster : sig
 		      Array.update(isEntry, id, true));
 		  if Array.sub(visited, id)
 		    then ()
-		    else List.app (walk idSig) (Info.succs info id)
+		    else (
+		      Array.update(visited, id, true);
+		      List.app (walk idSig) (Info.succs info id))
 		end
+val _ = say "### mark entries\n"
 	  val _ = for (0, nEntries) (walk FSig.empty)
 	(* form new clusters *)
 	  fun mkCluster ids = let
@@ -322,8 +382,28 @@ structure NormalizeCluster : sig
 		  mk (ids, [], [])
 		end
 	  in
+say "### clusters:\n";
+FSig.Map.app (fn ids => let
+    fun id2s id = let val lab = LV.lvarName(Info.labelOf info id)
+	  in
+	    if Array.sub(isEntry, id) then "*" ^ lab else lab
+	  end
+    in
+      say(concat["#### ", String.concatWithMap "," id2s ids, "\n"])
+    end)
+  sigMap;
 	    FSig.Map.foldl (fn (ids, clusters) => mkCluster ids @ clusters) [] sigMap
 	  end
+
+(*DEBUG*)
+val normalize = fn arg => let val clusters = normalize arg
+in
+  say "## NormalizeCluster.normalize result:\n";
+  List.app prCluster clusters;
+  say "## done\n";
+  clusters
+end
+(*DEBUG*)
 
   (***** Main function *****)
 
@@ -340,5 +420,10 @@ structure NormalizeCluster : sig
 	    | ([entry], frags) => (entry::frags) :: clusters
 	    | (ents, frags) => normalize (ents, frags) @ clusters
 	  (* end case *))
+(*DEBUG*)
+val transform = fn (frags, clusters) => (
+say "## NormalizeCluster.transform:\n"; prCluster frags;
+transform (frags, clusters))
+(*DEBUG*)
 
   end (* NormalizeCluster *)

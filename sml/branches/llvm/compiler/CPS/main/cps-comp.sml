@@ -42,7 +42,7 @@ functor CPSCompFn (
     val closure   = phase "CPS 080 closure"  Closure.closeCPS
     val globalfix = phase "CPS 090 globalfix" GlobalFix.globalfix
     val spill     = phase "CPS 100 spill" Spill.spill
-    val limit     = phase "CPS 110 limit" Limit.nolimit
+    val limit     = phase "CPS 110 limit" OldLimit.nolimit	(* FIXME *)
     val codegen   = phase "CPS 120 cpsgen" Gen.codegen
 
   (** pretty printing for the CPS code *)
@@ -70,12 +70,13 @@ functor CPSCompFn (
 		      val fx = (prC "closure" o closure) fx
 		      val carg = globalfix fx
 		      val carg = spill carg
-		      val (carg, limit) = limit carg
 (* TODO: move clustering to here *)
 		      val _ = if !Control.CG.dumpCFG
 			    then let
+			      val clusters = Cluster.cluster true carg
+			      val (clusters, maxAlloc) = Limit.allocChecks clusters
 			      val cfg = CPStoCFG.translate {
-				      source = source, funcs = carg, limits = limit
+				      source = source, clusters = clusters, maxAlloc = maxAlloc
 				    }
 			      val pklFile = if source = "stdin"
 				    then "out.pkl"
@@ -95,6 +96,7 @@ functor CPSCompFn (
 				CFGPickler.toFile (pklFile, cfg)
 			      end
 			    else ()
+		      val (carg, limit) = limit carg
 		      val epthunk = codegen {
 			      funcs = carg, limits = limit, source = source
 			    }

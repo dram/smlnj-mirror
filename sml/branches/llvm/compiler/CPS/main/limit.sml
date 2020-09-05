@@ -1,40 +1,49 @@
-(* limit.sml
+(* new-limit.sml
  *
- * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
+ *
+ * Compute allocation amounts and change the kind of those KNOWN functions
+ * that require a check to KNOWN_CHECK.
  *)
 
-signature LIMIT =
-  sig
+structure Limit : sig
 
-  (* returns list of function and mapping from function names to pairs of allocation
-   * amount and number of instructions.
+  (* `allocChecks clusters` returns the pair `(clusters', maxAllocOf)`, where `clusters`
+   * is a revised list of clusters where the function kind of known functions that require
+   * a GC check have been changed to `KNOWN_CHECK` and the `maxAllocOf` is a function that
+   * maps function labels to the maximum number of words allocated by the function on
+   * any execution path.
    *)
-    val nolimit : CPS.function list -> CPS.function list * (CPS.lvar -> (int * int))
+    val allocChecks : Cluster.cluster list -> Cluster.cluster list * (CPS.lvar -> int)
 
-  end (* signature LIMIT *)
+  end = struct
 
-structure Limit : LIMIT =
-  struct
+    structure C = CPS
+    structure P = C.P
+    structure LV = LambdaVar
+    structure Tbl = LV.Tbl
 
-    structure CGoptions = Control.CG
-
-    open CPS
-
+    val debug = Control.CG.printit
     val say = Control.Print.say
     val error = ErrorMsg.impossible
 
-    val MAX_ALLOC = 1023  (* maximum number of words to allocate per check *)
+  (* maximum number of words to allocate per check, which is one less than the slop *)
+    val MAX_ALLOC = 1023
 
-    fun findescapes fl = let
-	  exception Limit
-	  val m : fun_kind LambdaVar.Tbl.hash_table = LambdaVar.Tbl.mkTable(32,Limit)
-	  val _ = app (fn (k,f,_,_,_) => LambdaVar.Tbl.insert m (f,k)) fl
-	  val escapes = LambdaVar.Tbl.lookup m
+  (* map a function over a list of clusters *)
+    fun clusterMap (f : C.function -> C.function) = List.map (List.map f)
+  (* apply a function to a list of clusters *)
+    fun clusterApp (f : C.function -> unit) = List.app (List.app f)
+
+    fun findEscapes clusters = let
+	  val m = Tbl.mkTable(32, Fail "Escapes")
+	  val kindOf = Tbl.lookup m
+	  val _ = clusterApp (fn (k, f, _, _, _) => Tbl.insert m (f, k)) clusters
 	  in {
-	    escapes = escapes,
-	    check = fn f => (case escapes f
-	       of KNOWN => LambdaVar.Tbl.insert m (f, KNOWN_CHECK)
+	    kindOf = kindOf,
+	    addCheck = fn f => (case kindOf f
+	       of C.KNOWN => Tbl.insert m (f, C.KNOWN_CHECK)
 		| _ => ()
 	      (* end case *))
 	  } end
@@ -50,173 +59,166 @@ structure Limit : LIMIT =
   (* extra alignment for 64-bit data *)
     val raw64Pad = if Target.is64 then 0 else 1
 
+
   (* path now counts instructions as well as allocations, for polling *)
-    fun path escapes fl = let
-	  exception Limit'
-	  val b : cexp LambdaVar.Tbl.hash_table = LambdaVar.Tbl.mkTable(32,Limit')
-	  val _ = app (LambdaVar.Tbl.insert b o (fn (_,f,_,_,body) => (f,body))) fl
-	  val body = LambdaVar.Tbl.lookup b
-
-	  val m : {known: fun_kind, alloc: int, instrs: int} LambdaVar.Tbl.hash_table =
-		LambdaVar.Tbl.mkTable(32,Limit')
-	  val look = LambdaVar.Tbl.lookup m
+    fun path kindOf clusters = let
+	  exception LimitExn
+	(* map from function label to function body *)
+	  val b : C.cexp Tbl.hash_table = Tbl.mkTable(32, LimitExn)
+	  val _ = clusterApp (Tbl.insert b o (fn (_, f, _, _, e) => (f, e))) clusters
+	  val bodyOf = Tbl.lookup b
+(*DEBUG*) val bodyOf = fn lv => (bodyOf lv handle ex => (say(concat["** bodyOf ", LV.lvarName lv, " not found\n"]); raise ex))
+	(* map from function label to info *)
+	  val infoTbl : {kind : C.fun_kind, alloc : int} Tbl.hash_table = Tbl.mkTable(32, LimitExn)
+	  val setInfo = Tbl.insert infoTbl
+	  val getInfo = Tbl.find infoTbl
 	(* compute required storage in ml-value-sized words *)
-	  fun g (d, RECORD(RK_RAW64BLOCK,vl,_,e)) = g(d + record64Sz(length vl), e)
-	    | g (d, RECORD(RK_FCONT,vl,_,e)) = g(d + record64Sz(length vl), e)
-	    | g (d, RECORD(RK_VECTOR,vl,_,e)) = g(d + length vl + (seqHdrSz + 1), e)
-	    | g (d, RECORD(_,vl,_,e)) = g(d + length vl + 1, e)
-	    | g (d, SELECT(_,_,_,_,e)) = g(d, e)
-	    | g (d, OFFSET(_,_,_,e)) = g(d, e)
-	    | g (d, SWITCH(_,_,el)) = foldr Int.max 0 (map (fn e => g(d,e)) el)
-	    | g (d, SETTER(P.ASSIGN, _, e)) = g(d+storeListSz, e)
-	    | g (d, SETTER(P.UPDATE,_,e)) = g(d+storeListSz, e)
-		(*** should be +0 when unboxedfloat is turned on ***)
-(* QUESTION: why are these operations +1, since the allocation is done in WRAP?
-	    | g (d, ARITH(P.IARITH _,_,_,_,e)) = g(d+1, e)
-	    | g (d, ARITH(P.TESTU _, _, _, _, e)) = g(d+1, e)
-	    | g (d, ARITH(P.TEST _, _, _, _, e)) = g(d+1, e)
-*)
-	    | g (d, ARITH(P.TEST_INF _, _, _, _, e)) = error "TEST_INF in limit"
-	    | g (d, ARITH(_,_,_,_,e)) = g(d, e)
-(* QUESTION: why are these operations +3, since the allocation is done in WRAP?
-	    | g (d, PURE(P.PURE_ARITH{kind=P.FLOAT 64,...},_,_,_,e)) = g(d+3, e)
-	    | g (d, PURE(P.INT_TO_REAL{to=64,...},_,_,_,e)) = g(d+3, e)
-*)
-	    | g (d, PURE(P.WRAP(P.INT sz), _, _, _, e)) =
-		if (sz = Target.mlValueSz)
-		  then g(d + 2, e)
-		else if (sz <= Target.defaultIntSz)
-		  then error "unexpected tagged int wrap"
-		  else g(d + 1 + sz div Target.mlValueSz, e)
-(* REAL32: FIXME *)
-	    | g (d, PURE(P.WRAP(P.FLOAT 64), _, _, _, e)) = g (d + record64Sz 1, e)
-	    | g (d, PURE(P.NEWARRAY0,_,_,_,e)) = g(d + (seqHdrSz + 2), e)
-	    | g (d, PURE(P.MAKEREF, _, _, _, e)) = g(d+2, e)
-	    | g (d, PURE(P.MKSPECIAL, _, _, _, e)) = g(d+2, e)
-	    | g (d, PURE(P.RAWRECORD tag, [NUM{ty={tag=true, ...}, ival}],_,_,e)) =
-		g (d+(IntInf.toInt ival)+(case tag of SOME _ => 1 | NONE => 0), e)
-	    | g (d, PURE((P.TRUNC_INF _ | P.EXTEND_INF _ | P.COPY_INF _), _, _, _, e)) =
-		error "*_INF in limit"
-(* QUESTION: why is this operation +3, since the allocation is done in WRAP?
-	    | g (d, LOOKER(P.NUMSUBSCRIPT{kind=P.FLOAT 64},_,_,_,e)) = g(d+3, e)
-*)
-	    | g (d, SETTER(_,_,e)) = g(d,e)
-	    | g (d, LOOKER(_,_,_,_,e)) = g(d,e)
-	    | g (d, PURE(_,_,_,_,e)) = g(d,e)
-	    | g (d, RCC(_,_,_,_,_,e)) = g(d, e)
-	    | g (d, BRANCH(_,_,_,e1,e2)) = Int.max(g(d,e1), g(d,e2))
-	    | g (d, APP(LABEL w, _)) = (case maxpath w
-		 of {known=KNOWN, alloc=n, instrs=i} =>
-		    if d+n > MAX_ALLOC
-		      then (
-			LambdaVar.Tbl.insert m (w,{known=KNOWN_CHECK, alloc=n, instrs=i});
-			d)
-		      else d+n
-		  | _ => d
+	  fun count (allocSzW, exp) = let
+		fun continue e = count (allocSzW, e)
+		fun inc (n, e) = count (allocSzW+n, e)
+		in
+		  case exp
+		   of C.RECORD(C.RK_RAW64BLOCK, vl, _, e) => inc( record64Sz(length vl), e)
+		    | C.RECORD(C.RK_FCONT, vl, _, e) => inc (record64Sz(length vl), e)
+		    | C.RECORD(C.RK_VECTOR, vl, _, e) => inc (length vl + (seqHdrSz + 1), e)
+		    | C.RECORD(_, vl, _, e) => inc (length vl + 1, e)
+		    | C.SELECT(_, _, _, _, e) => continue e
+		    | C.OFFSET(_, _, _, e) => continue e
+		    | C.APP(C.LABEL lab, _) => (case maxPath lab
+			 of {kind=C.KNOWN, alloc} =>
+			    if allocSzW+alloc > MAX_ALLOC
+			      then (
+				setInfo (lab, {kind=C.KNOWN_CHECK, alloc=alloc});
+				allocSzW)
+			      else allocSzW + alloc
+			  | _ => allocSzW
+			(* end case *))
+		    | C.APP _ => allocSzW
+		    | C.FIX _ => error "FIX in Limit.count"
+		    | C.SWITCH(_, _, el) => List.foldl (fn (e, n) => Int.max(continue e, n)) 0 el
+		    | C.BRANCH(_, _, _, e1, e2) => Int.max(continue e1, continue e2)
+		    | C.SETTER(P.ASSIGN, _, e) => inc (storeListSz, e)
+		    | C.SETTER(P.UPDATE, _, e) => inc (storeListSz, e)
+		    | C.SETTER(_, _, e) => continue e
+		    | C.LOOKER(_, _, _, _, e) => continue e
+		    | C.ARITH(P.TEST_INF _, _, _, _, _) => error "TEST_INF in Limit.count"
+		    | C.ARITH(_, _, _, _, e) => continue e
+		    | C.PURE(P.WRAP(P.INT sz), _, _, _, e) =>
+			if (sz = Target.mlValueSz)
+			  then inc (2, e)
+			else if (sz <= Target.defaultIntSz)
+			  then error "unexpected tagged int wrap in Limit.count"
+			  else inc (1 + sz div Target.mlValueSz, e)
+		    | C.PURE(P.WRAP(P.FLOAT sz), _, _, _, e) => inc (record64Sz 1, e)
+		    | C.PURE(P.NEWARRAY0, _, _, _, e) => inc (seqHdrSz + 2, e)
+		    | C.PURE(P.MAKEREF, _, _, _, e) => inc (2, e)
+		    | C.PURE(P.MKSPECIAL, _, _, _, e) => inc (2, e)
+		    | C.PURE(P.RAWRECORD NONE, [C.NUM{ty={tag=true, ...}, ival}], _, _, e) =>
+			inc (IntInf.toInt ival, e)
+		    | C.PURE(P.RAWRECORD _, [C.NUM{ty={tag=true, ...}, ival}], _, _, e) =>
+			inc (IntInf.toInt ival + 1, e)
+		    | C.PURE(P.RAWRECORD _, _, _, _, _) => error "bogus RAWRECORD in Limit.count"
+		    | C.PURE((P.TRUNC_INF _ | P.EXTEND_INF _ | P.COPY_INF _), _, _, _, e) =>
+			error "*_INF in Limit.count"
+		    | C.PURE(_, _, _, _, e) => continue e
+		    | C.RCC(_, _, _, _, _, e) => continue e
+		  (* end case *)
+		end
+	  and maxPath lab = (case getInfo lab
+		 of SOME info => info
+		  | NONE => (
+		    (* Note that the heap may need to be aligned so g is
+		     * called with g(raw64Pad, bod). Be conservative.
+		     *)
+		      case kindOf lab
+		       of C.KNOWN => let
+			    val body = bodyOf lab
+			    val n = count(raw64Pad, bodyOf lab)
+			    val info = if n > MAX_ALLOC
+				  then {kind=C.KNOWN_CHECK, alloc=n}
+				  else {kind=C.KNOWN, alloc=n}
+			    in
+			      setInfo (lab, info);
+			      info
+			    end
+		        | kind => let
+			  (* initialize info for lab *)
+			    val _ = setInfo (lab, {kind=kind, alloc=0})
+			  (* compute allocation amount *)
+			    val info = {kind = kind, alloc = count (1, bodyOf lab)}
+			    in
+			      setInfo (lab, info); info
+			    end
+		      (* end case *))
 		(* end case *))
-	    | g (d, APP(_, _)) = d
-	    | g (d, FIX _) = error "FIX in limit"
-
-	  and h (d, RECORD(_,_,_,e)) = h(d+1, e)
-	    | h (d, SELECT(_,_,_,_,e)) = h(d+1, e)
-	    | h (d, OFFSET(_,_,_,e)) = h(d+1, e)
-	    | h (d, SWITCH(_,_,el)) = foldr Int.max 1 (map (fn e => g(d,e)) el)
-	    | h (d, SETTER(_,_,e)) = h(d+1, e)
-	    | h (d, ARITH(_,_,_,_,e)) = h(d+1, e)
-	    | h (d, PURE(_,_,_,_,e)) = h(d+1, e)
-	    | h (d, LOOKER(_,_,_,_,e)) = h(d+1, e)
-	    | h (d, RCC(_,_,_,_,_,e)) = h(d+1, e)
-	    | h (d, BRANCH(_,_,_,a,b)) = Int.max(h(d,a), h(d,b)) + 1
-	    | h (d, APP(LABEL w, _)) =
-		(case maxpath w of {known=KNOWN, alloc, instrs=i} => d+i | _ => d)
-	    | h (d, APP(_, _)) = d
-	    | h (d, FIX _) = error "FIX in limit"
-
-	  and maxpath w = look w
-		handle Limit' => (
-	       (* Note that the heap may need to be aligned so g is
-		* called with g(raw64Pad, bod). Be conservative.
-		*)
-		  case escapes w
-		   of KNOWN => let
-			val bod = body w
-			val n = g(raw64Pad, bod)
-			val i = h(0, bod)
-			val z = if n>MAX_ALLOC
-			      then {known=KNOWN_CHECK,alloc=n,instrs=i}
-			      else {known=KNOWN,alloc=n,instrs=i}
-			in
-			  LambdaVar.Tbl.insert m (w,z);
-			  z
-			end
-		   | kind => let
-			val bod = body w
-			val z = (LambdaVar.Tbl.insert m (
-				w, {known=kind, alloc=0, instrs=0});
-				{known=kind, alloc=g(1,bod), instrs=h(0,bod)})
-			in
-			  LambdaVar.Tbl.insert m (w,z); z
-			end
-		  (* end case *))
-
-	  val _ = app (fn (_, x, _, _, _) => (maxpath x; ())) fl;
-	  val nfl = map (fn (fk,v,args,cl,ce) => (#known(look v),v,args,cl,ce)) fl
+	(* compute maximum path for all functions *)
+	  val _ = clusterApp (fn (_, lab, _, _, _) => ignore(maxPath lab)) clusters
+	(* update function kinds *)
+	  val look = Tbl.lookup infoTbl
+	  val clusters' = clusterMap
+		(fn (fk, lab, args, tys, e) => (#kind(look lab), lab, args, tys, e))
+		  clusters
 	  in
-	    (nfl, fn x => (let val f = look x in (#alloc f,#instrs f) end))
+	    (clusters', fn lab => #alloc(look lab))
 	  end
 
-    fun nolimit fl = let
-	  val {escapes, check} = findescapes fl
-	  fun makenode (_,f,vl,_,body) = let
-		fun edges (RECORD(_,_,_,e)) = edges e
-		  | edges (SELECT(_,_,_,_,e)) = edges e
-		  | edges (OFFSET(_,_,_,e)) = edges e
-		  | edges (SWITCH(_,_,el)) = List.concat (map edges el)
-		  | edges (SETTER(_,_,e)) = edges e
-		  | edges (LOOKER(_,_,_,_,e)) = edges e
-		  | edges (ARITH(_,_,_,_,e)) = edges e
-		  | edges (PURE(_,_,_,_,e)) = edges e
-		  | edges (RCC(_,_,_,_,_,e)) = edges e
-		  | edges (BRANCH(_,_,_,a,b)) = edges a @ edges b
-		  | edges (APP(LABEL w, _)) = (case escapes w of KNOWN => [w] | _ => nil)
-		  | edges (APP _) = nil
-		  | edges (FIX _) = error "8933 in limit"
+  (* use feedback-vertex analysis to place heap limit checks *)
+    fun addChecks clusters = let
+	  val {kindOf, addCheck} = findEscapes clusters
+	  fun mkNode ((_, f, vl, _, body), nds) = let
+		fun edges (C.RECORD(_,_,_,e)) = edges e
+		  | edges (C.SELECT(_,_,_,_,e)) = edges e
+		  | edges (C.OFFSET(_,_,_,e)) = edges e
+		  | edges (C.SWITCH(_,_,el)) = List.concat (map edges el)
+		  | edges (C.SETTER(_,_,e)) = edges e
+		  | edges (C.LOOKER(_,_,_,_,e)) = edges e
+		  | edges (C.ARITH(_,_,_,_,e)) = edges e
+		  | edges (C.PURE(_,_,_,_,e)) = edges e
+		  | edges (C.RCC(_,_,_,_,_,e)) = edges e
+		  | edges (C.BRANCH(_,_,_,a,b)) = edges a @ edges b
+		  | edges (C.APP(C.LABEL w, _)) = (case kindOf w of C.KNOWN => [w] | _ => [])
+		  | edges (C.APP _) = []
+		  | edges (C.FIX _) = error "FIX in Limit.mkNode"
 		in
-		  (f, edges body)
+		  (f, edges body) :: nds
 		end
+	(* construct the CFG for the whole compilation unit *)
+	  val nodes = List.foldr
+		(fn (cluster, nds) => List.foldr mkNode nds cluster)
+		  [] clusters
 	  in
-	    if !CGoptions.printit
+	    if !debug
 	      then (say "Starting feedback..."; Control.Print.flush())
 	      else ();
-	    List.app check (Feedback.feedback (map makenode fl));
-	    if !CGoptions.printit
+	    List.app addCheck (Feedback.feedback nodes);
+	    if !debug
 	      then (say "Finished\n"; Control.Print.flush())
 	      else ();
-	    path escapes fl
+	    kindOf
 	  end
 
-    val nolimit = fn fl => if !CGoptions.printit
-	  then let
-	    val info as (newfl, limits) = nolimit fl
-	    fun showinfo (k,f,_,_,_) = let
-		  val (alloc, instrs) = limits f
-		  val s = Int.toString alloc
-		  val i = Int.toString instrs
-		  val _ = (say (LambdaVar.lvarName f); say "\t")
-		  val _ = (case k
-			 of KNOWN => say "K  "
-			  | KNOWN_CHECK => say "H  "
-			  | ESCAPE => say "E  "
-			  | CONT => say "C  "
-			  | _ => error "nolimit 323 in limit.sml"
-			(* end case *))
-		  in
-		    say s; say "\t"; say i; say "\n"
-		  end
-	    in
-	      List.app showinfo newfl;
-	      info
-	    end
-	  else nolimit fl
+    fun allocChecks clusters = let
+	  val kindOf = addChecks clusters
+	  val info = path kindOf clusters
+	  fun showInfo (fk, f, _, _, _) = let
+		val alloc = (#2 info) f
+		val s = Int.toString alloc
+		in
+		  say (StringCvt.padRight #" " 7 (LV.lvarName f));
+		  case fk
+		   of C.KNOWN => say " K  "
+		    | C.KNOWN_CHECK => say " H  "
+		    | C.ESCAPE => say " E  "
+		    | C.CONT => say " C  "
+		    | _ => error "bogus function kind in Limit.showInfo"
+		  (* end case *);
+		  say s; say "\n"
+		end
+	  in
+	    if !debug
+	      then clusterApp showInfo (#1 info)
+	      else ();
+	   info
+	  end
 
   end (* structure Limit *)
