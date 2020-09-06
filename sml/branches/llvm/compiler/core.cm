@@ -269,7 +269,6 @@ FLINT/trans/literal-to-num.sml    (* uses CoreIntInf functionality *)
 FLINT/lsplit/ls-inline.sml
 
 (* The CPS stages *)
-CPS/clos/cps-split.sml		(* this is a dummy implementation; should remove it *)
 CPS/clos/globalfix.sml
 CPS/clos/closure.sml
 CPS/clos/freeclose.sml
@@ -299,7 +298,6 @@ CPS/opt/uncurry.sml
 CPS/main/cluster.sml
 CPS/main/cps-comp.sml
 CPS/main/limit.sml
-CPS/main/old-limit.sml	(* FIXME: delete this at some point *)
 CPS/main/literals.sml
 CPS/main/new-literals.sml
 CPS/main/normalize-cluster.sml

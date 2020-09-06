@@ -130,11 +130,7 @@ functor CompileF (
 		}
 	(* Obey the nosplit directive used during bootstrapping.  *)
 	(* val inlineExp = if isSome splitting then inlineExp else NONE *)
-	  val codeSz =
-	        List.foldl
-		  (fn (co, n) => n + CodeObj.size co)
-		  (CodeObj.size(#c0 csegs) + Word8Vector.length(#data csegs))
-		  (#cn csegs)
+	  val codeSz = (CodeObj.size(#code csegs) + Word8Vector.length(#data csegs))
 	  in
 	    addCode codeSz;
 	    { csegments=csegs, inlineExp=inlineExp, imports = revisedImports }

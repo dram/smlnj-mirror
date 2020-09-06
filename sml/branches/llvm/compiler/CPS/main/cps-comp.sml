@@ -46,7 +46,7 @@ functor CPSCompFn (MachSpec : MACH_SPEC) : CPS_COMP = struct
     val closure   = phase "CPS 080 closure"  Closure.closeCPS
     val globalfix = phase "CPS 090 globalfix" GlobalFix.globalfix
     val spill     = phase "CPS 100 spill" Spill.spill
-    val limit     = phase "CPS 110 limit" OldLimit.nolimit	(* FIXME *)
+    val allocChks = phase "CPS 110 limit" Limit.allocChecks
 
   (** pretty printing for the CPS code *)
     fun prC s e = if !Control.CG.printit
@@ -76,12 +76,14 @@ functor CPSCompFn (MachSpec : MACH_SPEC) : CPS_COMP = struct
 	  val funcs = globalfix function
 	(* spill excess live variables *)
 	  val funcs = spill funcs
-(* TODO: move clustering to here *)
+(* TODO: move clustering and limit checks to here *)
 	(* optional CFG generation *)
-	  val _ = if !Control.CG.dumpCFG
+	  val _ = if !Control.CG.dumpCFG orelse !Control.CG.printCFG
 		then let
+		(* form clusters *)
 		  val clusters = Cluster.cluster true funcs
-		  val (clusters, maxAlloc) = Limit.allocChecks clusters
+		(* add heap-limit checks etc. *)
+		  val (clusters, maxAlloc) = allocChks clusters
 		  val cfg = CPStoCFG.translate {
 			  source = source, clusters = clusters, maxAlloc = maxAlloc
 			}
@@ -93,20 +95,23 @@ functor CPSCompFn (MachSpec : MACH_SPEC) : CPS_COMP = struct
 			    | _ => source ^ ".pkl"
 			  (* end case *))
 		  in
-		    if !Control.CG.printClusters
+		    if !Control.CG.printCFG
 		      then (
 			say "***** CFG *****\n";
 			PPCfg.prCompUnit cfg;
 			say "***** END CFG *****\n")
 		      else ();
-		    say (concat["## dump CFG pickle to ", pklFile, "\n"]);
-		    CFGPickler.toFile (pklFile, cfg)
+		    if !Control.CG.dumpCFG
+		      then (
+			say (concat["## dump CFG pickle to ", pklFile, "\n"]);
+			CFGPickler.toFile (pklFile, cfg))
+		      else ()
 		  end
 		else ()
 	(* redo the clusters for now, since we haven't integrated the LLVM code gen yet *)
 	  val clusters = Cluster.cluster false funcs
 	(* add heap-limit checks etc. *)
-	  val (clusters, maxAlloc) = Limit.allocChecks clusters
+	  val (clusters, maxAlloc) = allocChks clusters
 	  in
 	    {clusters = clusters, maxAlloc = maxAlloc, data = data}
           end (* compile *)

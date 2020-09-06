@@ -19,8 +19,7 @@ structure CodeObj :> CODE_OBJ =
       }
 
     type csegments = {
-	c0 : code_object,
-	cn : code_object list, 		(* FIXME: this field is not used and should be removed *)
+	code : code_object,
 	data : Word8Vector.vector
       }
 
@@ -32,17 +31,15 @@ structure CodeObj :> CODE_OBJ =
     local
       structure CI = Unsafe.CInterface
     in
-    val allocCode : int -> W8A.array =
-	  CI.c_function "SMLNJ-RunT" "allocCode"
+    val allocCode : int -> W8A.array = CI.c_function "SMLNJ-RunT" "allocCode"
     val mkLiterals : W8V.vector -> object = CI.c_function "SMLNJ-RunT" "mkLiterals"
     val mkExec : W8A.array * int -> executable = CI.c_function "SMLNJ-RunT" "mkExec"
     end (* local *)
 
-  (* Allocate an uninitialized code object.
-   *)
-    fun alloc n =
-	(if (n <= 0) then raise Size else ();
-	 C { entrypoint = ref 0, obj = allocCode n })
+  (* Allocate an uninitialized code object. *)
+    fun alloc n = (
+	  if (n <= 0) then raise Size else ();
+	  C{ entrypoint = ref 0, obj = allocCode n })
 
   (* Allocate a code object of the given size and initialize it
    * from the input stream.

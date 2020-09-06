@@ -64,6 +64,7 @@ signature CGCONTROL =
     val memDisambiguate : bool ref	(* used by MLRISC *)
     val printit : bool ref
     val printClusters : bool ref
+    val printCFG : bool ref
     val dumpCFG : bool ref
   end (* signature CGCONTROL *)
 

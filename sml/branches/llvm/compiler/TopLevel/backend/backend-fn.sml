@@ -1,10 +1,15 @@
 (* backend-fn.sml
  *
- * (C) 2001 Lucent Technologies, Bell Labs
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *)
-functor BackendFn (structure M : CODE_GENERATOR
-		   val cproto_conv : string) : BACKEND =
-  struct
+
+functor BackendFn (
+
+    structure M : CODE_GENERATOR
+    val cproto_conv : string
+
+  ) : BACKEND = struct
     structure Interact =
     Interact
 	(EvalLoopF

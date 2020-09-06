@@ -11,8 +11,7 @@ signature CODE_OBJ =
     type code_object
 
     type csegments = {
-	c0 : code_object,
-	cn : code_object list, 
+	code : code_object,
 	data : Word8Vector.vector
       }
 

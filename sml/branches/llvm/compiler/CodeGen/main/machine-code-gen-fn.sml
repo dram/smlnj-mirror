@@ -40,8 +40,7 @@ functor MachineCodeGenFn (
 		  clusters = clusters, maxAlloc = maxAlloc, source = source
 		}
 	  in
-(* TODO: the `cn` field is unused, so we should get rid of it *)
-	    {c0 = collect getEP, cn = [], data = data}
+	    {code = collect getEP, data = data}
 	  end
 
   end
