@@ -1,7 +1,9 @@
-(* limit.sml
+(* old-limit.sml
  *
  * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
+ *
+ * This is the old version of the Limit structure; it will go away soon.
  *)
 
 structure OldLimit : sig

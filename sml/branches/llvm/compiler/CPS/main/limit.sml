@@ -1,4 +1,4 @@
-(* new-limit.sml
+(* limit.sml
  *
  * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
@@ -36,8 +36,12 @@ structure Limit : sig
   (* apply a function to a list of clusters *)
     fun clusterApp (f : C.function -> unit) = List.app (List.app f)
 
-    fun findEscapes clusters = let
-	  val m = Tbl.mkTable(32, Fail "Escapes")
+  (* `findFunKinds clusters` returns the record `{kindOf, addCheck}`, where `kindOf`
+   * is a mapping from function labels to their kind and `addCheck` is a function
+   * for marking known functions as `KNOWN_CHECK`.
+   *)
+    fun findFunKinds clusters = let
+	  val m = Tbl.mkTable(32, Fail "FunKinds")
 	  val kindOf = Tbl.lookup m
 	  val _ = clusterApp (fn (k, f, _, _, _) => Tbl.insert m (f, k)) clusters
 	  in {
@@ -67,7 +71,6 @@ structure Limit : sig
 	  val b : C.cexp Tbl.hash_table = Tbl.mkTable(32, LimitExn)
 	  val _ = clusterApp (Tbl.insert b o (fn (_, f, _, _, e) => (f, e))) clusters
 	  val bodyOf = Tbl.lookup b
-(*DEBUG*) val bodyOf = fn lv => (bodyOf lv handle ex => (say(concat["** bodyOf ", LV.lvarName lv, " not found\n"]); raise ex))
 	(* map from function label to info *)
 	  val infoTbl : {kind : C.fun_kind, alloc : int} Tbl.hash_table = Tbl.mkTable(32, LimitExn)
 	  val setInfo = Tbl.insert infoTbl
@@ -164,7 +167,7 @@ structure Limit : sig
 
   (* use feedback-vertex analysis to place heap limit checks *)
     fun addChecks clusters = let
-	  val {kindOf, addCheck} = findEscapes clusters
+	  val {kindOf, addCheck} = findFunKinds clusters
 	  fun mkNode ((_, f, vl, _, body), nds) = let
 		fun edges (C.RECORD(_,_,_,e)) = edges e
 		  | edges (C.SELECT(_,_,_,_,e)) = edges e
