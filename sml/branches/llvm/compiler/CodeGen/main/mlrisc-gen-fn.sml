@@ -41,9 +41,9 @@ signature MLRISCGEN =
    * "finish" before forcing it.
    *)
     val codegen : {
-	    funcs: CPS.function list,
-	    limits:  CPS.lvar -> int * int,
-	    source: string
+	    source: string,
+	    clusters : CPS.function list list,
+	    maxAlloc :  CPS.lvar -> int
 	  } -> (unit -> int)
 
   end
@@ -258,8 +258,7 @@ functor MLRiscGen (
    * The main codegen function.
    *)
     fun codegen args = let
-	  val { funcs : C.function list, limits:C.lvar -> (int*int), source } = args
-	  val maxAlloc = #1 o limits
+	  val { clusters : C.function list list, maxAlloc:C.lvar -> int, source } = args
 	  val splitEntry = !splitEntry
 
 	(*
@@ -317,7 +316,7 @@ functor MLRiscGen (
 		(* end case *))
 
 	(* compute branch probabilities for the functions *)
-	  val brProb = CpsBranchProb.branchProb funcs
+	  val brProb = CpsBranchProb.branchProb clusters
 
 	(*
 	 * Function for generating code for one cluster.
@@ -1939,13 +1938,13 @@ raise Fail "unexpected constant branch"
 		compile (endCluster NO_OPT)
 	      end
 
-	fun entrypoint ((_,f,_,_,_)::_) () = Label.addrOf (externLabel f)
-	  | entrypoint [] () = error "entrypoint: no functions"
+	fun entrypoint (((_,f,_,_,_)::_)::_) () = Label.addrOf (externLabel f)
+	  | entrypoint _ () = error "entrypoint: no functions"
 	in
-	  app mkGlobalTables funcs;
-	  app genCluster (Cluster.cluster false funcs);
+	  Cluster.app mkGlobalTables clusters;
+	  List.app genCluster clusters;
 	  finishCompilationUnit source;
-	  entrypoint funcs
+	  entrypoint clusters
 	end (* codegen *)
 
   end (* MLRiscGen *)

@@ -1,6 +1,7 @@
 (* execute.sml
  *
- * (C) 2001 Lucent Technologies, Bell labs
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *)
 
 (*****************************************************************************
@@ -9,21 +10,22 @@
 
 structure Execute : sig
 
-    exception Link			(* For compilation manager to
-					 * signal to interactive loop that
-					 * error messages have been issued
-					 * already.  The interactive loop
-					 * should simply discard this
-					 * exception (keep quiet) and
-					 * go to the next input prompt. *)
+    exception Link	(* For the compilation manager to signal to the
+			 * interactive loop that error messages have been
+			 * issued already.  The interactive loop should
+			 * simply discard this exception (keep quiet) and
+			 * go to the next input prompt.
+			 *)
 
     val mkexec : { cs : CodeObj.csegments,
 		   exnwrapper : exn -> exn } -> CodeObj.executable
+
     val execute : { executable: CodeObj.executable,
 		    imports: ImportTree.import list,
 		    exportPid: PersStamps.persstamp option,
 		    dynenv: DynamicEnv.env } -> DynamicEnv.env
-end = struct
+
+  end = struct
 
     exception Link
 
@@ -47,7 +49,7 @@ end = struct
 	    foldl (fn (c, r) => (CodeObj.exec c) o r) nex (#cn cs)
     in
 	fn args => (executable args handle e => raise exnwrapper e)
-    end 
+    end
 
     (** perform the execution of the excutable, output the new dynenv *)
     fun execute {executable, imports, exportPid, dynenv } = let
@@ -64,7 +66,7 @@ end = struct
                 val obj =
 		    case  DynamicEnv.look dynenv p of
 			SOME obj => obj
-		      | NONE => 
+		      | NONE =>
 			(say ("lookup " ^ (PersStamps.toHex p) ^ "\n");
 			 raise CompileExn.Compile
 				  "imported objects not found or inconsistent")
@@ -79,4 +81,5 @@ end = struct
     end
 
     val execute = Stats.doPhase (Stats.makePhase "Execute") execute
-end
+
+  end

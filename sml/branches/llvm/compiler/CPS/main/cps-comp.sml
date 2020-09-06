@@ -6,28 +6,32 @@
  * Translate CPS to machine code.
  *)
 
-functor CPSCompFn (
+signature CPS_COMP =
+  sig
 
-    structure Gen : MACHINE_GEN
+    val compile : {
+	    source : string,			(* source file name *)
+	    prog : FLINT.prog			(* compilation unit in FLINT IR *)
+	  } -> {
+	    clusters : Cluster.cluster list,	(* compilation unit in CPS IR *)
+	    maxAlloc : LambdaVar.lvar -> int,	(* per-function allocation limits *)
+(* TODO:
+	    code : CFG.comp_unit,		(* compilation unit in CFG IR *)
+ *)
+	    data : Word8Vector.vector		(* literal data *)
+	  }
 
-    val collect : (unit -> int) -> CodeObj.code_object
+  end
 
-  ) : CODE_GENERATOR = struct
+functor CPSCompFn (MachSpec : MACH_SPEC) : CPS_COMP = struct
 
-    structure MachSpec = Gen.MachSpec
     structure Convert = Convert(MachSpec)
     structure CPStrans = CPStrans(MachSpec)
     structure CPSopt = CPSopt(MachSpec)
     structure Closure = Closure(MachSpec)
     structure Spill = SpillFn(MachSpec)
-    structure CpsSplit = CpsSplitFun (MachSpec)
-
-    structure Machine = Gen
 
     structure CPStoCFG = CPStoCFGFn (MachSpec)
-
-    val architecture = Gen.MachSpec.architecture
-    val abi_variant = Gen.abi_variant
 
     fun bug s = ErrorMsg.impossible ("CPSComp:" ^ s)
     val say = Control.Print.say
@@ -43,7 +47,6 @@ functor CPSCompFn (
     val globalfix = phase "CPS 090 globalfix" GlobalFix.globalfix
     val spill     = phase "CPS 100 spill" Spill.spill
     val limit     = phase "CPS 110 limit" OldLimit.nolimit	(* FIXME *)
-    val codegen   = phase "CPS 120 cpsgen" Gen.codegen
 
   (** pretty printing for the CPS code *)
     fun prC s e = if !Control.CG.printit
@@ -54,63 +57,58 @@ functor CPSCompFn (
 	  else e
 
     fun compile {source, prog} = let
-	(* finish up with CPS *)
-	  val (nc0, ncn, dseg) = let
-		val function = convert prog
-		val _ = prC "convert" function
-		val function = (prC "cpstrans" o cpstrans) function
-		val function = cpsopt (function, NONE, false)
-		val _ = prC "cpsopt" function
-	      (* split out heap-allocated literals; litProg is the bytecode *)
-		val (function, litProg) = if !Control.CG.newLiterals orelse Target.is64
-		      then newlitsplit function
-		      else litsplit function
-		val _ = prC "cpsopt-code" function
-		fun gen fx = let
-		      val fx = (prC "closure" o closure) fx
-		      val carg = globalfix fx
-		      val carg = spill carg
+	(* convert to CPS *)
+	  val function = convert prog
+	  val _ = prC "convert" function
+	  val function = (prC "cpstrans" o cpstrans) function
+	(* optimize CPS *)
+	  val function = cpsopt (function, NONE, false)
+	  val _ = prC "cpsopt-code" function
+	(* split out heap-allocated literals; litProg is the bytecode *)
+(* TODO: switch to newLiterals for all targets *)
+	  val (function, data) = if !Control.CG.newLiterals orelse Target.is64
+		then newlitsplit function
+		else litsplit function
+	  val _ = prC "lit-split" function
+	(* convert CPS to closure-passing style *)
+	  val function = prC "closure" (closure function)
+	(* flatten to 1st-order CPS *)
+	  val funcs = globalfix function
+	(* spill excess live variables *)
+	  val funcs = spill funcs
 (* TODO: move clustering to here *)
-		      val _ = if !Control.CG.dumpCFG
-			    then let
-			      val clusters = Cluster.cluster true carg
-			      val (clusters, maxAlloc) = Limit.allocChecks clusters
-			      val cfg = CPStoCFG.translate {
-				      source = source, clusters = clusters, maxAlloc = maxAlloc
-				    }
-			      val pklFile = if source = "stdin"
-				    then "out.pkl"
-				    else (case OS.Path.splitBaseExt source
-				       of {base, ext=SOME "sml"} =>
-					    OS.Path.joinBaseExt{base=base, ext=SOME "pkl"}
-					| _ => source ^ ".pkl"
-				      (* end case *))
-			      in
-				if !Control.CG.printClusters
-				  then (
-				    say "***** CFG *****\n";
-				    PPCfg.prCompUnit cfg;
-				    say "***** END CFG *****\n")
-				  else ();
-				say (concat["## dump CFG pickle to ", pklFile, "\n"]);
-				CFGPickler.toFile (pklFile, cfg)
-			      end
-			    else ()
-		      val (carg, limit) = limit carg
-		      val epthunk = codegen {
-			      funcs = carg, limits = limit, source = source
-			    }
-		      in
-			collect epthunk
-		      end
-	        in
-		  case CpsSplit.cpsSplit function
-		   of (fun0 :: funn) => (gen fun0, List.map gen funn, litProg)
-		    | [] => bug "unexpected case on gen in CPSComp.compile"
-		  (* end case *)
-	        end
-        in
-	  {c0=nc0, cn=ncn, data=dseg}
-        end (* function compile *)
+	(* optional CFG generation *)
+	  val _ = if !Control.CG.dumpCFG
+		then let
+		  val clusters = Cluster.cluster true funcs
+		  val (clusters, maxAlloc) = Limit.allocChecks clusters
+		  val cfg = CPStoCFG.translate {
+			  source = source, clusters = clusters, maxAlloc = maxAlloc
+			}
+		  val pklFile = if source = "stdin"
+			then "out.pkl"
+			else (case OS.Path.splitBaseExt source
+			   of {base, ext=SOME "sml"} =>
+				OS.Path.joinBaseExt{base=base, ext=SOME "pkl"}
+			    | _ => source ^ ".pkl"
+			  (* end case *))
+		  in
+		    if !Control.CG.printClusters
+		      then (
+			say "***** CFG *****\n";
+			PPCfg.prCompUnit cfg;
+			say "***** END CFG *****\n")
+		      else ();
+		    say (concat["## dump CFG pickle to ", pklFile, "\n"]);
+		    CFGPickler.toFile (pklFile, cfg)
+		  end
+		else ()
+	(* redo the clusters for now, since we haven't integrated the LLVM code gen yet *)
+	  val clusters = Cluster.cluster false funcs
+	(* add heap-limit checks etc. *)
+	  val (clusters, maxAlloc) = Limit.allocChecks clusters
+	  in
+	    {clusters = clusters, maxAlloc = maxAlloc, data = data}
+          end (* compile *)
 
-  end (* CPSComp *)
+  end (* functor CPSCompFn *)

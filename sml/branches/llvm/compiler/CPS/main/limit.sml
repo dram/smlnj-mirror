@@ -31,11 +31,6 @@ structure Limit : sig
   (* maximum number of words to allocate per check, which is one less than the slop *)
     val MAX_ALLOC = 1023
 
-  (* map a function over a list of clusters *)
-    fun clusterMap (f : C.function -> C.function) = List.map (List.map f)
-  (* apply a function to a list of clusters *)
-    fun clusterApp (f : C.function -> unit) = List.app (List.app f)
-
   (* `findFunKinds clusters` returns the record `{kindOf, addCheck}`, where `kindOf`
    * is a mapping from function labels to their kind and `addCheck` is a function
    * for marking known functions as `KNOWN_CHECK`.
@@ -43,7 +38,7 @@ structure Limit : sig
     fun findFunKinds clusters = let
 	  val m = Tbl.mkTable(32, Fail "FunKinds")
 	  val kindOf = Tbl.lookup m
-	  val _ = clusterApp (fn (k, f, _, _, _) => Tbl.insert m (f, k)) clusters
+	  val _ = Cluster.app (fn (k, f, _, _, _) => Tbl.insert m (f, k)) clusters
 	  in {
 	    kindOf = kindOf,
 	    addCheck = fn f => (case kindOf f
@@ -69,7 +64,7 @@ structure Limit : sig
 	  exception LimitExn
 	(* map from function label to function body *)
 	  val b : C.cexp Tbl.hash_table = Tbl.mkTable(32, LimitExn)
-	  val _ = clusterApp (Tbl.insert b o (fn (_, f, _, _, e) => (f, e))) clusters
+	  val _ = Cluster.app (Tbl.insert b o (fn (_, f, _, _, e) => (f, e))) clusters
 	  val bodyOf = Tbl.lookup b
 	(* map from function label to info *)
 	  val infoTbl : {kind : C.fun_kind, alloc : int} Tbl.hash_table = Tbl.mkTable(32, LimitExn)
@@ -155,10 +150,10 @@ structure Limit : sig
 		      (* end case *))
 		(* end case *))
 	(* compute maximum path for all functions *)
-	  val _ = clusterApp (fn (_, lab, _, _, _) => ignore(maxPath lab)) clusters
+	  val _ = Cluster.app (fn (_, lab, _, _, _) => ignore(maxPath lab)) clusters
 	(* update function kinds *)
 	  val look = Tbl.lookup infoTbl
-	  val clusters' = clusterMap
+	  val clusters' = Cluster.map
 		(fn (fk, lab, args, tys, e) => (#kind(look lab), lab, args, tys, e))
 		  clusters
 	  in
@@ -219,7 +214,7 @@ structure Limit : sig
 		end
 	  in
 	    if !debug
-	      then clusterApp showInfo (#1 info)
+	      then Cluster.app showInfo (#1 info)
 	      else ();
 	   info
 	  end

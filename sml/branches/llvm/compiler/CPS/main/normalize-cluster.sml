@@ -11,6 +11,12 @@
  *	2) there are no internal jumps to the entry function.
  *
  * Note that this pass is run _before_ we do limit-check analysis (see limit.sml)
+ *
+ * TODO:
+ *	- add label as argument to new cluster entry functions, when the function
+ *	  will need the base pointer
+ *	- reorder parameters to new cluster-entry functions to reduce register
+ *	  shuffling; i.e., match the standard-function calling convention.
  *)
 
 structure NormalizeCluster : sig

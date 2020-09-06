@@ -29,18 +29,16 @@ signature MACHINE_GEN =
 				     * boxen. *)
 
     val codegen : {
+	  (* the source filename *)
+	    source: string,
 	  (* the functions to generate code for; the first function is the main
 	   * entrypoint for the compilation unit.
 	   *)
-	    funcs: CPS.function list,
-	  (* mapping from functions to a pair `(maxAlloc, nInstrs)`, where `maxAlloc`
-	   * is the maximum number of words allocated on any execution path in the
-	   * function and `nInstrs` is a count of the number of CPS instructions
-	   * on that path.
+	    clusters : CPS.function list list,
+	  (* mapping from functions labels to the maximum number of words allocated
+	   * on any execution path in the function.
 	   *)
-	    limits: CPS.lvar -> int * int,
-	  (* the source filename *)
-	    source: string
+	    maxAlloc: CPS.lvar -> int
 	  } -> (unit -> int)
 
   end (* MACHINE_GEN *)

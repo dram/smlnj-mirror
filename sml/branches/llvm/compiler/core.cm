@@ -49,7 +49,7 @@ Group
 	functor MachineGen
 	functor SpillTable
 	functor BackendFn
-        functor CPSCompFn
+        functor MachineCodeGenFn
 	structure FLINTOpt
 
 	structure ClusterAnnotation
@@ -269,7 +269,7 @@ FLINT/trans/literal-to-num.sml    (* uses CoreIntInf functionality *)
 FLINT/lsplit/ls-inline.sml
 
 (* The CPS stages *)
-CPS/clos/cps-split.sml
+CPS/clos/cps-split.sml		(* this is a dummy implementation; should remove it *)
 CPS/clos/globalfix.sml
 CPS/clos/closure.sml
 CPS/clos/freeclose.sml
@@ -336,6 +336,7 @@ CodeGen/cpscompile/spill-new.sml
 CodeGen/main/clusterAnnotation.sml    (* temporary hack; see comment in file *)
 CodeGen/main/code-string.sml
 CodeGen/main/machine.sig
+CodeGen/main/machine-code-gen-fn.sml
 CodeGen/main/machine-gen.sig
 CodeGen/main/machine-gen.sml
 CodeGen/main/machspec.sig

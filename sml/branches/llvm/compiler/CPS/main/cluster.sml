@@ -16,9 +16,12 @@ structure Cluster : sig
    * If the `singleEntry` flag is set, then a second pass is run, which splits
    * clusters to guarantee that each cluster has exactly one entry, where an
    * entry is defined as a function that has kind `ESCAPE` or `CONT`.
-
    *)
     val cluster : bool -> CPS.function list -> cluster list
+
+  (* utility functions on clusters *)
+    val map : (CPS.function -> CPS.function) -> cluster list -> cluster list
+    val app : (CPS.function -> unit) -> cluster list -> unit
 
   end = struct
 
@@ -136,5 +139,10 @@ structure Cluster : sig
 	      then print (extract())
 	      else extract()
 	  end (* cluster *)
+
+  (* map a function over a list of clusters *)
+    fun map (f : CPS.function -> CPS.function) = List.map (List.map f)
+  (* apply a function to a list of clusters *)
+    fun app (f : CPS.function -> unit) = List.app (List.app f)
 
   end
