@@ -1,6 +1,7 @@
 (* code-obj.sml
  *
- * COPYRIGHT (c) 1998 Bell Labs, Lucent Technologies.
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * An interface for manipulating code objects.
  *)
@@ -19,7 +20,7 @@ structure CodeObj :> CODE_OBJ =
 
     type csegments = {
 	c0 : code_object,
-	cn : code_object list, 
+	cn : code_object list, 		(* FIXME: this field is not used and should be removed *)
 	data : Word8Vector.vector
       }
 

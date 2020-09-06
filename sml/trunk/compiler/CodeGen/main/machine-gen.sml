@@ -8,43 +8,44 @@
  * into an MLRISC backend.
  *)
 
-functor MachineGen
-  (structure MachSpec   : MACH_SPEC            (* machine specifications *)
-   structure Ext        : SMLNJ_MLTREE_EXT
-   structure InsnProps  : INSN_PROPERTIES      (* instruction properties *)
-   structure CpsRegs    : CPSREGS              (* CPS registers *)
-		      where T.Region=CPSRegions
-		        and T.Constant=SMLNJConstant
-			and T.Extension=Ext
-   structure ClientPseudoOps : SMLNJ_PSEUDO_OPS
-   structure PseudoOps  : PSEUDO_OPS     (* pseudo ops *)
-	 	      where T = CpsRegs.T
-		        and Client = ClientPseudoOps
-   structure MLTreeComp : MLTREECOMP           (* instruction selection *)
-		      where I = InsnProps.I
-			and TS.T = CpsRegs.T
-		        and TS.S.P = PseudoOps
-   structure MLTreeUtils : MLTREE_UTILS
-		      where T = CpsRegs.T
-   structure Asm        : INSTRUCTION_EMITTER  (* assembly *)
-		      where S.P = PseudoOps
-			and I = MLTreeComp.I
-   structure Shuffle    : SHUFFLE              (* shuffling copies *)
-		      where I = Asm.I
-   structure BackPatch  : BBSCHED              (* machine code emitter *)
-		      where CFG = MLTreeComp.CFG
-   structure RA         : CFG_OPTIMIZATION     (* register allocator *)
-		      where CFG = BackPatch.CFG
-   structure CCalls     : C_CALLS	       (* native C call generator *)
-		      where T = CpsRegs.T
-   structure OmitFramePtr : OMIT_FRAME_POINTER
-		      where CFG=RA.CFG
+functor MachineGen (
 
-   val abi_variant : string option
-  ) : MACHINE_GEN =
-struct
+    structure MachSpec   : MACH_SPEC            (* machine specifications *)
+    structure Ext        : SMLNJ_MLTREE_EXT
+    structure InsnProps  : INSN_PROPERTIES      (* instruction properties *)
+    structure CpsRegs    : CPSREGS              (* CPS registers *)
+		       where T.Region=CPSRegions
+			 and T.Constant=SMLNJConstant
+			 and T.Extension=Ext
+    structure ClientPseudoOps : SMLNJ_PSEUDO_OPS
+    structure PseudoOps  : PSEUDO_OPS     (* pseudo ops *)
+		       where T = CpsRegs.T
+			 and Client = ClientPseudoOps
+    structure MLTreeComp : MLTREECOMP           (* instruction selection *)
+		       where I = InsnProps.I
+			 and TS.T = CpsRegs.T
+			 and TS.S.P = PseudoOps
+    structure MLTreeUtils : MLTREE_UTILS
+		       where T = CpsRegs.T
+    structure Asm        : INSTRUCTION_EMITTER  (* assembly *)
+		       where S.P = PseudoOps
+			 and I = MLTreeComp.I
+    structure Shuffle    : SHUFFLE              (* shuffling copies *)
+		       where I = Asm.I
+    structure BackPatch  : BBSCHED              (* machine code emitter *)
+		       where CFG = MLTreeComp.CFG
+    structure RA         : CFG_OPTIMIZATION     (* register allocator *)
+		       where CFG = BackPatch.CFG
+    structure CCalls     : C_CALLS	       (* native C call generator *)
+		       where T = CpsRegs.T
+    structure OmitFramePtr : OMIT_FRAME_POINTER
+		       where CFG=RA.CFG
 
-    structure G		= Graph
+    val abi_variant : string option
+
+  ) : MACHINE_GEN = struct
+
+    structure G		 = Graph
     structure CFG        = BackPatch.CFG
     structure P          = InsnProps
     structure I          = CFG.I

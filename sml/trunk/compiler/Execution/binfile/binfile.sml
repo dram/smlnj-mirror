@@ -4,9 +4,7 @@
  * All rights reserved.
  *
  * author: Matthias Blume
- *)
-
-(*
+ *
  * This revised version of structure Binfile is now machine-independent.
  * Moreover, it deals with the file format only and does not know how to
  * create new binfile contents (aka "compile") or how to interpret the
