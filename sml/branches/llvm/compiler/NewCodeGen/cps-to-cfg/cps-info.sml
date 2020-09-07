@@ -4,6 +4,11 @@
  * All rights reserved.
  *
  * Information about a CPS compilation unit.
+ *
+ * TODO: to get the information about base pointers right after cluster
+ *       normalization, we will either need to propagate info from the
+ *	 clustering phase or else do a global analysis of the compilation
+ *	 unit.
  *)
 
 structure CPSInfo : sig
@@ -114,36 +119,36 @@ structure CPSInfo : sig
 		(* end case *))
 	  fun useVal (VAR x) = useVar x
 	    | useVal _ = ()
+	  val useVals = List.app useVal
+	(* use a value in an argument position (as opposed to an application position) *)
+	  fun useArg (VAR x) = useVar x
+	    | useArg (LABEL l) = (needsBasePtr := true)
+	    | useArg _ = ()
+	  val useArgs = List.app useArg
 	(* mark a variable as "BOUND" since it will map to a CFG variable *)
 	  fun bindVar x = setMode (x, BOUND)
-	  val useVals = List.app useVal
 (* QUESTION: should we track CFG types instead of CPS types? *)
 	  val typs = Tbl.mkTable(32, Fail "typs")
 	  val recordTy = Tbl.insert typs
 	  fun init cexp = (case cexp
-		 of RECORD(rk, flds, x, k) => let
-		      fun useField (VAR x, _) = useVar x
-			| useField (LABEL l, _) = (needsBasePtr := true)
-			| useField _ = ()
-		      in
-			case rk
-			 of CPS.RK_FCONT => align 8
-			  | CPS.RK_RAW64BLOCK => align 8
-			  | _ => ()
-			(* end case *);
-		        recordTy (x, BOGty);
-			List.app useField flds;
-			init k
-		      end
+		 of RECORD(rk, flds, x, k) => (
+		      case rk
+		       of CPS.RK_FCONT => align 8
+			| CPS.RK_RAW64BLOCK => align 8
+			| _ => ()
+		      (* end case *);
+		      recordTy (x, BOGty);
+		      List.app (useArg o #1) flds;
+		      init k)
 		  | SELECT(_, v, x, ty, k) => (recordTy (x, ty); useVal v; init k)
 		  | OFFSET(_, v, x, k) => (recordTy (x, BOGty); useVal v; init k)
-		  | APP(f, vs) => (useVal f; useVals vs)
+		  | APP(f, vs) => (useVal f; useArgs vs)
 		  | FIX _ => raise Fail "unexpected FIX"
 		  | SWITCH(v, _, ks) => (
 		      needsBasePtr := true;
 		      useVal v; List.app init ks)
 		  | BRANCH(_, vs, _, k1, k2) => (useVals vs; init k1; init k2)
-		  | SETTER(_, vs, k) => (List.app useVal vs; init k)
+		  | SETTER(_, vs, k) => (useArgs vs; init k)
 		  | LOOKER(_, vs, x, ty, k) => (recordTy (x, ty); useVals vs; init k)
 		  | ARITH(_, vs, x, ty, k) => (
 		      hasTrapArith := true;
