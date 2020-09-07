@@ -11,7 +11,7 @@ programming language with compile-time type checking
 and type inference,
 garbage collection, exception handling,
 immutable data types and updatable references,
-abstract data types, and parametric modules.  
+abstract data types, and parametric modules.
 It has efficient implementations and a formal definition
 with a proof of soundness.
 
@@ -33,7 +33,7 @@ implementations (structures) matching the same signature.
 <dt><strong>Functional</strong><dd>
 ML has higher-order functions:  functions can be passed
 as arguments, stored in data structures, and returned as results
-of function calls.  Functions can be statically nested within 
+of function calls.  Functions can be statically nested within
 other functions; this lexical scoping mechanism gives the ability
 to create "new" functions at run time.
 
@@ -46,7 +46,7 @@ are <i>lazy</i> or <i>call-by-need</i>.  Strict evaluation makes it
 easier for the programmer to reason about the execution of the program.
 
 <dt><strong>Polymorphic</strong><dd>
-ML supports polymorphic functions and data types.  
+ML supports polymorphic functions and data types.
 Data-type polymorphism
 allows a single type declaration (such as "list") to describe
 lists of integers, lists of strings, lists of lists of integers, and so on;
@@ -100,7 +100,7 @@ type whose representation is hidden by an interface that just exports
 functions to construct and operate on the type.
 
 <dt><strong>Parametric modules</strong><dd>
-A <i>functor</i> is an ML program module takes the signature 
+A <i>functor</i> is an ML program module takes the signature
 of another module as an argument.  The functor can then be applied to
 any module matching that signature.  This facility is like the
 <i>template</i> of C++ or the <i>generic</i> of Ada or Modula-3,
@@ -112,13 +112,13 @@ to better program modularity.
 Features such as polymorphism, parametric modules, and a heavy
 reliance on garbage collection have meant that compiling ML to efficient
 machine code requires techniques not usually necessary in C compilers.
-Several Standard ML 
-compilers generate high-quality machine code, including 
+Several Standard ML
+compilers generate high-quality machine code, including
 <a href="index.html">Standard ML of New Jersey</a> and
 <a href="http://www.harlequin.com/products/ads/ml/">Harlequin ML Works</a>.
 
 <dt><strong>Formal definition</strong><dd>
-The ML language is clearly specified by 
+The ML language is clearly specified by
 <a href="http://mitpress.mit.edu/book-home.tcl?isbn=0262631814"><I>The Definition of Standard ML
 (Revised)</I> (Milner, Tofte, Harper, MacQueen, MIT Press, 1997)</a>,
 which defines the language in 93 pages of mathematical notation and
@@ -129,9 +129,9 @@ formulation of Standard ML.
 
 <dt><strong>Proof of soundness</strong><dd>
 A consequence of having the language definition in a formal notation
-is that one can 
-<a href="http://simon.trinhall.cam.ac.uk/~mvi20/papers/JAR.html">prove 
-important properties of the language</a>, such as 
+is that one can
+<a href="http://simon.trinhall.cam.ac.uk/~mvi20/papers/JAR.html">prove
+important properties of the language</a>, such as
 deterministic evaluation or soundness of type-checking.
 
 </dl>
@@ -141,7 +141,7 @@ deterministic evaluation or soundness of type-checking.
 | <A HREF="index.html">SML/NJ Home Page</A> |
 </STRONG></CENTER>
 <HR>
-Send your comments to <img src="smlnj-list-logo.png" align=center><br>
+Send your comments to <img src="images/smlnj-list-logo.png" align=center><br>
 <FONT SIZE="-3">
   Copyright &#169; 1998,
   <A HREF="http://www.lucent.com/">Lucent Technologies; Bell Laboratories</A>.
