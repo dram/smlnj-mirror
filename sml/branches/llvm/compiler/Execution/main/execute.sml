@@ -43,7 +43,7 @@ structure Execute : sig
 		then (fn ivec => exec (Obj.mkTuple (Obj.toTuple ivec @ [CodeObj.mkLiterals data])))
 	        else (fn ivec => exec ivec)
           in
-	    fn args => (exec args handle exn => raise exnWrapper exn)
+	    fn args => (nex args handle exn => raise exnWrapper exn)
           end
 
   (** perform the execution of the excutable, output the new dynEnv *)

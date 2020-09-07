@@ -285,7 +285,7 @@ structure Binfile :> BINFILE =
 
     fun mkMAGIC (arch, version_id) = let
 	  val vbytes = 8			(* version part *)
-	  val abytes = magicBytes - vbytes - 1 (* arch part *)
+	  val abytes = magicBytes - vbytes - 1  (* arch part *)
 	  fun fit (i, s) = let
 	        val s = StringCvt.padRight #" " i s
 		in
@@ -339,23 +339,18 @@ structure Binfile :> BINFILE =
 	    executable = ref NONE
 	  }
 
-    (* must be called with second arg >= 0 *)
-    fun readCodeList (strm, nbytes) = let
-	  fun readCode n = let
-		val sz = readInt32 strm
-		val ep = readInt32 strm
-		val n' = n - sz - 8
-		val cobj = if n' <> 0 then error "code size" else CodeObj.input(strm, sz)
-		in
-		  CodeObj.set_entrypoint (cobj, ep);
-		  cobj
-		end
+  (* must be called with second arg >= 0 *)
+    fun readCSegs (strm, nbytes) = let
 	  val dataSz = readInt32 strm
 	  val _ = readInt32 strm (* ignore entry point field for data segment *)
-	  val n' = nbytes - dataSz - 8
-	  val data = if n' < 0 then error "data size" else bytesIn (strm, dataSz)
-	  val code = readCode n'
+	  val avail = nbytes - dataSz - 8
+	  val data = if avail < 0 then error "data size" else bytesIn (strm, dataSz)
+	  val codeSz = readInt32 strm
+	  val ep = readInt32 strm
+	  val avail = avail - codeSz - 8
+	  val code = if avail < 0 then error "code size" else CodeObj.input(strm, codeSz)
 	  in
+	    CodeObj.set_entrypoint (code, ep);
 	    { code = code, data = data }
 	  end
 
@@ -411,7 +406,7 @@ structure Binfile :> BINFILE =
 	(* skip padding *)
 	  val _ = if pad <> 0 then ignore (bytesIn (s, pad)) else ()
 	(* now get the code *)
-	  val code = readCodeList (s, cs)
+	  val code = readCSegs (s, cs)
 	  val penv = bytesIn (s, es)
 	  in {
 	    contents = create {
@@ -428,6 +423,14 @@ structure Binfile :> BINFILE =
 		data = W8V.length (#data code)
 	      }
 	  } end
+
+    fun writeCSegs (s, {code, data}) = (
+	  writeInt32 s (W8V.length data);
+	  writeInt32 s 0;  (* dummy entry point for data segment *)
+	  BinIO.output(s, data);
+	  writeInt32 s (CodeObj.size code);
+	  writeInt32 s (CodeObj.entrypoint code);
+	  CodeObj.output (s, code))
 
     fun write { arch, version, stream = s, contents, nopickle } = let
 	(* Keep this in sync with "size" (see above). *)
@@ -448,10 +451,6 @@ structure Binfile :> BINFILE =
 	  val g = String.size guid
 	  val pad = 0			(* currently no padding *)
 	  val cs = codeSize csegments
-	  fun codeOut c = (
-		writeInt32 s (CodeObj.size c);
-		writeInt32 s (CodeObj.entrypoint c);
-		CodeObj.output (s, c))
 	  val es = pickleSize senv
 	  val writeEnv = if nopickle
 		then fn () => ()
@@ -471,11 +470,7 @@ structure Binfile :> BINFILE =
 	    (* GUID area *)
 	    BinIO.output (s, Byte.stringToBytes guid);
 	    (* padding area is currently empty *)
-	    (* code objects *)
-	    writeInt32 s datasz;
-	    writeInt32 s 0;		(* dummy entry point for data segment *)
-	    BinIO.output(s, #data csegments);
-	    codeOut (#code csegments);
+	    writeCSegs (s, csegments);
 	    writeEnv ();
 	    { env = es, inlinfo = lambdaSz, data = datasz, code = cs }
 	  end

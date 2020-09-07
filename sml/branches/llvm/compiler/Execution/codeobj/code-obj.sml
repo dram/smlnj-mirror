@@ -73,7 +73,7 @@ structure CodeObj :> CODE_OBJ =
   (* View the code object as an executable.  This has the side-effect
    * of flushing the instruction cache.
    *)
-    fun exec (C{obj, entrypoint = ref ep }) = mkExec (obj, ep)
+    fun exec (C{obj, entrypoint = ref ep}) = mkExec (obj, ep)
 
   (* return the size of the code object *)
     fun size (C{obj, ...}) = W8A.length obj
