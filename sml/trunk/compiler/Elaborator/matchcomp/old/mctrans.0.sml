@@ -6,11 +6,13 @@ structure TransMatch =
 struct
 
 local
+    structure A = Access
+    structure SP = Sympath
     structure T = Types
     structure BT = BasicTypes
     structure SV = SVar
     structure P = Plambda
-    structure LT = PlambdaType
+    structure LT = PLambdaType
     open MCtypes
 in
 (* refers to : toLty, toTyc -- from PlambdaType? *)
@@ -66,7 +68,7 @@ fun mkDcon (DATACON {name, rep, typ, ...}) =
  * the vector contents? (a tuple? the whole vector?). In the
  * case of D dcon, there may or not be a variable, depending
  * on whether the constructor is a constant or not. *)
-fun keyToCon(key,svarOp,ty) =
+fun keyToCon (key, svarOp, ty) =
     (case key
       of D dcon =>
 	   let lvar = (case svarOp

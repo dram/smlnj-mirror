@@ -1,8 +1,6 @@
-(* mctypes-new.sml *)
+(* mctypes.sml *)
 (* types for the match compiler
  * replaces older versions of the file named mccommon.sml *)
-
-(* new version where andor nodes do not have svars *)
 
 structure MCTypes =
 struct
@@ -156,45 +154,45 @@ datatype andKind
   = RECORD
   | VECTOR
 
-type AOinfo =
-     {id : int,              (* unique identity of node, useful for maps on nodes *)
-      typ : T.ty,            (* type of node value *)
-      path : path,           (* path to this node; serves as node name, 2nd unique identifier *)
-      vars : varBindings,    (* primary variable bindings at node *)
-      asvars : varBindings}  (* secondary (as) variable bindings at node *)
-
 datatype andor
   = AND of   (* product patterns and contents of vectors *)
-    {info : AOinfo,
-     andKind : andKind,        (* a record/tuple, or a vector; could split AND constr instead *)
-     direct : ruleset,         (* direct rules: rules with product pats at this pattern point; needed? *)
+    {svar: SV.svar,            (* svar to be bound to value at this point, contains type *)
+     path : path,              (* unique path to this node *)
+     asvars : asBindings,      (* layered variables bound at _this_ point *)
+     vars : varBindings,       (* variables bound at this point *)
+     direct : ruleset,         (* direct rules: rules with product pats at this pattern point *)
      defaults : ruleset,       (* rules matching here because of variables along the path *)
-     children : andor list}    (* tuple components as children -- AND node *)
-
+     children : andor list,    (* tuple components as children -- AND node *)
+     andKind : andKind}        (* elements of a record, or a vector *)
   | OR of (* datatype, vector, or constant pattern/type *)
-    {info : AOinfo,
+    {svar: SV.svar,
+     path : path,              (* ditto *)
+     asvars: asBindings,       (* ditto *)
+     vars : varBindings,       (* ditto *)
      direct : ruleset,         (* rules matching one of the variant keys at this point *)
      defaults: ruleset,        (* ditto *)
-     variants: variant list}   (* the branches/choices of the OR node; always non-null *)
-
-  | SINGLE of  (* singular datacon (const or applied); a kind of no-op for pattern matching,
-		* but it needs to be destructured if not constant *)
-    {info : AOinfo,
-     variant: variant}         (* key (the dcon) and its arg andor, LEAF if constant *)
-
+     variants: variant list}   (* the branches/choices of OR node; non-null *)
+  | SINGLE of  (* singular datacon app, a kind of no-op for pattern matching *)
+    {svar : SV.svar,
+     path : path,              (* ditto *)
+     asvars: asBindings,       (* ditto *)
+     vars: varBindings,        (* ditto *)
+     key: key,                 (* the singleton dcon of the datatype for this node *)
+     arg: andor}               (* arg of the dcon, LEAF if it is a constant *)
   | VARS of  (* a node occupied only by variables;
               * VIRTUAL field : direct = map #2 vars = rules havine _a_ variable at this point *)
-    {info : AOinfo,
+    {svar: SV.svar,
+     path : path,              (* ditto *)
+     asvars: asBindings,       (* ditto *)
+     vars: varBindings,
      defaults: ruleset}        (* rules matching here by default *)
-
   | LEAF of   (* used as the andor of variants with constant keys, with direct and default rules
                * but no svar, since the svar is bound at the parent OR node. A LEAF
 	       * node also does not have an independent type; its type is determined
 	       * by the parent OR node (through its svar). *)
     {path: path,               (* path is parent path extended by key *)
-     direct: ruleset,          (* rules having _this_ key (= last of path) at this pattern point *)
+     direct: ruleset,          (* rules having _this_ key (end of path) at this point *)
      defaults: ruleset}
-
   | INITIAL   (* initial empty andor into which initial pattern is merged
                * to begin the construction of an AND-OR tree *)
 
@@ -217,39 +215,38 @@ andorBreadth : andor -> int option
 
 *)
 
-(* getInfo : andor -> AOinfo *)
-fun getInfo(AND{info,...}) = info
-  | getInfo(OR{info,...}) = info
-  | getInfo(SINGLE{info,...}) = info
-  | getInfo(VARS{info,...}) = info
-  | getInfo(LEAF{path,...}) = bug "getInfo(LEAF)"
-  | getInfo INITIAL = bug "getInfo(INITIAL)"
+(* getPath : andor -> path *)
+fun getPath(AND{path,...}) = path
+  | getPath(OR{path,...}) = path
+  | getPath(SINGLE{path,...}) = path
+  | getPath(VARS{path,...}) = path
+  | getPath(LEAF{path,...}) = path
+  | getPath INITIAL = bug "getPath(INITIAL)"
 
-(* getId : andor -> int *)
-(* fails (bug) for andor nodes without info: LEAF, INITIAL *)
-fun getId andor = #id (getInfo andor)
+(* getSvar : andor -> SV.svar *)
+fun getSvar(AND{svar,...}) = svar
+  | getSvar(OR{svar,...}) = svar
+  | getSvar(SINGLE{svar,...}) = svar
+  | getSvar(VARS{svar,...}) = svar
+  | getSvar(LEAF _) = bug "getSvar(LEAF)"
+  | getSvar INITIAL = bug "getSvar(INITIAL)"
 
 (* getType : andor -> T.ty *)
-(* fails (bug) for andor nodes without info: LEAF, INITIAL *)
-fun getType andor = #typ (getInfo andor)
-
-(* getPath : andor -> path *)
-fun getPath (LEAF{path,...}) = path
-  | getPath INITIAL = bug "getPath:INITIAL"
-  | getPath andor = #path (getInfo andor)  (* otherwise, andor has info *)
+(* fails (bug) for andor nodes without svar: LEAF, INITIAL *)
+fun getType andor = SV.svarType (getSvar andor)
 
 (* getDirect : andor -> ruleset *)
 fun getDirect(AND{direct,...}) = direct
   | getDirect(OR{direct,...}) = direct
-  | getDirect(SINGLE{variant,...}) = getDirect (#2 variant)
-  | getDirect(VARS{info, ...}) = R.fromList(map #2 (#vars info))
+  | getDirect(SINGLE{arg,...}) = getDirect arg
+  | getDirect(VARS{vars,...}) = R.fromList(map #2 vars)
   | getDirect(LEAF{direct,...}) = direct
   | getDirect INITIAL = bug "getDirect(INITIAL)"
 
 (* getDefaults : andor -> ruleset *)
 fun getDefaults(AND{defaults,...}) = defaults
   | getDefaults(OR{defaults,...}) = defaults
-  | getDefaults(SINGLE{variant,...}) = getDefaults (#2 variant)
+  | getDefaults(SINGLE{arg,...}) = getDefaults arg
   | getDefaults(VARS{defaults,...}) = defaults
   | getDefaults(LEAF{defaults,...}) = defaults
   | getDefaults INITIAL = bug "getDefaults(INITIAL)"
@@ -258,7 +255,7 @@ fun getDefaults(AND{defaults,...}) = defaults
    live rules is union of direct and defaults *)
 fun getLive(AND{direct,defaults,...}) = R.union(direct,defaults)
   | getLive(OR{direct,defaults,...}) = R.union(direct,defaults)
-  | getLive(SINGLE{variant,...}) = getLive (#2 variant)
+  | getLive(SINGLE{arg,...}) = getLive arg
   | getLive(VARS{defaults,...}) = defaults  (* direct subset defaults *)
   | getLive(LEAF{direct,defaults,...}) = R.union(direct,defaults)
   | getLive INITIAL = bug "getLive(INITIAL)"
@@ -270,8 +267,6 @@ fun findKey (key, (key',node)::rest) =
     if eqKey(key,key') then SOME node
     else findKey(key, rest)
   | findKey (_, nil) = NONE
-
-(* FIX: getNode and parentNode not used *)
 
 (* getNode : andor * path * int -> andor *)
 (* REQUIRE: for getNode(andor,path,depth): depth <= length path *)
@@ -285,22 +280,19 @@ fun getNode(andor, _, 0) = andor
 	   (case findKey(key,variants)
 	      of NONE => bug "getNode"
 	       | SOME node => getNode(node, path, depth-1))
-       | (SINGLE{variant,...}, key) =>
-	   getNode(#2 variant, path, depth-1)
+       | (SINGLE{arg,...}, key) =>
+	   getNode(arg, path, depth-1)
        | ((VARS _ | LEAF _),_) => bug "getNode(VARS|LEAF)"
        | _ => bug "getNode arg")
 
 (* parentNode: andor * andor -> andor *)
-fun parent (andor, rootAndor) =
+fun parent (andor, root) =
     let val path = getPath(andor)
         val d = length(path) - 1
-     in getNode(rootAndor, path, d)
+     in getNode(root, path, d)
     end
 
-
-(* ---------------------------------------------------------------------- *)
 (* decision trees *)
-
 datatype decTree
   = DLEAF of ruleno * trace
       (* bind variables consistent with trace and dispatch
@@ -320,6 +312,7 @@ datatype decTree
         * will always be SOME dt unless it is not needed because the choices are
         * exhaustive. If the default leads to a MATCH, it will be SOME DMATCH *)
 withtype decVariant = key * decTree
+
 
 end (* local *)
 end (* structure MCTypes *)

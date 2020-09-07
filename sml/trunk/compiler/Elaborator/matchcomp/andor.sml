@@ -10,14 +10,20 @@ local
   structure TU = TypesUtil
   structure BT = BasicTypes
   structure LV = LambdaVar
-  structure V = Var
+  structure V = VarCon
   structure SV = SVar
   structure R = Rules
+  structure PP = PrettyPrint
   open Absyn MCTypes
   (* also used: IntInf, Target, Char, String *)
-in
 
-fun bug msg = ErrorMsg.impossible msg
+  fun bug msg = ErrorMsg.impossible msg
+
+  fun ppType ty =
+      PP.with_default_pp
+	  (fn ppstrm => PPType.ppType StaticEnv.empty ppstrm ty)
+
+in
 
 (* numToKey : T.ty IntConst.t -> key *)
 fun numToKey ((num as {ival,ty}): T.ty IntConst.t) : key =
@@ -29,31 +35,40 @@ fun numToKey ((num as {ival,ty}): T.ty IntConst.t) : key =
 (* charCon : string -> char; string assumed to be of size = 1 *)
 fun charCon s = String.sub (s, 0)
 
+(* node ids (: int) *)
+val idcount = ref 0;
+fun newId () = !idcount before (idcount := !idcount + 1)
+fun resetId () = (idcount := 0)
+
+fun addAsBind (b, {id,typ,path,vars,asvars}: AOinfo) =
+    {id=id, typ=typ, path=path, vars=vars, asvars = asvars@b}
+
+fun addBind (b, {id,typ,path,vars,asvars}: AOinfo) =
+    {id=id, typ=typ, path=path, vars=vars@b, asvars = asvars}
+
 (* addAsBinding : asBindings * andor -> andor *)
-fun addAsBindings (b, AND{svar,path,asvars,vars,direct,defaults,children}) =
-    AND{svar=svar,path=path,asvars = asvars@b,vars=vars,direct=direct,
-	defaults=defaults,children=children}
-  | addAsBindings (b, OR{svar,path,asvars,vars,direct,defaults,variants}) =
-    OR{svar=svar,path=path,asvars = asvars@b,vars=vars,direct=direct,
-       defaults=defaults,variants=variants}
-  | addAsBindings (b, SINGLE{svar,path,asvars,vars,dcon,arg}) = 
-    SINGLE{svar=svar,path=path,asvars = asvars@b,vars=vars,dcon=dcon,arg=arg}
-  | addAsBindings (b, VARS{svar,path,asvars,vars,defaults}) = 
-    VARS{svar=svar,path=path,asvars = asvars@b,vars=vars,defaults=defaults}
+fun addAsBindings (b, AND{info,direct,defaults,children,andKind}) =
+    AND{info=addAsBind(b, info), direct=direct, defaults=defaults,
+	children=children, andKind=andKind}
+  | addAsBindings (b, OR{info,direct,defaults,variants}) =
+    OR{info=addAsBind(b,info), direct=direct, defaults=defaults, variants=variants}
+  | addAsBindings (b, SINGLE{info,variant}) = 
+    SINGLE{info=addAsBind(b,info), variant=variant}
+  | addAsBindings (b, VARS{info,defaults}) = 
+    VARS{info=addAsBind(b,info), defaults=defaults}
   | addAsBindings _ = bug "addAsBindings"
     (* as-binding for a (say) constant will be attached to the parent OR node *)
 				   
 (* addVarBindings : varBindings * andor -> andor *)
-fun addVarBindings (b, AND{svar,path,asvars,vars,direct,defaults,children}) =
-    AND{svar=svar,path=path,asvars=asvars,vars=vars@b,direct=direct,
-	defaults=defaults,children=children}
-  | addVarBindings (b, OR{svar,path,asvars,vars,direct,defaults,variants}) =
-    OR{svar=svar,path=path,asvars=asvars,vars=vars@b,direct=direct,
-       defaults=defaults,variants=variants}
-  | addVarBindings (b, SINGLE{svar,path,asvars,vars,dcon,arg}) = 
-    SINGLE{svar=svar,path=path,asvars=asvars,vars=vars@b,dcon=dcon,arg=arg}
-  | addVarBindings (b, VARS{svar,path,asvars,vars,defaults}) = 
-    VARS{svar=svar,path=path,asvars=asvars,vars=vars@b,defaults=defaults}
+fun addVarBindings (b, AND{info,direct,defaults,children,andKind}) =
+    AND{info=addBind(b,info), direct=direct, defaults=defaults,children=children,
+	andKind=andKind}
+  | addVarBindings (b, OR{info,direct,defaults,variants}) =
+    OR{info=addBind(b,info), direct=direct, defaults=defaults, variants=variants}
+  | addVarBindings (b, SINGLE{info,variant}) = 
+    SINGLE{info=addBind(b,info), variant=variant}
+  | addVarBindings (b, VARS{info,defaults}) = 
+    VARS{info=addBind(b,info), defaults=defaults}
   | addVarBindings _ = bug "addVarBindings"
     (* var-binding for a key LEAF will be attached to the parent OR node *)
 
@@ -79,41 +94,38 @@ let
      * calls of mergeAndor for each rule. *)
     fun pushDefaults (outerDefaults : ruleset, andor: andor) : andor =
 	case andor
-	 of OR{svar,path,asvars,vars,direct,defaults,variants} =>
+	 of OR{info,direct,defaults,variants} =>
 	     (* ASSERT: defaults = R.empty *)
-	     let val defaults' = R.addList(outerDefaults, map #2 vars)
+	     let val defaults' = R.addList(outerDefaults, map #2 (#vars info))
 		 fun push (key,andor') = (key, pushDefaults(defaults', andor'))
-	     in OR{svar=svar, path=path, asvars=asvars, vars=vars, direct=direct,
-		   defaults = defaults', variants = map push variants}
+	     in OR{info=info, direct=direct, defaults = defaults',
+		   variants = map push variants}
 	     end
-	  | SINGLE{svar,path,asvars,vars,dcon,arg} =>
-	      let val defaults' = R.addList(outerDefaults, map #2 vars)
-	       in SINGLE{svar=svar,path=path,dcon=dcon,asvars=asvars,vars=vars,
-			 arg=pushDefaults(defaults',arg)}
+	  | SINGLE{info,variant=(key,arg)} =>
+	      let val defaults' = R.addList(outerDefaults, map #2 (#vars info))
+	       in SINGLE{info=info, variant=(key, pushDefaults(defaults',arg))}
 	      end
-	  | AND{svar=svar,path,asvars,vars,direct,defaults,children} =>
-	      let val defaults' = R.addList(outerDefaults, map #2 vars)
-	      in AND{svar=svar, path=path, asvars=asvars, vars=vars,
-		     direct=direct, defaults=defaults',
+	  | AND{info,direct,defaults,children,andKind} =>
+	      let val defaults' = R.addList(outerDefaults, map #2 (#vars info))
+	      in AND{info=info, direct=direct, defaults=defaults', andKind=andKind,
 		     children = map (fn andor => pushDefaults(defaults',andor)) children}
 	      end
-	  | VARS{svar,path,asvars,vars,defaults} =>
-	      let val defaults' = R.addList(outerDefaults, map #2 vars)
-	       in VARS{svar=svar,path=path,asvars=asvars,vars=vars,defaults=defaults'}
+	  | VARS{info,defaults} =>
+	      let val defaults' = R.addList(outerDefaults, map #2 (#vars info))
+	       in VARS{info=info, defaults=defaults'}
 	      end
 	  | LEAF{path,direct,defaults} =>
 	      (* ASSERT: defaults = R.empty *)
 	      (* push defaults all the way down to LEAF nodes? Are defaults used here? *)
-	      LEAF{path=path,direct=direct,defaults=outerDefaults}
+	      LEAF{path=path, direct=direct, defaults=outerDefaults}
 	  | _ => bug "pushDefaults(INITIAL)"
 
     (* initAnd : pat list * ruleno * rpath -> andor list
-     * Initializing an AND node; preserves order of pattern list.
-     *   pats: component patterns of a product
+     * Initializing an AND node, producing the children node list;
+     * preserves the order of pattern list.
+     *   pats: component patterns of a product;
      *   path: path to the AND node
-     *   ruleno = 0 and direct = {0} (because of mergeAndor with INITIAL)
-     * Minor problem: this causes the svars for the children to be generated in
-     *  right-to-left order which shows up in the code for Letr bindings.  *)
+     *   ruleno = 0 and direct = {0} (because of mergeAndor with INITIAL) *)
     fun initAnd (pats, tys, rule, rpath) =
 	rev(#1 (foldl
 		 (fn ((pat,ty), (andors,index)) =>
@@ -146,41 +158,39 @@ let
      *     of a node. *)
     and mergeAndor (VARpat var, ty, rule, rpath, INITIAL) =
 	let val path = reverseRPath rpath
-	in VARS{svar = SV.newSvar(pathToString path, ty), path = path, asvars = [],
-		vars = [(var,rule)], defaults = R.empty}
+	in VARS{info = {id = newId(), typ = ty, path = path, asvars = [], vars = [(var,rule)]},
+		defaults = R.empty}
 	end
       | mergeAndor (WILDpat, ty, rule, rpath, INITIAL) =
           (* wildcard pat treated as a particular variable pattern *)
 	  let val path = reverseRPath rpath
-	      val svar = SV.newSvar(pathToString path, ty)
-	  in VARS{svar = svar, path = path, asvars = nil,
-		  vars = [(V.newVALvar("_", ty), rule)],
+	  in VARS{info = {id = newId(), typ = ty, path = path, asvars = nil,
+			  vars = [(V.newVALvar(Symbol.varSymbol "_", ty), rule)]},
 		  defaults = R.empty}
 	  end
-      | mergeAndor (LAYEREDpat(var,basepat), ty, rule, rpath, INITIAL) =
+      | mergeAndor (LAYEREDpat(VARpat(var),basepat), ty, rule, rpath, INITIAL) =
 	  (* ignoring type constraint option *)
 	  addAsBindings ([(var,rule)], mergeAndor (basepat, ty, rule, rpath, INITIAL))
           (* no link added for the basepat *)
       | mergeAndor (NUMpat(_, numLiteral), ty, rule, rpath, INITIAL) =
-	  (* ASSERT: ty should be an integer or word ty (as defined in BasicTypes)
-           * ASSERT: ty should be equal to the ty component of numLiteral *)
+	  (* ASSERT: ty should be an integer or word ty (as defined in BasicTypes; not checked)
+           * ASSERT: ty should be equal to the ty component of numLiteral; not checked *)
 	let val key = numToKey(numLiteral)
 	              (* produces int (I) or word (W) key depending on ty *)
 	      val path = reverseRPath rpath
 	      val newRPath = extendRPath(rpath, key)
 	      val newPath = reverseRPath newRPath
-	  in OR{svar = SV.newSvar(pathToString path, ty), path = path,
-	        asvars = nil, vars = nil,
+	  in OR{info = {id = newId(), typ = ty, path = path, asvars = nil, vars = nil},
 	        direct = R.singleton rule, defaults = R.empty,
-	        variants = [(key, LEAF{path=newPath,direct=R.singleton rule, defaults=R.empty})]}
+	        variants = [(key, LEAF{path=newPath, direct=R.singleton rule,
+				       defaults=R.empty})]}
 	  end
       | mergeAndor (STRINGpat s, ty, rule, rpath, INITIAL) =
 	  (* ASSERT: ty = BT.stringTy *)
 	  let val key = S s
 	      val path = reverseRPath rpath
 	      val newRPath = extendRPath(rpath,key)
-	  in OR{svar = SV.newSvar(pathToString path, ty), path = path,
-		asvars = nil, vars = nil,
+	  in OR{info = {id = newId(), typ = ty, path = path, asvars = nil, vars = nil},
 		direct = R.singleton rule, defaults = R.empty,
 		variants = [(key,
 			     LEAF{path=reverseRPath newRPath,
@@ -192,141 +202,167 @@ let
 	      val path = reverseRPath rpath
 	      val newRPath = extendRPath(rpath, key)
 	      val newPath = reverseRPath newRPath
-	  in OR{svar = SV.newSvar(pathToString path, ty), path = path,
-		asvars = nil, vars = nil, direct = R.singleton rule, defaults = R.empty,
-		variants = [(key, LEAF{path=newPath, direct=R.singleton rule, defaults=R.empty})]}
+	  in OR{info = {id = newId(), typ = ty, path = path, asvars = nil, vars = nil},
+			direct = R.singleton rule, defaults = R.empty,
+			variants = [(key, LEAF{path=newPath, direct=R.singleton rule,
+					       defaults=R.empty})]}
 	       (* QUESTION: adding the rule to _both_ the OR node and the descendent LEAF node? *)
 	  end
       | mergeAndor (RECORDpat{fields,...}, ty, rule, rpath, INITIAL) =
 	  let val path = reverseRPath rpath
-	      val elemTys = TU.destructRecord(ty)
-	   in AND{svar = SV.newSvar(pathToString path, ty), path = path, asvars = nil, vars = nil,
+	      val ty = TU.prune ty
+	      (* val _ = (ppType ty; Control_Print.flush ()) *)
+	      val elemTys = TU.destructRecordTy ty
+			    handle e => (ppType ty; raise e)
+	   in AND{info = {id = newId(), typ = ty, path = path, asvars = nil, vars = nil},
 	          direct = R.singleton rule, defaults = R.empty,
-	          children = initAnd(map #2 fields, elemTys, rule, rpath)}
+	          children = initAnd(map #2 fields, elemTys, rule, rpath),
+		  andKind = RECORD}
 	  end
       | mergeAndor (CONpat(dcon,tvs), ty, rule, rpath, INITIAL) =  (* constant datacon *)
           (* ty is the (instantiated) type of the dcon *)
-	  let val key = D dcon
+	  let val key = D (dcon, tvs)
 	      val path = reverseRPath rpath
 	      val newRPath = extendRPath(rpath, key)
 	      val newPath = reverseRPath newRPath
 	      val svar = SV.newSvar(pathToString path, ty)
   	   in if TU.dataconWidth dcon = 1  (* single datacon *)
-	      then SINGLE{svar = svar, path = path,
-			  asvars = nil, vars = nil, dcon = dcon,
-			  arg = LEAF{path = newPath, direct = R.singleton rule, defaults=R.empty}}
-	      else OR{svar=svar, path = path, asvars = nil, vars = nil,
+	      then SINGLE{info = {id = newId(), typ = ty, path = path, asvars = nil, vars = nil},
+			  variant = (key, LEAF{path = newPath, direct = R.singleton rule,
+					       defaults=R.empty})}
+	      else OR{info = {id = newId(), typ = ty, path = path, asvars = nil, vars = nil},
 		      direct = R.singleton rule, defaults = R.empty,
 		      variants = [(key, LEAF{path=newPath, direct=R.singleton rule,
 					     defaults=R.empty})]}
 	  end
       | mergeAndor (APPpat(dcon,tvs,pat), ty, rule, rpath, INITIAL) =
-	  let val key = D dcon   (* tvs not used *)
+	  let (* val _ = print ">>>mergeAndor:APPpat\n" *)
+	      val key = D (dcon,tvs)
 	      val path = reverseRPath rpath
 	      val newRPath : rpath = extendRPath(rpath, key)
-	      val argty = TU.destructCon(ty,dcon)
+	      (* val _ = print ">>>destructDataconTy\n" *)
+	      val argty = TU.destructDataconTy(ty,dcon)
+	      (* val _ = print "<<<destructDataconTy\n" *)
 	   in if TU.dataconWidth dcon = 1
-	      then SINGLE{svar = SV.newSvar(pathToString path, ty),
-			  path = path,  (* SINGLE's arg gets the new link *)
-			  dcon = dcon,  (* unique for this datatype *)
-			  asvars = nil,
-			  vars = nil,
-			  arg = mergeAndor(pat,argty,rule,newRPath,INITIAL)}
-	      else OR{svar = SV.newSvar(pathToString path, ty),
-		      path = path, asvars = nil, vars = nil,
-		      direct = R.singleton rule, defaults = R.empty,
-		      variants = [(key, mergeAndor(pat,argty,rule,newRPath,INITIAL))]}
+	      then SINGLE{info = {id = newId(), typ = ty, path = path, asvars = nil, vars = nil},
+			  variant = (key, mergeAndor(pat,argty,rule,newRPath,INITIAL))}
+	      else ((* print "mergeAndor:APPpat:OR\n"; *)
+		    OR{info = {id = newId(), typ = ty, path = path, asvars = nil, vars = nil},
+		       direct = R.singleton rule, defaults = R.empty,
+		       variants = [(key, mergeAndor(pat,argty,rule,newRPath,INITIAL))]})
 	  end
       | mergeAndor (VECTORpat(pats,elemty), vecty, rule, rpath, INITIAL) =
-	let val vlen = length pats
-	    val path = reverseRPath rpath
+	  (* Note: the vector node and its descendent AND(VECTOR) node share the
+           * same svar, which is bound to the vector value. The vector OR node and
+	   * the AND(VECTOR) node for its elements have the same vector type.
+           * ASSERT: vecty = elemty vector *)
+	  let val vlen = length pats  (* vector length *)
+	      val path = reverseRPath rpath  (* path for vector node *)
 	      val newRPath = extendRPath(rpath, V(vlen))
 	      val newPath = reverseRPath newRPath
+	      (* val svar = SV.newSvar(pathToString path, vecty) -- shared svar? *)
 	      val elemTys = TU.replicateTy(elemty, vlen)  (* list of replicated elemty *)
-	      val elemsTy = TU.mkTupleTy(elemTys)         (* tuple type for elements *)
-	      val velements =
-		  AND{svar = SV.newSvar(pathToString newPath, elemsTy),
-		      path = reverseRPath(newRPath),
-		      asvars = nil, vars = nil,
-		      direct = R.singleton rule,
-		      defaults = R.empty,
-		      children = initAnd(pats, elemTys, rule, newRPath)}
-	  in OR{svar = SV.newSvar(pathToString path, vecty),
-		path = path,
-		asvars = nil,
-		vars = nil,
-		direct = R.singleton rule,
-		defaults = R.empty,
-		variants = [(V vlen, velements)]}
+	      val variantNode =  (* FIX: how to ensure that OR and AND have same svar? *)
+		  AND{info = {id = newId(), typ = vecty, path = newPath, asvars = nil, vars = nil},
+		      direct = R.singleton rule, defaults = R.empty,
+		      children = initAnd(pats, elemTys, rule, newRPath),
+		      andKind = VECTOR}
+	  in OR{info = {id = newId(), typ = vecty, path = path, asvars = nil, vars = nil},
+		direct = R.singleton rule, defaults = R.empty,
+		variants = [(V vlen, variantNode)]}
 	  end
+
       (* following rules merge a pattern into an existing andor node *)
+
       | mergeAndor (VARpat v, ty, rule, rpath, andor) =
 	  addVarBindings ([(v,rule)], andor)
           (* rule should be propagated into defaults for all nodes in andor!
            * Since the andor tree has already been build, this will be done
            * in a second pass by the function pushDefaults. *)
       | mergeAndor (WILDpat, ty, rule, path, andor) =
-	  addVarBindings ([(V.newVALvar("_",ty),rule)], andor)
+	  addVarBindings ([(V.newVALvar(Symbol.varSymbol "_", ty), rule)], andor)
           (* same as for VARpat case *)
-(* This case will be restored for integrated match compiler.
-      | mergeAndor (CONSTRAINTpat(pat, _), rule, path, andor) =
-	  (* disregard type constraints -- they have no role in pattern matching *)
-	  mergeAndor(pat, rule, path, andor)
-*)
-      | mergeAndor (LAYEREDpat(v,basepat), ty, rule, rpath, andor) =
+      | mergeAndor (CONSTRAINTpat(pat, ty), _, rule, path, andor) =
+	  (* disregard type constraints -- they have no role in pattern matching
+           * and they have been checked by the type checker *)
+	  mergeAndor(pat, ty, rule, path, andor)
+      | mergeAndor (LAYEREDpat(VARpat v, basepat), ty, rule, rpath, andor) =
 	  addAsBindings ([(v,rule)], mergeAndor (basepat, ty, rule, rpath, andor))
       | mergeAndor (NUMpat(_, numLiteral), ty, rule, _, 
-		    OR{svar,path,asvars,vars,direct,defaults,variants}) =
-	  OR{svar = svar, path = path, asvars = asvars, vars = vars,
+		    OR{info,direct,defaults,variants}) =
+	  OR{info = info,
 	     direct = R.add(direct,rule), defaults = defaults,
-	     variants = mergeConst(numToKey(numLiteral), rule, path, variants)}
+	     variants = mergeConst(numToKey(numLiteral), rule, (#path info), variants)}
       | mergeAndor (STRINGpat s, _, rule, _,
-		    OR{svar,path,asvars,vars,direct,defaults,variants}) =
-	  OR{svar = svar, path = path, asvars = asvars, vars = vars,
+		    OR{info,direct,defaults,variants}) =
+	  OR{info = info,
 	     direct = R.add(direct,rule), defaults = defaults,
-	     variants = mergeConst(S s, rule, path, variants)}
+	     variants = mergeConst(S s, rule, (#path info), variants)}
       | mergeAndor (CHARpat s, _, rule, _,
-		    OR{svar,path,asvars,vars,direct,defaults,variants}) =
-	  OR{svar = svar, path = path, asvars = asvars, vars = vars,
+		    OR{info,direct,defaults,variants}) =
+	  OR{info = info,
 	     direct = R.add(direct,rule), defaults = defaults,
-	     variants = mergeConst(C(charCon s), rule, path, variants)}
+	     variants = mergeConst(C(charCon s), rule, (#path info), variants)}
       | mergeAndor (RECORDpat{fields,...}, _, rule, _,
-		    AND{svar,path,asvars,vars,direct,defaults,children}) =
+		    AND{info,direct,defaults,children,andKind}) =
               (* mergeAnd : pat * andor -> andor *)
 	  let fun mergeAnd (pat, andor) =
-		  mergeAndor(pat, getType andor, rule, reversePath path, andor)
+		  mergeAndor(pat, getType andor, rule, reversePath (#path info), andor)
 	    (* arity of record and AND andor node are equal because they have the same type *)
-	   in AND{svar = svar, path = path, asvars = asvars, vars = vars,
-		  direct = R.add(direct,rule), defaults = defaults,
+	   in AND{info = info,
+		  direct = R.add(direct,rule), defaults = defaults, andKind = andKind,
 		  children = ListPair.map mergeAnd (map #2 fields, children)}
 	  end
-      | mergeAndor (VECTORpat(pats,ty), ty', rule, _,
-		    OR{svar,path,asvars,vars,direct,defaults,variants}) =
-	  (* ASSERT: ty and ty' are equal, both being the element type of the vector *)
-	  OR{svar = svar, path = path, asvars = asvars, vars = vars,
+      | mergeAndor (VECTORpat(pats,elemty), vecty, rule, _,
+		    OR{info,direct,defaults,variants}) =
+	  (* ASSERT: vecty = elemty vector = varType svar
+           * pattern and OR-node both have type vecty
+           * svar will be bound to the vector value *)
+	  OR{info = info,
 	     direct = R.add(direct,rule), defaults = defaults,
-	     variants = mergeVector (pats,ty,rule,path,variants)}
-      | mergeAndor (CONpat(dcon,tvs), _, rule, _,
-		    OR{svar,path,asvars,vars,direct,defaults,variants}) =
-	let val ty = SV.svarType svar  (* get the type from the existing OR node *)
-	    val newVariants = mergeDataConst (D dcon, ty, rule, path, variants)
-	 in OR{svar = svar, path = path, asvars = asvars, vars = vars,
+	     variants = mergeVector (pats, vecty, elemty, rule, (#path info), variants)}
+      | mergeAndor (CONpat(dcon,tvs), ty, rule, _,
+		    OR{info,direct,defaults,variants}) =
+	let val newVariants = mergeDataConst (D (dcon,tvs), ty, rule, (#path info), variants)
+	 in OR{info = info,
 	       direct = R.add(direct,rule), defaults = defaults, variants = newVariants}
 	end
+      | mergeAndor (CONpat (patDcon, tvs), _, rule, _,
+		    SINGLE {info, variant=(key as D(dcon,_),arg)}) =
+          if TU.eqDatacon (patDcon, dcon) then
+	     (* this must be true, because dcon is singleton *)
+	     (case arg
+	       of LEAF {path=leafPath, direct, defaults} =>
+		    let val newArg =
+			    LEAF{path = leafPath, direct = R.add (direct, rule), defaults = defaults}
+		     in SINGLE{info = info, variant = (key, newArg)}
+		    end
+		| _ => bug "mergeAndor:CONpat:SINGLE:arg")
+	  else bug "mergeAndor:CONpat:SINGLE: dcons don't agree"
       | mergeAndor (APPpat(dcon,tvs,pat), _, rule, _,
-		    OR{svar,path,asvars,vars,direct,defaults,variants}) =
-	let val ty = SV.svarType svar
-	    val newVariants = mergeData (D dcon, pat, ty, rule, path, variants)
-	 in OR{svar = svar, path = path, asvars = asvars, vars = vars,
+		    OR{info,direct,defaults,variants}) =
+	let val ty = #typ info
+	    val newVariants = mergeData (D (dcon,tvs), pat, ty, rule, (#path info), variants)
+	 in OR{info = info,
 	       direct = R.add(direct,rule), defaults = defaults,
 	       variants = newVariants}
 	end
-      | mergeAndor (ORpat(pat1,pat2), _, rule, rpath, andor) =
-	  mergeAndor(pat1, T.UNDEFty, rule, rpath, mergeAndor(pat2, T.UNDEFty, rule, rpath, andor))
-      | mergeAndor (pat, _, rule, _, VARS{svar, path, asvars, vars, defaults}) =
+      | mergeAndor (APPpat (patDcon, tvs, argPat), ty, rule, rpath,
+		    SINGLE{info, variant = (key as D(dcon,_), arg)}) =
+          if TU.eqDatacon (patDcon, dcon) then  (* must be true, because dcon is singleton *)
+	     let val argTy = TU.destructDataconTy (#typ info, patDcon)
+		 val argRpath = extendRPath (rpath, D(patDcon,tvs)) (* == reverse(rpath of arg)? *)
+		 val mergedArg = mergeAndor(argPat, argTy, rule, argRpath, arg) 
+	      in SINGLE{info = info, variant = (key, mergedArg)}
+	     end
+	  else bug "mergeAndor:APPpat:SINGLE: dcons don't agree"
+      | mergeAndor (ORpat(pat1,pat2), ty, rule, rpath, andor) =
+	  mergeAndor(pat1, ty, rule, rpath,
+		     mergeAndor(pat2, ty, rule, rpath, andor))
+      | mergeAndor (pat, _, rule, _, VARS{info = {typ,path,vars,asvars,...}, defaults}) =
 	  (* does direct ruleset from the VARS node play a part?  
 	   * Is direct = R.empty an invariant? *)
-	  let val andor0 = mergeAndor(pat, SV.svarType svar, rule, reversePath path, INITIAL)
+	  let val andor0 = mergeAndor(pat, typ, rule, reversePath path, INITIAL)
 	          (* This will generate new svar; should we be preserving the svar
                    * of the existing VARS node? *)
 	      val andor1 = addVarBindings(vars, andor0)
@@ -338,57 +374,60 @@ let
 
    (* mergeVector : pat list * rule * path * variant list -> variant list *)
    (* maintains vector variants in ascending order by length *)
-    and mergeVector (pats, elemty, rule, path, variants: (key * andor) list) : variant list =
+    and mergeVector (pats, vecty, elemty, rule, path, variants: (key * andor) list)
+	  : variant list =
 	let val vlen = length pats (* could be 0 *)
 	    val newKey = V vlen
 	    val newPath : path = extendPath(path, newKey)
 	    val elemTys = TU.replicateTy(elemty, vlen)  (* list of replicated elem tys *)
-	    val elemsTy = TU.mkTupleTy(elemTys)         (* tuple type for elements *)
-					   
 	    fun merge ((variants as ((vv as (V vlen', andor))::rest)), revprefix) =
 		if vlen < vlen'  (* a new vector length, hence new vector variant *)
 		then List.revAppend(revprefix,
 				    (newKey,
-				     AND{svar = SV.newSvar(pathToString newPath, elemsTy),
-					 path = path,
-					 asvars = nil, vars = nil,
+				     AND{info = {id = newId(), typ = vecty, path = newPath,
+						 asvars = nil, vars = nil},
 					 direct = R.singleton rule,
 					 defaults = R.empty,
-					 children = initAnd(pats, elemTys, rule, path)})
+					 children = initAnd(pats, elemTys, rule, path),
+					 andKind = VECTOR})
 				    ::variants)
 		else if vlen = vlen' (* merge into existing variant *)
 		then case andor
-		      of AND{svar,path,asvars,vars,direct,defaults,children} =>
-			 let fun mergeAnd (pat, andor) = mergeAndor(pat, elemty, rule, path, andor)
+		      of AND{info,direct,defaults,children,andKind} =>
+			 let fun mergeNode (pat, andor) =
+				 mergeAndor(pat, elemty, rule, path, andor)
 			  in List.revAppend(revprefix,
 				(newKey,  (* same as the old key *)
-				 AND{svar=svar, path=path, asvars=asvars, vars=vars,
+				 AND{info = info,
 				     direct = R.add(direct,rule), defaults = defaults,
-				     children =
-				      ListPair.map mergeAnd (pats, children)})
+				     children = ListPair.map mergeNode (pats, children),
+				     andKind = VECTOR})
 				:: rest)
 			 end
 		      | _ => bug "mergeVector"
 		else merge (rest, vv::revprefix)
-	      | merge (nil,revprefix) =  (* len does not match an existing lengths in variants *)
-		let val newVariant = (newKey,
-				      AND{svar = SV.newSvar(pathToString newPath, elemsTy),
-					  path = newPath,
-					  asvars = nil, vars = nil,
-					  direct = R.singleton rule,
-					  defaults = R.empty,
-					  children = initAnd(pats,elemTys,rule,reversePath newPath)})
+	      | merge (nil,revprefix) =
+		  (* vlen does not match an existing length in variants *)
+		let val newVariant =
+			(newKey,
+			 AND{info = {id = newId(), typ = vecty, path = newPath,
+				     asvars = nil, vars = nil},
+			     direct = R.singleton rule,
+			     defaults = R.empty, andKind = VECTOR,
+			     children = initAnd(pats,elemTys,rule,reversePath newPath)})
 		 in rev(newVariant::revprefix)
 		end
 	      | merge _ = bug "mergeVector.merge"
+
 	 in merge(variants,nil)
 	end
 
     (* mergeDataConst : key * ty * ruleno * path * variant list -> variant list *)
-    and mergeDataConst (key as D dcon, ty, rule, path, variants) =
+    and mergeDataConst (key as D _, ty, rule, path, variants) =
 	let fun merge ((variant as (key',andor))::rest, revprefix) =
 		  if eqKey(key,key') (* same constant dcon, hence andor must be LEAF *)
-		  then let val modifiedVariant =  (* merge with existing variant for this dcon *)
+		  then let val modifiedVariant =
+			       (* merge with existing variant for this dcon *)
 			       case andor
 				 of LEAF{path,direct,defaults} =>  (* constant dcon *)
 				    (key, LEAF{path=path,
@@ -410,8 +449,12 @@ let
       | mergeDataConst _ = bug "mergeDataConst: bad key"
 
     (* mergeData : key * pat * ty * ruleno * path * variant list -> variant list *)
-    and mergeData (key as D dcon, pat, ty, rule, path, variants) =
-	let val patTy = TU.destructCon(ty, dcon)
+    (* the new key and an existing matching key would have different tvs (instantiation
+     * metatyvars), but this doesn't matter since the type (ty) of the pattern node is
+     * the same for all variants, so instantiations will be equivalent for the same 
+     * dataconstructor. *)
+    and mergeData (key as D (dcon,tvs), pat, ty, rule, path, variants) =
+	let val patTy = TU.destructDataconTy(ty, dcon)
 	    fun merge ((variant as (key',andor))::rest, revprefix) =
 		  if eqKey(key,key')
 		  then let val modifiedVariant =  (* merge with existing variant for this dcon *)
@@ -437,8 +480,9 @@ let
 		      (mergeAndor(pat,ty,rule,rootRPath,andor), R.increment rule))
 		  (INITIAL, 0) pats)
 
- in pushDefaults(R.empty, (makeAndor0 (pats, topTy)))
-
+    val andOr1 = makeAndor0 (pats, topTy)
+    val andOr2 = pushDefaults (R.empty, andOr1)
+ in andOr2
 end (* fun makeAndor *)
 
 end (* local open *)
@@ -446,23 +490,19 @@ end (* local open *)
 end (* structure AndOr *)
 
 
-    (* DBM: what are the invariants of merging?  E.g.
-        - Should WILDCARD and variables "absorb" any futher patterns? NO! Example 2.
-        - If there is a dominating discrimination, will two nodes ever be merged? NO.
-        - There are no nested BIND or DEFAULT constructors.  They always merge into one.
-        - Patterns that are merged into an andor tree have the same type, and that
-          applies to subpatterns all the way down to the leaves. This implies that
-          a record pattern will only be merged with a "record" (ALL) andor node,
-          never with a ORdata or ORconst or ORvec andor node (which are varieties of OR nodes).
-        - vector element patterns will only be merged with andor nodes (lists) of the
-          same length (after discriminating on the length at a ORvec node).
-        -- push defaults down paths and accumulte them
-     *)
+(* TODO: vectors of length 0 and 1? *)
 
-    (* DEFAULT RULE:
-     * If we systematically add an extra default rule (e.g. "_ => raise MATCH") to close
-     * a potentially nonexhaustive match, then the rule number of that default rule will
-     * be n (if the original match had n rules, numbered starting with 0).
-     * This means that rule n will be a default rule for the entire andor tree of the
-     * match.
-     *)
+(* INVARIANT: variants for a vector OR-node are ordered by vector pattern length *)
+
+(* DBM: what are the invariants of merging?  E.g.
+    - Should WILDCARD and variables "absorb" any futher patterns? NO! Example 2.
+    - If there is a dominating discrimination, will two nodes ever be merged? NO.
+    - There are no nested BIND or DEFAULT constructors.  They always merge into one.
+    - Patterns that are merged into an andor tree have the same type, and that
+      applies to subpatterns all the way down to the leaves. This implies that
+      a record pattern will only be merged with a "record" (ALL) andor node,
+      never with a ORdata or ORconst or ORvec andor node (which are varieties of OR nodes).
+    - vector element patterns will only be merged with andor nodes (lists) of the
+      same length (after discriminating on the length at a ORvec node).
+    -- push defaults down paths and accumulte them
+*)

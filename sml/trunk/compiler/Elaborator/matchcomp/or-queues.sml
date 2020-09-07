@@ -5,12 +5,13 @@
  * OR nodes are represented by priority queues using the SML/NJ Library Util
  * functor LeftPriorityQFn. *)
 
-structure OrderedOrNodes =
+structure ORQueues =
 struct
 
 local
     structure R = Rules
     structure TU = TypesUtil
+    structure MU = MCUtil
     open MCTypes (* AND, OR, SINGLE, VARS, LEAF *)
 in
 
@@ -32,14 +33,14 @@ struct
 		  | EQUAL => EQUAL
 		  | GREATER => LESS)
 	  | GREATER => LESS)
-  
+
   (* priority: andor -> goodness *)
   (* priority applies only to OR nodes *)
   fun priority (OR{defaults,variants,...}) : priority =
       let val variantsLength = length variants
 	  val variantsCount =
 	      case variants
-	       of (D dcon, _)::_ =>
+	       of (D (dcon,_), _)::_ =>
 		   if variantsLength < TU.dataconWidth dcon
                       andalso not(R.isEmpty defaults)
 		   then variantsLength + 1
@@ -53,7 +54,7 @@ struct
 	(* "infinitely low" priority for non-OR nodes, which won't occur in queues anyway *)
 
 end (* structure AndorPriority *)
-    
+
 (* APQ: priority queues of OR nodes *)
 structure APQ = LeftPriorityQFn(AndorPriority)
 
@@ -76,8 +77,8 @@ fun findAndRemove (pred: APQ.item -> bool) (queue: APQ.queue) =
  * a choice key). *)
 
 (* accessible : andor -> APQ.queue *)
-(* collect the "accessible" OR nodes, i.e. all OR nodes that are reachable from 
- * the root without passing through another OR node. If there are no OR nodes, 
+(* collect the "accessible" OR nodes, i.e. all OR nodes that are reachable from
+ * the root without passing through another OR node. If there are no OR nodes,
  * accessible returns nil. All accessible nodes are independent (incomparable
  * with respect to path prefix ordering), because we stop at the first OR node
  * reachable from the root. Singleton datatypes produce SINGLE nodes, not OR nodes,
@@ -89,7 +90,8 @@ fun accessible andor =
     (case andor
        of AND{children,...} => accessibleList children
 	| OR _ => APQ.singleton andor       (* non-degenerate OR node is opaque *)
-	| SINGLE{arg,...} => accessible arg (* SINGLE nodes are "transparent" *)
+	| SINGLE{variant = (_,arg),...} => accessible arg
+	    (* SINGLE nodes are "transparent" *)
 	| _ => APQ.empty)
 
 (* accessibleList : andor list -> APQ.queue *)
@@ -99,14 +101,13 @@ and accessibleList andors =
 (* selectBestRelevant : APQ.queue * ruleno -> (andor * APQ.queue) option *)
 (* CLAIM: the compatibility test is probably redundant, because queues will always
  * contain only mutually compatible OR nodes. *)
-fun selectBestRelevant (orNodes: APQ.queue, leastLive: ruleno, currentPath: path) =
-    let fun relevant (OR{path,defaults,...}) =
-	    not(R.member(defaults, leastLive)) andalso
-	    not(incompatible(currentPath,path)) (* OR node is relevant *)
+fun selectBestRelevant (orNodes: APQ.queue, leastLive: ruleno (*, currentPath: path*)) =
+    let fun relevant (OR{defaults,...}) =
+	    not(R.member(defaults, leastLive)) (* andalso
+	    not(MU.incompatible(currentPath,path)) (* OR node is relevant *) *)
 	  | relevant _ = bug "relevant"
      in findAndRemove relevant orNodes
     end
 
 end (* local *)
 end (* structure OrderedOrNodes *)
-

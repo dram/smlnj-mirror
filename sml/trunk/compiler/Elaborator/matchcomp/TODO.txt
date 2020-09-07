@@ -35,16 +35,32 @@ TODO list for new match compiler
 
 
 [*] polymorphism: explicit abstraction over "typevar"s in mcexp.
+  Leaving this to FLINT, based on its book-keeping using LBOUND metatyvars.
 
-* Translation from mcexp [+absyn] to Plambda.
+[*] Translation from mcexp [+absyn] to Plambda.
   -- special case of matching intinf constants, see getintinfswitch
      in trans/translate.sml
+  See FLINT/trans/translate-new.sml
      
-* Type checker modification to introduce new "typevar"s when
+[*] Type checker modification to introduce new "typevar"s when
   generalizing types, and saving those new typevars in the Absyn
   in an appropriate place. [Temporary fix -- later will revise
   the type checker to produce a new "fully explicit" typed absyn.]
-  
-  
 
+  -- Not doing this at this point. Leave this issue to the typechecker
+     rewrite, where the FLINT LBOUND metatyvars will be dealt with.
+
+[*] matchComp (the main match compiler function) is called within
+  typecheck.sml, immediately after type checking the relevant
+  constructs (case and fn matches, exn handlers, refutable let bindings).
+
+
+
+================================================================================ 
+BUGS:
+================================================================================
+
+* TypesUtil.refutablePats used to check whether an ORpat is refutable
+  is not correct.
+  See comment in the code.
 

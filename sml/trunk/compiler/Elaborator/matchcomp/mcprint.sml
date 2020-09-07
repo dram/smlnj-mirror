@@ -11,7 +11,9 @@ local
     structure PU = PPUtil
     structure T = Types
     structure TU = TypesUtil
-    structure V = Var
+    structure A = Access
+    structure LV = LambdaVar
+    structure V = VarCon
     structure SV = SVar
     structure R = Rules
     open Absyn MCTypes
@@ -19,14 +21,15 @@ in
 
 fun CC f x y = f y x
 
-fun numlabel i = S.make (Int.toString i)
+(*
+fun numlabel i = S.labSymbol (Int.toString i)
 
 fun checkpat (n,nil) = true
   | checkpat (n, (sym,_)::fields) =
     S.eq(sym, numlabel n) andalso checkpat(n+1,fields)
 
-fun isTUPLEpat (RECORDpat{fields=[_]}) = false  (* one element records are not tuples *)
-  | isTUPLEpat (RECORDpat{fields}) = checkpat(1,fields)
+fun isTUPLEpat (RECORDpat{fields=[_],...}) = false  (* one element records are not tuples *)
+  | isTUPLEpat (RECORDpat{fields,...}) = checkpat(1,fields)
   | isTUPLEpat _ = false
 
 (* pretty printing (restricted) patterns *)
@@ -36,6 +39,7 @@ fun ppVar ppstrm (var: V.var) =
 fun ppDcon ppstrm (dcon: T.datacon) =
     PP.string ppstrm (S.name(TU.dataconName dcon))
 
+
 fun ppPat ppstrm =
     let val {openHOVBox, openHVBox, closeBox, pps, ppi, ...} = PU.en_pp ppstrm
 	fun ppPat' (_,0) = pps "<pat>"
@@ -44,13 +48,13 @@ fun ppPat ppstrm =
           | ppPat' (NUMpat(src, _), _) = pps src
 	  | ppPat' (STRINGpat s,_) = PU.ppString ppstrm s
 	  | ppPat' (CHARpat s,_) = (pps "#"; PU.ppString ppstrm s)
-	  | ppPat' (LAYEREDpat (v,p),d) =
+	  | ppPat' (LAYEREDpat (VARpat v, p), d) =
 	      (openHVBox 0;
 	       ppVar ppstrm v; pps " as "; ppPat'(p,d-1);
 	       closeBox ())
 		    (* Handle 0 length case specially to avoid {,...}: *)
-	  | ppPat' (RECORDpat{fields=[]},_) = pps "()"
-	  | ppPat' (r as RECORDpat{fields},d) =
+	  | ppPat' (RECORDpat{fields=[],...},_) = pps "()"
+	  | ppPat' (r as RECORDpat{fields,...},d) =
 	      if isTUPLEpat r
 	      then PU.ppClosedSequence ppstrm
 		     {front=(CC PP.string "("),
@@ -108,7 +112,7 @@ and ppDconPat ppstrm =
 	fun ppDconPat'(_,0) = pps "<pat>"
 	  | ppDconPat'(CONpat(dcon,_),_) =
 	      PU.ppSym ppstrm (TU.dataconName dcon)
-	  | ppDconPat'(LAYEREDpat(v,base),d) =
+	  | ppDconPat'(LAYEREDpat (VARpat v, base), d) =
 	     (openHOVBox 0;
 	      pps "("; ppVar ppstrm v; PP.break ppstrm {nsp=1,offset=2};
 	      pps " as "; ppPat ppstrm (base,d-1); pps ")";
@@ -117,7 +121,8 @@ and ppDconPat ppstrm =
 	      let val dname = TU.dataconName dcon
 	       in openHOVBox 2;
 		  pps "(";
-		  pps dname; PP.break ppstrm {nsp=1,offset=0};
+		  PU.ppSym ppstrm dname;
+		  PP.break ppstrm {nsp=1,offset=0};
 		  ppDconPat'(p,d-1);
 		  pps ")";
 		  closeBox ()
@@ -125,7 +130,7 @@ and ppDconPat ppstrm =
 	  | ppDconPat' (p,d) = ppPat ppstrm (p,d)
      in ppDconPat'
     end
-
+*)
 (*
 (* keys and paths *)
 
@@ -177,17 +182,25 @@ fun ppVarBindings ppstrm vars =
 	   vars
     end
 
-(* andor trees *)
+fun ppLvar ppstrm (var : V.var) =
+    (case var
+      of V.VALvar{access = A.LVAR lv,...} =>
+	   PP.string ppstrm ("v" ^ (LV.prLvar lv))
+       | _ => bug "ppLvar")
 
+(* andor trees *)
+		   
 (* ppAndor : ppstrm -> andor -> unit *)
 (* bare-bones pretty printer for AND-OR nodes *)
 fun ppAndor ppstrm =
-    let fun ppNode ppstrm (AND{path,direct,defaults,children,...}) =
+    let fun ppNode ppstrm (AND{info={id,path,...},direct,defaults,children,...}) =
 	    (PP.openHOVBox ppstrm (PP.Abs 0);
 	     PP.openHBox ppstrm;
 	     ppPath ppstrm path;
 	     PP.break ppstrm {nsp=1,offset=0};
              PP.string ppstrm "AND";
+	     PP.break ppstrm {nsp=1,offset=0};
+	     PP.string ppstrm (Int.toString id);
 	     PP.break ppstrm {nsp=1,offset=0};
 	     ppRuleset ppstrm direct;
 	     PP.break ppstrm {nsp=1,offset=0};
@@ -195,12 +208,14 @@ fun ppAndor ppstrm =
 	     PP.closeBox ppstrm;
 	     ppAndChildren ppstrm children;
 	     PP.closeBox ppstrm)
-	  | ppNode ppstrm (OR{path,direct,defaults,variants,...}) =
+	  | ppNode ppstrm (OR{info={id, path,...}, direct,defaults,variants,...}) =
 	    (PP.openHOVBox ppstrm (PP.Abs 0);
              PP.openHBox ppstrm;
 	     ppPath ppstrm path;
 	     PP.break ppstrm {nsp=1,offset=0};
 	     PP.string ppstrm "OR";
+	     PP.break ppstrm {nsp=1,offset=0};
+	     PP.string ppstrm (Int.toString id);
 	     PP.break ppstrm {nsp=1,offset=0};
 	     ppRuleset ppstrm direct;
 	     PP.break ppstrm {nsp=1,offset=0};
@@ -208,10 +223,28 @@ fun ppAndor ppstrm =
 	     PP.closeBox ppstrm;
 	     ppVariants ppstrm variants;
 	     PP.closeBox ppstrm)
-	  | ppNode ppstrm (SINGLE _) = PP.string ppstrm "SINGLE"
-	  | ppNode ppstrm (andor as VARS{vars,defaults,...}) =
+	  | ppNode ppstrm (SINGLE{info = {id,path,...}, variant = (key,arg), ...}) =
+	    (PP.openHOVBox ppstrm (PP.Abs 0);
+             PP.openHBox ppstrm;
+	     ppPath ppstrm path;
+	     PP.break ppstrm {nsp=1,offset=0};
+	     PP.string ppstrm "SINGLE";
+	     PP.break ppstrm {nsp=1,offset=0};
+	     PP.string ppstrm (Int.toString id);
+	     PP.break ppstrm {nsp=1,offset=0};
+	     PP.closeBox ppstrm;
+	     PP.openVBox ppstrm (PP.Abs 2);
+	     PP.cut ppstrm;
+	     ppVariant ppstrm (key, arg);
+	     PP.closeBox ppstrm;
+	     PP.closeBox ppstrm)
+	  | ppNode ppstrm (VARS{info = {id,path,vars,...},defaults,...}) =
 	    (PP.openHBox ppstrm;
+	     ppPath ppstrm path;
+	     PP.break ppstrm {nsp=1,offset=0};
 	     PP.string ppstrm "VARS";
+	     PP.break ppstrm {nsp=1,offset=0};
+	     PP.string ppstrm (Int.toString id);
 	     PP.break ppstrm {nsp=1,offset=0};
 	     ppVarBindings ppstrm vars;
 	     PP.break ppstrm {nsp=1,offset=0};
@@ -252,18 +285,18 @@ fun ppAndor ppstrm =
 val ppDecTree =
     let fun ppDec ppstrm (CHOICE{node,choices,default}) =
             (PP.openHBox ppstrm;
-	     PP.string ppstrm "DEC";
+	     PP.string ppstrm "CHOICE";
 	     PP.break ppstrm {nsp=1,offset=0};
 	     ppPath ppstrm (getPath node);
 	     ppChoices ppstrm (choices,default);
 	     PP.closeBox ppstrm)
-	  | ppDec ppstrm (DLEAF r) =
+	  | ppDec ppstrm (DLEAF (r, _)) =
 	    (PP.openHBox ppstrm;
 	     PP.string ppstrm "DLEAF";
 	     PP.break ppstrm {nsp=1,offset=0};
 	     PU.ppi ppstrm r;
 	     PP.closeBox ppstrm)
-	  | ppDec ppstrm RAISEMATCH =
+	  | ppDec ppstrm (DMATCH _) =
 	    (PP.openHBox ppstrm;
 	     PP.string ppstrm "MATCH";
 	     PP.closeBox ppstrm)
@@ -305,7 +338,8 @@ fun ppSvars ppstrm svars =
      PP.string ppstrm ")";
      PP.closeBox ppstrm)
 
-fun ppVar ppstrm (var: Var.var) = PU.ppSym ppstrm (V.varName var)
+(*
+fun ppVar ppstrm (var: V.var) = PU.ppSym ppstrm (V.varName var)
 
 fun ppVars ppstrm svars =
     (PP.openHBox ppstrm;
@@ -343,24 +377,6 @@ val ppCode =
 	     ppSvar ppstrm v;
 	     PP.closeBox ppstrm;
 	     ppcases ppstrm (cases,default);
-	     PP.closeBox ppstrm)
-	  | ppc ppstrm (Case1(v1,dcon,v2,body)) =
-	    (PP.openVBox ppstrm (PP.Rel 2);
-	     PP.openHBox ppstrm;
-	     PP.string ppstrm "Case1";
-	     PP.break ppstrm {nsp=1,offset=0};
-	     ppSvar ppstrm v1;  (* definiens svar *)
-	     PP.break ppstrm {nsp=1,offset=0};
-	     PP.string ppstrm "of";
-	     PP.break ppstrm {nsp=1,offset=0};
-	     PP.string ppstrm (TU.dataconName dcon);
-	     PP.break ppstrm {nsp=1,offset=0};
-             ppSvar ppstrm v2;  (* "pattern" svar *)
-	     PP.break ppstrm {nsp=1,offset=0};
-	     PP.string ppstrm "=>";
-	     PP.closeBox ppstrm;
-	     PP.cut ppstrm;
-	     ppc ppstrm body;
 	     PP.closeBox ppstrm)
 	  | ppc ppstrm (Var svar) =
 	     ppSvar ppstrm svar
@@ -444,17 +460,17 @@ val ppCode =
 	     PP.closeBox ppstrm)
     in ppc
     end
-
+*)
 (* top-level printing functions *)
 
 val printDepth = ref 10
 
 (* top-level print functions *)
-fun tppPat pat =
+(* fun tppPat pat =
     PP.with_default_pp(fn ppstrm => ppPat ppstrm (pat,!printDepth))
-
 fun tppPats pats =
     List.app tppPat pats
+*)
 
 fun tppAndor andor =
     PP.with_default_pp(fn ppstrm => ppAndor ppstrm andor)
@@ -462,9 +478,10 @@ fun tppAndor andor =
 fun tppDecTree dectree =
     PP.with_default_pp(fn ppstrm => ppDecTree ppstrm dectree)
 
+(*
 fun tppCode mcexp =
     PP.with_default_pp(fn ppstrm => ppCode ppstrm mcexp)
-
+*)
 fun tppRules ruleset =
     PP.with_default_pp(fn ppstrm => ppRuleset ppstrm ruleset)
 

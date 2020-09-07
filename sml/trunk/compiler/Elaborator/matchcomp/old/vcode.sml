@@ -78,23 +78,25 @@ fun vLetm (vars, svars, body) =
     in wrapLets (vars,svars)
     end
 
+(* in vmcexp.sml, only one Case -- these two functions should be merged *)
 (* vCase1 : SV.svar * T.datacon * SV.svar * mcexp -> mcexp *)
 fun vCase1 (svar, dcon, svardest, rhsexp) =
     let val scrutinee = vVar svar
 	val rule = caseToRule (D dcon, SOME svardest, rhsexp)
-     in CASEexp(scrutinee, [rule], true)  (* true signals vCase1 form; kludge! *)
+     in CASEexp(scrutinee, ([rule],SV.svarType svar, resTy???))
     end
 
 (* vCase : SV.svar * branch list * mcexp option -> mcexp *)
 (* The default, if available, is integrated into the rules. *)
 fun vCase (svar, cases, defaultOp) =
     let val scrutinee = vVar svar
-	val rules = map caseToRule case
+	val rules = map caseToRule cases
         val rules' =
 	    case defaultOp
 	      of NONE => rules
-	       | SOME exp => rules@[RULE(WILDpat, exp)]
-     in CASEexp(scrutinee, rules', false)  (* false signals vCase form; kludge! *)
+	       | SOME exp => rules@[RULE(WILDpat, exp)] 
+	       (* OBS. default coded as an extra default rule *)
+     in CASEexp(scrutinee, (rules', SV.svarType svar, resTy????))
     end
 
 (* vSfun : V.var list * mcexp -> mcexp *)
@@ -103,7 +105,7 @@ fun vSfun (pvars, body) =
     let val pats = map (fn sv => VARpat(SV.svarToVar sv)) pvars
 	val rule = RULE(TUPLEpat pats, body)
 	val ty = << ty??? >>
-     in FNexp([rule], T.UNDEFty)  (* FNexp always applied to UNDEFty in elabcore.sml *)
+     in FNexp([rule], T.UNDEFty, T.UNDEFty)  (* FNexp always applied to UNDEFty in elabcore.sml *)
     end
 
 (* vSapp : SV.svar * SV.svar list -> mcexp *)
