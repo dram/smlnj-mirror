@@ -2474,15 +2474,16 @@ current varenvMC (and the corresponding path is consistent with the trace).
 
 
 ================================================================================
-[37] OR pattern normalization
+[37] OR pattern validation/normalization
 ================================================================================
 
 Here are some examples of "funny" OR patterns:
 
 (1)   OR(x, x)     "x | x"
 (2)   OR((x,true), (x, y))   "(x,true) | (x, y)"
+(3)   OR(x, 1::x)  "x | 1::x"
 
-* OR Normalization: a normalized OR pattern OR(p1,p2) is one where p1 and p2 are
+== OR Normalization: a normalized OR pattern OR(p1,p2) is one where p1 and p2 are
 incompatible at their roots.
 
 We can reduce OR patterns to either (1) a non-OR pattern, or (2) a normalized
@@ -2517,6 +2518,52 @@ Example:
       OR((x,true), (x, y))   "(x,true) | (x, y)"
       ==> (OR(x,x), OR(true,y))
       ==> (x, y)
+
+------------------------------------
+== OR pattern checking or validation
+
+Rather than "normalizing" OR patterns to remove undesired examples, we can establish
+criteria for "legal" OR patterns and generate error message when an illegal OR pattern
+is detected.  Here is a proposal for the desired properties that a legal OR pattern
+must satisfy:
+
+An OR pattern OR(p1,p2) is legal if:
+
+(1) p1 and p2 have the same type ty, which is also the type of the OR pattern.
+
+(2) p1 and p2 must have the same set of bound pattern variables, i.e.,
+FV(p1) = FV(p2).
+
+(3) p1 and p2 must be _disjoint_, where
+
+Definition: Patterns p1 and p2 are _disjoint_ if no value matches p1 and p2, i.e.
+Val(p1) \intersect Val(p2) = \emptyset, where V(p) is the set of values matching p.
+
+Algorithmically, we can test whether p1 and p2 are disjoint by
+
+(1) p1 and p2 are product patterns and there exists a field f such that p1.f and p2.f
+are disjoint.
+
+(2) p1 and p2 are sum patterns whose top tags (keys, constructors) are different.
+E.g. 1 | 2;  true | false;  nil | p::q
+
+(3) if p1 or p2 is a variable, then they are not disjoint
+
+Conjectured proposition:
+
+Defn: Pattern conjunction. The conjunction of patterns p1 and p2, denoted p1 & p2,
+is a pattern which is matched by values matching both p1 and p2.  Thus
+Val(p1 & p2) = Val(p1) & Val(p2).
+
+Prop. If p1 and p2 are not disjoint, then there exists a pattern p such that
+Val(p) = Val(p1) \intersect Val(p2) = Val (p1 & p2).
+
+Actually, probably not true.
+
+Also there is the relation p1 < p2, such that Val(p1) \subset Val(p2) -- any value
+matching p2 also matches p1.  A variable is a maximal pattern by that ordering.
+(p1 and p2 assumed to be of the same type).
+
 
 ================================================================================
 [NN] Literature
