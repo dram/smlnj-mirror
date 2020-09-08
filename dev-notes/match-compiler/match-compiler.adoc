@@ -2567,7 +2567,7 @@ matching p2 also matches p1.  A variable is a maximal pattern by that ordering.
 Question: Find two patterns p1 and p2 such that p1 and p2 are not disjoint, but
 neither p1 < p2 nor p2 < p1 holds.
 
-Do patterns form a lattice under <?
+Do patterns form a lattice under <?  NO.
 
 
 ================================================================================
