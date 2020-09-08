@@ -2556,13 +2556,18 @@ is a pattern which is matched by values matching both p1 and p2.  Thus
 Val(p1 & p2) = Val(p1) & Val(p2).
 
 Prop. If p1 and p2 are not disjoint, then there exists a pattern p such that
-Val(p) = Val(p1) \intersect Val(p2) = Val (p1 & p2).
+Val(p) = Val(p1) \intersect Val(p2) = Val (p1 & p2). ("meet" in pattern space).
 
-Actually, probably not true.
+Actually, this proposition is probably not true.  Counterexample?
 
 Also there is the relation p1 < p2, such that Val(p1) \subset Val(p2) -- any value
 matching p2 also matches p1.  A variable is a maximal pattern by that ordering.
 (p1 and p2 assumed to be of the same type).
+
+Question: Find two patterns p1 and p2 such that p1 and p2 are not disjoint, but
+neither p1 < p2 nor p2 < p1 holds.
+
+Do patterns form a lattice under <?
 
 
 ================================================================================
