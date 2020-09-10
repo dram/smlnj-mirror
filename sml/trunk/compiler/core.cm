@@ -262,7 +262,6 @@ FLINT/trans/literal-to-num.sml    (* uses CoreIntInf functionality *)
 FLINT/lsplit/ls-inline.sml
 
 (* The CPS stages *)
-CPS/clos/cps-split.sml
 CPS/clos/globalfix.sml
 CPS/clos/closure.sml
 CPS/clos/freeclose.sml

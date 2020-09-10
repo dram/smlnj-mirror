@@ -1,6 +1,7 @@
 (* code-obj.sig
  *
- * COPYRIGHT (c) 1998 Bell Labs, Lucent Technologies.
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * An interface for manipulating code objects.
  *)
@@ -11,8 +12,7 @@ signature CODE_OBJ =
     type code_object
 
     type csegments = {
-	c0 : code_object,
-	cn : code_object list, 
+	code : code_object,
 	data : Word8Vector.vector
       }
 

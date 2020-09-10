@@ -41,9 +41,9 @@ signature MLRISCGEN =
    * "finish" before forcing it.
    *)
     val codegen : {
+	    source: string,
 	    funcs: CPS.function list,
-	    limits:  CPS.lvar -> int * int,
-	    source: string
+	    maxAlloc :  CPS.lvar -> int
 	  } -> (unit -> int)
 
   end
@@ -258,8 +258,7 @@ functor MLRiscGen (
    * The main codegen function.
    *)
     fun codegen args = let
-	  val { funcs : C.function list, limits:C.lvar -> (int*int), source } = args
-	  val maxAlloc = #1 o limits
+	  val { funcs : C.function list, maxAlloc:C.lvar -> int, source } = args
 	  val splitEntry = !splitEntry
 
 	(*

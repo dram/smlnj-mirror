@@ -1,7 +1,9 @@
 (* cps-comp.sml
  *
- * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
+ *
+ * Translate FLINT to machine code via CPS.
  *)
 
 functor CPSCompFn (
@@ -17,7 +19,6 @@ functor CPSCompFn (
     structure CPSopt = CPSopt(MachSpec)
     structure Closure = Closure(MachSpec)
     structure Spill = SpillFn(MachSpec)
-    structure CpsSplit = CpsSplitFun (MachSpec)
 
     structure Machine = Gen
 
@@ -49,37 +50,31 @@ functor CPSCompFn (
 	  else e
 
     fun compile {source, prog} = let
-	(* finish up with CPS *)
-	  val (nc0, ncn, dseg) = let
-		val function = convert prog
-		val _ = prC "convert" function
-		val function = (prC "cpstrans" o cpstrans) function
-		val function = cpsopt (function, NONE, false)
-		val _ = prC "cpsopt" function
-	      (* split out heap-allocated literals; litProg is the bytecode *)
-		val (function, litProg) = if !Control.CG.newLiterals orelse Target.is64
-		      then newlitsplit function
-		      else litsplit function
-		val _ = prC "cpsopt-code" function
-		fun gen fx = let
-		      val fx = (prC "closure" o closure) fx
-		      val carg = globalfix fx
-		      val carg = spill carg
-		      val (carg, limit) = limit carg
-		      val epthunk = codegen {
-			      funcs = carg, limits = limit, source = source
-			    }
-		      in
-			collect epthunk
-		      end
-	        in
-		  case CpsSplit.cpsSplit function
-		   of (fun0 :: funn) => (gen fun0, List.map gen funn, litProg)
-		    | [] => bug "unexpected case on gen in CPSComp.compile"
-		  (* end case *)
-	        end
-        in
-	  {c0=nc0, cn=ncn, data=dseg}
-        end (* function compile *)
+	(* convert to CPS *)
+	  val function = convert prog
+	  val _ = prC "convert" function
+	  val function = (prC "cpstrans" o cpstrans) function
+	(* optimize CPS *)
+	  val function = cpsopt (function, NONE, false)
+	  val _ = prC "cpsopt-code" function
+	(* split out heap-allocated literals; litProg is the bytecode *)
+(* TODO: switch to newLiterals for all targets *)
+	  val (function, data) = if !Control.CG.newLiterals orelse Target.is64
+		then newlitsplit function
+		else litsplit function
+	  val _ = prC "lit-split" function
+	(* convert CPS to closure-passing style *)
+	  val function = prC "closure" (closure function)
+	(* flatten to 1st-order CPS *)
+	  val funcs = globalfix function
+	(* spill excess live variables *)
+	  val funcs = spill funcs
+	(* heap-limit checks *)
+	  val (funcs, limit) = limit funcs
+	  val getEP = codegen {source = source, funcs = funcs, maxAlloc = #1 o limit}
+	  val code = collect getEP
+	  in
+	    {code=code, data=data}
+	  end (* function compile *)
 
   end (* CPSComp *)

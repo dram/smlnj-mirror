@@ -105,7 +105,7 @@ functor EvalLoopF (Compile: TOP_COMPILE) : EVALLOOP =
 
 		      fun getenv () = E.layerEnv (#get loc (), #get base ())
 
-		      val {static=statenv, dynamic=dynenv, symbolic=symenv} = getenv ()
+		      val {static=statenv, dynamic=dynEnv, symbolic=symenv} = getenv ()
 
 		      (* conditional diagnostic code to print ast - could it be involked from parser?
 			 if so, what statenv would be used? *)
@@ -129,16 +129,16 @@ functor EvalLoopF (Compile: TOP_COMPILE) : EVALLOOP =
 			  fixed in the long run. (ZHONG)
 		       *)
 
-		      val executable = Execute.mkexec
+		      val executable = Execute.mkExec
 					   { cs = csegments,
-					     exnwrapper = ExnDuringExecution }
-				       before checkErrors ("mkexec")
+					     exnWrapper = ExnDuringExecution }
+				       before checkErrors ("mkExec")
 		      val executable = Isolate.isolate (interruptable executable)
 
 		      val _ = (PC.current := Profile.otherIndex)
 		      val newdynenv =
 			  Execute.execute { executable=executable, imports=imports,
-					    exportPid=exportPid, dynenv=dynenv }
+					    exportPid=exportPid, dynEnv=dynEnv }
 		      val _ = (PC.current := Profile.compileIndex)
 
 		      val newenv =

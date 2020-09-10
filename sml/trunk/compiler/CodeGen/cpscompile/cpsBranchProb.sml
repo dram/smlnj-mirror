@@ -20,12 +20,13 @@
  *    bounds check, raising an exception, <any others>
  *)
 
-signature CPS_BRANCH_PROB = sig
+signature CPS_BRANCH_PROB =
+  sig
     exception CpsProbTbl
 
     val branchProb : CPS.function list -> (CPS.lvar -> Probability.prob option)
 
-end
+  end
 
 structure CpsBranchProb : CPS_BRANCH_PROB = struct
 
