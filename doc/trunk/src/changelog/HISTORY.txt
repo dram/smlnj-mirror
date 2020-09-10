@@ -92,7 +92,26 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //////////////////////////////////////////////////////////////////////
 
 //====================================================================
-//== Recent updates
+== Recent updates
+
+//--------------------------------------------------------------------
+[2020/09/10]::
++
+Simplified the *binfile* representation by removing the option of
+having multiple code objects.  Many years ago, we would split the
+code for a compilation unit into multiple independent functions
+so that the garbage collector could reclaim code that was only
+executed once (or was not referenced).  The actual splitting of
+the code in the `CpsSplitFun` functor (`CPS/clos/cps-split.sml`)
+was replaced by a dummy implementation at some point, so we have
+not been generating multiple code objects for some time.  Therefore,
+we have simplified the code generator to assume only one code
+object and have changed the *binfile* import/export code to only
+support a single code object per *binfile*.
++
+Also made this change to the bootstrap loader (`kernel/boot.c`).
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
 
 == Version 110.98.1; 2020/08/25
 
