@@ -1,6 +1,6 @@
 /*! \file boot.c
  *
- * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
  * This is the bootstrap loader for booting from .bin files.
@@ -239,8 +239,7 @@ PVT FILE *OpenBinFile (const char *fname, bool_t isBinary)
  *            h  l  pickle of exported lambda-expr. (l = lambdaSzB)
  *          l+h  r  reserved area (r = reserved)
  *        r+l+h  p  padding (p = pad)
- *      p+r+l+h  c  code area (c = codeSzB) [Structured into several
- *                    segments -- see below.]
+ *      p+r+l+h  c  code area (c = codeSzB)
  *    c+p+r+l+h  e  pickle of static environment (e = envSzB)
  *  e+c+p+r+l+h  -  END OF BINFILE
  *
@@ -280,41 +279,35 @@ PVT FILE *OpenBinFile (const char *fname, bool_t isBinary)
  *
  * CODE AREA FORMAT description:
  *
- *  The code area contains multiple code segements.  There will be at least
- *  two.  The very first segment is the "data" segment -- responsible for
- *  creating literal constants on the heap.  This code is actually a simple
- *  bytecode that is interpreted to build the literals record (see
- *  gc/build-literals.c).
+ *  The code area contains two code segements. The first segment is the "data"
+ *  segment -- responsible for creating literal constants on the heap.  This
+ *  code is actually a simple bytecode that is interpreted to build the literals
+ *  record (see gc/build-literals.c).
  *
- *  In the binfile, each code segment is represented by its size s and its
+ *  In the binfile, the code segment is represented by its size s and its
  *  entry point offset (in bytes -- written as 4-byte big-endian integers)
- *  followed by s bytes of machine- (or byte-) code. The total length of all
- *  code segments (including the bytes spent on representing individual sizes
- *  and entry points) is codeSzB.  The entrypoint field for the data segment
- *  is currently ignored (and should be 0).
+ *  followed by s bytes of machine- (or byte-) code. The length of the code area
+ *  (including the data segment and metadata) is codeSzB. The entrypoint field
+ *  for the data segment is currently ignored (and should be 0).
  *
  * LINKING CONVENTIONS:
  *
  *  Linking is achieved by executing all code segments in sequential order.
  *
- *  The first code segment (i.e., the "data" segment) receives unit as
- *  its single argument.
+ *  The "data" segment receives unit as its single argument.
  *
- *  The second code segment receives a record as its single argument.
- *  This record has (importCnt+1) components.  The first importCnt
- *  components correspond to the leaves of the import trees.  The final
- *  component is the result from executing the data segment.
+ *  The code segment receives a record as its single argument, which has
+ *  (importCnt+1) components.  The first importCnt components correspond
+ *  to the leaves of the import trees.  The final component is the result
+ *  from executing the data segment.
  *
- *  All other code segments receive a single argument which is the result
- *  of the preceding segment.
- *
- *  The result of the last segment represents the exports of the compilation
+ *  The result of the code segment represents the exports of the compilation
  *  unit.  It is to be paired up with the export pid and stored in the
  *  dynamic environment.  If there is no export pid, then the final result
  *  will be thrown away.
  *
  *  The import trees are used for constructing the argument record for the
- *  second code segment.  The pid at the root of each tree is the key for
+ *  code segment.  The pid at the root of each tree is the key for
  *  looking up a value in the existing dynamic environment.  In general,
  *  that value will be a record.  The selector fields of the import tree
  *  associated with the pid are used to recursively fetch components of that
@@ -509,9 +502,8 @@ PVT void LoadBinFile (ml_state_t *msp, char *fname)
     if (NeedGC (msp, PERID_LEN+REC_SZB(5)))
 	InvokeGCWithRoots (msp, 0, &BinFileList, &val, NIL(ml_val_t *));
 
-    while (remainingCode > 0) {
-
-      /* read the size and entry point for this code object */
+    if (remainingCode > 0) {
+      /* read the size and entry point for the code object */
 	ReadBinFile (file, &thisSzB, sizeof(Int32_t), fname);
 	thisSzB = BIGENDIAN_TO_HOST32(thisSzB);
 	ReadBinFile (file, &thisEntryPoint, sizeof(Int32_t), fname);
@@ -519,8 +511,9 @@ PVT void LoadBinFile (ml_state_t *msp, char *fname)
 
       /* how much more? */
 	remainingCode -= thisSzB + 2 * sizeof(Int32_t);
-	if (remainingCode < 0)
-	  Die ("format error (code size mismatch) in bin file \"%s\"", fname);
+	if (remainingCode != 0) {
+	    Die ("format error (code size mismatch) in bin file \"%s\"", fname);
+	}
 
       /* allocate space and read code object */
 	codeObj = ML_AllocCode (msp, thisSzB);
