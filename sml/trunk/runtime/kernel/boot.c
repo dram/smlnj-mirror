@@ -3,7 +3,10 @@
  * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
- * This is the bootstrap loader for booting from .bin files.
+ * This is the bootstrap loader for booting from binfiles.
+ *
+ * See dev-notes/binfile.adoc for a description of the binfile format.
+ * This file must be kept in sync with compiler/Execution/binfile/binfile.sml.
  */
 
 #include "ml-osdep.h"
@@ -208,111 +211,6 @@ PVT FILE *OpenBinFile (const char *fname, bool_t isBinary)
     return file;
 
 } /* end of OpenBinFile */
-
-/*
- * BINFILE FORMAT description:
- *
-*************** The following really belongs in the header file ****************
- *  Every 4-byte integer field is stored in big-endian format.
- *
- *       Start Size Purpose
- * ----BEGIN OF HEADER----
- *            0 16  magic string
- *           16  4  number of import values (importCnt)
- *           20  4  number of exports (exportCnt = currently always 0 or 1)
- *           24  4  size of import tree area in bytes (importSzB)
- *           28  4  size of CM-specific info in bytes (cmInfoSzB)
- *           32  4  size of pickled lambda-expression in bytes (lambdaSzB)
- *           36  4  size of reserved area in bytes (reserved)
- *           40  4  size of padding area in bytes (pad)
- *           44  4  size of code area in bytes (codeSzB)
- *           48  4  size of pickled environment in bytes (envSzB)
- *           52  i  import trees [This area contains pickled import trees --
- *                    see below.  The total number of leaves in these trees is
- *                    importCnt.  The size impSzB of this area depends on the
- *                    shape of the trees.]
- *         i+52 ex  export pids [Each export pid occupies 16 bytes. Thus, the
- *                    size ex of this area is 16*exportCnt (0 or 16).]
- *      ex+i+52 cm  CM info [Currently a list of pid-pairs.] (cm = cmInfoSzB)
- * ----END OF HEADER----
- *            0  h  HEADER (h = 52+cm+ex+i)
- *            h  l  pickle of exported lambda-expr. (l = lambdaSzB)
- *          l+h  r  reserved area (r = reserved)
- *        r+l+h  p  padding (p = pad)
- *      p+r+l+h  c  code area (c = codeSzB)
- *    c+p+r+l+h  e  pickle of static environment (e = envSzB)
- *  e+c+p+r+l+h  -  END OF BINFILE
- *
- * IMPORT TREE FORMAT description:
- *
- *  The import tree area contains a list of (pid * tree) pairs.
- *  The pids are stored directly as 16-byte strings.
- *  Trees are constructed according to the following ML-datatype:
- *    datatype tree = NODE of (int * tree) list
- *  Leaves in this tree have the form (NODE []).
- *  Trees are written recursively -- (NODE l) is represented by n (= the
- *  length of l) followed by n (int * node) subcomponents.  Each component
- *  consists of the integer selector followed by the corresponding tree.
- *
- *  The size of the import tree area is only given implicitly. When reading
- *  this area, the reader must count the number of leaves and compare it
- *  with importCnt.
- *
- *  Integer values in the import tree area (lengths and selectors) are
- *  written in "packed" integer format. In particular, this means that
- *  Values in the range 0..127 are represented by only 1 byte.
- *  Conceptually, the following pickling routine is used:
- *
- *    void recur_write_ul (unsigned long l, FILE *file)
- *    {
- *        if (l != 0) {
- *            recur_write_ul (l >> 7, file);
- *            putc ((l & 0x7f) | 0x80, file);
- *        }
- *    }
- *
- *    void write_ul (unsigned long l, FILE *file)
- *    {
- *        recur_write_ul (l >> 7, file);
- *        putc (l & 0x7f, file);
- *    }
- *
- * CODE AREA FORMAT description:
- *
- *  The code area contains two code segements. The first segment is the "data"
- *  segment -- responsible for creating literal constants on the heap.  This
- *  code is actually a simple bytecode that is interpreted to build the literals
- *  record (see gc/build-literals.c).
- *
- *  In the binfile, the code segment is represented by its size s and its
- *  entry point offset (in bytes -- written as 4-byte big-endian integers)
- *  followed by s bytes of machine- (or byte-) code. The length of the code area
- *  (including the data segment and metadata) is codeSzB. The entrypoint field
- *  for the data segment is currently ignored (and should be 0).
- *
- * LINKING CONVENTIONS:
- *
- *  Linking is achieved by executing all code segments in sequential order.
- *
- *  The "data" segment receives unit as its single argument.
- *
- *  The code segment receives a record as its single argument, which has
- *  (importCnt+1) components.  The first importCnt components correspond
- *  to the leaves of the import trees.  The final component is the result
- *  from executing the data segment.
- *
- *  The result of the code segment represents the exports of the compilation
- *  unit.  It is to be paired up with the export pid and stored in the
- *  dynamic environment.  If there is no export pid, then the final result
- *  will be thrown away.
- *
- *  The import trees are used for constructing the argument record for the
- *  code segment.  The pid at the root of each tree is the key for
- *  looking up a value in the existing dynamic environment.  In general,
- *  that value will be a record.  The selector fields of the import tree
- *  associated with the pid are used to recursively fetch components of that
- *  record.
- */
 
 /* ReadBinFile:
  */
