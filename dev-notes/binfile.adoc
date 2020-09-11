@@ -1,0 +1,141 @@
+= Binfile format and linking
+:Author: John Reppy
+:Date: 2020-09-10
+:stem: latexmath
+:source-highlighter: pygments
+
+== Overview
+
+This document describes the format of **binfiles**, which are use to
+store static environment and machine code produced by compilation,
+and the linking conventions.
+
+The *binfile* format was designed by Matthias Blume and was originally
+documented in the source code (`compiler/Execution/binfile/binfile.sml`
+and `runtime/kernel/boot.c`).
+
+== Binfile Format Description
+
+The *binfile* format is a machine-independent container format.  The
+integer fields (lengths _etc._) are 32-bit integers in big-endian
+format.  It consists of a header followed by the payload
+
+The header has the following layout, where the first colum specifies
+the start offset in bytes, the second column specifies the size in bytes,
+and the third column describes the purpose of the field.
+
+[cols=">6m,>1m,<30a",options="header"]
+|====
+|   Start | Size | Description
+|     0   |   16 | magic string
+|    16   |    4 | number of import values (`importCnt`)
+|    20   |    4 | number of exports (`exportCnt`; always 0 or 1)
+|    24   |    4 | size of import tree area in bytes (`importSzB`)
+|    28   |    4 | size of CM-specific info in bytes (`cmInfoSzB`)
+|    32   |    4 | size of pickled lambda-expression in bytes (`lambdaSzB`)
+|    36   |    4 | size of GUID area in bytes (`g`)
+|    40   |    4 | size of padding in bytes (`pad`)
+|    44   |    4 | size of code area in bytes (`codeSzB`)
+|    48   |    4 | size of pickled environment in bytes (`envSzB`)
+|    52   |    i | import trees (`i == importSzB`)
+|  i+52   |   ex | export pids (`ex == 16 * exportCnt`; __i.e.__, 0 or 16)
+| ex+i+52 |   cm | CM info (``cm == cmInfoSzB``)
+|====
+
+The structure of a *binfile* is as follows:
+
+[cols=">6m,>1m,<30a",options="header"]
+|====
+|       Start | Size | Description
+|           0 |    h | File header as described above (`h == 52+cm_ex+i`)
+|           h |    l | pickle of exported lambda-expr. (`l == lambdaSzB`)
+|         l+h |    g | GUID area (`g == guid`)
+|       r+l+h |    p | padding (`p == pad`)
+|     p+r+l+h |    c | code area (`c == codeSzB`)
+|   c+p+r+l+h |    e | pickle of static environment (`e == envSzB`)
+| e+c+p+r+l+h |    - | end of file
+|====
+
+=== Import Tree Format Description
+
+The import tree area contains a list of `(pid * tree)` pairs.
+The total number of leaves in these trees is `importCnt`.
+The pids are stored directly as 16-byte strings.  Trees are
+constructed according to the following datatype:
+
+[source,sml]
+------------
+datatype tree = NODE of (int * tree) list
+------------
+
+Leaves in this tree have the form `NODE []`.  Trees are serialized
+in a left-to-right preorder; `NODE l` is represented by the integer
+`n` (where `n` is the length of `l`) followed by `n` serialized
+subcomponents with type `int * node`.   Each subcomponent
+consists of the integer selector followed by the corresponding
+serialized tree.
+
+Integer values in the import tree area (lengths and selectors) are
+written in "packed" integer format. In particular, this means that
+Values in the range `0..127` are represented by only one byte.
+Conceptually, the following pickling routine is used:
+
+[source,c]
+----------
+void recur_write_ul (unsigned long l, FILE *file)
+{
+    if (l != 0) {
+	recur_write_ul (l >> 7, file);
+	putc ((l & 0x7f) | 0x80, file);
+    }
+}
+
+void write_ul (unsigned long l, FILE *file)
+{
+    recur_write_ul (l >> 7, file);
+    putc (l & 0x7f, file);
+}
+----------
+
+=== Export PIDs
+
+A *binfile* has zero or one exports.  If present, the export is identified
+by a 16-byte *PID*. Thus, the size (`ex`) of the exports `0` or `16` bytes.
+
+=== Code Area Format Description
+
+The code area contains two segements.  The first segment is the "data"
+segment -- responsible for creating literal constants on the heap.
+The idea is that code in the data segment will be executed only once at
+link-time. Thus, it can then be garbage-collected immediatly. (In fact,
+the data segment does not consist of machine code but of code for an
+internal bytecode engine.)  The second segment is the executable code
+for the module.
+
+In the *binfile*, each code segment is represented by its size s and its
+entry point offset (in bytes -- written as 4-byte big-endian integers)
+followed by s bytes of machine- (or byte-) code. The total length of the
+code segments (including the bytes spent on representing individual sizes
+and entry points) is codeSzB.  The entrypoint field for the data segment
+is currently ignored (and should be 0).
+
+== Linking Conventions
+
+Linking is achieved by executing the two segments in sequential order.
+
+The code segment receives a record as its single argument, which has
+`importCnt+1` components.  The first `importCnt` components correspond
+to the leaves of the import trees.  The final component is the result
+from executing the data segment.
+
+The result of the code segment represents the exports of the compilation
+unit.  It is to be paired up with the export pid and stored in the
+dynamic environment.  If there is no export pid, then the final result
+will be thrown away.
+
+The import trees are used for constructing the argument record for the
+code segment.  The pid at the root of each tree is the key for
+looking up a value in the existing dynamic environment.  In general,
+that value will be a record.  The selector fields of the import tree
+associated with the pid are used to recursively fetch components of that
+record.
