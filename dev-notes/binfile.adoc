@@ -6,7 +6,7 @@
 
 == Overview
 
-This document describes the format of **binfiles**, which are use to
+This document describes the format of **binfiles**, which are used to
 store static environment and machine code produced by compilation,
 and the linking conventions.
 
@@ -20,7 +20,7 @@ The *binfile* format is a machine-independent container format.  The
 integer fields (lengths _etc._) are 32-bit integers in big-endian
 format.  It consists of a header followed by the payload
 
-The header has the following layout, where the first colum specifies
+The header has the following layout, where the first column specifies
 the start offset in bytes, the second column specifies the size in bytes,
 and the third column describes the purpose of the field.
 
