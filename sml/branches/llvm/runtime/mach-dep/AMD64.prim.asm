@@ -58,6 +58,27 @@
  *
  * for details.
  */
+#ifdef LLVM_LAYOUT
+
+#define tempmem0	REGOFF(8192,RSP)
+#define mlStatePtr	REGOFF(8200,RSP)
+#define signBit		REGOFF(8208,RSP)
+#define negateSignBit	REGOFF(8216,RSP)
+#define pc		REGOFF(8224,RSP)	/* gcLink */
+#define baseptr		REGOFF(8232,RSP)	/* start address of module */
+#define exncont		REGOFF(8240,RSP)
+#define varptr		REGOFF(8248,RSP)
+#define start_gc	REGOFF(8256,RSP)	/* holds address of saveregs */
+
+#define ML_SPILL_SIZE	8192
+
+/* the amount to bump up the frame after the callee save registers have been
+ * pushed onto the stack.
+ */
+#define ML_FRAME_SIZE	(ML_SPILL_SIZE+88)
+
+#else /* MLRISC_LAYOUT */
+
 #define tempmem0	REGOFF(0,RSP)
 #define mlStatePtr	REGOFF(8, RSP)
 #define signBit		REGOFF(16,RSP)
@@ -68,15 +89,17 @@
 #define varptr		REGOFF(56,RSP)
 #define start_gc	REGOFF(64,RSP)	/* holds address of saveregs */
 
-/* we put the request code in tempmem before jumping to set_request */
-#define request_w	tempmem0
-
 #define ML_SPILL_SIZE	8192
 
 /* the amount to bump up the frame after the callee save registers have been
  * pushed onto the stack.
  */
 #define ML_FRAME_SIZE	(ML_SPILL_SIZE+88)
+
+#endif /* LLVM_LAYOUT */
+
+/* we put the request code in tempmem before jumping to set_request */
+#define request_w	tempmem0
 
 /* NOTE: this include must come after the definition of stdlink, etc. */
 #include "x86-macros.h"
