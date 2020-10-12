@@ -15,14 +15,14 @@
 #       --np <n>                Specify the number of cores to use in the build
 #
 #       --llvm-src <path>       Specify path to LLVM source tree relative to the
-#                               llvm-codegen directory [default: llvm-10.0.1.src]
+#                               llvm-codegen directory [default: llvm-11.0.0.src]
 #
 #	--release		Build a "release" build in llvm-build-release
 #				[default: "debug" build in llvm-build-debug]
 #
 
 FORCE=no
-LLVM_SRC=llvm-10.0.1.src
+LLVM_SRC=llvm-11.0.0.src
 BUILD_TYPE=Debug
 NPROCS=4
 
