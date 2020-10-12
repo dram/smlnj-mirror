@@ -227,7 +227,7 @@ a check for **JWA** to the function `canGuaranteeTCO`.
   return (CC == CallingConv::Fast || CC == CallingConv::GHC ||
           CC == CallingConv::X86_RegCall || CC == CallingConv::HiPE ||
           CC == CallingConv::HHVM || CC == CallingConv::Tail ||
-	  CC == CallingConv::JWA);
+          CC == CallingConv::JWA);
 ````
 
 #### `X86RegisterInfo.cpp`
