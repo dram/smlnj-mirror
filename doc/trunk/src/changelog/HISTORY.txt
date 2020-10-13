@@ -323,7 +323,8 @@ a local declaration).
 +
 The check is currently disabled because of false positives
 caused by a transformation in the type checker.  For example,
-the following function declaration:
+the following function declaration: +
++
 [source,sml]
 ------------
 fun foo n = let
@@ -333,7 +334,8 @@ fun foo n = let
 	f n
       end;
 ------------
-gets represented by the following `Absyn`:
+gets represented by the following `Absyn`: +
++
 [source,sml]
 ------------
 val foo = let
@@ -353,11 +355,11 @@ val foo = let
       in foo
       end
 ------------
-where the instance of `g` bound to `#2 tmp` is unused.
-+
-The implementation was influenced by
-https://gist.github.com/jvanburen/2ef1a722fba13fc169b670ba6392da52[
-Jacob Van Buren's patchfor Version 110.82].
+where the instance of `g` bound to `#2 tmp` is unused.  This transformation
+is done by the `wrapRECdec` function.
+The unused-variable implementation was influenced by
+https://gist.github.com/jvanburen/2ef1a722fba13fc169b670ba6392da52[Jacob Van
+Buren's patch for Version 110.82]. +
 +
 owner:cs.uchicago.edu/~jhr[John Reppy]
 
@@ -369,7 +371,8 @@ days of the compiler this representation has been concrete, which meant
 that the type system was not able to provide any guarantees that `int`s and
 `lvar`s were not being mixed up.  As of this change, `LambdaVar.lvar` is
 now an abstract equality type (internally, it is still and `int`).
-Some comments about the changes:
+Some comments about the changes: +
++
 --
  * The `LambdaVar` structure now includes substructures that implement
    hash tables (`LambdaVar.Tbl`), finite maps (`LambdaVar.Map`), and
@@ -390,7 +393,6 @@ Some comments about the changes:
    number that could be used as a hash key, so that a given `lvar` could
    be mapped to two different labels.  I fixed this by using two tables.
 --
-+
 owner:cs.uchicago.edu/~jhr[John Reppy]
 
 [2020/04/24]::
