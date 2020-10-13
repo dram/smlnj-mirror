@@ -2,6 +2,7 @@
 The Fellowship of SML/NJ
 :revnumber: {version}
 :revdate: {release-date}
+:stem: latexmath
 :source-highlighter: pygments
 :tabsize: 8
 
@@ -93,6 +94,21 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 
 //====================================================================
 == Recent updates
+
+//--------------------------------------------------------------------
+[2020/10/13]::
++
+Changed the semantics of the spans returned by *ml-ulex* so that the
+second component of a span is the position of the rightmost character
+in the token (instead of the character following the token).
+Specifically, the span latexmath:[(p_1, p_2)] specifies the
+latexmath:[p_2 - p_1 + 1] characters that start with the character at
+position latexmath:[p_1] and run to latexmath:[p_2] (inclusive).
+This change avoids a potential problem when the span of a token ends
+at the last character in a file (when the input is spread across
+multiple files).
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
 
 //--------------------------------------------------------------------
 [2020/09/10]::
