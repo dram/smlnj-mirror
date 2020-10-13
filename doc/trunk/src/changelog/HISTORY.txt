@@ -462,7 +462,7 @@ Fixed bug bugref:220[]
       overload metavariables in Unify (Elaborator/types/unify.sml).
 
     * Changed printing of overload type metavariables (unification
-      type variables (Types.tyvar)).
+      type variables (`Types.tyvar`)).
 
     * Files:
       ElabData/types/types.{sig,sml}
