@@ -465,11 +465,11 @@ Fixed bug bugref:220[]
       type variables (`Types.tyvar`)).
 
     * Files:
-      ElabData/types/types.{sig,sml}
-      ElabData/types/overloadclasses.sml  (new)
-      ElabData/types/overloadvar.sml (new)
-      ElabData/types/overload.sml
-      Elaborator/elaborate/elabcore.sml
+      `ElabData/types/types.`{`sig`,`sml`}
+      `ElabData/types/overloadclasses.sml`  (new)
+      `ElabData/types/overloadvar.sml` (new)
+      `ElabData/types/overload.sml`
+      `Elaborator/elaborate/elabcore.sml`
 --
 +
 owner:cs.uchicago.edu/~dbm[Dave MacQueen]
