@@ -9,6 +9,7 @@ Group
 	signature ACCESS
 	signature DEB_INDEX
 	signature TYPES
+        signature OCCURENCE
 	signature TYPESUTIL
 	signature TUPLES
 	signature ABSYN
@@ -42,6 +43,7 @@ Group
 	structure DebIndex
 	structure Types
 	structure PPType
+        structure Occurence
 	structure TypesUtil
 	structure Tuples
 	structure Absyn
@@ -123,6 +125,8 @@ is
 	types/tuples.sml
 	types/basictypes.sig
 	types/basictypes.sml
+	types/occ.sig
+	types/occ.sml
 	types/typesutil.sig
 	types/typesutil.sml
 	types/conrep.sml

@@ -24,6 +24,10 @@ signature FCONTRACT =
  * be careful to make sure that a dead variable will indeed not appear
  * in the output lexp since it might else reference other dead variables *)
 
+(* [DBM, 11/16/2020] Collect.collect is not used! Call of C.collect at line 1099,
+ * near the end of fun contract, is commented out. Other functions from Collect
+ * are used. *)
+
 (* things that fcontract does:
  * - several things not mentioned
  * - elimination of Con(Decon x)
@@ -294,6 +298,8 @@ structure FContract :> FCONTRACT =
     fun click s c = (if !CTRL.misc = 1 then say s else ();
 		     c := !c + 1 (* Stats.addCounter c 1 *) )
 
+    (* fcontract : : options -> FLINT.prog -> FLINT.prog, 
+     * ends line 1105 *)
     fun contract {etaSplit,tfnInline} (fdec as (_,f,_,_)) = let
 
 	  val c_dummy = ref 0 (* Stats.newCounter[] *)
@@ -335,7 +341,7 @@ structure FContract :> FCONTRACT =
 	  exception Lookup
 	  fun lookup m lv = (case M.find(m,lv)
 		 of NONE => (
-		      say "\nlooking up unbound ";
+		      say "\nfcontract: lookup unbound ";
 		      say (!PP.LVarString lv);
 		      raise Lookup)
 		  | SOME x => x
@@ -348,13 +354,13 @@ structure FContract :> FCONTRACT =
 		(*esac*))
 
 	  fun val2sval m (F.VAR ov) =
-	      ((lookup m ov) (* handle x =>
-	       (say("val2sval "^(C.LVarString ov)^"\n"); raise x) *) )
+	      ((lookup m ov) handle x =>
+	       (say ("\n@@@ val2sval: "^(C.LVarString ov)^"\n"); raise x) )
 	    | val2sval m v = Val v
 
 	  fun bugsv (msg,sv) = bugval(msg, sval2val sv)
 
-	  fun subst m ov = sval2val (lookup m ov)
+	  fun subst m ov = sval2val ((lookup m ov) handle x => (say "\n@@@ subst\n"; raise x))
 	  fun substval m = sval2val o (val2sval m)
 	  fun substvar m lv =
 	      case substval m (F.VAR lv)
@@ -363,9 +369,9 @@ structure FContract :> FCONTRACT =
 
 	  (* called when a variable becomes dead.
 	   * it simply adjusts the use-counts *)
-	  fun undertake m lv = let
-		val undertake = undertake m
-		in case lookup m lv
+	  fun undertake m lv =
+	      let val undertake = undertake m
+	       in case ((lookup m lv) handle x => (say "\n@@@ undertake\n"; raise x))
 		    of Var {1=nlv,...}	 => ()
 		     | Val v		 => ()
 		     | Fun (lv,le,args,_,_) =>
@@ -382,9 +388,9 @@ structure FContract :> FCONTRACT =
 		end
 		    handle
 			Lookup =>
-			  (say("Unable to undertake "^(C.LVarString lv)^"\n"))
+			  (say ("Unable to undertake "^(C.LVarString lv)^"\n"))
 		      | x =>
-			  (say("while undertaking "^(C.LVarString lv)^"\n");
+			  (say ("\n@@@ fcontract: while undertaking "^(C.LVarString lv)^"\n");
 			   raise x)
 
 	  and unusesval m sv = unuseval m (sval2val sv)
@@ -583,7 +589,8 @@ structure FContract :> FCONTRACT =
 							 | _ => false)
 						(vs, args)
 			    then
-				let val svg = lookup m g
+				let val svg = ((lookup m g)
+					       handle x => (say "\n@@@ fcEta: defining svg\n"; raise x))
 				    val g = case sval2val svg
 					     of F.VAR g => g
 					      | v => bugval("not a variable", v)
@@ -606,9 +613,13 @@ structure FContract :> FCONTRACT =
 					* binding to not refer to f any more since f
 					* will disappear *)
 				      fun add (h, m) =
-					    if FU.sameValue(sval2val(lookup m h), F.VAR f)
+					  let val fval =
+						  ((lookup m h)
+						   handle x => (say "\n@@@ fcEta: add\n"; raise x))
+					   in if FU.sameValue(sval2val fval, F.VAR f)
 					      then addbind(m, h, svg)
 					      else m
+					  end
 				      val m = foldl add m hs
 				      in
 				       (* I could almost reuse `substitute' but the
@@ -1002,8 +1013,8 @@ structure FContract :> FCONTRACT =
 					    of SOME lty =>
 					       let val ltd =
 						       case (rk, LT.ltp_tyc lty)
-							of (F.RK_STRUCT,false) => LT.ltd_str
-							 | (F.RK_TUPLE _,true) => LT.ltd_tuple
+							of (F.RK_STRUCT, false) => LT.ltd_str
+							 | (F.RK_TUPLE, true) => LT.ltd_tuple
 							 (* we might select out of a struct
 							  * into a tuple or vice-versa *)
 							 | _ => (fn _ => [])
@@ -1089,8 +1100,8 @@ structure FContract :> FCONTRACT =
 	  in
 	  (*  C.collect fdec; *)
 	    case fcexp S.empty M.empty (F.FIX([fdec], F.RET[F.VAR f])) #2
-	     of F.FIX([fdec], F.RET[F.VAR f]) => fdec
-	      | fdec => bug "invalid return fundec"
-	  end (* contract *)
+	      of F.FIX([fdec], F.RET[F.VAR f]) => fdec
+	       | fdec => bug "invalid return fundec"
+	  end (* contract -- starts line 303 *)
 
   end (* FContract *)

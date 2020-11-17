@@ -5,12 +5,13 @@
  * This implements the abstraction of de Bruijn indices used
  * by the FLINT type and term language. The notion of depth
  * refers to the type-binding depth relative to the top level
- * of the current compilation unit. I can't make type depth
+ * of the current compilation unit, i.e. number of surrounding
+ * TFN abstractions wrt current point. I can't make type depth
  * and index abstract because certain clients want to use
  * the values of these types as table indices.
  *)
 
-(* I moved this into the elaborator library.  It may be moved
+(* I moved this into the elaborator library. It may be moved
  * back to FLINT if the elaborator gets "cleaned up", i.e., if
  * it is made to be unaware of such middle-end specifics.
  * (08/2001 Blume) *)
@@ -18,7 +19,7 @@
 (* Basic PLambda type variables are pairs of
  * indices: (index, count)
  * where index (the deBruijn index) is the normal lambda binding distance
- * from the current type variable to its binder, starting with 1 to reference
+ * from the current type variable to its TFN-binder, starting with 1 to reference
  * the innermost binder.  Each binder binds a tuple of variables, and
  * and the count is used to select from this tuple. The count is zero-based.
  *
@@ -61,8 +62,10 @@ fun dp_toint (i : depth) = i
 fun dp_fromint (i : int) = i
 
 fun getIndex (cur:depth, def:depth) : index =
-    if def > cur then bug "the definition is deeper than the use"
-    else (cur - def)
+    (* ASSERT: def < cur; ==> result > 0 *)
+    if def > cur then bug "the definition has greater TFN-depth than the use"
+    else if def = cur then bug "the definition has same TFN-depth as use"
+    else (cur - def)  (* result > 0 *)
 
 val cmp : depth * depth -> order = Int.compare
 
@@ -75,7 +78,7 @@ fun di_fromint (i : int) = i
 
 val innermost = 1
 val innersnd = 2
-fun di_inner i = i+1
+(* fun di_inner i = i+1 *)
 
 end (* local *)
 end (* structure DebIndex *)

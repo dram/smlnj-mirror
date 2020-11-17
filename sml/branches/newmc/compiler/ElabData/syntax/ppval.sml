@@ -10,10 +10,10 @@ signature PPVAL =
 sig
   val ppAccess: PrettyPrint.stream -> Access.access -> unit
   val ppRep: PrettyPrint.stream -> Access.conrep -> unit
-  val ppDcon: PrettyPrint.stream -> VarCon.datacon -> unit
+  val ppDcon: PrettyPrint.stream -> Types.datacon -> unit
   val ppVar: PrettyPrint.stream -> VarCon.var -> unit
   val ppDebugDcon : PrettyPrint.stream
-		    -> StaticEnv.staticEnv -> VarCon.datacon -> unit
+		    -> StaticEnv.staticEnv -> Types.datacon -> unit
   val ppDebugVar: (PrimopId.prim_id -> string) ->
 		  PrettyPrint.stream
 		  -> StaticEnv.staticEnv -> VarCon.var -> unit

@@ -42,17 +42,17 @@ functor CompileF (
 
     (** take ast, do semantic checks,
      ** and output the new env, absyn and pickles *)
-    fun elaborate {ast, statenv=senv, compInfo=cinfo, guid} = let
-	  val (absyn, nenv) = ElabTop.elabTop(ast, senv, cinfo)
-	  val (absyn, nenv) = if CompInfo.anyErrors cinfo
+    fun elaborate {ast, statenv=senv, compInfo=cinfo, guid} =
+	let val (absyn, nenv) = ElabTop.elabTop(ast, senv, cinfo)
+	    val (absyn, nenv) =
+	        if CompInfo.anyErrors cinfo
 		then (Absyn.SEQdec nil, StaticEnv.empty)
 	        else (absyn, nenv)
-	  val { pid, pickle, exportLvars, exportPid, newenv } =
+	    val { pid, pickle, exportLvars, exportPid, newenv } =
 	        pickUnpick { context = senv, env = nenv, guid = guid }
-	  in {
-	    absyn=absyn, newstatenv=newenv, exportPid=exportPid,
-	    exportLvars=exportLvars, staticPid = pid, pickle = pickle
-	  } end (* function elaborate *)
+	 in {absyn=absyn, newstatenv=newenv, exportPid=exportPid,
+	     exportLvars=exportLvars, staticPid = pid, pickle = pickle}
+	end (* function elaborate *)
 
     val elaborate =
 	  Stats.doPhase(Stats.makePhase "Compiler 030 elaborate") elaborate
@@ -148,7 +148,9 @@ functor CompileF (
      * used by interact/evalloop.sml, cm/compile/compile.sml only            *
      *************************************************************************)
     (** compiling the ast into the binary code = elab + translate + codegen *)
-    fun compile {source, ast, statenv, symenv, compInfo=cinfo, checkErr=check, splitting, guid} = let
+    fun compile {source, ast, statenv, symenv, compInfo=cinfo, checkErr=check,
+		 splitting, guid} =
+	let
 	  val {absyn, newstatenv, exportLvars, exportPid, staticPid, pickle } =
 		elaborate {ast=ast, statenv=statenv, compInfo=cinfo, guid = guid}
 		before (check "elaborate")
@@ -174,7 +176,7 @@ functor CompileF (
 	 * if !Control.interp then Interp.interp flint
 	 *  else codegen {flint=flint, splitting=splitting, compInfo=cinfo})
 	 *)
-	  in {
+	in {
 	    csegments = csegments,
 	    newstatenv = newstatenv,
 	    absyn = absyn,
@@ -184,6 +186,7 @@ functor CompileF (
 	    pickle = pickle,
 	    inlineExp = inlineExp,
 	    imports = revisedImports
-	  } end (* function compile *)
+	}
+	end (* function compile *)
 
   end (* functor CompileF *)

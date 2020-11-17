@@ -249,12 +249,13 @@ FLINT/reps/typeoper.sml
 FLINT/reps/wrapping.sml
 FLINT/trans/module-plists.sml
 FLINT/trans/transtkind.sml
-FLINT/trans/matchcomp.sml
+(* FLINT/trans/matchcomp.sml
 FLINT/trans/mccommon.sml
 FLINT/trans/mcprint.sml
+*)
 FLINT/trans/pequal.sml
 FLINT/trans/transutil.sml
-FLINT/trans/translate.sml
+FLINT/trans/translate-new.sml
 FLINT/trans/transprim.sml
 FLINT/trans/transtypes.sml
 FLINT/trans/literal-to-num.sml    (* uses CoreIntInf functionality *)

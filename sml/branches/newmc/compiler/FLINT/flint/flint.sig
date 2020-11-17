@@ -7,15 +7,14 @@
 signature FLINT =
   sig
 
-    type tkind = LtyDef.tkind
-    type tyc = LtyDef.tyc
-    type lty = LtyDef.lty
+    type tkind = LtyDef.tkind  (* = Lty.tkind *)
+    type tyc = LtyDef.tyc      (* = Lty.tyc *)
+    type lty = LtyDef.lty      (* = Lty.lty *)
 
-    type tvar = LtyDef.tvar
+    type tvar = LtyDef.tvar    (* = Lty.tvar *)
     type lvar = LambdaVar.lvar
 
-    type fflag = LtyDef.fflag
-    type rflag = LtyDef.rflag
+    type fflag = LtyDef.fflag  (* = Lty.fflag *)
 
   (* specifies what kind of inlining behavior is desired for the function *)
     datatype ilhint
@@ -54,9 +53,9 @@ signature FLINT =
 
   (** classifying various kinds of records *)
     datatype rkind
-      = RK_VECTOR of tyc           (* vector: all elements have same type *)
-      | RK_STRUCT                  (* module: elements may be polymorphic *)
-      | RK_TUPLE of rflag          (* tuple: all fields are monomorphic *)
+      = RK_VECTOR of tyc   (* vector: all elements have same type *)
+      | RK_STRUCT          (* module: elements may be polymorphic *)
+      | RK_TUPLE           (* tuple: all fields are monomorphic *)
 
   (*
    * dcon records the name of the constructor (for debugging), the

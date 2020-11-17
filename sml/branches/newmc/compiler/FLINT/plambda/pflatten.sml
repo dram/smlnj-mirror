@@ -10,13 +10,13 @@ local structure LT = PLambdaType
       structure FU = FlintUtil
 in
 
-type llty = PLambda.lty
-type ltyc = PLambda.tyc
-type flty = FLINT.lty
-type ftyc = FLINT.tyc
+type llty = PLambda.lty  (* = Lty.lty *)
+type ltyc = PLambda.tyc  (* = Lty.tyc *)
+type flty = FLINT.lty    (* = Lty.lty *)
+type ftyc = FLINT.tyc    (* = Lty.tyc *)
 type lexp = FLINT.lexp
 type value = FLINT.value
-type lvar = FLINT.lvar
+type lvar = FLINT.lvar   (* = LambdaVar.lvar *)
 
 fun bug s = ErrorMsg.impossible ("Pflatten:" ^ s)
 val mkv = LambdaVar.mkLvar

@@ -24,7 +24,7 @@ fun bug msg = EM.impossible ("MCTypes: " ^ msg)
 type rule = Absyn.pat * Absyn.exp
 type ruleno = R.ruleno    (* == int, the index number of a rule in the match, zero-based *)
 type ruleset = R.ruleset  (* == IntBinarySet.set *)
-   (* a set of rule numbers, maintained in strictly ascending order without duplicates *)
+   (* a set of rule numbers (no duplicates) *)
 
 type binding = V.var * ruleno
    (* a variable bound at some point in the given rule, either as a
@@ -157,9 +157,9 @@ datatype andKind
   | VECTOR
 
 type AOinfo =
-     {id : int,              (* unique identity of node, useful for maps on nodes *)
+     {id : int,              (* unique identity of node, for efficient maps on nodes *)
       typ : T.ty,            (* type of node value *)
-      path : path,           (* path to this node; serves as node name, 2nd unique identifier *)
+      path : path,           (* path to this node; serves as node name, secondary unique identifier *)
       vars : varBindings,    (* primary variable bindings at node *)
       asvars : varBindings}  (* secondary (as) variable bindings at node *)
 
@@ -321,5 +321,8 @@ datatype decTree
         * exhaustive. If the default leads to a MATCH, it will be SOME DMATCH *)
 withtype decVariant = key * decTree
 
+fun getNode (CHOICE {node, ...}) = node
+  | getNode _ = bug "getNode"
+		    
 end (* local *)
 end (* structure MCTypes *)

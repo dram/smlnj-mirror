@@ -32,6 +32,7 @@ local structure SP = SymPath
       val TUPLEexp = AbsynUtil.TUPLEexp
       val TUPLEpat = AbsynUtil.TUPLEpat
 
+      structure T = Types
       structure BT = BasicTypes
       val intTy = BT.intTy
       val unitTy = BT.unitTy
@@ -170,6 +171,7 @@ fun instrumDec' mayReturnMoreThanOnce (env, compInfo) absyn =
 	  in LETexp(VALdec[VB{pat=VARpat(lvar),
 			      exp=APPexp(varexp addop,
 					 TUPLEexp[intLiteral ccvara, baseexp]),
+			      typ = T.UNDEFty,
 			      tyvars=ref nil,
 			      boundtvs=[]}],
 		    APPexp(VARexp(ref assignop,[ref(INSTANTIATED(intTy))]),
@@ -181,12 +183,12 @@ fun instrumDec' mayReturnMoreThanOnce (env, compInfo) absyn =
 	         | getvar(CONSTRAINTpat(p,_)) = getvar p
    	         | getvar _ = NONE
 
-	       fun instrvb(vb as VB{pat,exp,tyvars,boundtvs}) =
+	       fun instrvb(vb as VB{pat,exp,typ,tyvars,boundtvs}) =
 	            (case getvar pat
 		      of SOME(VALvar{prim, path=SP.SPATH[n],...}) =>
                           (case prim
                              of PrimopId.NonPrim => vb
-                              | _ => VB{pat=pat, tyvars=tyvars,
+                              | _ => VB{pat=pat, tyvars=tyvars, typ = typ,
 			                exp=instrexp (n::clean names,
                                                       ccvara) false exp,
   			                boundtvs=boundtvs})
@@ -194,19 +196,18 @@ fun instrumDec' mayReturnMoreThanOnce (env, compInfo) absyn =
                           (case prim
                              of PrimopId.NonPrim => vb
                               | _ =>  VB{pat=pat, exp=instrexp sp false exp,
-                                         tyvars=tyvars, boundtvs=boundtvs})
+                                         typ=typ, tyvars=tyvars, boundtvs=boundtvs})
 		       | _ => VB{pat=pat, exp=instrexp sp false exp,
-                                 tyvars=tyvars, boundtvs=boundtvs})
+                                 typ=typ, tyvars=tyvars, boundtvs=boundtvs})
 
             in VALdec (map instrvb vbl)
            end
 
        | instrdec(sp as (names,ccvara), VALRECdec rvbl) =
            let fun instrrvb (RVB{var as VALvar{path=SP.SPATH[n],...},
-                                 exp,resultty,tyvars,boundtvs}) =
+                                 exp,resultty,tyvars}) =
                      RVB{exp=instrexp(n::clean names, ccvara) false exp,
-                         var=var, resultty=resultty, tyvars=tyvars,
-                         boundtvs=boundtvs}
+                         var=var, resultty=resultty, tyvars=tyvars}
 
                  | instrrvb _ = bug "VALRECdec in instrdec"
             in VALRECdec(map instrrvb rvbl)
@@ -262,7 +263,8 @@ fun instrumDec' mayReturnMoreThanOnce (env, compInfo) absyn =
        let fun istail tail =
              let fun iinstr exp = istail false exp
                  fun oinstr exp = istail true exp
-                 fun instrrules tr = map (fn (RULE(p,e)) => RULE(p, tr e))
+                 fun instrrules tr (rules,ty1,ty2) =
+		     (map (fn (RULE(p,e)) => RULE(p, tr e)) rules, ty1, ty2)
 
                  val rec instr:(exp->exp) =
                   fn RECORDexp l =>
@@ -319,7 +321,7 @@ fun instrumDec' mayReturnMoreThanOnce (env, compInfo) absyn =
                                     val lvar = tmpvar("appvar",ty,mkv)
                                  in LETexp (VALdec[VB{pat=VARpat(lvar),
                                                       exp=APPexp(f', oinstr a),
-                                                      tyvars=ref nil,
+                                                      typ = T.UNDEFty, tyvars=ref nil,
                                                       boundtvs=[]}],
                                             SEQexp([SETCURRENTexp(ccvara),
                                                     varexp lvar]))
@@ -328,20 +330,20 @@ fun instrumDec' mayReturnMoreThanOnce (env, compInfo) absyn =
 
                    | CONSTRAINTexp(e,t) => CONSTRAINTexp(instr e, t)
 
-                   | HANDLEexp (e, (l,t)) =>
+                   | HANDLEexp (e, (l,t1,t2)) =>
                        let fun rule(RULE(p,e)) =
                              RULE(p,SEQexp[SETCURRENTexp ccvara, instr e])
-                        in HANDLEexp (instr e, (map rule l,t))
+                        in HANDLEexp (instr e, (map rule l,t1,t2))
                        end
 
                    | RAISEexp(e, t) => RAISEexp(oinstr e, t)
 
                    | LETexp (d, e) => LETexp (instrdec(sp,d), instr e)
 
-                   | CASEexp (e, l, b) =>
-                       CASEexp(iinstr e, instrrules instr l, b)
+                   | CASEexp (e, l) =>
+                       CASEexp(iinstr e, instrrules instr l)
 
-                   | FNexp(l,t) =>
+                   | FNexp(l,ty1,ty2) =>
                        let fun dot (a,[z]) = S.name z :: a
                              | dot (a,x::rest) =
                                  dot("." :: S.name x :: a, rest)
@@ -349,21 +351,22 @@ fun instrumDec' mayReturnMoreThanOnce (env, compInfo) absyn =
 
                            val name =  concat (dot ([], names))
                            val ccvara' = makeEntry(name)
-                           val lvar = tmpvar("fnvar",t,mkv);
+                           val lvar = tmpvar("fnvar",ty1,mkv);
 
                            val exnMatch = CoreAccess.getCon env ["Match"]
 
                            val RULE(_,special) = List.last l
                         in FNexp ([RULE(VARpat(lvar),
-                                SEQexp ([BUMPCCexp(ccvara'),
-                                         SETCURRENTexp(ccvara'),
-                                         CASEexp(varexp lvar,
-                                         instrrules (instrexp (anonSym::names,
-                                                        ccvara') true) l,
-                                              true)])),
-                                   RULE(WILDpat,RAISEexp(CONexp(exnMatch,[]),
-                                                 Reconstruct.expType special))
-                                  ], t)
+                                        SEQexp ([BUMPCCexp(ccvara'),
+                                           SETCURRENTexp(ccvara'),
+                                           CASEexp(varexp lvar,
+					     instrrules
+					       (instrexp (anonSym::names, ccvara') true)
+					       (l,ty1,ty2))])),
+                                   RULE(WILDpat,
+					RAISEexp(CONexp(exnMatch,[]),
+                                                 Reconstruct.expType special))],
+                                  ty1,ty2)
                        end
                    | MARKexp(e,region) => MARKexp(instr e, region)
                    | e => e
@@ -391,6 +394,7 @@ fun instrumDec' mayReturnMoreThanOnce (env, compInfo) absyn =
                                                    [ref(INSTANTIATED(profDerefTy))]),
                                             varexp register),
                                      STRINGexp(concat(rev(!entries)))),
+			  typ = T.UNDEFty,
                           tyvars=ref nil,
                           boundtvs=[]}],
                 absyn1)
@@ -405,5 +409,3 @@ fun instrumDec mrmto (env, compInfo) absyn =
 
 end (* local *)
 end (* structure TProf *)
-
-

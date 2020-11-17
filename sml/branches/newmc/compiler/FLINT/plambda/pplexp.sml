@@ -116,7 +116,7 @@ fun ppLexp (pd:int) ppstrm (l: lexp): unit =
                closeBox ())
 
           | ppl ps (SRECORD l) =
-            if pd < 1 then pps "<REC>" else
+            if pd < 1 then pps "<SREC>" else
               (openHOVBox 4;
                pps "SRCD";
                ppClosedSeq ("(",",",")") (fn s => ppl (pd-1)) l;
@@ -272,7 +272,7 @@ fun ppLexp (pd:int) ppstrm (l: lexp): unit =
                   | switch [] = () (* bug "unexpected case in switch" *)
 
              in openHOVBox 3;
-                pps "SWI";
+                pps "SWI ";
                 ppl (pd-1) l; newline();
                 pps "of ";
                 openHVBox 0;
@@ -294,7 +294,8 @@ fun ppLexp (pd:int) ppstrm (l: lexp): unit =
             let fun flist([v],[t],[l]) =
                       let val lv = lvarName v
                           val len = size lv + 2
-                       in pps lv; pps ": "; ppLty' t; pps " :: ";
+                       in pps lv; pps ": "; ppLty' t; pps " = ";
+			  newline();
                           ppl (pd-1) l
                       end
                   | flist(v::vs,t::ts,l::ls) =

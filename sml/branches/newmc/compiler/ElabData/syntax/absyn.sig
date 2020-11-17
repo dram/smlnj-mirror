@@ -9,27 +9,38 @@ signature ABSYN =
 
     type region = Ast.region  (* = int * int *)
 
+    datatype value
+      = VAL of VarCon.var
+      | CON of Types.datacon
+
     datatype numberedLabel = LABEL of {name: Symbol.symbol, number: int}
 
     datatype exp
       = VARexp of VarCon.var ref * Types.tyvar list (* instance type *)
-      | CONexp of VarCon.datacon * Types.tyvar list (* instance type *)
+      | CONexp of Types.datacon * Types.tyvar list (* instance type *)
       | NUMexp of string * num_lit	(* string is source text of literal *)
       | REALexp of string * real_lit	(* string is source text of literal *)
       | STRINGexp of string
-      | CHARexp of string
+      | CHARexp of char
       | RECORDexp of (numberedLabel * exp) list
-      | SELECTexp of numberedLabel * exp
+      | RSELECTexp of VarCon.var * int
+          (* record selections, generated only by match compiler *)
+      | VSELECTexp of VarCon.var * int
+          (* vector selections, generated only by match compiler *)
       | VECTORexp of exp list * Types.ty
       | APPexp of exp * exp
+      | FNexp of fnrules
+      | CASEexp of exp * fnrules
       | HANDLEexp of exp * fnrules
       | RAISEexp of exp * Types.ty
-      | CASEexp of exp * rule list * bool
+      | SWITCHexp of VarCon.var * rule list * exp option
+      | VSWITCHexp of VarCon.var * rule list * exp
+          (* SWITCHexp, VSWITCH created only by match compiler, for shallow case dispatch;
+           * VSWITCH is a special case dispatching on vector length *)
       | IFexp of { test: exp, thenCase: exp, elseCase: exp }
       | ANDALSOexp of exp * exp
       | ORELSEexp of exp * exp
       | WHILEexp of { test: exp, expr: exp }
-      | FNexp of fnrules
       | LETexp of dec * exp
       | SEQexp of exp list
       | CONSTRAINTexp of exp * Types.ty
@@ -42,11 +53,11 @@ signature ABSYN =
       | VARpat of VarCon.var
       | NUMpat of string * num_lit	(* string is source text of literal *)
       | STRINGpat of string
-      | CHARpat of string
-      | CONpat of VarCon.datacon * Types.tyvar list (* instance type *)
+      | CHARpat of char
+      | CONpat of Types.datacon * Types.tyvar list (* instance type *)
       | RECORDpat of {fields : (Types.label * pat) list,
 		      flex : bool, typ : Types.ty ref}
-      | APPpat of VarCon.datacon * Types.tyvar list * pat
+      | APPpat of Types.datacon * Types.tyvar list * pat
       | CONSTRAINTpat of pat * Types.ty
       | LAYEREDpat of pat * pat
       | ORpat of pat * pat
@@ -89,19 +100,22 @@ signature ABSYN =
       | LETfct of dec * fctexp
       | MARKfct of fctexp * region
 
-    and vb = VB of {pat: pat, exp: exp, boundtvs: Types.tyvar list,
-		    tyvars: Types.tyvar list ref}
+    and vb = VB of {pat: pat, exp: exp,
+		    typ: Types.ty,                (* the common type of the pat and exp *) 
+		    boundtvs: Types.tyvar list,   (* "generalized" metatyvars of whole pattern *)
+		    tyvars: Types.tyvar list ref} (* used for tracking "explicit" tyvars *)
 
-    and rvb = RVB of {var: VarCon.var, exp: exp, boundtvs: Types.tyvar list,
-		      resultty: Types.ty option, tyvars: Types.tyvar list ref}
+    and rvb = RVB of {var: VarCon.var, exp: exp, resultty: Types.ty option,
+		      tyvars: Types.tyvar list ref}
 
-    and eb = EBgen of {exn: VarCon.datacon, etype: Types.ty option, ident: exp}
-	   | EBdef of {exn: VarCon.datacon, edef: VarCon.datacon}
+    and eb = EBgen of {exn: Types.datacon, etype: Types.ty option, ident: exp}
+	   | EBdef of {exn: Types.datacon, edef: Types.datacon}
 
     and strb = STRB of {name: Symbol.symbol, str: Modules.Structure, def: strexp}
     and fctb = FCTB of {name: Symbol.symbol, fct: Modules.Functor, def: fctexp}
 
-    withtype fnrules = rule list * Types.ty
+    withtype fnrules = rule list * Types.ty * Types.ty
+             (* ty is the type of the domain (lhs) of the rules *)
          and num_lit = Types.ty IntConst.t
          and real_lit = Types.ty RealConst.t
 

@@ -21,6 +21,8 @@ structure TvarCvt :> TVARCVT =
     structure LT = LtyExtern
     structure LK = LtyKernel
 
+    fun bug msg = ErrorMsg.impossible("TvarCvt: " ^ msg)
+
     (* `debIndex2names' converts all variables bound by the
      * term-language TFN (capital lambda) construct into named
      * variables.  This is primarily to experiment with the cost of
@@ -158,7 +160,12 @@ structure TvarCvt :> TVARCVT =
 	  (case LambdaVar.Map.find(env, tvar)
 	    of NONE => NONE
 	     | SOME(defnDepth, i) =>
-	         SOME (LT.tcc_var (DI.getIndex (currDepth, defnDepth), i))
+	         let val dbindex = currDepth - defnDepth  (* deBruijn index *)
+		 in if dbindex < 1
+		    then bug ("names2debIndex_gen: dbindex = " ^ Int.toString dbindex ^ " < 1")
+		    else ();
+	            SOME (LT.tcc_var (dbindex, i))
+		 end
           (*esac*))
 
         val tc_nvar_elim = LT.tc_nvar_elim_gen()

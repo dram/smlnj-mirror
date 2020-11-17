@@ -567,7 +567,7 @@ in
                                tyc tc, list tyc ts, int i]
 		  | LT.TC_ABS tc => "J" $ [tyc tc]
 		  | LT.TC_BOX tc => "K" $ [tyc tc]
-		  | LT.TC_TUPLE (_, l) => "L" $ [list tyc l]
+		  | LT.TC_TUPLE l => "L" $ [list tyc l]
 		  | LT.TC_ARROW (LT.FF_VAR (b1, b2), ts1, ts2) =>
 			"M" $ [bool b1, bool b2, list tyc ts1, list tyc ts2]
 		  | LT.TC_ARROW (LT.FF_FIXED, ts1, ts2) =>
@@ -692,7 +692,7 @@ in
 	    val op $ = PU.$ RK
 	    fun rk (F.RK_VECTOR tc) = "5" $ [tyc tc]
 	      | rk F.RK_STRUCT = "6" $ []
-	      | rk (F.RK_TUPLE _) = "7" $ []
+	      | rk F.RK_TUPLE = "7" $ []
 	in
 	    rk arg
 	end

@@ -12,6 +12,7 @@ local
   structure LV = LambdaVar
   structure V = VarCon
   structure SV = SVar
+  structure MU = MCUtil
   structure R = Rules
   structure PP = PrettyPrint
   open Absyn MCTypes
@@ -20,8 +21,12 @@ local
   fun bug msg = ErrorMsg.impossible msg
 
   fun ppType ty =
-      PP.with_default_pp
-	  (fn ppstrm => PPType.ppType StaticEnv.empty ppstrm ty)
+      ElabDebug.withInternals
+	(fn () => PP.with_default_pp
+	            (fn ppstrm => PPType.ppType StaticEnv.empty ppstrm ty))
+
+  fun ppPat pat =
+      PP.with_default_pp(fn ppstrm => PPAbsyn.ppPat StaticEnv.empty ppstrm (pat, 20))
 
 in
 
@@ -31,9 +36,6 @@ fun numToKey ((num as {ival,ty}): T.ty IntConst.t) : key =
 		   [BT.intTy, BT.int32Ty, BT.int64Ty, BT.intinfTy]
     then I num
     else W num
-
-(* charCon : string -> char; string assumed to be of size = 1 *)
-fun charCon s = String.sub (s, 0)
 
 (* node ids (: int) *)
 val idcount = ref 0;
@@ -82,8 +84,9 @@ fun mergeConst (key, rule, path, nil) =  (* new constant variant *)
   | mergeConst _ = bug "mergeConst"
 			  
 (* makeAndor : pat list * T.ty -> andor *)
-(* construct the AND-OR tree for the sequence of patterns of a match *)
-fun makeAndor (pats: pat list, topTy: T.ty) =
+(* construct the AND-OR tree for the sequence of patterns of a match
+ * patTy is the common type of all the patterns (i.e. the domain type of the match) *)
+fun makeAndor (pats: pat list, patTy: T.ty) =
 let
     (* pushDefaults : int list * matchTree -> matchTree *)
     (* Pushes down default rules introduced by variable patterns to all
@@ -120,18 +123,23 @@ let
 	      LEAF{path=path, direct=direct, defaults=outerDefaults}
 	  | _ => bug "pushDefaults(INITIAL)"
 
-    (* initAnd : pat list * ruleno * rpath -> andor list
+    (* initAnd : pat list * T.ty list * ruleno * rpath -> andor list
      * Initializing an AND node, producing the children node list;
      * preserves the order of pattern list.
      *   pats: component patterns of a product;
+     *   tys: types of product components
      *   path: path to the AND node
      *   ruleno = 0 and direct = {0} (because of mergeAndor with INITIAL) *)
     fun initAnd (pats, tys, rule, rpath) =
+	if length pats <> length tys
+	then bug (concat["length pats: ", Int.toString(length pats), " length tys: ",
+			   Int.toString(length tys), "\n"])
+	else
 	rev(#1 (foldl
 		 (fn ((pat,ty), (andors,index)) =>
 		     (mergeAndor(pat, ty, rule, extendRPath(rpath, R index), INITIAL)::andors,
 		      index+1))
-		 (nil,0) (ListPair.zip(pats,tys))))
+		 (nil,0) (ListPair.zipEq(pats,tys))))
 
     (* mergeAndor : pat * ty * ruleno * rpath * andor -> andor *)
     (* merge the next pat at rule ruleno into the partially constructed andor tree 
@@ -148,14 +156,16 @@ let
      *     formerly a separate function, initAndor, but handling ORpats is cleaner
      *     with this single-pass method. The per-pattern case structure could be
      *     simplified by unifying treatment of INITIAL under each pattern case instead
-     *     of having separate pattern cases for INITIAL and non-INITIAL andors.
+     *     of having separate pattern cases for INITIAL and non-INITIAL andors -- this
+     *     version has duplicate cases for patterns depending on whether it is the
+     *     initial pattern or not.
      *  -- Path and type arguments are only relevant to initialization of new nodes. Once
      *     a new node is initialized, its path and its type (in the svar) are fixed,
      *     and those fields do not change as additional patterns are merged at the node.
      *     An unfortunate effect of merging initAndor into mergeAndor is that the real
      *     "merge" cases for mergeAndor have to take two arguments (ty and path) that 
      *     are irrelevant (and ignored?) because they are only used in the initialization
-     *     of a node. *)
+     *     of a node.  Merging further patterns will not affect the path or type of a node. *)
     and mergeAndor (VARpat var, ty, rule, rpath, INITIAL) =
 	let val path = reverseRPath rpath
 	in VARS{info = {id = newId(), typ = ty, path = path, asvars = [], vars = [(var,rule)]},
@@ -165,7 +175,7 @@ let
           (* wildcard pat treated as a particular variable pattern *)
 	  let val path = reverseRPath rpath
 	  in VARS{info = {id = newId(), typ = ty, path = path, asvars = nil,
-			  vars = [(V.newVALvar(Symbol.varSymbol "_", ty), rule)]},
+			  vars = [(V.wildVar,rule)]},
 		  defaults = R.empty}
 	  end
       | mergeAndor (LAYEREDpat(VARpat(var),basepat), ty, rule, rpath, INITIAL) =
@@ -198,7 +208,7 @@ let
 	  end
       | mergeAndor (CHARpat c, ty, rule, rpath, INITIAL) =
 	  (* ASSERT: ty = BT.charTy *)
-	  let val key = C (charCon c)
+	  let val key = C c
 	      val path = reverseRPath rpath
 	      val newRPath = extendRPath(rpath, key)
 	      val newPath = reverseRPath newRPath
@@ -208,15 +218,19 @@ let
 					       defaults=R.empty})]}
 	       (* QUESTION: adding the rule to _both_ the OR node and the descendent LEAF node? *)
 	  end
-      | mergeAndor (RECORDpat{fields,...}, ty, rule, rpath, INITIAL) =
+      | mergeAndor (pat as RECORDpat{fields,...}, ty, rule, rpath, INITIAL) =
 	  let val path = reverseRPath rpath
-	      val ty = TU.prune ty
-	      (* val _ = (ppType ty; Control_Print.flush ()) *)
+	      val ty = TU.headReduceType ty
+	      (* val _ = (print "mergeAndor:RECORDpat(INITIAL):ty: "; ppType ty)
+	         val _ = (print "mergeAndor:RECORDpat(INITIAL):pat: "; ppPat pat) *)
 	      val elemTys = TU.destructRecordTy ty
-			    handle e => (ppType ty; raise e)
+			    handle e => (ppPat pat; ppType ty; raise e)
+	      val children = initAnd(map #2 fields, elemTys, rule, rpath)
+	      (* val _ = print ("mergeAndor:RECORDpat:|children| = " ^ 
+                                Int.toString(length children) ^ "\n") *)
 	   in AND{info = {id = newId(), typ = ty, path = path, asvars = nil, vars = nil},
 	          direct = R.singleton rule, defaults = R.empty,
-	          children = initAnd(map #2 fields, elemTys, rule, rpath),
+	          children = children,
 		  andKind = RECORD}
 	  end
       | mergeAndor (CONpat(dcon,tvs), ty, rule, rpath, INITIAL) =  (* constant datacon *)
@@ -241,15 +255,18 @@ let
 	      val path = reverseRPath rpath
 	      val newRPath : rpath = extendRPath(rpath, key)
 	      (* val _ = print ">>>destructDataconTy\n" *)
+	      (* val dconTy = TU.dataconType dcon
+	         val _ = (print "mergeAndor:APPpat:dataconty = "; ppType dconTy) *)
 	      val argty = TU.destructDataconTy(ty,dcon)
-	      (* val _ = print "<<<destructDataconTy\n" *)
+	      (* val _ = (print "mergeAndor:APPpat:ty: "; ppType ty;
+		          print "<<<destructDataconTy:argTy: "; ppType argty) *)
 	   in if TU.dataconWidth dcon = 1
 	      then SINGLE{info = {id = newId(), typ = ty, path = path, asvars = nil, vars = nil},
-			  variant = (key, mergeAndor(pat,argty,rule,newRPath,INITIAL))}
+			  variant = (key, mergeAndor (pat,argty,rule,newRPath,INITIAL))}
 	      else ((* print "mergeAndor:APPpat:OR\n"; *)
 		    OR{info = {id = newId(), typ = ty, path = path, asvars = nil, vars = nil},
 		       direct = R.singleton rule, defaults = R.empty,
-		       variants = [(key, mergeAndor(pat,argty,rule,newRPath,INITIAL))]})
+		       variants = [(key, mergeAndor (pat,argty,rule,newRPath,INITIAL))]})
 	  end
       | mergeAndor (VECTORpat(pats,elemty), vecty, rule, rpath, INITIAL) =
 	  (* Note: the vector node and its descendent AND(VECTOR) node share the
@@ -272,7 +289,7 @@ let
 		variants = [(V vlen, variantNode)]}
 	  end
 
-      (* following rules merge a pattern into an existing andor node *)
+      (* ====== following rules merge a pattern into an existing andor node ====== *)
 
       | mergeAndor (VARpat v, ty, rule, rpath, andor) =
 	  addVarBindings ([(v,rule)], andor)
@@ -298,11 +315,11 @@ let
 	  OR{info = info,
 	     direct = R.add(direct,rule), defaults = defaults,
 	     variants = mergeConst(S s, rule, (#path info), variants)}
-      | mergeAndor (CHARpat s, _, rule, _,
+      | mergeAndor (CHARpat c, _, rule, _,
 		    OR{info,direct,defaults,variants}) =
 	  OR{info = info,
 	     direct = R.add(direct,rule), defaults = defaults,
-	     variants = mergeConst(C(charCon s), rule, (#path info), variants)}
+	     variants = mergeConst(C c, rule, (#path info), variants)}
       | mergeAndor (RECORDpat{fields,...}, _, rule, _,
 		    AND{info,direct,defaults,children,andKind}) =
               (* mergeAnd : pat * andor -> andor *)
@@ -475,12 +492,12 @@ let
     (* makeAndor0 : pat list * T.ty -> andor *)
     (* ASSERT: length(pats) > 0 *)
     (* ASSERT: ty will the the type of all the patterns *)
-    fun makeAndor0 (pats,ty) =
-        #1 (foldl (fn (pat,(andor, rule)) =>
-		      (mergeAndor(pat,ty,rule,rootRPath,andor), R.increment rule))
+    fun makeAndor0 (pats, ty) =
+        #1 (foldl (fn (pat, (andor, ruleno)) =>
+		      (mergeAndor (pat,ty,ruleno,rootRPath,andor), R.increment ruleno))
 		  (INITIAL, 0) pats)
 
-    val andOr1 = makeAndor0 (pats, topTy)
+    val andOr1 = makeAndor0 (pats, patTy)
     val andOr2 = pushDefaults (R.empty, andOr1)
  in andOr2
 end (* fun makeAndor *)

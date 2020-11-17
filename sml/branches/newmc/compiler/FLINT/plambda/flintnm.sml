@@ -113,16 +113,17 @@ end (* local flint_prim *)
    strictly used by the CON and DATAcon only
  *)
 fun force_raw (pty) =
-  if LT.ltp_ppoly pty then
-    let val (ks, body) = LT.ltd_ppoly pty
-        val (aty, rty) = LT.ltd_parrow body
-     in LT.ltc_ppoly(ks,
-           LT.ltc_arrow(LT.ffc_rrflint, [FL.ltc_raw aty], [FL.ltc_raw rty]))
-    end
-  else
-    let val (aty, rty) = LT.ltd_parrow pty
-     in LT.ltc_arrow(LT.ffc_rrflint, [FL.ltc_raw aty], [FL.ltc_raw rty])
-    end (* function force_raw *)
+      if LT.ltp_ppoly pty
+      then
+	let val (ks, body) = LT.ltd_ppoly pty
+	    val (aty, rty) = LT.ltd_parrow body
+	 in LT.ltc_ppoly(ks,
+	       LT.ltc_arrow(LT.ffc_rrflint, [FL.ltc_raw aty], [FL.ltc_raw rty]))
+	end
+      else
+	let val (aty, rty) = LT.ltd_parrow pty
+	 in LT.ltc_arrow(LT.ffc_rrflint, [FL.ltc_raw aty], [FL.ltc_raw rty])
+	end (* function force_raw *)
 
 fun tocon con = (case con
        of L.INTcon{ty=0, ...} => bug "IntInf"
@@ -174,14 +175,12 @@ fun tofundec (venv,d,f_lv,arg_lv,arg_lty,body,isrec) =
 (* used to translate expressions whose structure is the same
  * in Flint as in PLambda (either both binding or both non-binding)
  * a continuation is unnecessary *)
-and tolexp (venv,d) lexp =
+and tolexp (venv, d) lexp =
     let val _ = debugmsg ">>tolexp"
 	fun default_tovalues () =
-        tovalues(venv, d, lexp,
-                fn (vals, lty) =>
-		(F.RET vals, lty))
-    val v = case lexp of
-        L.APP (L.PRIM _, arg) => default_tovalues()
+            tovalues(venv, d, lexp, fn (vals, lty) => (F.RET vals, lty))
+        val v = case lexp
+                  of L.APP (L.PRIM _, arg) => default_tovalues()
       | L.APP (L.GENOP _,arg) => default_tovalues()
       | L.APP (L.FN (arg_lv,arg_lty,body), arg_le) =>
 	    tolexp (venv,d) (L.LET(arg_lv, arg_le, body))
@@ -202,9 +201,9 @@ and tolexp (venv,d) lexp =
 
       | L.FIX (lvs,ltys,lexps,lexp) =>
             (* first, let's setup the enriched environment with those funs *)
-            let val venv' = ListPair.foldl (fn (lv,lty,ve) =>
-                                   LT.ltInsert(ve, lv, lty, d))
-                                  venv (lvs, ltys)
+            let val venv' = ListPair.foldl
+			      (fn (lv,lty,ve) => LT.ltInsert(ve, lv, lty, d))
+                              venv (lvs, ltys)
 
 		fun map3 _ ([], _, _) = []
 		  | map3 _ (_, [], _) = []
@@ -289,26 +288,26 @@ and tovalue (venv,d,lexp,cont) = let
       val _ = debugmsg ">>tovalue"
       val _ = debugLexp lexp
       val v = (case lexp
-            (* for simple values, it's trivial *)
-	     of L.VAR v => cont(F.VAR v, LT.ltLookup(venv, v, d))
-	      | L.INT i => cont(F.INT i, LT.ltc_num(#ty i))
-	      | L.WORD w => cont(F.WORD w, LT.ltc_num(#ty w))
+                 (* for simple values, it's trivial *)
+	         of L.VAR v => (case LT.ltLookup(venv, v, d)
+				  of SOME lty => cont(F.VAR v, lty)
+				   | NONE => bug ("tovalue: unbound lvar: " ^
+						  LambdaVar.lvarName v))
+		  | L.INT i => cont(F.INT i, LT.ltc_num(#ty i))
+		  | L.WORD w => cont(F.WORD w, LT.ltc_num(#ty w))
 (* REAL32: *)
-	      | L.REAL x => cont(F.REAL x, LT.ltc_real)
-	      | L.STRING s => cont(F.STRING s, LT.ltc_string)
-	    (* for cases where tolvar is more convenient *)
-	      | _ => let
-                  val lv = mkv()
-                  in
-		    tolvar(venv, d, lv, lexp,
-		      fn lty => (debugmsg ">>tovalue tolvar cont";
-				 debugLexp lexp;
-				 cont(F.VAR lv, lty)))
-                  end
+		  | L.REAL x => cont(F.REAL x, LT.ltc_real)
+		  | L.STRING s => cont(F.STRING s, LT.ltc_string)
+		  | _ => (* for cases where tolvar is more convenient *)
+                    let val lv = mkv()
+                     in tolvar(venv, d, lv, lexp,
+			       fn lty => (debugmsg ">>tovalue tolvar cont";
+					  debugLexp lexp;
+					  cont(F.VAR lv, lty)))
+                    end
 	    (* end case *))
       val _ = debugmsg "<<tovalue"
-      in
-	v
+      in v
       end (* tovalue *)
 
 (*

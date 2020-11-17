@@ -231,6 +231,7 @@ val flatten_limit = 9
  * out of bounds *)
 exception teUnbound2
 
+(* isKnown : tyc -> bool *)
 fun isKnown tc =
   (case tc_outX(tc_whnm tc)
     of (TC_PRIM _ | TC_ARROW _ | TC_BOX _ | TC_ABS _ | TC_PARROW _) => true
@@ -240,15 +241,19 @@ fun isKnown tc =
      | TC_TOKEN(k, x) => token_isKnown(k, x)
      | _ => false)
 
+(* tc_autoflat : tyc -> bool * tyc list * bool *)
+(* first bool result = isKnown (tc_whnm tyc)
+ * 2nd bool result : was tyc flattened
+ * tyc list: singlton [tyc] if not flattened, tuple component types ow *)
 and tc_autoflat tc =
   let val ntc = tc_whnm tc
    in (case tc_outX ntc
-        of TC_TUPLE (_, [_]) => (* singleton record is not flattened to ensure
+        of TC_TUPLE [_] => (* singleton record is not flattened to ensure
                               isomorphism btw plambdatype and flinttype *)
              (true, [ntc], false)
-         | TC_TUPLE (_, []) =>  (* unit is not flattened to avoid coercions *)
+         | TC_TUPLE [] =>  (* unit is not flattened to avoid coercions *)
              (true, [ntc], false)
-         | TC_TUPLE (_, ts) =>
+         | TC_TUPLE ts =>
              if length ts <= flatten_limit then (true, ts, true)
              else (true, [ntc], false)  (* ZHONG added the magic number 10 *)
          | _ => if isKnown ntc then (true, [ntc], false)
@@ -257,7 +262,7 @@ and tc_autoflat tc =
 
 and tc_autotuple [x] = x
   | tc_autotuple xs =
-       if length xs <= flatten_limit then tcc_tup (RF_TMP, xs)
+       if length xs <= flatten_limit then tcc_tup xs
        else bug "fatal error with tc_autotuple"
 
 and tcs_autoflat (flag, ts) =
@@ -367,7 +372,7 @@ and tc_lzrd(t: tyc) =
                         tcc_fix((size, names, prop gen, map prop params), index)
                    | TC_ABS tc => tcc_abs (prop tc)
                    | TC_BOX tc => tcc_box (prop tc)
-                   | TC_TUPLE (rk, tcs) => tcc_tup (rk, map prop tcs)
+                   | TC_TUPLE tcs => tcc_tup (map prop tcs)
                    | TC_ARROW (r, ts1, ts2) =>
                        tcc_arw (r, map prop ts1, map prop ts2)  (* rule r8 *)
                    | TC_PARROW (t1, t2) => tcc_parw (prop t1, prop t2)
@@ -546,7 +551,7 @@ fun tc_norm t = if (tcp_norm t) then t else
                      tcc_fix((size,names,tc_norm gen,map tc_norm params),index)
                  | TC_ABS tc => tcc_abs(tc_norm tc)
                  | TC_BOX tc => tcc_box(tc_norm tc)
-                 | TC_TUPLE (rk, tcs) => tcc_tup(rk, map tc_norm tcs)
+                 | TC_TUPLE tcs => tcc_tup (map tc_norm tcs)
                  | TC_ARROW (r, ts1, ts2) =>
                      tcc_arw(r, map tc_norm ts1, map tc_norm ts2)
                  | TC_PARROW (t1, t2) => tcc_parw(tc_norm t1, tc_norm t2)
@@ -611,14 +616,14 @@ local val name = "TC_WRAP"
       fun is_whnm tc =
         (case tc_outX tc
           of (TC_ARROW(FF_FIXED, [t], _)) => (unknown t)
-           | (TC_TUPLE(rf, ts)) => flex_tuple ts
+           | (TC_TUPLE ts) => flex_tuple ts
            | (TC_PRIM pt) => PT.unboxed pt
            | _ => false)
 
       (* invariants: tc itself is in whnm but is_whnm tc = false *)
       fun reduce_one (k, tc) =
         (case tc_outX tc
-          of TC_TUPLE (rk, ts) =>
+          of TC_TUPLE ts =>
                let fun hhh (x::r, nts, ukn) =
                          let val nx = tc_whnm x
                              val b1 = unknown nx
@@ -634,8 +639,8 @@ local val name = "TC_WRAP"
                           in hhh(r, nnx::nts, b1 orelse ukn)
                          end
                      | hhh ([], nts, ukn) =
-                         let val nt = tcc_tup(rk, rev nts)
-                          in if ukn then tcc_token(k, nt) else nt
+                         let val nt = tcc_tup (rev nts)
+                          in if ukn then tcc_token (k, nt) else nt
                          end
                 in hhh(ts, [], false)
                end
@@ -652,11 +657,11 @@ local val name = "TC_WRAP"
                      end
                    val (wp, nts1) =
                      (case tc_outX nt1
-                       of TC_TUPLE(_, [x,y]) => (false, [ggg x, ggg y])
+                       of TC_TUPLE [x,y] => (false, [ggg x, ggg y])
                         | TC_TOKEN(k', x) =>
                             if token_eq(k, k') then
                               (case (tc_outX x)
-                                of TC_TUPLE(_, [y, z]) =>
+                                of TC_TUPLE [y, z] =>
                                     (false, [ggg y, ggg z])
                                  | _ => (false, [nt1]))
                             else (false, [nt1])
@@ -775,7 +780,7 @@ and tc_eqv_gen (t1, t2) =
         eqlist tc_eqv (ts1, ts2)
       | (TC_SUM ts1, TC_SUM ts2) =>
         eqlist tc_eqv (ts1, ts2)
-      | (TC_TUPLE (_, ts1), TC_TUPLE (_, ts2)) =>
+      | (TC_TUPLE ts1, TC_TUPLE ts2) =>
         eqlist tc_eqv (ts1, ts2)
       | (TC_ABS a, TC_ABS b) =>
         tc_eqv (a, b)
@@ -877,12 +882,11 @@ fun lt_eqv_x(x : lty, y) =
   end (* function lt_eqv_x *)
 *)
 
-(** testing equivalence of fflags and rflags *)
+(** testing equivalence of fflags *)
 fun ff_eqv (FF_VAR (b1, b2), FF_VAR (b1', b2')) = b1 = b1' andalso b2 = b2'
   | ff_eqv (FF_FIXED, FF_FIXED) = true
   | ff_eqv ((FF_FIXED, FF_VAR _) | (FF_VAR _, FF_FIXED)) = false
 
-fun rf_eqv (RF_TMP, RF_TMP) = true
 
 (***************************************************************************
  *  UTILITY FUNCTIONS ON FINDING OUT THE DEPTH OF THE FREE TYC VARIABLES   *

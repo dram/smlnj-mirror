@@ -65,7 +65,7 @@ struct
     (** classifications of various kinds of records *)
     fun toStringRKind (F.RK_VECTOR tyc) = "VECTOR[" ^ LT.tc_print tyc ^ "]"
       | toStringRKind F.RK_STRUCT = "STRUCT"
-      | toStringRKind (F.RK_TUPLE _) = "RECORD"
+      | toStringRKind F.RK_TUPLE = "RECORD"
 
     val printRKind = say o toStringRKind
 

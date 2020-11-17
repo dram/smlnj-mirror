@@ -8,7 +8,7 @@ structure PLambda : PLAMBDA =
   struct
 
     structure A  = Access
-    structure LK = PLambdaType
+    structure LK = PLambdaType  (* = LtyExtern *)
     structure LV = LambdaVar
     structure PO = Primop
     structure S  = Symbol
@@ -31,10 +31,12 @@ structure PLambda : PLAMBDA =
    * generation can be applied to DATAcon and INTcon. Otherwise, it is just a
    * shorthand for binary branch trees. In the future, we probably should make
    * it more general, including constants of any numerical types.
+   * -- char constants are represented as INTcon.
+   * -- 
    *)
     datatype con
       = DATAcon of dataconstr * tyc list * lvar
-      | INTcon of int IntConst.t	(* sz = 0 for IntInf.int *)
+      | INTcon of int IntConst.t	(* "ty" = 0 for IntInf.int *)
       | WORDcon of int IntConst.t
       | STRINGcon of string
       | VLENcon of int
@@ -46,20 +48,20 @@ structure PLambda : PLAMBDA =
    * with its component properly PACKed. FN defines normal function, FIX defines
    * a set of recursive functions, LET(v,e1,e2) is a syntactic sugar for exprs
    * of forms like APP(FN(v,_,e2), e1); the type of v will be that of e1.
-   * APP is the function application. RECORD, VECTOR, and SRECORD are record,
+   * APP is function application. RECORD, VECTOR, and SRECORD are record,
    * vector, and structure construction, SELECT is record, vector, and structure
    * selection. ETAG, RAISE, and HANDLE are for exceptions.
    *)
     datatype lexp
       = VAR of lvar
-      | INT of int IntConst.t	(* sz = 0 for IntInf.int *)
+      | INT of int IntConst.t	(* sz = 0 for IntInf.int, covers char type also *)
       | WORD of int IntConst.t
       | REAL of int RealConst.t
       | STRING of string
       | PRIM of PO.primop * lty * tyc list
       | GENOP of dict * PO.primop * lty * tyc list
 
-      | FN of lvar * lty * lexp
+      | FN of lvar * lty * lexp  (* lty is the type of the parameter lvar *)
       | FIX of lvar list * lty list * lexp list * lexp
       | APP of lexp * lexp
       | LET of lvar * lexp * lexp

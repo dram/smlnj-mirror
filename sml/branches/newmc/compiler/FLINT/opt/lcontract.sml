@@ -186,10 +186,10 @@ fun isBoolLty lt =
          (LT.lt_eqv(at, LT.ltc_unit)) andalso (LT.lt_eqv(rt, LT.ltc_bool))
      | _ => false)
 
-fun isBool true (RECORD(RK_TUPLE _, [], x,
+fun isBool true (RECORD(RK_TUPLE, [], x,
                   CON((_,DA.CONSTANT 1,lt), [], VAR x', v, RET [VAR v']))) =
       (x = x') andalso (v = v') andalso (isBoolLty lt)
-  | isBool false (RECORD(RK_TUPLE _, [], x,
+  | isBool false (RECORD(RK_TUPLE, [], x,
                   CON((_,DA.CONSTANT 0,lt), [], VAR x', v, RET [VAR v']))) =
       (x = x') andalso (v = v') andalso (isBoolLty lt)
   | isBool _ _ = false
@@ -229,10 +229,14 @@ end (* branchopt local *)
 
 (** the main transformation function *)
 
+     (* lpacc : DA.access -> DA.access *)
+     (* expects an LVAR and returns an LVAR *)
      fun lpacc (DA.LVAR v) =
            (case lpsv (VAR v) of VAR w => DA.LVAR w
                                | _ => bug "unexpected in lpacc")
-       | lpacc _ = bug "unexpected path in lpacc"
+       | lpacc da = (print "LContract.lpacc: "; print (DA.prAcc da);
+		     print "\n";
+		     bug "unexpected path in lpacc")
 
      and lpdc (s, DA.EXN acc, t) = (s, DA.EXN(lpacc acc), t)
        | lpdc (s, rep, t) = (s, rep, t)

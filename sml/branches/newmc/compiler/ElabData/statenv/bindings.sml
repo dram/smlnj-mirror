@@ -14,7 +14,7 @@ structure Bindings : BINDINGS =
 
     datatype binding
       = VALbind of V.var
-      | CONbind of V.datacon
+      | CONbind of T.datacon
       | TYCbind of T.tycon
       | SIGbind of M.Signature
       | STRbind of M.Structure

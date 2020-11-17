@@ -968,7 +968,7 @@ let
                                               val vb =
                                                 A.VB {pat=A.VARpat specvar,
                                                       exp=A.VARexp(ref actvar, ptvs),
-                                                      boundtvs=btvs, tyvars=ref []}
+                                                      typ=spectyp, boundtvs=btvs, tyvars=ref []}
                                            in ((A.VALdec [vb])::decs, specvar)
                                           end
 
@@ -1004,7 +1004,8 @@ let
                                           val vb =
                                               A.VB {pat=A.VARpat specvar,
                                                     exp=A.CONexp(con, paramtvs),
-                                                    boundtvs=boundtvs, tyvars=ref []}
+                                                    typ=spectyp, boundtvs=boundtvs,
+						    tyvars=ref []}
                                       in ((A.VALdec [vb])::decs,
                                           (B.VALbind specvar)::bindings)
                                       end

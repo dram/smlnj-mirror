@@ -77,7 +77,7 @@ fun substVars (exp: AS.exp, varmap: (V.var * SVar.svar) list) =
 	      | SEQexp exps => List.app substExp exps
 	      | CONSTRAINTexp (e,_) => substExp e
 	      | MARKexp (e,_) => substExp e
-	      | _ => ()  (* datacons, constants, SELECTexp: nothing to do *)
+	      | _ => ()  (* datacons, constants, ?SELECTexp: nothing to do *)
 	    (* end case *))
 	and substDec dec =
             (case dec
@@ -146,41 +146,5 @@ fun infoToSvar (info : AOinfo) =
 fun andorToSvar andor =
     infoToSvar (getInfo andor)
 
-
-(* alpha-converting svars in match code *)
-
-(* FIX: not used 
-
-datatype varStatus = NEW of svar | OLD of svar
-
-exception TABLE
-
-(* ASSUMPTION: once an svar is entered at its binding occurrence,
- * all applied occurrences will be refreshed before another
- * binding is encountered. *)
-
-(* refresher : unit -> (svar -> svar) * (svar -> svar) *)
-fun refresher () =
-    let val vartable = LV.Tbl.create(100, TABLE) (* an lvar --> svar hashtable *)
-	fun refreshBind svar =
-	    let val lvar = V.varToLvar svar
-		val svar' = OLD (LV.Tbl.lookup vartable lvar)
-			    handle TABLE => NEW svar
-	    in case svar'
-		of NEW svar =>
-		   (LV.Tbl.insert vartable (lvar,svar); svar)
-		 | OLD svar =>
-		    let val newlvar = LV.mkLvar()
-			val newsvar = V.replaceLvar(svar,newlvar)
-		    in LV.Tbl.insert vartable (lvar, newsvar);
-		       newsvar
-		    end
-	    end
-	fun refreshUse svar =
-	    LV.Tbl.lookup vartable (varToLvar svar)
-	    handle TABLE => bug "refreshOccurrence"
-     in (refreshBind, refreshUse)
-    end
-*)
 end (* local *)
 end (* structure MCUtil *)

@@ -12,6 +12,7 @@
  *)
 local
     structure A = Absyn
+    structure T = Types
     structure SE = StaticEnv
     structure SP = SymPath
     structure EM = ErrorMsg
@@ -159,7 +160,7 @@ structure TDPInstrument :> TDP_INSTRUMENT = struct
 
 	fun VALdec (v, e) =
 	    A.VALdec [A.VB { pat = A.VARpat v, exp = e,
-			     tyvars = ref [], boundtvs = [] }]
+			     typ = T.UNDEFty, tyvars = ref [], boundtvs = [] }]
 	fun LETexp (v, e, b) = A.LETexp (VALdec (v, e), b)
 	fun AUexp v = A.APPexp (VARexp v, uExp)	(* apply to unit *)
 
@@ -202,8 +203,8 @@ structure TDPInstrument :> TDP_INSTRUMENT = struct
 
 	fun i_exp _ loc (A.RECORDexp l) =
 	      A.RECORDexp (map (fn (l, e) => (l, i_exp false loc e)) l)
-	  | i_exp _ loc (A.SELECTexp (l, e)) =
-	      A.SELECTexp (l, i_exp false loc e)
+	  | i_exp _ loc (exp as (A.RSELECTexp (var, i))) = exp
+	  | i_exp _ loc (exp as (A.VSELECTexp (var, i))) = exp
 	  | i_exp _ loc (A.VECTORexp (l, t)) =
 	      A.VECTORexp (map (i_exp false loc) l, t)
 	  | i_exp tail loc (e as A.APPexp (f, a)) =
@@ -223,19 +224,19 @@ structure TDPInstrument :> TDP_INSTRUMENT = struct
 						   VARexp result]))
 		     end
 	    end
-	  | i_exp tail loc (A.HANDLEexp (e, (rl, t))) =
+	  | i_exp tail loc (A.HANDLEexp (e, (rl, t1, t2))) =
 	    let val restore = tmpvar ("tmprestore", u_u_Ty)
 		fun rule (r as A.RULE (p, e)) =
 		    if is_raise_exp e then r
 		    else A.RULE (p, A.SEQexp [AUexp restore, i_exp tail loc e])
 	    in
 		LETexp (restore, saveexp,
-			A.HANDLEexp (i_exp false loc e, (map rule rl, t)))
+			A.HANDLEexp (i_exp false loc e, (map rule rl, t1, t2)))
 	    end
 	  | i_exp _ loc (A.RAISEexp (e, t)) =
 	      A.RAISEexp (i_exp false loc e, t)
-	  | i_exp tail loc (A.CASEexp (e, rl, b)) =
-	      A.CASEexp (i_exp false loc e, map (i_rule tail loc) rl, b)
+	  | i_exp tail loc (A.CASEexp (e, (rules, lhsTy, rhsTy))) =
+	    A.CASEexp (i_exp false loc e, (map (i_rule tail loc) rules, lhsTy, rhsTy))
 	  | i_exp tail loc (A.IFexp { test, thenCase, elseCase }) =
 	      A.IFexp { test = i_exp false loc test,
 			thenCase = i_exp tail loc thenCase,
@@ -247,22 +248,21 @@ structure TDPInstrument :> TDP_INSTRUMENT = struct
 	  | i_exp _ loc (A.WHILEexp { test, expr }) =
 	      A.WHILEexp { test = i_exp false loc test,
 			   expr = i_exp false loc expr }
-	  | i_exp tail loc (A.FNexp (rl, t)) =
+	  | i_exp tail loc (A.FNexp (rl, lhsTy, rhsTy)) =
 	    let val enterexp = mkenter (mkDescr (loc, "FN"))
-		val arg = tmpvar ("fnvar", t)
+		val arg = tmpvar ("fnvar", lhsTy)
 		val rl' = map (i_rule true loc) rl
 		val re = let val A.RULE (_, lst) = List.last rl
 			     val t = Reconstruct.expType lst
 			 in
-			     A.RAISEexp (A.CONexp (matchcon, []), t)
+			     A.RAISEexp (A.CONexp (matchcon, []), rhsTy)
 			 end
 	    in
 		A.FNexp ([A.RULE (A.VARpat arg,
 				  A.SEQexp [enterexp,
-					    A.CASEexp (A.VARexp (ref arg, []),
-						       rl', true)]),
+					    A.CASEexp (A.VARexp (ref arg, []), (rl',lhsTy,rhsTy))]),
 			  A.RULE (A.WILDpat, re)],
-			 t)
+			 lhsTy, rhsTy)
 	    end
 	  | i_exp tail loc (A.LETexp (d, e)) =
 	      A.LETexp (i_dec loc d, i_exp tail loc e)
@@ -295,7 +295,7 @@ structure TDPInstrument :> TDP_INSTRUMENT = struct
 
 	and i_rule tail loc (A.RULE (p, e)) = A.RULE (p, i_exp tail loc e)
 
-	and i_vb (n, r) (vb as A.VB { pat, exp, boundtvs, tyvars }) =
+	and i_vb (n, r) (vb as A.VB { pat, exp, typ, boundtvs, tyvars }) =
 	    let fun gv (A.VARpat v) = SOME v
 		  | gv (A.CONSTRAINTpat (p, _)) = gv p
 		  | gv (A.LAYEREDpat (p, p')) =
@@ -304,7 +304,7 @@ structure TDPInstrument :> TDP_INSTRUMENT = struct
 			 | NONE => gv p')
 		  | gv _ = NONE
 		fun recur n = A.VB { pat = pat, exp = i_exp false (n, r) exp,
-				     boundtvs = boundtvs, tyvars = tyvars }
+				     typ = typ, boundtvs = boundtvs, tyvars = tyvars }
 	    in
 		case gv pat of
 		    SOME (VC.VALvar { path = SP.SPATH [x], prim, ... }) =>
@@ -318,15 +318,14 @@ structure TDPInstrument :> TDP_INSTRUMENT = struct
 		  | _ => recur n
 	    end
 
-	and i_rvb (n, r) (A.RVB { var, exp, boundtvs, resultty, tyvars }) =
+	and i_rvb (n, r) (A.RVB { var, exp, resultty, tyvars }) =
 	    let val x =
 		    case var of
 			VC.VALvar { path = SymPath.SPATH [x], ... } => x
 		      | _ => impossible "VALRECdec"
 	    in
 		A.RVB { var = var, exp = i_exp false (cons (x, n), r) exp,
-			boundtvs = boundtvs, resultty = resultty,
-			tyvars = tyvars }
+			resultty = resultty, tyvars = tyvars }
 	    end
 
 	and i_eb loc (A.EBgen { exn, etype, ident }) =

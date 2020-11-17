@@ -77,16 +77,14 @@ in
   fun exitRecTy () = (recTyContext := tl (!recTyContext))
   fun recTyc (i) =
 	let val x = hd(!recTyContext)
-	    val base = DI.innermost
-	 in if x = 0 then LT.tcc_var(base, i)
-	    else if x > 0 then LT.tcc_var(DI.di_inner base, i)
+	 in if x = 0 then LT.tcc_var (1, i)  (* innermost TFN *)
+	    else if x > 0 then LT.tcc_var (2, i)  (* second innermost TFN *)
 		 else bug "unexpected RECtyc"
 	end
   fun freeTyc (i) =
-	let val x = hd(!recTyContext)
-	    val base = DI.di_inner (DI.innermost)
-	 in if x = 0 then LT.tcc_var(base, i)
-	    else if x > 0 then LT.tcc_var(DI.di_inner base, i)
+	let val x = hd (!recTyContext)
+	 in if x = 0 then LT.tcc_var (2, i)  (* second innermost TFN *)
+	    else if x > 0 then LT.tcc_var (3, i)  (* third innermost TFN *)
 		 else bug "unexpected RECtyc"
 	end
 end (* end of recTyc and freeTyc hack *)
@@ -98,23 +96,25 @@ fun tpsKnd (TP_VAR x) = TransTKind.trans(#kind x)
 fun genTT () = let
 
 fun tpsTyc d tp =
-  let fun h (TP_VAR x, cur) =
+  let fun setTyvarIndex (TP_VAR x, currentDepth) =
 	  let val { tdepth, num, ... } = x
-	  in
-              LT.tcc_var(DI.getIndex(cur, tdepth), num)
+	      val dbindex = currentDepth - tdepth
+	   in if dbindex < 1
+	      then bug ("tpsTyc: dbindex = " ^ Int.toString dbindex ^ " < 1")
+	      else ();
+              LT.tcc_var (dbindex, num)
 	  end
-        | h (TP_TYC tc, cur) = tycTyc(tc, cur)
-        | h (TP_SEL (tp, i), cur) = LT.tcc_proj(h(tp, cur), i)
-        | h (TP_APP (tp, ps), cur) =
-              LT.tcc_app(h(tp, cur), map (fn x => h(x, cur)) ps)
-        | h (TP_FCT (ps, ts), cur) =
+        | setTyvarIndex (TP_TYC tc, currentDepth) = tycTyc(tc, currentDepth)
+        | setTyvarIndex (TP_SEL (tp, i), currentDepth) = LT.tcc_proj(setTyvarIndex(tp, currentDepth), i)
+        | setTyvarIndex (TP_APP (tp, ps), currentDepth) =
+              LT.tcc_app(setTyvarIndex(tp, currentDepth), map (fn x => setTyvarIndex(x, currentDepth)) ps)
+        | setTyvarIndex (TP_FCT (ps, ts), currentDepth) =
               let val ks = map tpsKnd ps
-                  val cur' = DI.next cur
-                  val ts' = map (fn x => h(x, cur')) ts
+                  val ts' = map (fn x => setTyvarIndex(x, currentDepth + 1)) ts
                in LT.tcc_fn(ks, LT.tcc_seq ts')
               end
 
-   in h(tp, d)
+   in setTyvarIndex(tp, d)
   end (* tpsTyc *)
 
 (*
@@ -220,7 +220,14 @@ and toTyc d t =
 
       and trMTyvarKind (INSTANTIATED t) = trTy t
         | trMTyvarKind (LBOUND{depth,index,...}) =
-             LT.tcc_var(DI.getIndex(d, depth), index)
+	     (* ASSERT: depth < d *)
+	    let val dbindex = d - depth  (* ASSERT: dbindex > 0 *)
+	    in if dbindex < 1
+	       then bug (concat["toTyc:trMTyvarKind/LBOUND -- dbindex = ", Int.toString dbindex,
+				" < 1\n   d = ", Int.toString d, "; depth = ", Int.toString depth])
+	       else ();
+               LT.tcc_var (dbindex, index)
+	    end
         | trMTyvarKind (UBOUND _) = LT.tcc_void
             (* dbm: a user-bound type variable that didn't get generalized;
                treat the same as an uninstantiated metatyvar.
@@ -229,10 +236,10 @@ and toTyc d t =
             (* dbm: a metatyvar that was neither instantiated nor
 	       generalized.  E.g. val x = ([],1); -- the metatyvar
                introduced by the generic instantiation of the type of [] is
-               neither instantiated nor generalized. *)
+               neither instantiated nor generalized (unless at toplevel). *)
         | trMTyvarKind _ = bug "toTyc:h" (* OVLD should have been resolved *)
 
-      and trTy (VARty tv) = (* h(!tv) *) lookTv tv
+      and trTy (VARty tv) = lookTv tv
         | trTy (CONty(RECORDtyc _, [])) = LT.tcc_unit
         | trTy (CONty(RECORDtyc _, tys)) = LT.tcc_tuple (map trTy tys)
         | trTy (CONty(tyc, [])) = tycTyc(tyc, d)

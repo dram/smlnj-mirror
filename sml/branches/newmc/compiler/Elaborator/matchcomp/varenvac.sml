@@ -22,14 +22,15 @@ type varenvAC = (V.var * V.var) list
 val empty : varenvAC = nil
 
 (* bind : V.var * V.var * varenvAC -> varenvAC *)
-fun bind (var, svar, venv: varenvAC) = (var,svar) :: venv
+fun bind (var, svar, venv: varenvAC) =
+    if V.isWildVar var then venv
+    else (var,svar) :: venv
 
 (* look : varenvAC * V.var -> V.var option *)
 fun look (varenvAC, var) =
     (case var
       of V.VALvar{access = A.LVAR lvar, ...} =>
-	 let val lvar = V.varToLvar var
-	     fun loop nil = NONE
+	 let fun loop nil = NONE
 	       | loop ((var0,svar0)::rest) = 
 		 if LV.same (V.varToLvar var0, lvar) then SOME svar0
 		 else loop rest
@@ -43,6 +44,15 @@ fun append (venv1: varenvAC, venv2: varenvAC) = venv1 @ venv2
 
 (* range : varenvAC -> V.var list *)
 fun range (venv: varenvAC) = map #2 venv
+
+fun alphaEnv (vars: V.var list) : varenvAC =
+    map (fn var => (var, #1 (V.replaceLvar var))) vars
+	
+fun printVarEnvAC venv =
+    let fun printBinding (var1, var2) =
+	    print (concat [V.toString var1, "->", V.toString var2])
+     in PrintUtil.printSequence ", " printBinding venv
+    end
 
 end (* local *)
 end (* structure VarEnvAC *)

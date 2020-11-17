@@ -22,6 +22,14 @@ Group
 	structure ElabMod
 	structure ElabTop
 
+	structure MCTypes
+	structure AndOr
+	structure ORQueues
+	structure DecisionTree
+        structure MCUtil
+	structure VMCexp
+	structure MatchComp
+
 	structure BasicTypes
 	structure ElabUtil
 	structure ElabDebug
@@ -37,7 +45,7 @@ is
 	types/overloadclasses.sml
 	types/overloadvar.sml
 	types/overload.sml
-	types/typecheck.sml
+	types/typecheck-new.sml
 
 	modules/sigmatch.sml
 	modules/instantiate.sml
@@ -56,6 +64,22 @@ is
 	elaborate/elabmod.sml
 	elaborate/elabtop.sml
 	elaborate/check-unused.sml
+
+        matchcomp/svar.sig
+        matchcomp/svar.sml
+        matchcomp/rules.sig
+        matchcomp/rules.sml
+        matchcomp/mctypes.sml
+	matchcomp/mcutil.sml
+        matchcomp/mcprint.sml
+        matchcomp/andor.sml
+        matchcomp/or-queues.sml
+        matchcomp/decisiontree.sml
+        matchcomp/vmcexp.sml
+	matchcomp/svarenv.sml
+        matchcomp/varenvmc.sml
+        matchcomp/varenvac.sml
+        matchcomp/matchcomp.sml
 
 	$smlnj/viscomp/elabdata.cm
 	$smlnj/viscomp/basics.cm

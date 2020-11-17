@@ -7,6 +7,7 @@
 structure TypesUtil : TYPESUTIL =
   struct
 
+local
     structure EM = ErrorMsg
     structure SS = Substring
     structure EP = EntPath
@@ -24,6 +25,7 @@ structure TypesUtil : TYPESUTIL =
     val update = Array.update
     infix 9 sub
 
+in
     val --> = BT.-->
     infix -->
 
@@ -48,14 +50,14 @@ structure TypesUtil : TYPESUTIL =
 
     fun mkFLEX (fields, depth) = OPEN{kind=FLEX fields, depth=depth, eq=false}
 
-    fun extract_varname_info name = let
-	  val name = SS.triml 1 (SS.full name)  (* remove leading "'" *)
-	  val (name, eq) = if SS.sub(name, 0) = #"'"
+    fun extract_varname_info name =
+	let val name = SS.triml 1 (SS.full name)  (* remove leading "'" *)
+	    val (name, eq) =
+		if SS.sub(name, 0) = #"'"
 		then (SS.triml 1 name, true) (* initial "'" signifies equality *)
 		else (name, false)
-	  in
-	    (SS.string name, eq)
-	  end
+	in (SS.string name, eq)
+	end
 
     fun mkUBOUND (id : Symbol.symbol) : tvKind = let
 	  val (name, eq) = extract_varname_info (Symbol.name id)
@@ -79,7 +81,42 @@ structure TypesUtil : TYPESUTIL =
 
     fun mkMETAty() = mkMETAtyBounded infinity
 
+    (* "marking" tyvars as generalized and identifying generalized tyvars.
+     * This is provisional and "abuses" the LBOUND tyvar kind as a shortcut.
+     * A "marker" is a LBOUND kind where depth = 0 (irrelevant) and index >= 1000.
+     * During plambda translation of an absyn exp containing occurences of
+     * generalized tyvars, their kind will be reset to proper LBOUND values
+     * containing DeBruijn indexes. *)
+    local
+      val generalizedTyvarCount = ref 0
+    in
+      (*  markGeneralizedTyvar: tyvar -> unit *)
+      fun markGeneralizedTyvar tv =
+	  let val count = !generalizedTyvarCount
+	   in generalizedTyvarCount := count + 1; 
+	      tv := LBOUND{depth = 0, index = 1000 + count, eq = false}
+	  end
 
+      (* isGeneralizedTyvar : tyvar -> bool *)
+      fun isGeneralizedTyvar tv =
+	  case !tv
+	    of LBOUND{index, ...} => index >= 1000
+	     | _ => false
+
+      (* generalizedTyvarId : tyvar -> int option *)
+      fun generalizedTyvarId tv =
+	  case !tv
+	   of LBOUND{index, ...} =>
+	      if index >= 1000 then SOME (index - 1000)
+	      else NONE
+	    | _ => NONE
+
+      (* resetGeneralizedTyvarCount : unit -> unit *)
+      fun resetGeneralizedTyvarCount () =
+	  generalizedTyvarCount := 0
+
+    end (* local *)
+    
   (*************** primitive operations on tycons ***************)
     fun bugTyc (s: string, tyc) = (case tyc
 	   of GENtyc { path, ... } => bug (s ^ " GENtyc " ^ S.name (IP.last path))
@@ -191,6 +228,13 @@ structure TypesUtil : TYPESUTIL =
 	 in loop(tyvars,0)
 	end
 
+    fun tyvarIsEq tyvar =
+	case !tyvar
+	 of (OPEN{eq,...} | UBOUND{eq,...} | OVLDV{eq,...}
+	     | LBOUND{eq,...}) => eq
+	  | (OVLDI _ | OVLDW _) => true
+	  | _ => false
+
     exception SHARE
 
   (* assume that f fails on identity, i.e. f x raises SHARE instead of
@@ -220,8 +264,9 @@ structure TypesUtil : TYPESUTIL =
       end
 
     fun applyPoly(POLYty{tyfun,...}, args) =
-	  applyTyfun(tyfun, args)
-      | applyPoly _ = bug "TypesUtil.applyPoly"
+	  applyTyfun(tyfun, args)  (* applyTyfun checks args, arity agreement *)
+      | applyPoly (ty, nil) = ty
+      | applyPoly _ = bug "applyPoly -- non-polytype with args"
 
     fun mapTypeFull f =
 	let fun mapTy ty =
@@ -247,7 +292,6 @@ structure TypesUtil : TYPESUTIL =
 	 in appTy
 	end
 
-
     exception ReduceType
 
     fun reduceType(CONty(DEFtyc{tyfun,...}, args)) = applyTyfun(tyfun,args)
@@ -256,6 +300,7 @@ structure TypesUtil : TYPESUTIL =
       | reduceType(MARKty(ty, region)) = ty
       | reduceType _ = raise ReduceType
 
+    (* headReduceType : ty -> ty *)
     fun headReduceType ty = headReduceType(reduceType ty) handle ReduceType => ty
 
     fun equalType(ty: ty,ty': ty) : bool =
@@ -437,6 +482,8 @@ structure TypesUtil : TYPESUTIL =
       | compressTy (POLYty{tyfun=TYFUN{body,...},...}) = compressTy body
       | compressTy _ = ()
 
+    open Occurence
+(*
   (*
    * 8/18/92: cleaned up occ "state machine" some and fixed bug #612.
    * Known behaviour of the attributes about the context that are kept:
@@ -458,7 +505,7 @@ structure TypesUtil : TYPESUTIL =
      fun toplevel (OCC{top,...})  = top
 
     end (* abstype occ *)
-
+*)
   (* instantiatePoly: ty -> ty * tyvar list
      if argument is a POLYty, instantiates body of POLYty with new META typa
      variables, returning the instantiatied body and the list of META tyvars.
@@ -593,7 +640,7 @@ structure TypesUtil : TYPESUTIL =
    * the instantiation parameters for the primop relative to its intrinsic type.
    *)
     fun matchInstTypes(doExpandAbstract,tdepth,specTy,actualTy) =
-	let	fun debugmsg' msg = debugmsg ("matchInstTypes: " ^ msg)
+	let fun debugmsg' msg = debugmsg ("matchInstTypes: " ^ msg)
 	    fun expandAbstract(GENtyc {kind=ABSTRACT tyc', ...}) =
 		expandAbstract tyc'
 	      | expandAbstract(tyc) = tyc
@@ -723,19 +770,19 @@ structure TypesUtil : TYPESUTIL =
 
     local open Absyn in
 
+    (* orAlternatives : A.pat -> A.pat list *)
+    (* DBM: assumes "|" operator in patterns is right associative
+     * this function should only be applied to ??? *)
+    fun orAlternatives (ORpat(p1,p2)) =
+	p1 :: orAlternatives p2
+      | orAlternatives p = [p]
+
     (* dconRefutable : dcon -> bool
      * a dcon is irrefutable if its datatype has only one data constructor *)
     fun dconRefutable(DATACON{sign,...}) =
 	case sign
 	 of A.CSIG(n,m) => (n+m) > 1 (* ref, etc. dcons considered irrefutable *)
-	  | A.CNIL => false (* exn constructor *)
-
-    (* orAlternatives : A.pat -> A.pat list *)
-    (* DBM: assumes "|" operator in patterns is right associative
-     * this function should only be applied to  *)
-    fun orAlternatives (ORpat(p1,p2)) =
-	p1 :: orAlternatives p2
-      | orAlternatives p = [p]
+	  | A.CNIL => true (* exn constructors have sign = CNIL and are refutable *)
 
     (* refutable: A.pat -> bool
      * a pattern is refutable if there exists a value of its type that does
@@ -745,12 +792,12 @@ structure TypesUtil : TYPESUTIL =
 	 of VARpat _ => false
 	  | WILDpat => false
 	  | CONpat (dcon, tyvars) => dconRefutable dcon
-	  | RECORDpat {fields, ...} =>
-	    List.exists (fn (_,p) => refutable p) fields
 	  | APPpat (dcon, _, arg) =>
-	    dconRefutable dcon orelse refutable arg
+	      dconRefutable dcon orelse refutable arg
+	  | RECORDpat {fields, ...} =>
+	      List.exists (fn (_,p) => refutable p) fields
 	  | VECTORpat (pats, _) =>
-	    List.exists refutable pats
+	      List.exists refutable pats
 	  | LAYEREDpat (p1, p2) => refutable p1 orelse refutable p2
 	  | CONSTRAINTpat (p, _ ) => refutable p
 	  | MARKpat (p, _) => refutable p
@@ -765,7 +812,10 @@ structure TypesUtil : TYPESUTIL =
     (* refutablePats : A.pat list -> bool
      * test whether a list of alternative pats is refutable as a whole for their
      * common type, i.e. are there values that don't match any of the pats? *)
-    and refutablePats pats = true  (* punting! -- assume all OR patterns refutable *)
+    (* BUG: punting! -- temporarily assuming all OR patterns refutable. This is
+     * not true -- consider "(true | false)". Could invoke matchComp on a list
+     * of dummy rules to see if it produces a SWITCHexp with SOME default. *)
+    and refutablePats pats = true
 
     fun isValue (VARexp _) = true
       | isValue (CONexp _) = true
@@ -776,7 +826,8 @@ structure TypesUtil : TYPESUTIL =
       | isValue (FNexp _) = true
       | isValue (RECORDexp fields) =
 	foldr (fn ((_,exp),x) => x andalso (isValue exp)) true fields
-      | isValue (SELECTexp(_, e)) = isValue e
+      | isValue (RSELECTexp(var,index)) = true (* should not occur at this point *)
+      | isValue (VSELECTexp(var,index)) = true (* should not occur at this point *)
       | isValue (VECTORexp (exps, _)) =
 	foldr (fn (exp,x) => x andalso (isValue exp)) true exps
       | isValue (SEQexp nil) = true
@@ -805,7 +856,7 @@ structure TypesUtil : TYPESUTIL =
 	   else false
 	end
       | isValue (CONSTRAINTexp(e,_)) = isValue e
-      | isValue (CASEexp(e, (RULE(p,e'))::_, false)) =
+      | isValue (CASEexp(e, (RULE(p,e')::_, _, _))) =  (* case for binding. OBS. FIX! DBM *)
 	isValue e andalso not(refutable p) andalso isValue e'
         (* DBM: at the point where isValue is used in typecheck.sml,
          * have "val pat = e" declarations been rewritten as
@@ -815,7 +866,7 @@ structure TypesUtil : TYPESUTIL =
 	 * the rhs rule expression e' associated with p may not be a value.
 	 * a more general treatment of case expressions would allow the case
          * where the set of all rule patterns is irrefutable and all the rhs
-         * expressions are values *)
+         * expressions are values. DBM [7/17/20] reconsider in light of new MC. *)
       | isValue (LETexp(VALRECdec _, e)) = (isValue e) (* special RVB hacks *)
       | isValue (MARKexp(e,_)) = isValue e
       | isValue _ = false
@@ -849,22 +900,25 @@ structure TypesUtil : TYPESUTIL =
       | projectField _ = bug "projectField - not record type"
 
   (* mapUnZip : ('a -> 'b * 'c) -> 'a list -> 'b list * 'c list *)
-    fun mapUnZip f nil = (nil, nil)
-      | mapUnZip f (hd::tl) =
-	 let val (x,y) = f(hd)
-	     val (xl,yl) = mapUnZip f tl
-	  in (x::xl,y::yl)
-	 end
+  (* mapUnZip f xs = ListPair.unzip(map f xs), with loop fusion, not tail recursive *)
+    fun mapUnZip f =
+        let fun muz nil = (nil,nil)
+	      | muz (x::xs) = 
+		let val (u,v) = f x
+		    val (us,vs) = muz xs
+		 in (u::us, v::vs)
+		end
+	in muz
+	end
 
     fun foldTypeEntire f =
 	let fun foldTc (tyc, b0) =
 	      case tyc
 	       of GENtyc { kind, ... } =>
-		  (case kind of
-		       DATATYPE{family={members=ms,...},...} => b0
-(*             foldl (fn ({dcons, ...},b) => foldl foldDcons b dcons) b0 ms *)
-		     | ABSTRACT tc => foldTc (tc, b0)
-		     | _ => b0)
+		  (case kind
+		     of DATATYPE{family={members=ms,...},...} => b0
+		      | ABSTRACT tc => foldTc (tc, b0)
+		      | _ => b0)
 		| DEFtyc{tyfun=TYFUN{arity,body}, ...} => foldTy(body, b0)
 		| _ => b0
 
@@ -1116,22 +1170,152 @@ structure TypesUtil : TYPESUTIL =
 	      ])
 	  end
 
-    fun numInRange (n, ty) = let
-	    fun pow2 w = IntInf.<<(1, Word.fromInt w)
-	    in
-	      case numInfo ty
-	       of {wid=0, ...} => true (* IntInf.int literals are always in range! *)
-		| {wid, signed=true} => let
-		    val limit = pow2(wid-1)
-		    in
-		      (~limit <= n) andalso (n < limit)
-		    end
-		| {wid, ...} => (n < pow2 wid) (* we assume that n > 0, since it is unsigned *)
+    fun numInRange (n, ty) =
+	let fun pow2 w = IntInf.<<(1, Word.fromInt w)
+	 in case numInfo ty
+	      of {wid=0, ...} => true
+	         (* IntInf.int literals are always in range! *)
+	       | {wid, signed=true} =>
+		   let val limit = pow2(wid-1)
+		    in (~limit <= n) andalso (n < limit)
+		   end
+	       | {wid, ...} => (n < pow2 wid)
+		 (* we assume that n > 0, since it is unsigned *)
 	      (* end case *)
-	    end
+	end
 
+
+    (* dataconToTycon : datacon -> tycon *)
+    fun dataconToTycon (DATACON{typ, ...}) =
+	let val typ' =
+		case typ
+		  of POLYty{tyfun = TYFUN{body,...},...} => body
+		   | _ => typ
+	    val typ'' = if BT.isArrowType typ'
+			then BT.range typ'
+			else typ'
+	in case headReduceType typ''
+	     of CONty(tycon, _) => tycon
+	      | _ => bug "dataconToTycon"
+	end
+
+    (* datatypeWidth : tycon -> int *)
+    (* BUG: exception of an exn datacon, where tycon is PRIMITIVE exnTycon *)
+    fun datatypeWidth (GENtyc {kind, ...}) =
+        (case kind
+	   of DATATYPE {index, family={members, ...}, ...} =>
+                let val {dcons,...} = Vector.sub(members, index)
+	         in length dcons
+	        end
+	    | PRIMITIVE => 1000000  (* exn pseudo datatype, width "infinite" *)
+	    | ABSTRACT tycon => datatypeWidth tycon  (* probably impossible *)
+	    | _ => bug "datatypeWidth: bad tycon" )
+      | datatypeWidth _ = bug "datatypeWidth: not GENtyc"
+
+    (* dataconName: datacon -> symbol *)
+    fun dataconName (DATACON{name,...}) = name
+
+    (* dataconType : datacon -> ty *)
+    fun dataconType (DATACON{typ,...}) = typ
+
+    (* dataconSign : datacon -> Access.consig *)
     fun dataconSign (DATACON{sign,...}) = sign
 
+    (* dataconIsConst : datacon -> bool *)
     fun dataconIsConst (DATACON{const,...}) = const
 
+    (* dataconWidth: datacon -> int *)
+    val dataconWidth = datatypeWidth o dataconToTycon
+
+    (* vectorElemTy : ty -> ty *)
+    fun vectorElemTy ty =
+	(case (headReduceType ty)
+           of CONty(tycon,[argTy]) =>
+	      if equalTycon(tycon, BT.vectorTycon) then argTy
+	      else bug "vectorElemTy 1"
+	    | VARty _ => bug "vectorElemTy: VARty"
+	    | IBOUND _ => bug "vectorElemTy: IBOUND"
+	    | POLYty _ => bug "vectorElemTy: POLYty"
+	    | WILDCARDty => bug "vectorElemTy: WILDCARDty"
+	    | UNDEFty => bug "vectorElemTy: UNDEFty"
+	    | MARKty _ => bug "vectorElemTy: MARKty"
+	    | CONty(tycon,args) =>
+	      (if equalTycon(tycon, BT.vectorTycon)
+	       then print "###vectorTycon -- ok\n"
+	       else print ("###vectoTycon: " ^ Symbol.name (tycName tycon) ^ "\n");
+	       bug ("vectorElemTy: CONty: |args| = " ^ Int.toString(length args))))
+(*	    | ty' => bug "vectorElemTy: ????") *)
+
+    (* replicateTy : ty * int -> ty list *)
+    fun replicateTy (ty,len) =
+	let fun build (0,tys) = tys
+	      | build (n,tys) = build (n-1, ty::tys)
+	in build (len,nil)
+	end
+
+    (* matchPoly : ty * int * ty -> ty vector *)
+    (* ty is expected to be an instance of the polytype <arity, body>;
+     * the vector returned consists of the instantiation parameters for
+     * this instance. *)
+    fun matchPoly (ty, arity, body) =
+	let val instArray = Array.array(arity,UNDEFty)
+	    fun match (target, scheme) =
+		let val targetR = headReduceType target
+		    val schemeR = headReduceType scheme  (* should do nothing *)
+		in case (targetR, schemeR)
+		    of (ty, IBOUND i) =>
+		          (case Array.sub(instArray, i)
+			     of UNDEFty =>
+			        ((* print ("matchPoly:update:"^Int.toString i^"\n"); *)
+				 Array.update(instArray, i, ty))
+			      | instTy => if equalType(ty, instTy)
+					  then ()
+					  else bug "matchPoly 0")
+		    | (CONty(tyc1,args1), (CONty(tyc2,args2))) =>
+		        if equalTycon (tyc1,tyc2)
+			then ListPair.appEq match (args1, args2)
+			else bug "matchPoly 1"
+		    | (ty1, ty2) => bug "matchPoly 2"
+		end
+	in match(ty, body);
+	   Array.vector(instArray)
+	end
+
+    (* instTy : ty * ty vector -> ty *)
+    fun instTy (ty, vec) =
+        (case (headReduceType ty)
+	  of CONty(tyc, args) =>
+	     ((* print ("instTy:CONty: " ^ (S.name(tycName tyc)) ^ "\n"); *)
+	      CONty(tyc, map (fn ty => instTy(ty,vec)) args))
+	   | IBOUND i => ((*print ("instTy:IBOUND:"^Int.toString i^"\n");*) Vector.sub(vec,i))
+	   | POLYty _ => bug "instTy:POLYty"
+	   | WILDCARDty => bug "instTy:WILDCARDty"
+	   | UNDEFty => bug "instTy:UNDEFty"
+	   | MARKty _ => bug "instTy:MARKty"
+	   | VARty _ => bug "instTy:VARty")
+
+    (* destructDataconTy : T.ty * datacon -> T.ty
+     * given the type instTy of an application of the (nonconstant) dcon,
+     * returns the corresponding instance of the domain of the dcon *)
+    fun destructDataconTy (instRangeTy, dcon) =
+	(* ASSERT: dcon is not a constant dcon, and ty is the range of an instance of
+	 * the polymorphic type of dcon *)
+	let val dconTy = headReduceType (dataconType dcon) (* should do nothing? *)
+	 in case dconTy
+	     of POLYty{sign, tyfun = TYFUN{arity,body}} =>
+		  if BT.isArrowType body
+		  then let val (domainScheme, rangeScheme) = BT.domainNrange body
+			   val instVector = matchPoly (instRangeTy, arity, rangeScheme)
+		       in instTy (domainScheme, instVector)
+		       end
+		  else bug "destructDataconTy"
+	      | _ => (* dcon not polymorphic: instTy = BT.range dconty *)
+		BT.domain dconTy 
+	end
+
+    (* destructRecordTy : ty -> ty list *)
+    fun destructRecordTy (CONty(_, elemTys)) = elemTys
+      | destructRecordTy ty = bug "destructRecordTy"
+
+  end (* local *)
   end (* structure TypesUtil *)

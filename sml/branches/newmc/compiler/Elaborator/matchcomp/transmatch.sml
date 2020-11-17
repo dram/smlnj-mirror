@@ -85,7 +85,7 @@ fun transExp exp =
 	  | MARKexp (exp, region) => MARKexp (transExp exp, region)
 	  | _ => exp
 	    (* (VARexp _ | CONexp _ | NUMexp _ | REALexp _ | STRINGexp _  | CHARexp _ |
-	     *  SELECTexp _ | SWITCHexp _ | VSWITCHexp) => exp *)
+	     *  ?SELECTexp _ | SWITCHexp _ | VSWITCHexp) => exp *)
     end (* transExp *)
 
 (* transDec : dec -> dec *)
@@ -135,7 +135,7 @@ and transVB (VB{pat, exp, typ, boundtvs, tyvars}) =
 				       prim = PrimopId.NonPrim}
 	      fun selectVBs([], _) = []
 		| selectVBs (pvar::pvars, n) =
-		    simpleVALdec(pvar, SELECTexp(ptupleVar,n,true), nil) (* non-polymorphic *)
+		    simpleVALdec(pvar, RSELECTexp (ptupleVar,n), nil) (* non-polymorphic *)
 		      :: selectVBs(pvars, n+1) 
 		    (* defining a pattern var by (record) selection from a var (ptupleVar)
 		     * bound to the tuple of all the pattern var values; the btvs of each
@@ -153,11 +153,9 @@ and transVBs nil = bug "transVBs: nil"  (* expect at least one *)
   | transVBs [vb] = transVB vb
   | transVBs vbs = SEQdec (map transVB vbs)
 
-and transRVB (RVB{var: V.var, exp: exp, boundtvs: T.tyvar list,
-		  resultty: T.ty option, tyvars: T.tyvar list ref}) =
+and transRVB (RVB{var: V.var, exp: exp, resultty: T.ty option, tyvars: T.tyvar list ref}) =
     (print "transRVB:var = "; print (Symbol.name (V.varName var)); print "\n";
-    RVB {var = var, exp = transExp exp, boundtvs = boundtvs,
-	 resultty = resultty, tyvars = tyvars})
+    RVB {var = var, exp = transExp exp, resultty = resultty, tyvars = tyvars})
 
 end (* local *)
 end (* structure TransMatch *)

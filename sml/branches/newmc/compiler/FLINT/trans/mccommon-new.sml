@@ -15,6 +15,21 @@ local structure EM = ErrorMsg
       open Types VarCon PLambda Absyn
 in
 
+datatype key
+  = D of T.datacon * T.tyvar list
+     (* datacon key, possibly constant, with instantiation tyvars *)
+  | V of int              (* vector length; ASSERT int >= 0 *)
+
+  (* following constant keys supercede previous constCon constructors *)
+  | I of T.ty IntConst.t  (* int constant, as determined by ty *)
+  | W of T.ty IntConst.t  (* word constant, as determined by ty *)
+  | C of char             (* char constant (span depends on charwidth) *)
+  | S of string           (* string constant *)
+
+  (* record selection: not a choice discriminator, but a selection key for products,
+   * Will only appear in paths, never in variants. ASSERT: int >= 0 *)
+  | R of int
+(*
 type dconinfo = datacon * tyvar list
 
 datatype pcon
@@ -23,14 +38,18 @@ datatype pcon
   | WORDpcon of int IntConst.t
   | STRINGpcon of string
   | VLENpcon of int * ty
+*)
 
+type path = key list
+
+(*
 datatype path
   = PIPATH of int * path        (* record/tuple selection *)
   | VPIPATH of int * ty * path  (* vector selection *)
   | VLENPATH of ty * path       (* vector length "calculation" !? *)
   | DELTAPATH of pcon * path    (* datacon/constant/vector-length discriminant *)
   | ROOTPATH                    (* root (empty) path *)
-
+*)
 type ruleno = int   (* the number identifying a rule *)
 type ruleset = ruleno list
    (* a list of rule numbers in strictly ascending order without dups *)
@@ -42,16 +61,16 @@ datatype andor
   | CASE of
      {bindings : (int * var) list,
       sign : DA.consig,
-      cases : andorCase list}
+      cases : variant list}
   | LEAF of
      {bindings : (int * var) list}
 
-withtype andorCase = pcon * ruleset * andor list
+withtype variant = key * andor
 
 datatype decision
   = CASEDEC of path
 	     * DA.consig
-             * (pcon * ruleset * decision list) list
+             * (key * ruleset * decision list) list
 	     * int list
   | BINDDEC of path * ruleset
 
@@ -59,7 +78,7 @@ datatype dectree
   = CASETEST of
       path
       * DA.consig
-      * (pcon * dectree) list
+      * (key * dectree) list
       * dectree option
   | BIND of path * dectree
   | RHS of int

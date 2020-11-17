@@ -74,16 +74,17 @@ structure CheckUnused : sig
 		  | A.RECORDexp flds => List.foldl
 		      (fn ((_, e), used) => chkExp(region, e, used))
 			used flds
-		  | A.SELECTexp(_, e) => chkExp(region, e, used)
+		  | A.RSELECTexp(var,index) => used
+		  | A.VSELECTexp(var,index) => used
 		  | A.VECTORexp(es, _) => List.foldl
 		      (fn (e, used) => chkExp(region, e, used))
 			used es
 		  | A.APPexp(e1, e2) =>
 		      chkExp(region, e2, chkExp(region, e1, used))
-		  | A.HANDLEexp(e, (rules, _)) =>
+		  | A.HANDLEexp(e, (rules, _, _)) =>
 		      List.foldl (chkRule region) (chkExp(region, e, used)) rules
 		  | A.RAISEexp(e, _) => chkExp(region, e, used)
-		  | A.CASEexp(e, rules, _) =>
+		  | A.CASEexp(e, (rules,_,_)) =>
 		      List.foldl (chkRule region) (chkExp(region, e, used)) rules
 		  | A.IFexp{test, thenCase, elseCase} =>
 		      chkExp(region, elseCase,
@@ -95,7 +96,7 @@ structure CheckUnused : sig
 		      chkExp(region, e2, chkExp(region, e1, used))
 		  | A.WHILEexp{test, expr} =>
 		      chkExp(region, expr, chkExp(region, test, used))
-		  | A.FNexp(rules, _) => List.foldl (chkRule region) used rules
+		  | A.FNexp(rules, _, _) => List.foldl (chkRule region) used rules
 		  | A.LETexp(d, e) =>
 		      chkDec (region, false, d, chkExp(region, e, used))
 		  | A.SEQexp es => List.foldl
@@ -103,6 +104,8 @@ structure CheckUnused : sig
 			used es
 		  | A.CONSTRAINTexp(e, _) => chkExp(region, e, used)
 		  | A.MARKexp(e, region) => chkExp(region, e, used)
+		  | A.SWITCHexp _ => used
+		  | A.VSWITCHexp _ => used
 		(* end case *))
 	  and chkRule region (A.RULE(p, e), used) =
 		chkPat false (region, p, chkExp (region, e, used))

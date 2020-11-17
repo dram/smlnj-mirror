@@ -36,29 +36,25 @@ structure Access : ACCESS =
       | LISTCONS
       | LISTNIL
 
-  (* See ElabData/types/core-basictypes.sml and
-   * Elaborator/types/basictypes.sml for samples
-   *
-   * FLINT/cps/switch.sml uses consig during representation analysis
-   *)
+   (* See ElabData/types/basictypes.sml for examples.
+    * FLINT/cps/switch.sml uses consig during representation analysis
+    * CLAIM: for consig CSIG(m,n), the number of datacons of the datatype is m+n? *)
     datatype consig
-      = CSIG of int * int                    (* # dcon tagged, # untagged *)
+      = CSIG of int * int    (* # dcon tagged, # untagged *)
       | CNIL
 
   (****************************************************************************
    *                    UTILITY FUNCTIONS ON ACCESS                           *
    ****************************************************************************)
 
-  (*  shortened print name for pid *)
-    fun prPid pid =  let
-	  val s = PS.toHex pid
-	  val n = size s
-	  in
-	    String.extract (s, size s - 5, NONE)
-	  end
+  (* shortened print name for pid; last 5 characters *)
+    fun prPid pid =
+	let val s = PS.toHex pid
+	in String.extract (s, size s - 5, NONE)
+	end
 
   (** printing the access *)
-    fun prAcc (LVAR i) = concat["LVAR(", LV.prLvar i, ")"]
+    fun prAcc (LVAR i) = "lv" ^ (LV.prLvar i)
       | prAcc (PATH(a,i)) = concat["PATH(", prAcc a, ",", Int.toString i, ")"]
       | prAcc (EXTERN pid) = concat["EXTERN(.", prPid pid, ")"]
       | prAcc (NO_ACCESS) = "NO_ACCESS"
@@ -69,7 +65,7 @@ structure Access : ACCESS =
       | prRep (TRANSPARENT) = "TN"
       | prRep (CONSTANT i) = concat["CN(", Int.toString i, ")"]
       | prRep (REF) = "RF"
-      | prRep (EXN acc) = "EXN" ^ prAcc acc
+      | prRep (EXN acc) = concat["EXN(" ^ prAcc acc, ")"]
       | prRep (LISTCONS) = "LC"
       | prRep (LISTNIL) = "LN"
       | prRep (SUSP _) = "SS"

@@ -76,6 +76,9 @@ struct
 
     val specialize = new (flag_cvt, "specialize",
 			  "whether to specialize", true)
+    val spdebugging = new (flag_cvt, "spdebugging",
+			  "Specialize debugging", false)
+
     (* val liftLiterals	= ref false *)
     val sharewrap = new (flag_cvt, "sharewrap",
 			 "whether to share wrappers", true)

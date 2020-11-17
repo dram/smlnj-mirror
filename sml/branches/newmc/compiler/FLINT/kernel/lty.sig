@@ -83,8 +83,6 @@ datatype fflag                                (* calling conventions *)
   = FF_VAR of bool * bool                     (* is it fixed ? *)
   | FF_FIXED                                  (* used after rep. analysis *)
 
-datatype rflag = RF_TMP                       (* tuple kind: a template *)
-
 datatype tycI
   = TC_VAR of DebIndex.index * int            (* tyc variable *)
   | TC_NVAR of tvar                           (* named tyc variable *)
@@ -101,7 +99,7 @@ datatype tycI
                         params : tyc list},
                index: int}
 
-  | TC_TUPLE of rflag * tyc list              (* std record tyc *)
+  | TC_TUPLE of tyc list              (* std record tyc *)
   | TC_ARROW of fflag * tyc list * tyc list   (* std function tyc *)
   | TC_PARROW of tyc * tyc                    (* special fun tyc, not used *)
 

@@ -16,6 +16,7 @@ local
   structure IP = InvPath
   structure M = Modules
   structure V = VarCon
+  structure AS = Absyn
   structure PP = PrettyPrint
   structure PU = PPUtil
   open Types VarCon Modules Bindings Fixity Absyn
@@ -67,13 +68,13 @@ fun ppDec ({static,dynamic,...}: Environment.environment)
 	     in case path
 		  of SymPath.SPATH[id] =>
 		      (case Lookup.lookValSym(static,id,err)
-			 of V.VAL(V.VALvar{typ,...}) => !typ
-			  | V.VAL(V.OVLDvar{name,...}) =>
+			 of AS.VAL(V.VALvar{typ,...}) => !typ
+			  | AS.VAL(V.OVLDvar{name,...}) =>
 			     (print ("#trueValType: OVLDvar"^Symbol.name name^"\n");
 			      raise OVERLOAD)
-			  | V.VAL(V.ERRORvar) =>
+			  | AS.VAL(V.ERRORvar) =>
 			     bug "trueValType: ERRORvar\n"
-			  | V.CON(DATACON{name,typ,...}) =>
+			  | AS.CON(DATACON{name,typ,...}) =>
 			     bug ("trueValType: DATACON"^Symbol.name name^"\n"))
 		   | _ => bug "trueValType: not singleton path"
 	    end

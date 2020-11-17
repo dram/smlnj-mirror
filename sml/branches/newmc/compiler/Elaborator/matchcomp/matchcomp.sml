@@ -17,6 +17,7 @@ local
   structure S = Symbol
   structure SP = SymPath
   structure T = Types
+  structure BT = BasicTypes
   structure TU = TypesUtil
   structure A = Access
   structure V = VarCon
@@ -36,7 +37,7 @@ local
   open Absyn MCTypes
 
   (* printing for matchComp *)
-	     
+
   val printAndor = ElabControl.printAndor
   val printDecisionTree = ElabControl.printDecisionTree
   val printMatchAbsyn = ElabControl.printMatchAbsyn
@@ -53,20 +54,25 @@ local
 	      (PP.string ppstrm "dectree:\n";
 	       MCPrint.ppDecTree ppstrm dectree))
 
-  fun ppCode exp =
+  fun ppExp (exp, msg) =
       PP.with_default_pp
           (fn ppstrm =>
-	      (PP.string ppstrm "Absyn.exp:\n";
+	      (PP.string ppstrm msg;
 	       PPAbsyn.ppExp (StaticEnv.empty, NONE) ppstrm (exp, 20)))
+
+  fun ppDec (dec, msg) =
+      PP.with_default_pp
+          (fn ppstrm =>
+	      (PP.string ppstrm msg;
+	       PPAbsyn.ppDec (StaticEnv.empty, NONE) ppstrm (dec, 20)))
 
   fun ppPat pat =
       PP.with_default_pp(fn ppstrm => PPAbsyn.ppPat StaticEnv.empty ppstrm (pat, 20))
 
-  (* duplicates ppCode *)
-  fun ppExp exp =
-      PP.with_default_pp(fn ppstrm => PPAbsyn.ppExp (StaticEnv.empty,NONE) ppstrm (exp, 20))
+  fun ppVar var =
+      PP.with_default_pp(fn ppstrm => PPVal.ppVar ppstrm var)
 
-  fun bug msg = ErrorMsg.impossible ("MCCode: " ^ msg)
+  fun bug msg = ErrorMsg.impossible ("MatchComp: " ^ msg)
 
 in
 
@@ -86,7 +92,7 @@ fun k_ident (x: AS.exp) = x
 
 (* simpleVALdec : V.var * AS.exp * T.tyvar list -> AS.dec *)
 (* used in transDec.transVB *)
-fun simpleVALdec (var, exp, boundtvs) = 
+fun simpleVALdec (var, exp, boundtvs) =
     VALdec [VB{pat = VARpat var, exp = exp,
 	       typ = V.varType var, boundtvs = boundtvs, tyvars = ref nil}]
 
@@ -95,30 +101,23 @@ fun simpleVALdec (var, exp, boundtvs) =
 (* top level code generating function (formerly MCCode.genCode) *)
 fun genMatch (rules: AS.rule list, andor, decTree, ruleCounts, rhsTy, varenvAC, matchExn) =
 let val rules = map (fn AS.RULE r => r) rules
-	  (* : (AS.pat * AS.exp) list -- strip the RULE constructor *)
+	  (* rules : (AS.pat * AS.exp) list -- the RULE constructor is stripped *)
 
-    val rulePatVars: V.var list list = map (AU.patternVars o #1) rules
+    val numberOfRules = length rules
 
-    fun multiple ruleno = Vector.sub(ruleCounts, ruleno) > 1
+    (* isMultiple : ruleno -> bool *)
+    fun isMultiple ruleno = Vector.sub(ruleCounts, ruleno) > 1
 
-    val multirules = List.filter multiple (List.tabulate (length rules, (fn n => n)))
-        (* list of rule numbers that have multiple uses *)
-
-    val funSvars = map (fn r => SV.newSvar("rhsfun"^(Int.toString r), T.UNDEFty)) multirules
-        (* produce svars to name rhs functions for rules in multirules *)
-
-    (* findFunVar : ruleno -> svar *)
-    fun findFunVar n =  (* n in multirules *)
-	let fun loop (rule::rules, svar::svars) =
-	          if rule = n then svar
-	          else loop (rules, svars)
-	      | loop (nil, nil) = bug "findFunVar: n out of scope"
-	      | loop _ = bug "findFunVar: lengths of rules, svars differ"
-	 in loop (multirules, funSvars)
-	end
+    val multirules = List.filter isMultiple (List.tabulate (numberOfRules, (fn n => n)))
+        (* list of rule numbers that have multiple uses, in ascending order *)
 
     (* rulePat : ruleno -> AS.pat *)
     fun rulePat n = #1 (List.nth (rules, n))
+
+    (* rulePatVars : V.ar list list *)
+    (* note! WILDpat will produce _no_ bound variables, but corresponding rhs should
+     * be functionalized *) 
+    val rulePatVars: V.var list list = map (AU.patternVars o #1) rules
 
     (* ruleBoundVars : ruleno -> V.var list *)
     fun ruleBoundVars n = List.nth (rulePatVars, n)
@@ -127,54 +126,98 @@ let val rules = map (fn AS.RULE r => r) rules
     fun ruleRHS n = #2 (List.nth (rules, n))
           (* : AS.exp -- rhs expression of rule n, already match translated *)
 
+    fun sameVar (var : V.var, AS.VARexp(ref var',_)) = V.eqVar (var, var')
+      | sameVar _ = false
+
+    (* makeRHSfun : ruleno -> AS.exp option *)
+    fun makeRHSfun ruleno =
+        if isMultiple ruleno
+	then let val pat = rulePat ruleno
+		 val boundVars = ruleBoundVars ruleno
+		 val rhs = ruleRHS ruleno
+	      in if (null boundVars andalso not(AU.isWild pat))
+		     orelse (length boundVars = 1 andalso sameVar (hd boundVars, rhs))
+		 then NONE (* rhs fn would take unit or is identity, don't wrap *)
+		 else (* wrap rhs fun binding while alpha-converting boundVars in rhs *)
+		     let val venv = VarEnvAC.alphaEnv boundVars
+		         (* varenvAC for alpha-converting boundVars, empty if WILDpat *)
+			 val fnbody = transExp (rhs, VarEnvAC.append (venv, varenvAC))
+			 val fnvar = SV.newSvar("rhs"^(Int.toString ruleno), T.UNDEFty)
+		     in SOME (fnvar, C.Sfun(VarEnvAC.range venv, fnbody, rhsTy))
+		     end
+	     end
+	else NONE  (* rule rhs only used once *)
+
+    (* rhsFuns : (svar * AS.exp) option array, of length numberOfRules  *)
+    (* rhs functions constructed here, before generating the main match expression, so that
+     * genRHS will be affected by the special cases where rhs functions are not needed *)
+    val rhsFuns = Array.tabulate (numberOfRules, makeRHSfun)
+
     (* wrapFn : ruleno * AS.exp -> AS.exp *)
     (* wraps the (match) expression with a let binding of a rhs function, which
-     * abstracts over the pattern variables for the corresponding rule. These 
-     * pattern variables are _private_ to the rule and thus don't need to be
-     * alpha-converted. *)
-    fun wrapFn (n, exp) =
-	let val boundVars = ruleBoundVars n
-	    val body = transExp (ruleRHS n, varenvAC)  (* varenvAC; no new local bindings *)
-	 in C.Letf(findFunVar n, C.Sfun(boundVars, body), exp)
-	end
+     * abstracts over the pattern variables for the corresponding rule. The
+     * pattern variables used as parameters of the rhs function need to be alpha-
+     * converted to ensure unique bindings of lvars after translation *)
+    fun wrapFn (ruleno, baseExp) =
+        case Array.sub (rhsFuns, ruleno)
+	  of NONE => baseExp
+	   | SOME (fnvar, fnexp) => C.Letf(fnvar, fnexp, baseExp)
 
     (* wrap the rhs fn bindings around the base match expression *)
-    fun genPrelude inner = foldr wrapFn inner multirules
+    fun genPrelude exp = (* foldr wrapFn exp multirules *)
+	let fun wrap (0, base) = wrapFn (0, base)
+	      | wrap (n, base) = wrap (n-1, wrapFn (n, base))       
+	in wrap (numberOfRules - 1, exp)
+	end
 
     (* allConsistent : path * path list -> bool *)
     fun allConsistent (varpath, dtrace: path list) =
 	List.all (MU.consistentPath varpath) dtrace
 
-    (* bindSVars : var list * ruleno * varenvMC * trace -> (var * var) list *)
-    fun bindSVars (pvars, rule, varenvMC, rhsTrace) =
-	let fun findSvar (var: V.var) = 
+    (* bindSVars : var list * ruleno * varenvMC * trace -> VarEnvAC.varenvAC *)
+    (* pvars will be the bound pattern variables for the rule (ruleno). bindSvars will
+     * determine the right svar (match internal variable) to bind each pattern variable
+     * to, producing an varenvAC environment. The varenvAC is computed from the varenvMC
+     * based on the rule and (possibly) consistency with the decision tree trace. This
+     * is because a pattern variable that is duplicated in OR patterns may be associated
+     * with multiple svars. *)
+    fun bindSVars (pvars, ruleno, varenvMC, rhsTrace) =
+	let fun findSvar (var: V.var) =
 		(case VarEnvMC.lookVar (varenvMC, var)
 		  of SOME bindings =>
-		     let fun scan (rule', path, svar) =
-			     if rule' = rule
-			     then if allConsistent (path, rhsTrace) (* CONJ: always true? *)
-				  then SOME (var, svar)
-				  else (print "@@@@ bindSVars: inconsistent path\n"; NONE)
-		             else NONE
-		     in  case List.mapPartial scan bindings
-			  of nil => bug "bindSVars: no binding"
-			   | _::_::_ => bug "bindSVars: multiple bindings"
-			   | [b] => b  (* should be a unique svar for this var, rule, path *)
-		     end
-		   | NONE => bug "bindSVars: unbound pattern var")
-	in map findSvar pvars
+		       let fun scan (ruleno', path, svar) =
+			       if ruleno' = ruleno
+			       then if allConsistent (path, rhsTrace) (* CONJ: always true? *)
+				    then ((* print (concat ["bindSvars: ", V.toString var, " -> ",
+							V.toString svar, "\n"]); *)
+					  SOME (var, svar))
+				    else (print "@@@@ bindSVars: inconsistent path\n"; NONE)
+			       else NONE
+		       in  case List.mapPartial scan bindings
+			    of nil => bug "bindSVars: no binding"
+			     | _::_::_ => bug "bindSVars: multiple bindings"
+			     | [b] => b  (* should be a unique svar for this var, rule, path *)
+		       end
+		   | NONE => bug ("bindSVars: unbound pattern var: " ^ S.name(V.varName var)))
+	    (* val _ = print ">>>bindSvars\n"; *)
+	    val venv = map findSvar pvars
+	in (* VarEnvAC.printVarEnvAC venv;
+	   print "<<<bindSvar\n"; *)
+	   venv
 	end
 
-    (* genRHS : (AS.pat * AS.exp) * varenvMC * path list * varenvAC -> AS.exp *)
-    fun genRHS (rule, varenvMC, rhsTrace, externVarenvAC) =
-	let val patvars = ruleBoundVars rule
-	    val localVarenvAC = bindSVars (patvars, rule, varenvMC, rhsTrace)
+    (* genRHS : ruleno * varenvMC * path list * varenvAC -> AS.exp *)
+    fun genRHS (ruleno, varenvMC, rhsTrace, externVarenvAC) =
+	let val patvars = ruleBoundVars ruleno
+	    val localVarenvAC = bindSVars (patvars, ruleno, varenvMC, rhsTrace)
 	    val svars = VarEnvAC.range localVarenvAC
-	    val rhsExp = ruleRHS rule
-	 in if multiple rule
-	    then C.Sapp(findFunVar rule, svars)  (* applies a rhs fun *)
-	    else transExp (rhsExp, VarEnvAC.append(externVarenvAC, localVarenvAC))
-	      (* match svars substituted for source vars directly into a single-use rhs *)
+	    val rhsExp = ruleRHS ruleno
+	    val venv = VarEnvAC.append (localVarenvAC, externVarenvAC)
+	    (* val _ = (print "genRHS:venv = "; VarEnvAC.printVarEnvAC venv; print "\n") *)
+	 in case Array.sub(rhsFuns, ruleno)
+	      of SOME (fvar, _) => C.Sapp (fvar, svars)  (* applies the rhs fun *)
+	       | NONE => transExp (rhsExp, venv)
+	          (* match svars substituted for source vars directly into a single-use rhs *)
 	end
 
     (* savedTraces : trace list ref
@@ -183,79 +226,23 @@ let val rules = map (fn AS.RULE r => r) rules
     val savedTraces = ref (nil : path list list)
     fun saveTrace dtrace = (savedTraces := dtrace :: !savedTraces)
 
-(* "direct style" -- replaced by continuation style version below
-    (* genAndor: andor * (svarenv * varenv) -> (exp -> exp) * (svarenv * varenv) *)
-    (* translates top non-OR structure (if any) into nested let expressions
-     * wrapped around a body expression "inner". Applies to root node
-     * of an andor tree, and also applied to the child nodes under an OR choice.
-     * What happens in the case of a single, irrefutable rule, where there will
-     * be no OR-nodes? It works out properly. *)
-    fun genAndor (andor, (svarenv, varenv)) =
-	let fun genNodes (node::nodes, envs) =
-		let val genf ((build0, envs),node) =
-			let val (build1, envs') = genNode (node, envs)
-			in ((build1 o build0), envs')
-			end
-		in foldr genf ((fn x=> x), envs) nodes
-		end
-	    and genNode (AND{info,children,andKind,...}, (svarenv, varenv)) =
-		  let val thisSvar = lookup (svarenv, #id info)
-		      fun collectSvars ((svars, svarenv), andor) =
-			  let val svar0 = MU.infoToSvar andor
-			  in (svar0 :: svars, SE.bindSvar(andorId andor, svar0, svarenv))
-			  end
-		      val (childrenSvars, svarenv') =
-			  foldl collectSvars ([], svarenv) children
-		      val (bodyfn, (svarenv'', varenv'))  = genNodes(children, (svarenv',varenv))
-		      val build = 
-		          (case andKind
-		            of RECORD => fn inner => C.Letr (svars, svar, bodyfn inner)
-		             | VECTOR => fn inner => C.Letv (svars, svar, bodyfn inner))
-		  in (build, (svarenv', varenv'))
-		  end
-	      | genNode (SINGLE{info, key, arg, ...}, envs) =
-		  (case arg
-		    of LEAF _ => ((fn x => x), envs)
-		     | _ =>
-		       let val (build, envs') = genNode (arg, envs)
-			   fun build' (inner: exp) =>
-			       C.Switch (svar, [(key, SOME(getSvar arg), build inner)], NONE)
-		       in (build', envs')
-		       end)
-	      | genNode (OR _, envs) = ((fn x => x), envs)
-                  (* this OR node is already accounted for in the dectree (if not redundant) *)
-	      | genNode (VARS{info, defaults,...}, (svarenv, varenv)) =
-		  let val thisSvar = SE.lookSvar (svarenv, #id info)
-		      val binder = bindVar (thisSvar, #path info)
-		      val varenv' = foldr binder (foldr binder varenv (#vars info))
-                                          (#asvars info)       
-		  in ((fn x => x), (svarenv, varenv'))
-		  end
-	      | genNode (LEAF _, _) = bug "genNode: LEAF"
-	          (* should not happen! LEAF is found only in an OR variant *)
-	      | genNode (INITIAL, _) = bug "genNode: INITIAL"
-	 in genNode(andor, dectree)
-	end
- *)
-			       
     (* bindPatVars: svar * info * varenvMC -> varenvMC *)
     fun bindPatVars (svar, {id,path,vars,asvars,...} : AOinfo, varenvMC) =
 	foldl (fn ((v,r), env) => VarEnvMC.bindVar(v, (r, path, svar), env))
 	   (foldl (fn ((v,r),env) => VarEnvMC.bindVar(v, (r, path, svar), env)) varenvMC vars)
 	   asvars
 
-(* "continuation style" *)
     (* genAndor: andor * SE.svarenv * VE.varenv * (exp -> exp)
                  -> (svarenv * varenv) * (exp -> exp) *)
     (* Translates top non-OR structure (if any) into nested let expressions
-     * wrapped around a body expression "inner".  The wrapped let expressions are
-     * collected in a "continuation", k: exp -> exp that will be applied to the
-     * expression generated for the decision tree associated with this node.
-     * It is applied to the root node of an andor tree, and also to the child
+     * to be wrapped around a body expression (generated by a decision tree.
+     * The wrapped let expressions are accumulated in a "continuation", k: exp -> exp
+     * that will be applied to the expression generated for the next chosen decision tree
+     * It is applied to the root node of an andor tree, and also to the variant
      * nodes under an OR choice.
      * What happens in the case of a single, irrefutable rule, where there will
-     * be no OR-nodes? It works out properly. *)
-    (* ASSUME: the andor.info.id is bound in the svarenv argument *)
+     * be no OR-nodes? It works out properly. (Explain, details?) *)
+    (* ASSUME: andor.info.id is bound to an svar in the svarenv argument *)
     fun genAndor (andor, svarenv, varenvMC, k) =
 	let fun genNodes (nodes, svarenv, varenvMC, k) =
 		  let fun genf (node, (svarenv0, varenvMC0, k0)) =
@@ -274,7 +261,7 @@ let val rules = map (fn AS.RULE r => r) rules
 			     val varenvMC' = bindPatVars (thisSvar, info, varenvMC)
 			     val (svarenv'', varenvMC'', k0) =
 				   genNodes(children, svarenv', varenvMC', k)
-			     val k1 = 
+			     val k1 =
 				 (case andKind
 				   of RECORD =>
 					(fn inner => C.Letr (childrenSvars, thisSvar, k0 inner))
@@ -315,7 +302,7 @@ let val rules = map (fn AS.RULE r => r) rules
 		  (case SE.lookSvar (svarenv, #id info)
 		    of SOME thisSvar =>
 		         let val varenvMC' = bindPatVars (thisSvar, info, varenvMC)
-			 in (svarenv, varenvMC', k)
+			  in (svarenv, varenvMC', k)
 			 end
 		       | NONE => bug "genNode:VARS: no svar")
 	      | genNode (LEAF _, _, _, _) = bug "genNode: LEAF"
@@ -336,8 +323,11 @@ let val rules = map (fn AS.RULE r => r) rules
 		       of SOME svar =>
 			    let fun switchBody ((key,node0)::nrest, (key',decTree0)::drest, sbody) =
 				    (* ASSERT: key = key'.  Verify? *)
-				    (* ASSERT?: if decTree0 is CHOICE, then decTree0.node = node0 *)
-				    let val (svarOp, decExp) =  (* argument svar + subtree *)
+				    let val _ = if not(eqKey(key,key'))
+						then bug "genDecTree:CHOICE:keys disagree"
+						else ()
+					(* val _ = print (concat ["switchBody:key = ", keyToString key, "\n"]) *)
+					val (svarOp, decExp) =  (* argument svar + subtree *)
 					    (case node0
 					      of LEAF _ =>
 						   let val decExp0 = genDecTree(decTree0, svarenv, varenvMC)
@@ -345,8 +335,8 @@ let val rules = map (fn AS.RULE r => r) rules
 						   end
 						| _ =>
 						  let val svar0 =
-							  (case node0
-							    of AND{andKind=VECTOR,...} => svar (* parent *)
+							  (case node0 (* special case for vector pats *)
+							    of AND{andKind=VECTOR,...} => svar (* from parent *)
 							     | _ => MU.andorToSvar node0)
 						       val svarenv' = SE.bindSvar(getId node0, svar0, svarenv)
 						       val (svarenv'', varenvMC', k_node0) =
@@ -363,7 +353,7 @@ let val rules = map (fn AS.RULE r => r) rules
 			     in C.Switch (svar, sbody, default)
 			    end
 			  | NONE => bug "genDecTree:CHOICE: no svar")
-		   | _ => bug "genDecTree")
+		   | _ => bug "genDecTree: CHOICE node not OR")
             | MT.DMATCH dtrace => (saveTrace dtrace; C.Failure (matchExn, rhsTy))
 	    | MT.DLEAF (rule, dtrace) => genRHS(rule, varenvMC, dtrace, varenvAC))
 
@@ -379,10 +369,10 @@ end (* fun genMatch *)
 (* ================================================================================ *)
 (* matchComp: AS.rule list * T.ty * T.datacon -> AS.exp * VarCon.var *)
 (* lhsTy is the type of the patterns (i.e. the domain or lhs) of the match
- * Called by transMatch.  fillPat has been applied to rule patterns. *)
+ * Called by transMatch.  fillPat will have been applied to rule patterns. *)
 and matchComp (rules: AS.rule list, lhsTy: T.ty, rhsTy: T.ty, varenvAC,
 	       matchFailExn: T.datacon) =
-    let val _ = print ">>> matchComp\n" (* -- debugging *)
+    let (* val _ = print ">>> matchComp\n" (* -- debugging *) *)
 	val patterns = map (fn (AS.RULE(pat,_)) => pat) rules (* strip RULE constructor *)
 	val andor = AndOr.makeAndor(patterns, lhsTy)
 	val _ = if !printAndor
@@ -395,15 +385,17 @@ and matchComp (rules: AS.rule list, lhsTy: T.ty, rhsTy: T.ty, varenvAC,
         val (matchExp, matchVar) =
 	    genMatch (rules, andor, dectree, ruleCounts, rhsTy, varenvAC, matchFailExn)
 	val _ = if !printMatchAbsyn
-		then ED.withInternals (fn () => ppCode matchExp)
+		then ED.withInternals (fn () => ppExp (matchExp, "matchExp: \n"))
 		else ()
-    in print "<<< matchComp\n";  (* -- debugging *)
+    in (* print "<<< matchComp\n";  (* -- debugging *) *)
        (matchExp, SVar.svarToVar matchVar)
     end
 
 (* ================================================================================ *)
-(* transExp : AS.exp * varenvAC -> AS.exp *)
+(* translation functions: translate AS.exp and AS.dec while compiling matches and
+ * alpha-converting source pattern variables *)
 
+(* transExp : AS.exp * varenvAC -> AS.exp *)
 and transExp (exp, venv: VarEnvAC.varenvAC) =
     let val transRules =  (* just do fillPat on pattern *)
 	    map (fn RULE(pat,exp) => RULE(EU.fillPat pat, exp))
@@ -448,17 +440,17 @@ and transExp (exp, venv: VarEnvAC.varenvAC) =
 		| SEQexp exps => SEQexp (map trans exps)
 		| CONSTRAINTexp (exp, ty) => CONSTRAINTexp (trans exp, ty)
 		| MARKexp (exp, region) => MARKexp (trans exp, region)
-		| VARexp (vref, _) =>
+		| VARexp (vref, tvs) =>
 		    (case VarEnvAC.look (venv, !vref)
 		       of NONE => exp
-			| SOME var => (vref := var; exp))
+			| SOME var => (VARexp (ref var, tvs)))
 		| _ => exp)
 		  (* (VARexp _ | CONexp _ | NUMexp _ | REALexp _ | STRINGexp _  | CHARexp _ |
-		   *  SELECTexp _ | SWITCHexp _ | VSWITCHexp) => exp *)
+		   *  RSELECTexp _ | VSELECTexp _ | SWITCHexp _ | VSWITCHexp) => exp *)
      in trans exp
     end (* transExp *)
 
-(* transDec : dec -> dec *)
+(* transDec : AS.dec * VarEnvAC.varenvAC -> dec *)
 and transDec (dec: AS.dec, venv: VarEnvAC.varenvAC) : AS.dec =
     let fun transDec0 (dec: AS.dec) : AS.dec =
             (case dec
@@ -468,15 +460,15 @@ and transDec (dec: AS.dec, venv: VarEnvAC.varenvAC) : AS.dec =
 	       | LOCALdec (innerDec, outerDec) =>
 		   LOCALdec (transDec0 innerDec, transDec0 outerDec)
 	       | SEQdec decs => SEQdec (map transDec0 decs)
-	       | ABSTYPEdec {abstycs, withtycs, body} => 
+	       | ABSTYPEdec {abstycs, withtycs, body} =>
 		   ABSTYPEdec {abstycs = abstycs, withtycs = withtycs, body = transDec0 body}
 	       | MARKdec (dec, region) => MARKdec (transDec0 dec, region)
 	       | _ => dec) (* transDec called locally for LETSTR, LETFCT, STRdec, FCTdec *)
 
 	    (* transvb : A.vb -> A.dec *)
 	    (* translation of vb to dec
-	     * -- can we get away without a d (DB depth) parameter? Leaving it to Translate? Think so.
-	     * -- looks like we can get away with never dealing with an internal svar in the match.
+	     * -- We can get away without a d (DB depth) parameter, leaving it to Translate.
+	     * -- Looks like we can get away with never dealing with an internal svar in the match.
 	     * -- we need to access or (re)construct the type of the pat.
 	     *      Could store this as a field of VB.
 	     * -- do we need an absyn equivalent to mkPE, say transPolyExp? We don't have an equivalent
@@ -487,44 +479,80 @@ and transDec (dec: AS.dec, venv: VarEnvAC.varenvAC) : AS.dec =
 		 *    DONE -- it does the right thing. *)
 		((* print "transVB:pat = "; ppPat pat;
 		 print "transVB:exp = "; ppExp exp; *)
-		 case AU.stripPatMarks pat
-		  of (VARpat var | CONSTRAINTpat(VARpat var, _)) =>
-		         (* simple variable pattern *)
+		 case EU.fillPat(AU.stripPatMarks pat)   (* does fillPat strip MARKpats? *)
+		   of (WILDpat | CONSTRAINTpat(WILDpat, _)) =>  (* WILDpat pattern *)
+		      let val exp' = transExp (exp, venv)
+	               (* val _ = (print "transVB:exp' = "; ppExp exp') *)
+		       in VALdec([VB{pat = WILDpat, exp = exp', typ = typ,
+				     boundtvs = boundtvs, tyvars = tyvars}])
+		      end
+		    | (VARpat var | CONSTRAINTpat(VARpat var, _)) =>
+		      (* simple single variable pattern *)
 		      let val exp' = transExp (exp, venv)
 	              (* val _ = (print "transVB:exp' = "; ppExp exp') *)
 		      in VALdec([VB{pat = VARpat var, exp = exp',
 				    typ = typ, boundtvs = boundtvs, tyvars = tyvars}])
 		      end
-		    | pat =>  (* compound, possibly refutable, pattern *)
+		    | pat =>  (* compound, possibly refutable, pattern. Does this work for constants? *)
 		      let val patvars = AU.patternVars pat
-			  val patvarstuple =
-			        EU.TUPLEexp (map (fn var => VARexp(ref var, nil)) patvars)
-			  val patvarstuplety = Tuples.mkTUPLEtype (map V.varType patvars)
-			  val (matchExp, matchVar) =
-			      matchComp([RULE(pat,patvarstuple)], typ, patvarstuplety, venv,
-					EU.getBindExn())
-			      (* matchVar will be bound to trans of exp *)
-			  val ptupleVar = V.VALvar{path = SP.SPATH [S.varSymbol "topVar"],
-						   typ = ref(patvarstuplety),
-						   btvs = ref(boundtvs),
-						      (* possibly polymorphic *)
-						   access = A.LVAR(LambdaVar.mkLvar()),
-						   prim = PrimopId.NonPrim}
-			  fun selectVBs([], _) = []
-			    | selectVBs (pvar::pvars, n) = (* non-polymorphic *)
-				simpleVALdec(pvar, SELECTexp(ptupleVar,n,true), nil)
-				  :: selectVBs(pvars, n+1) 
-				(* defining a pattern var by (record) selection from a
-                                 * var (ptupleVar) bound to the tuple of all the pattern
-                                 * var values; the btvs of each pattern var is a subset
-                                 * of the btvs of ptupleVar. *)
-		      in SEQdec (simpleVALdec(matchVar, transExp (exp, venv), nil) ::
-				 simpleVALdec(ptupleVar, matchExp, boundtvs) ::
-				 selectVBs(patvars, 0)) (* rebinding orig pattern variables *)
-		      end)
+			  val bindExn = EU.getBindExn()
+		      in case patvars
+			   of nil =>   (* "constant" pattern, no pattern variables *)
+			      let val (matchExp, matchVar) =
+				       matchComp ([RULE (pat, AU.unitExp)], typ, BT.unitTy, venv, bindExn)
+				  val resultDec =
+				       LOCALdec(simpleVALdec(matchVar, transExp (exp, venv), nil),
+						VALdec([VB{pat=WILDpat, exp = matchExp,
+							   typ=typ, boundtvs=nil, tyvars = ref nil}]))
+			       in ppDec (resultDec, "transVB (no var): \n");
+				  resultDec
+			      end
+			    | [pvar] =>     (* single pattern variable *)
+			      let val pvarTy = V.varType pvar
+				  val (matchExp, matchVar) =
+				       matchComp ([RULE (pat, VARexp(ref pvar, nil))], typ, pvarTy, venv,
+						   bindExn)
+				  val resultDec =
+				       LOCALdec(simpleVALdec(matchVar, transExp (exp, venv), nil),
+						simpleVALdec(pvar, matchExp, boundtvs))
+			       in ppDec (resultDec, "transVB (single var): \n");
+				  resultDec
+			      end
+			    | patvars =>
+			      let val patvarstupleExp =
+			              EU.TUPLEexp (map (fn var => VARexp(ref var, nil)) patvars)
+				  val patvarstupleTy = Tuples.mkTUPLEtype (map V.varType patvars)
+				  val (matchExp, matchVar) =
+				      matchComp ([RULE (pat, patvarstupleExp)], typ, patvarstupleTy, venv,
+						 bindExn)
+				      (* matchVar will be bound to MC-translation of exp *)
+				  val ptupleVar = V.VALvar{path = SP.SPATH [S.varSymbol "<ptupleVar>"],
+							   typ = ref(patvarstupleTy),
+							   btvs = ref(boundtvs),  (* possibly polymorphic *)
+							   access = A.LVAR(LambdaVar.mkLvar()),
+							   prim = PrimopId.NonPrim}
+				  fun selectVBs([], _) = []
+				    | selectVBs (pvar::pvars, n) = (* non-polymorphic *)
+					simpleVALdec(pvar, RSELECTexp (ptupleVar,n), nil)
+					  :: selectVBs(pvars, n+1)
+					(* defining a pattern var by (record) selection from a
+					 * var (ptupleVar) bound to the tuple of all the pattern
+					 * var values; the btvs of each pattern var is a subset
+					 * of the btvs of ptupleVar. *)
+				  val resultDec =
+				      LOCALdec(SEQdec [simpleVALdec(matchVar, transExp (exp, venv), nil),
+						       simpleVALdec(ptupleVar, matchExp, boundtvs)],
+					       SEQdec (selectVBs(patvars, 0)))
+					      (* rebinding orig pattern variables *)
+			       in ppDec (resultDec, "transVB (multiple vars): \n");
+				  resultDec
+			      end
+		      end (* pat case *)
+		)
+
 
 	    (* NOTE: Given the way Translate.transDec deals with LOCALdec (i.e. not
-             * hiding the local decls), we can just have a single SEQ encompassing all the
+             * hiding the local decls), we use a single SEQ encompassing all the
              * declarations. *)
 
 	    (* transVBs : AS.vb list -> AS.dec *)
@@ -532,11 +560,9 @@ and transDec (dec: AS.dec, venv: VarEnvAC.varenvAC) : AS.dec =
 	      | transVBs [vb] = transVB vb
 	      | transVBs vbs = SEQdec (map transVB vbs)
 
-	    and transRVB (RVB{var: V.var, exp: exp, boundtvs: T.tyvar list,
-			      resultty: T.ty option, tyvars: T.tyvar list ref}) =
-		(print "transRVB:var = "; print (Symbol.name (V.varName var)); print "\n";
-		RVB {var = var, exp = transExp (exp,venv), boundtvs = boundtvs,
-		     resultty = resultty, tyvars = tyvars})
+	    and transRVB (RVB{var: V.var, exp: exp, resultty: T.ty option, tyvars: T.tyvar list ref}) =
+		((* print "transRVB:var = "; print (Symbol.name (V.varName var)); print "\n"; *)
+		RVB {var = var, exp = transExp (exp,venv), resultty = resultty, tyvars = tyvars})
 
 	in transDec0 dec
     end (* transDec *)

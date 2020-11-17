@@ -75,12 +75,14 @@ val ltPrint = say o LT.lt_print
 fun lePrint le = PP.printLexp (simplify (le, 3))
 val svPrint = PP.printSval
 
-fun error (le,g) = (
-    anyerror := true;
-    say "\n************************************************************\
-        \\n**** FLINT type checking failed: ";
-    g () before (say "\n** term:\n"; lePrint le))
+(* error : lexp * (unit -> 'a) -> 'a *)
+fun error (le, errfn) =
+    (anyerror := true;
+     say "\n************************************************************\
+         \\n**** FLINT type checking failed: ";
+     errfn () before (say "\n** term:\n"; lePrint le))
 
+(* errMsg : lexp * string * 'a -> 'a *)
 fun errMsg (le,s,r) = error (le, fn () => (say s; r))
 
 fun catchExn f (le,g) =
@@ -195,25 +197,29 @@ fun check phase envs lexp = let
 		 Int.toString n, " elements, got ", Int.toString n'],
 	 foldl bogusBind a r)
 
-    fun typeof le = let
-      fun typeofVar lv = LT.ltLookup (venv,lv,d)
-	  handle ltUnbound =>
-	      errMsg (le, "Unbound Lvar " ^ LV.lvarName lv, LT.ltc_void)
-      fun typeofVal (VAR lv) = typeofVar lv
-(* REAL64: need more cases *)
-	| typeofVal (INT{ty, ...}) = LT.ltc_num ty
-	| typeofVal (WORD{ty, ...}) = LT.ltc_num ty
-        | typeofVal (REAL _) = LT.ltc_real
-	| typeofVal (STRING _) = LT.ltc_string
-      fun typeofFn ve (_,lvar,vts,eb) = let
-	    fun split ((lv,t), (ve,ts)) = (
-		  lvarDef le lv;
-		  (LT.ltInsert (ve,lv,t,d), t::ts))
-	    val (ve',ts) = foldr split (ve,[]) vts
-	    in
-	      lvarDef le lvar;
-	      (ts, typeIn ve' eb)
-	    end
+    fun typeof le =
+	let fun typeofVar lv =
+		(case LT.ltLookup (venv,lv,d)
+		   of NONE => 
+		        errMsg (le, "Unbound Lvar " ^ LV.lvarName lv, LT.ltc_void)
+		    | SOME lty => lty)
+
+	    fun typeofVal (VAR lv) = typeofVar lv
+	      | typeofVal (INT{ty, ...}) = LT.ltc_num ty
+	      | typeofVal (WORD{ty, ...}) = LT.ltc_num ty
+	      | typeofVal (REAL _) = LT.ltc_real
+	      | typeofVal (STRING _) = LT.ltc_string
+	      (* REAL64: need more cases *)
+
+	    fun typeofFn ve (_,lvar,vts,eb) = let
+		  fun split ((lv,t), (ve,ts)) = (
+			lvarDef le lv;
+			(LT.ltInsert (ve,lv,t,d), t::ts))
+		  val (ve',ts) = foldr split (ve,[]) vts
+		  in
+		    lvarDef le lvar;
+		    (ts, typeIn ve' eb)
+		  end
 
       (* There are lvars hidden in Access.conrep, used by dcon.
        * These functions just make sure that they are defined in the
@@ -362,7 +368,7 @@ fun check phase envs lexp = let
 		      app (fn v => match (lt, typeofVal v)) vs;
 		      ltVector t
 		    end
-		| RK_TUPLE _ =>
+		| RK_TUPLE =>
 		  if null vs then LT.ltc_unit
 		  else let
 		    fun chkMono v = let val t = typeofVal v

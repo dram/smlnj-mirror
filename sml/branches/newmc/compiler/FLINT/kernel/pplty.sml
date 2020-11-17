@@ -27,6 +27,7 @@ local
     structure PT = PrimTyc
     structure PP = PrettyPrint
     open PPUtil
+    (* uses Lty *)
 in
 
 val dtPrintNames : bool ref = ref true
@@ -48,6 +49,18 @@ fun ppList ppstrm {sep: string, pp : PP.stream -> 'a -> unit} (list: 'a list) =
        style = INCONSISTENT,
        pr = pp}
       list
+
+fun ppFflag ppstrm fflag =
+    (case fflag
+      of Lty.FF_FIXED => PP.string ppstrm "FF_FIXED"
+       | Lty.FF_VAR(b1, b2) =>
+           (PP.string ppstrm 
+		("FF_VAR(" ^
+		   (case (b1,b2)
+		     of (true, true) => "rr"
+                      | (true, false) => "rc"
+                      | (false, true) => "cr"
+                      | (false, false) => "cc") ^ ")")))
 
 (* ppTKind : tkind -> unit
  * Print a hashconsed representation of the kind *)
@@ -126,17 +139,16 @@ and ppTyc pd ppstrm (tycon : Lty.tyc) =
 	val ppTyc' = ppTyc (pd-1) ppstrm
 
 	fun ppTycI (Lty.TC_VAR(depth, cnt)) =
-	    (pps "TV(";
+	    (pps "'";
 	     (* depth is a deBruijn index set in elabmod.sml/instantiate.sml *)
 	     pps (DebIndex.di_print depth);
-	     pps ",";
+	     pps ".";
 	     (* cnt is computed in instantiate.sml sigToInst or
 	        alternatively may be simply the IBOUND index *)
-	     ppi cnt;
-	     pps ")")
+	     ppi cnt)
 	  (* Named tyc VAR; is actually an lvar *)
 	  | ppTycI (Lty.TC_NVAR tvar) =
-	    (pps "NTV(v"; pps(LambdaVar.prLvar tvar); pps ")")
+	    (pps "t"; pps(LambdaVar.prLvar tvar))
 	  | ppTycI (Lty.TC_PRIM primtycon) =
 	    (pps "PRIM(";
 	     pps (PT.pt_print primtycon);
@@ -209,8 +221,7 @@ and ppTyc pd ppstrm (tycon : Lty.tyc) =
 	    (pps "BOX(";
 	     ppTyc' tyc;
 	     pps ")")
-	    (* rflag is a tuple kind template, a singleton datatype RF_TMP *)
-	  | ppTycI (Lty.TC_TUPLE(rflag, tycs)) =
+	  | ppTycI (Lty.TC_TUPLE tycs) =
 	    (ppClosedSequence ppstrm
                 {front = (fn s => PP.string s "{"),
                  sep = (fn s => PP.string s ","),

@@ -59,7 +59,7 @@ in
 
 fun bug msg = EM.impossible("FlintUtil: "^msg)
 
-val rk_tuple : rkind = RK_TUPLE (LT.rfc_tmp)
+val rk_tuple : rkind = RK_TUPLE
 
 (* a set of useful primops used by FLINT *)
 val tv0 = LT.ltc_tv 0

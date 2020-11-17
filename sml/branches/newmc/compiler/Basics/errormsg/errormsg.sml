@@ -54,6 +54,10 @@ struct
        Control_Print.flush();
        raise Error)
 
+  fun warn msg =
+      (app Control_Print.say ["Warning: ",msg,"\n"];
+       Control_Print.flush())
+
 (* [Ramsey] With the advent of source-map resynchronization (a.k.a
  * ( *#line...* ) comments), a contiguous region as seen by the compiler
  * can correspond to one or more contiguous segments in source code, with

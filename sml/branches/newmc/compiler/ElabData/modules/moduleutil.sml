@@ -17,6 +17,7 @@ local structure S   = Symbol
       structure T   = Types
       structure TU  = TypesUtil
       structure V   = VarCon
+      structure AS  = Absyn
       structure B   = Bindings
       structure EE  = EntityEnv
       structure ST  = Stamps
@@ -238,11 +239,11 @@ fun mkTyc (sym, sp, SIG {elements,...}, sInfo) =
   | mkTyc _ = T.ERRORtyc
 
 fun mkVal (sym, sp, sign as SIG {elements,...},
-	  sInfo as STRINFO({entities,...}, dacc, dinfo)) : V.value =
+	  sInfo as STRINFO({entities,...}, dacc, dinfo)) : Absyn.value =
     (debugmsg ">>mkVal";
     (case getSpec(elements, sym) of
 	 VALspec{spec,slot} =>
-         V.VAL(V.VALvar{access = A.selAcc(dacc,slot),
+         AS.VAL(V.VALvar{access = A.selAcc(dacc,slot),
 			prim = POI.selValPrimFromStrPrim (dinfo, slot),
 			path = sp,
 			typ = ref(transType entities spec),
@@ -255,12 +256,12 @@ fun mkVal (sym, sp, sign as SIG {elements,...},
                    | _ => rep
 
          in
-	     V.CON(T.DATACON{rep=newrep, name=name,
+	     AS.CON(T.DATACON{rep=newrep, name=name,
                              typ=transType entities typ,
                              const=const, sign=sign, lazyp=lazyp})
          end
        | _ => bug "mkVal: wrong spec"))
-  | mkVal _ = V.VAL(V.ERRORvar)
+  | mkVal _ = AS.VAL(V.ERRORvar)
 
 fun mkStrBase (sym, sign, sInfo) =
   let val _ = debugmsg ">>mkStrBase"
@@ -311,7 +312,7 @@ fun getPath makeIt (str, SP.SPATH spath, fullsp) =
 
 val getTycPath : M.Structure * SP.path * SP.path -> T.tycon =
       getPath mkTyc
-val getValPath : M.Structure * SP.path * SP.path -> V.value =
+val getValPath : M.Structure * SP.path * SP.path -> Absyn.value =
       getPath mkVal
 val getStrPath : M.Structure * SP.path * SP.path -> M.Structure =
       (debugmsg ">>getStrPath"; getPath mkStr)
@@ -432,8 +433,8 @@ fun getBinding (sym, str as STR st) =
 	     case S.nameSpace sym
 	      of S.VALspace =>
 		 (case mkVal (sym, SP.SPATH[sym], sign, sinfo)
-                   of V.VAL v => B.VALbind v
-		    | V.CON d => B.CONbind d)
+                   of AS.VAL v => B.VALbind v
+		    | AS.CON d => B.CONbind d)
 	       | S.TYCspace =>
 		 B.TYCbind (mkTyc (sym, SP.SPATH[sym], sign, sinfo))
 	       | S.STRspace => B.STRbind (mkStrBase (sym, sign, sinfo))
@@ -529,4 +530,3 @@ in
 end
 end (* local *)
 end (* structure ModuleUtil *)
-

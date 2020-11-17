@@ -1,0 +1,66 @@
+FLINT Notes re Match Compiler
+-----------------------------
+
+Pambda types vs flint types:
+
+  PLambdaType == LtyExtern  (FLINT/plambda/plambdatype.sml)
+
+plambda/plambda.sml:
+
+  structure LK = PLambdaType == LtyExtern
+  type tkine = LK.tkind = Lty.tkind
+  type tyc = LK.tyc = Lty.tyc
+  type lty = LK.lty = Lty.lty
+
+flint/flint.sml
+
+  structure LD = LtyDef
+  type tkind = LD.tkind = Lty.tkind
+  type tyc = LD.tyc = Lty.tyc
+  type lty = LD.lty = Lty.lty
+
+So
+
+  Flint.tkind = Plambda.tkind = Lty.tkind
+  Flint.tyc = Plambda.tyc = Lty.tyc
+  Flint.lty = Plambda.lty = Lty.lty
+
+Similarly for tvar, fflag, rflag
+I.e. there is no difference between plambda types and flint types.
+
+But, see this comment in ltydef.sml ---
+
+(* 
+ * The following functions are written for PLambdaType only. If you
+ * are writing code for FLINT only, don't use any of these functions. 
+ * The idea is that in PLambda, all (value or type) functions have single
+ * argument and single return-result. Ideally, we should define 
+ * another sets of datatypes for tycs and ltys. But we want to avoid
+ * the translation from PLambdaType to FLINT types, so we let them
+ * share the same representations as much as possible. 
+ *
+ * Ultimately, LtyDef should be separated into two files: one for 
+ * FLINT, another for PLambda, but we will see if this is necessary.
+ *
+ *)
+
+(** plambda tyc-lty constructors *)
+val tcc_parrow : tyc * tyc -> tyc     
+...
+
+From this it appears that plambda types are a "subset" of FLINT types
+obeying the stated restrictions.
+
+----------------------------------------------------------------------
+Type rflag useless:
+
+Lty defines
+
+  datatype rflag = RF_TMP
+
+This single-constructor datatype is useless, and should be eliminated.
+It's main use is as the first argument to the TC_TUPLE constructor of
+datatype tycI (the raw tyc representation defined in Lty); 50 occurrences,
+in kernel and reps directories.
+
+This is a minor cleanup.

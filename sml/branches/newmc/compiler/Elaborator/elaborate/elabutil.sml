@@ -10,9 +10,13 @@ struct
 local structure SP = SymPath
       structure LU = Lookup
       structure A = Access
+      structure AS = Absyn
+      structure AU = AbsynUtil
       structure B  = Bindings
       structure SE = StaticEnv
       structure EE = EntityEnv
+      structure T = Types
+      structure TU = TypesUtil
       structure TS = TyvarSet
       structure S = Symbol
       structure V = VarCon
@@ -32,7 +36,6 @@ fun debugmsg (msg: string) =
 fun bug msg = ErrorMsg.impossible("ElabUtil: "^msg)
 
 fun for l f = app f l
-fun discard _ = ()
 fun single x = [x]
 
 val internalSym = SpecialSymbols.internalVarId
@@ -49,7 +52,7 @@ datatype context
 
 type compInfo = Absyn.dec CompInfo.compInfo
 
-fun newVALvar(s, mkv) = V.mkVALvar(s, A.namedAcc(s, mkv))
+fun mkVALvar(s, mkv) = V.mkVALvar(s, A.namedAcc(s, mkv))
 
 fun smash f l =
     let fun h(a,(pl,oldl,newl)) =
@@ -77,6 +80,25 @@ local
 	end
  in fun sort3 x = uniq (ListMergeSort.sort gtr x)
 end
+
+(* Access to the match and bind exceptions for match compilation. *)
+local
+  val matchExnRef = ref AU.bogusEXN
+  val bindExnRef = ref AU.bogusEXN
+in
+  fun initializeMatchBind (env: SE.staticEnv) =
+      (* Define exceptions used in match compilation when a match/bind is 
+       * non-exhaustive.
+       * The staticEnv argument is assumed to contain the Core structure, so
+       * initializeMatchBind must be called in a context having such a staticEnv
+       * available, e.g. elabTop. The Match and Bind exceptions are needed for
+       * match compilation; this function is called in matchcomp/matchcomp.sml. *)
+      (matchExnRef := CoreAccess.getExn env ["Match"];
+       bindExnRef := CoreAccess.getExn env ["Bind"])
+
+  fun getMatchExn () = !matchExnRef
+  fun getBindExn () = !matchExnRef
+end (* local *)
 
 val EQUALsym = S.varSymbol "="
 
@@ -148,24 +170,18 @@ fun bindVARp (patlist,err) =
 	!env
     end
 
-(*
-fun isPrimPat (VARpat{info, ...}) = II.isPrimInfo(info)
-  | isPrimPat (COSTRAINTpat(VARpat{info, ...}, _)) = II.isPrimInfo(info)
-  | isPrimPat _ = false
-*)
-
-
 (* sort the labels in a record the order is redefined to take the usual
    ordering on numbers expressed by strings (tuples) *)
 
 local
-  fun sort x =
-    ListMergeSort.sort (fn ((a,_),(b,_)) => TypesUtil.gtLabel (a,b)) x
+   fun sort x =
+       ListMergeSort.sort (fn ((a,_),(b,_)) => TypesUtil.gtLabel (a,b)) x
 in fun sortRecord(l,err) =
-     (checkUniq(err, "duplicate label in record",map #1 l);
-      sort l)
+       (checkUniq(err, "duplicate label in record", map #1 l);
+        sort l)
 end
 
+(* records and tuples *)
 fun makeRECORDexp(fields,err) =
     let val fields' = map (fn(id,exp)=> (id,(exp,ref 0))) fields
 	fun assign(i,(_,(_,r))::tl) = (r := i; assign(i+1,tl))
@@ -177,146 +193,55 @@ fun makeRECORDexp(fields,err) =
 
 val TUPLEexp = AbsynUtil.TUPLEexp
 
-fun TPSELexp(e, i) =
-    let val lab = LABEL{number=i-1, name=(Tuples.numlabel i)}
-     in SELECTexp(lab, e)
-    end
-
-(* Adds a default case to a list of rules.
-   If given list is marked, all ordinarily-marked expressions
-     in default case are also marked, using end of given list
-     as location.
-   KLUDGE! The debugger distinguishes marks in the default case by
-     the fact that start and end locations for these marks
-     are the same! DBM: Is that you, Andrew Tolmach?  Is this
-     kludge still relevant?  Probably not! *)
-fun completeMatch'' rule [r as RULE(pat,MARKexp(_,(_,right)))] =
-      [r, rule (fn exp => MARKexp(exp,(right,right)))]
-  | completeMatch'' rule
-                    [r as RULE(pat,CONSTRAINTexp(MARKexp(_,(_,right)),_))] =
-      [r, rule (fn exp => MARKexp(exp,(right,right)))]
-  | completeMatch'' rule [r] = [r,rule (fn exp => exp)]
-  | completeMatch'' rule (a::r) = a :: completeMatch'' rule r
-  | completeMatch'' _ _ = bug "completeMatch''"
-
-(* used in handleExp *)
-fun completeMatch' (RULE(p,e)) =
-    completeMatch'' (fn marker => RULE(p,marker e))
-
-fun completeMatch(env,exnName: string) =
-    completeMatch''
-      (fn marker =>
-          RULE(WILDpat,
-	       marker(RAISEexp(CONexp(CoreAccess.getExn env [exnName],[]),
-			       UNDEFty))))
-(** Updated to the ty option type - GK *)
-
-val trivialCompleteMatch = completeMatch(SE.empty,"Match")
-
 val TUPLEpat = AbsynUtil.TUPLEpat
 
-fun wrapRECdecGen (rvbs, compInfo as {mkLvar=mkv, ...} : compInfo) =
-  let fun g (RVB{var=v as VALvar{path=SP.SPATH [sym], ...}, ...}, nvars) =
-          let val nv = newVALvar(sym, mkv)
-          in ((v, nv, sym)::nvars)
-          end
-	| g _ = bug "wrapRECdecGen:RVB"
-      val vars = foldr g [] rvbs
-      val odec = VALRECdec rvbs
-
-      val tyvars =
-        case rvbs
-         of (RVB{tyvars,...})::_ => tyvars
-          | _ => bug "unexpected empty rvbs list in wrapRECdecGen"
-
-   in (vars,
-       case vars
-        of [(v, nv, sym)] =>
-            (VALdec [VB{pat=VARpat nv, boundtvs=[], tyvars=tyvars,
-                        exp=LETexp(odec, VARexp(ref v, []))}])
-         | _ =>
-          (let val vs = map (fn (v, _, _) => VARexp(ref v, [])) vars
-               val rootv = newVALvar(internalSym, mkv)
-               val rvexp = VARexp(ref rootv, [])
-               val nvdec =
-                 VALdec([VB{pat=VARpat rootv, boundtvs=[], tyvars=tyvars,
-                            exp=LETexp(odec, TUPLEexp vs)}])
-
-               fun h([], _, d) =
-                     LOCALdec(nvdec, SEQdec(rev d))
-                 | h((_,nv,_)::r, i, d) =
-                     let val nvb = VB{pat=VARpat nv, boundtvs=[],
-                                      exp=TPSELexp(rvexp,i),tyvars=ref []}
-                      in h(r, i+1, VALdec([nvb])::d)
-                     end
-            in h(vars, 1, [])
-           end))
-  end
-
-fun wrapRECdec0 (rvbs, compInfo) =
-  let val (vars, ndec) = wrapRECdecGen(rvbs, compInfo)
-   in case vars
-       of [(_, nv, _)] => (nv, ndec)
-        | _ => bug "unexpected case in wrapRECdec0"
-  end
-
-fun wrapRECdec (rvbs, compInfo) =
-  let val (vars, ndec) = wrapRECdecGen(rvbs, compInfo)
-      fun h((v, nv, sym), env) = SE.bind(sym, B.VALbind nv, env)
-      val nenv = foldl h SE.empty vars
-   in (ndec, nenv)
-  end
-
-val argVarSym = S.varSymbol "arg"
-
-fun cMARKexp (e, r) = if !ElabControl.markabsyn then MARKexp (e, r) else e
-
-fun FUNdec (completeMatch, fbl,
-	    compInfo as {mkLvar=mkv,errorMatch,...}: compInfo) =
-    let fun fb2rvb ({var, clauses as ({pats,resultty,exp}::_),tyvars,region}) =
-	    let fun getvar _ =  newVALvar(argVarSym, mkv)
-		val vars = map getvar pats
+(* FUNdec : {var : VarCon.var,  -- name of the (recursive) function
+             clauses: {pats: Absyn.pat list, resultty: Types.ty option, exp: Absyn.exp} list,
+	     tyvars: Types.tyvar list ref, -- explicit tyvars
+	     region: Ast.region} list
+            * compInfo  -- for mkLvar
+            -> Absyn.dec * StaticEnv.staticEnv *)
+(* translates "fun" declarations into "val rec" form *)
+fun FUNdec (fundecs, compInfo as {mkLvar=mkv, ...}: compInfo) =
+    let fun funToValRec {var, clauses as ({pats,resultty,exp}::_), tyvars, region} =
+	    let fun mkArgVar n = mkVALvar (S.varSymbol ("<arg"^Int.toString n^">"), mkv)
+		val argVars = List.tabulate (length pats, mkArgVar)
 		fun not1(f,[a]) = a
 		  | not1(f,l) = f l
-		fun dovar valvar = VARexp(ref(valvar),[])
-		fun doclause ({pats,exp,resultty=NONE}) =
+		fun varToExp var = VARexp (ref var, [])
+		fun clauseToRule {pats,exp,resultty=NONE} =
 			      RULE(not1(TUPLEpat,pats), exp)
-		  | doclause ({pats,exp,resultty=SOME ty}) =
+		  | clauseToRule {pats,exp,resultty=SOME ty} =
 			      RULE(not1(TUPLEpat,pats),CONSTRAINTexp(exp,ty))
 
-(*  -- Matthias says: this seems to generate slightly bogus marks:
- *
-		val mark =  case (hd clauses, List.last clauses)
-	                     of ({exp=MARKexp(_,(a,_)),...},
-				 {exp=MARKexp(_,(_,b)),...}) =>
-			         (fn e => MARKexp(e,(a,b)))
-			      | _ => fn e => e
-*)
-		fun makeexp [var] =
-                      FNexp(completeMatch(map doclause clauses),UNDEFty)
-		  | makeexp vars =
-                      foldr (fn (w,e) =>
-                             FNexp(completeMatch [RULE(VARpat w,(*mark*) e)],
-                                   UNDEFty))
-				(CASEexp(TUPLEexp(map dovar vars),
-					 completeMatch (map doclause clauses),
-                                         true))
-				vars
-	     in RVB {var=var,
-		     exp=cMARKexp (makeexp vars, region),
-                     boundtvs=[],
-		     resultty=NONE,
-		     tyvars=tyvars}
+		fun buildFnExp [var] =
+                      FNexp (map clauseToRule clauses, UNDEFty, UNDEFty)
+		  | buildFnExp vars =
+                      foldr (fn (w,e) => FNexp([RULE(VARpat w, e)], UNDEFty, UNDEFty))
+			    (CASEexp(TUPLEexp (map varToExp vars),
+				     (map clauseToRule clauses, UNDEFty, UNDEFty)))
+			    vars
+		val exp0 = buildFnExp argVars
+		val exp = if !ElabControl.markabsyn then MARKexp (exp0, region) else exp0
+	     in RVB {var=var, exp=exp, resultty=NONE, tyvars=tyvars}
 	    end
-          | fb2rvb _ = bug "FUNdec"
-     in wrapRECdec (map fb2rvb fbl, compInfo)
+          | funToValRec _ = bug "FUNdec"
+     in VALRECdec (map funToValRec fundecs) (* no function name static environment needed *)
     end
 
+(* should really check whether all the patterns of the initial rules are
+ * collectively irrefutable before adding the re-raise rule *)
 fun makeHANDLEexp(exp, rules, compInfo as {mkLvar=mkv, ...}: compInfo) =
-    let val v = newVALvar(exnID, mkv)
-        val r = RULE(VARpat v, RAISEexp(VARexp(ref(v),[]),UNDEFty)) (** Updated to the ty option type - GK*)
-	val rules = completeMatch' r rules
-     in HANDLEexp(exp, (rules,UNDEFty))
+    let val RULE(p,_) = List.last rules (* rules assumed nonempty *)
+        val rules' =
+	    case p
+	     of VARpat _ => rules  (* last rule will always match => rules are exhaustive *)
+              | _ =>   (* otherwise add default re-raise rule *)
+		let val v = mkVALvar (exnID, mkv)
+		    val r = RULE (VARpat v, RAISEexp (VARexp(ref(v),[]), UNDEFty))
+		 in rules @ [r]
+		end
+     in HANDLEexp (exp, (rules', UNDEFty, UNDEFty))
     end
 
 
@@ -327,18 +252,18 @@ fun pat_id (spath, env, err, compInfo as {mkLvar=mkv, ...}: compInfo) =
     case spath
       of SymPath.SPATH[id] =>
 	   ((case LU.lookValSym (env,id,fn _ => raise SE.Unbound)
-	       of V.CON c => CONpat(c,[])
-	        | _ => VARpat(newVALvar(id,mkv)))
-	    handle SE.Unbound => VARpat(newVALvar(id,mkv)))
+	       of AS.CON c => CONpat(c,[])
+	        | _ => VARpat(mkVALvar(id,mkv)))
+	    handle SE.Unbound => VARpat(mkVALvar(id,mkv)))
        | _ =>
 	   CONpat((case LU.lookVal (env,spath,err)
-		     of V.VAL c =>
+		     of AS.VAL c =>
 			(err COMPLAIN
 			  ("variable found where constructor is required: "^
 			   SymPath.toString spath)
 			  nullErrorBody;
-			 (bogusCON,[]))
-		      | V.CON c => (c,[]))
+			 (AU.bogusCON,[]))
+		      | AS.CON c => (c,[]))
 		   handle SE.Unbound => bug "unbound untrapped")
 
 fun makeRECORDpat(l,flex,err) =
@@ -354,20 +279,22 @@ fun clean_pat err (CONpat(DATACON{const=false,name,...},_)) =
   | clean_pat err (MARKpat(p,region)) = MARKpat(clean_pat err p, region)
   | clean_pat err p = p
 
-fun pat_to_string WILDpat = "_"
-  | pat_to_string (VARpat(VALvar{path,...})) = SP.toString path
-  | pat_to_string (CONpat(DATACON{name,...},_)) = S.name name
-  | pat_to_string (NUMpat(src, _)) = src
-  | pat_to_string (STRINGpat s) = s
-  | pat_to_string (CHARpat s) = "#"^s
-  | pat_to_string (RECORDpat _) = "<record>"
-  | pat_to_string (APPpat _) = "<application>"
-  | pat_to_string (CONSTRAINTpat _) = "<constraint pattern>"
-  | pat_to_string (LAYEREDpat _) = "<layered pattern>"
-  | pat_to_string (VECTORpat _) = "<vector pattern>"
-  | pat_to_string (ORpat _) = "<or pattern>"
-  | pat_to_string (MARKpat _) = "<marked pattern>"
-  | pat_to_string _ = "<illegal pattern>"
+(* patToString : pat -> string
+ *   -- not exported, used once in makeAppPat error message *)
+fun patToString WILDpat = "_"
+  | patToString (VARpat(VALvar{path,...})) = SP.toString path
+  | patToString (CONpat(DATACON{name,...},_)) = S.name name
+  | patToString (NUMpat(src, _)) = src
+  | patToString (STRINGpat s) = s
+  | patToString (CHARpat c) = "#"^(Char.toString c)
+  | patToString (RECORDpat _) = "<record>"
+  | patToString (APPpat _) = "<application>"
+  | patToString (CONSTRAINTpat _) = "<constraint pattern>"
+  | patToString (LAYEREDpat _) = "<layered pattern>"
+  | patToString (VECTORpat _) = "<vector pattern>"
+  | patToString (ORpat _) = "<or pattern>"
+  | patToString (MARKpat _) = "<marked pattern>"
+  | patToString _ = "<illegal pattern>"
 
 fun makeAPPpat err (CONpat(d as DATACON{const=false,lazyp,...},tvs),p) =
       let val p1 = APPpat(d, tvs, p)
@@ -385,7 +312,7 @@ fun makeAPPpat err (CONpat(d as DATACON{const=false,lazyp,...},tvs),p) =
       MARKpat(makeAPPpat err (rator,p), region)
   | makeAPPpat err (rator,_) =
       (err COMPLAIN (concat["non-constructor applied to argument in pattern: ",
-			     pat_to_string rator])
+			     patToString rator])
          nullErrorBody;
        WILDpat)
 
@@ -398,6 +325,42 @@ fun makeLAYEREDpat ((x as VARpat _), y, _) = LAYEREDpat(x,y)
   | makeLAYEREDpat (x,y,err) =
       (err COMPLAIN "pattern to left of \"as\" must be variable" nullErrorBody;
        y)
+
+(* fillPat : AS.pat -> AS.pat *)
+(* (1) fills out flex record patterns according to the known record type, turning them
+ *     into nonflex record patterns.  Using WILDpat for the elided fields.
+ * (2) uses mkRep to adjust representations for exception constructors and
+ *     the SUSP pseudo-constructor *)
+fun fillPat pat =
+  let fun fill (pat as RECORDpat {fields, flex=true, typ}) =
+            let val fields' = map (fn (l,p) => (l, fill p)) fields
+                val labels =
+		    (case TU.headReduceType (!typ)
+		       of (t as T.CONty(T.RECORDtyc labels, _)) =>
+			    (typ := t; labels)
+                        | _ => bug "fillPat: unresolved flex record type")
+                fun merge (a as ((id,p)::r), lab::s) =
+                      if S.eq(id,lab)
+		      then (id,p) :: merge(r,s)
+                      else (lab,WILDpat) :: merge(a,s)
+                  | merge ([], lab::s) = (lab,WILDpat) :: merge([], s)
+                  | merge ([], []) = []
+                  | merge _ = bug "merge in translate"
+             in RECORDpat{fields = merge(fields', labels), flex = false, typ = typ}
+            end
+        | fill (RECORDpat {fields, flex=false, typ}) =
+            RECORDpat{fields = map (fn (lab, p) => (lab, fill p)) fields,
+                      typ = typ, flex = false}
+	| fill (CONSTRAINTpat (p,_)) = fill p   (* stripping type constraint *)
+	| fill (MARKpat (p,_)) = fill p         (* stripping mark *)
+        | fill (LAYEREDpat (p,q)) = LAYEREDpat(fill p, fill q)
+        | fill (VECTORpat(pats,ty)) = VECTORpat(map fill pats, ty)
+        | fill (ORpat(p1, p2)) = ORpat(fill p1, fill p2)
+        | fill (APPpat(dcon, tvs, pat)) = APPpat(dcon, tvs, fill pat)
+        | fill xp = xp
+
+   in fill pat
+  end (* function fillPat *)
 
 (* checkBoundTyvars: check whether the tyvars appearing in a type (used) are
    bound (as parameters in a type declaration) *)
@@ -419,57 +382,6 @@ fun labsym (LABEL{name, ...}) = name
 
 exception IsRec
 
-(** FLINT in front end **)
-(** formerly defined in translate/nonrec.sml; now done during type checking *)
-fun recDecs (rvbs as [RVB {var as V.VALvar{access=A.LVAR v, ...},
-                           exp, resultty, tyvars, boundtvs}]) =
-     let fun findexp e =
-            (case e
-              of VARexp (ref(V.VALvar{access=A.LVAR x, ...}), _) =>
-                   if v=x then raise IsRec else ()
-	       | VARexp _ => ()
-               | RECORDexp l => app (fn (lab, x)=>findexp x) l
-               | SEQexp l => app findexp l
-               | APPexp (a,b) => (findexp a; findexp b)
-               | CONSTRAINTexp (x,_) => findexp x
-               | HANDLEexp (x, (l, _)) =>
-		   (findexp x; app (fn RULE (_, x) => findexp x) l)
-               | RAISEexp (x, _) => findexp x
-               | LETexp (d, x) => (finddec d; findexp x)
-               | CASEexp (x, l, _) =>
-                   (findexp x; app (fn RULE (_, x) => findexp x) l)
-	       | IFexp { test, thenCase, elseCase } =>
-		   (findexp test; findexp thenCase; findexp elseCase)
-	       | (ANDALSOexp (e1, e2) | ORELSEexp (e1, e2) |
-		  WHILEexp { test = e1, expr = e2 }) =>
-		   (findexp e1; findexp e2)
-               | FNexp (l, _) =>  app (fn RULE (_, x) => findexp x) l
-               | MARKexp (x, _) => findexp x
-	       | SELECTexp (_, e) => findexp e
-	       | VECTORexp (el, _) => app findexp el
-	       | (CONexp _ | NUMexp _ | REALexp _ | STRINGexp _ | CHARexp _) => ())
-
-          and finddec d =
-            (case d
-              of VALdec vbl => app (fn (VB{exp,...}) => findexp exp) vbl
-               | VALRECdec rvbl => app (fn(RVB{exp,...})=>findexp exp) rvbl
-               | LOCALdec (a,b) => (finddec a; finddec b)
-               | SEQdec l => app finddec l
-               | ABSTYPEdec {body, ...} => finddec body
-               | MARKdec (dec,_) => finddec dec
-               | _ => ())
-
-       in (findexp exp;
-           VALdec [VB{pat=VARpat var, tyvars=tyvars, boundtvs=boundtvs,
-                      exp = case resultty
-                             of SOME ty => CONSTRAINTexp(exp,ty)
-                              | NONE => exp}])
-          handle IsRec => VALRECdec rvbs
-      end
-
-  | recDecs rvbs = VALRECdec rvbs
-
-
 (* hasModules tests whether there are explicit module declarations in a decl.
  * This is used in elabMod when elaborating LOCALdec as a cheap
  * approximate check of whether a declaration contains any functor
@@ -482,7 +394,6 @@ fun hasModules(StrDec _) = true
       List.exists hasModules decs
   | hasModules(MarkDec(dec,_)) = hasModules dec
   | hasModules _ = false
-
 
 end (* top-level local *)
 end (* structure ElabUtil *)

@@ -57,6 +57,7 @@ local structure S = Symbol
       structure TU = TypesUtil
       structure BT = BasicTypes
       structure V = VarCon
+      structure AS = Absyn
       structure M = Modules
       structure MU = ModuleUtil
       structure B = Bindings
@@ -608,7 +609,7 @@ and ppTycBind ppstrm (tyc,env) =
     let val {openHVBox,openHOVBox,openVBox,closeBox,pps,ppi,break,newline} =
 	    en_pp ppstrm
         fun visibleDcons(tyc,dcons) =
-	    let fun checkCON(V.CON c) = c
+	    let fun checkCON(AS.CON c) = c
 		  | checkCON _ = raise SE.Unbound
 		fun find ((actual as {name,rep,domain}) :: rest) =
 		     (let val found =

@@ -72,7 +72,7 @@ fun ppType ty =
 		("type: ",PPType.ppType StaticEnv.empty, ty))
 
 fun ppLexp lexp =
-    PP.with_default_pp(fn s => PPLexp.ppLexp 20 s lexp)
+    PP.with_default_pp(fn s => PPLexp.ppLexp (!ppDepth) s lexp)
 
 
 (****************************************************************************
@@ -123,16 +123,6 @@ fun toDconLty d ty =
                                               body=BT.-->(BT.unitTy, body)}})
      | _ => if BT.isArrowType ty then toLty d ty
             else toLty d (BT.-->(BT.unitTy, ty)))
-
-(*
-(** the special lookup functions for the Core environment *)
-(* DBM: not used -- superceded by CoreAccess *)
-fun coreLookup(id, env) =
-  let val sp = SymPath.SPATH [CoreSym.coreSym, S.varSymbol id]
-      val err = fn _ => fn _ => fn _ => raise NoCore
-   in Lookup.lookVal(env, sp, err)
-  end
-*)
 
 fun CON' ((_, DA.REF, lt), ts, e) = APP (PRIM (PO.MAKEREF, lt, ts), e)
   | CON' ((_, DA.SUSP (SOME(DA.LVAR d, _)), lt), ts, e) =
@@ -401,7 +391,7 @@ fun fillPat(pat, d) =
             CONpat(TP.DATACON{name=name, const=const, typ=typ, lazyp=lazyp,
                               sign=sign,rep=mkRep(rep,toDconLty d typ,name)},
                    ts)
-        | fill (APPpat(TP.DATACON{name,const,typ,rep,sign,lazyp}, ts, pat)) =
+
             APPpat(TP.DATACON{name=name, const=const, typ=typ,
                               sign=sign, lazyp=lazyp,
                               rep=mkRep(rep, toDconLty d typ, name)},
@@ -512,7 +502,7 @@ fun genintinfswitch (sv, cases, default) =
  * FLINT/trans/matchcomp.sml. *)
 
 
-(* genswitch : <<SWITCH domain>> -> Plambda.lexp *)
+(* genswitch : <<SWITCH domain type>> -> Plambda.lexp *)
 (* This function moved here from trans/matchcomp (the old match compiler). It
  * treats the special single (pseudo-) constructor pattern cases involving
  * the "ref" and "susp" constructors, and the special case of switching on
@@ -553,7 +543,7 @@ fun genswitch (sv, sign, [(DATAcon((_, DA.REF, lt), ts, x), e)], NONE) =
  *                                                                         *
  ***************************************************************************)
 (* [KM???] mkVar is calling mkAccInfo, which just drops the prim!!! *)
-fun mkVar (v as V.VALvar{access, prim, btvs, typ, path}, d) =
+fun mkVar (V.VALvar{access, prim, btvs, typ, path}, d) =
       mkAccInfo(access, fn () => toLty d (!typ), getNameOp path)
   | mkVar _ = bug "unexpected vars in mkVar"
 
@@ -562,8 +552,8 @@ fun mkVar (v as V.VALvar{access, prim, btvs, typ, path}, d) =
  * In the case of a primop variable, this function reconstructs the
  * type parameters of instantiation of the intrinsic primop type relative
  * to the variable occurrence type *)
-fun mkVE (e as V.VALvar { typ, prim = PrimopId.Prim p, ... }, ts, d) =
-      let val occurenceTy = instPoly(!typ, ts)
+fun mkVE (var as V.VALvar { typ, prim = PrimopId.Prim p, ... }, tys, d) =
+      let val occurenceTy = instPoly(!typ, tys)
               (* compute the occurrence type of the variable *)
           val primop = PrimopBind.defnOf p
           val intrinsicType = PrimopBind.typeOf p
@@ -581,7 +571,7 @@ fun mkVE (e as V.VALvar { typ, prim = PrimopId.Prim p, ... }, ts, d) =
                             ("tvs length: " ^ Int.toString (length tvs));
                            PP.newline ppstrm;
                            PPVal.ppDebugVar
-                            (fn x => "") ppstrm env e;
+                            (fn x => "") ppstrm env var;
                            if (length tvs) = 1
                            then PPType.ppType env ppstrm (TP.VARty (hd tvs))
                            else ()))
@@ -592,7 +582,7 @@ fun mkVE (e as V.VALvar { typ, prim = PrimopId.Prim p, ... }, ts, d) =
                       "mkVE:primop intrinsic type doesn't match occurrence type"
                       (fn ppstrm =>
                           (PP.string ppstrm "VALvar: ";
-                           PPVal.ppVar ppstrm e;
+                           PPVal.ppVar ppstrm var;
                            PP.newline ppstrm;
                            PP.string ppstrm "occtypes: ";
                            PPType.ppType env ppstrm occurenceTy;
@@ -625,21 +615,20 @@ fun mkVE (e as V.VALvar { typ, prim = PrimopId.Prim p, ... }, ts, d) =
 		    transPrim(primop, (toLty d intrinsicType),
                               map (toTyc d) intrinsicParams)
       end
-  | mkVE (v as V.VALvar{typ, prim = PrimopId.NonPrim, path, ...}, ts, d) =
+  | mkVE (var as V.VALvar{typ, prim = PrimopId.NonPrim, path, ...}, tys, d) =
     (* non primop variable *)
       (if !debugging
        then (print "### mkVE nonprimop\n";
              print (SymPath.toString path); print "\n";
              ppType (!typ); print "\n";
-             print "|ts| = "; print (Int.toString(length ts)); print "\n";
-             app ppType ts; print "\n")
+             print "|tys| = "; print (Int.toString(length tys)); print "\n";
+             app ppType tys; print "\n")
        else ();
-       case ts
-         of [] => mkVar (v, d)
-          | _ => TAPP(mkVar(v, d), map (toTyc d) ts))
+       case tys
+         of [] => mkVar (var, d)
+          | _ => TAPP(mkVar(var, d), map (toTyc d) tys))
                  (* dbm: when does this second case occur? *)
   | mkVE _ = bug "non VALvar passed to mkVE"
-
 
 fun mkCE (TP.DATACON{const, rep, name, typ, ...}, ts, apOp, d) =
   let val lt = toDconLty d typ
@@ -689,34 +678,30 @@ fun mkBnd d =
  ***************************************************************************)
 
 (* mkPE : Absyn.exp * depth * Types.tyvar list -> PLambda.lexp
- * translate an expression with potential type parameters *)
+ * translate an expression with potential type parameters, given by "boundtvs", a list
+ * of type variables (Types.tyvar) *)
 fun mkPE (exp, d, []) = mkExp(exp, d)
   | mkPE (exp, d, boundtvs) =
       let
-(* now done in type checker (generalizePat)
- * but we will do it again here and check consistencey, with he
- * local computation taking priority --- *)
-
           val savedtvs = map ! boundtvs
             (* save original contents of boundtvs for later restoration
-             * by the restore function below *)
+             * by the restore function below. This is (may be) necessary
+             * because a single OPEN tyvar may be generalized in different
+             * overlapping/nested "scopes".  And my have different depth, index
+             * values for the different scopes.  Need examples! *)
 
     (* LBOUND equality property probably does not matter at this point
        because typechecking and signature matching already completed.
        [GK 2/24/08] *)
+    (* should be replaced by or merged with TypesUtil.indexBoundTyvars *)
           fun setbtvs (i, []) = ()
             | setbtvs (i, (tv as ref (TP.OPEN{eq,...}))::rest) =
-	        (tv := TP.LBOUND {depth=d,eq=eq,index=i};
+	        (tv := TP.LBOUND {depth=d,index=i,eq=eq};
 		 setbtvs (i+1, rest))
-            | setbtvs (i, (tv as
-			      ref (TP.LBOUND{depth=d',index=i',...}))::rest) =
+            | setbtvs (i, (tv as ref (TP.LBOUND{depth=d',index=i',...}))::rest) =
                 (if !debugging
-                 then (if d <> d' then say ("### setbtvs: d = "^(Int.toString d)^
-                                            ", d' = "^(Int.toString d')^"\n")
-                       else ();
-                       if i <> i' then say ("### setbtvs: i = "^(Int.toString i)^
-                                            ", i' = "^(Int.toString i')^"\n")
-                       else ())
+                 then (say (concat["### setbtvs with: d = ",Int.toString d, ", i = ",Int.toString i,
+				   " -- was: d = ",Int.toString d', ", i = ",Int.toString i',"\n"]))
                  else ();
                  tv := TP.LBOUND {depth=d,eq=false,index=i};
 		    (* reset with local values *)
@@ -731,18 +716,14 @@ fun mkPE (exp, d, []) = mkExp(exp, d)
             (* increase the depth to indicate that the expression is
              * going to be wrapped by a type abstraction (TFN); see body *)
 
-          (* restore tyvar states to that before the translation *)
-          fun restore ([], []) = ()
-            | restore (a::r, b::z) = (b := a; restore(r, z))
-            | restore _ = bug "unexpected cases in mkPE"
-
           (* [dbm, 6/22/06] Why do we need to restore the original
              contents of the uninstantiated meta type variables?
              Only seems to be necessary if a given tyvar gets generalized
-             in two different valbinds. We assume that this does not
-             happen (Single Generalization Conjecture) *)
+             in two different valbinds. Can we assume that this does not
+             happen (Single Generalization Conjecture)? *)
 
-          val _ = restore(savedtvs, boundtvs)
+          (* restore tyvar states to that before the translation *)
+          val _ = ListPair.appEq (op :=) (boundtvs, savedtvs)
 
           val len = length(boundtvs)
 
@@ -771,9 +752,9 @@ and mkVBs (vbs, d) =
 
 		 in case oldvars
 		     of [] => (* variable-free pattern, implies boundtvs = [], hence no type abs *)
-			  LET(mkv(), mkExp(newexp, d), body) (* fresh let-bound lvar doesn't occur in body *)
+			  LET(mkv(), mkExp(newexp, d), body) (* the fresh let-bound lvar doesn't occur in body *)
 		      | _ =>
-			let val newVar = mkv() (* new local variable to be let-bound to newexp *)
+			let val newVar = mkv() (* new local variable that will be let-bound to newexp *)
 			    fun lookup (tv: Types.tyvar) [] = NONE
 			      | lookup tv ((tv',k)::r) = if tv = tv' then SOME k
 							 else lookup tv r
@@ -804,7 +785,7 @@ and mkVBs (vbs, d) =
 				 in buildDec(rest,i+1,LET(lv, defn, body))
 				end
 
-			   in LET(newVar,mkPE(newexp,d,boundtvs),
+			   in LET (newVar, mkPE (newexp, d, boundtvs),
 				  buildDec(oldvars, 0, body))
 			  end
 		end
@@ -813,14 +794,14 @@ and mkVBs (vbs, d) =
   end (* mkVBs *)
 
 and mkRVBs (rvbs, d) =
-  let fun mkRVB (RVB{var=V.VALvar{access=DA.LVAR v, typ=ref ty, ...},
-                     exp, boundtvs=btvs, ...}, (vlist, tlist, elist)) =
-            let val ee = mkExp(exp, d) (* was mkPE(exp, d, btvs) *)
+  let fun mkRVB (RVB{var=V.VALvar{access=DA.LVAR v, typ=ref ty, btvs, ...},
+                     exp, ...}, (vlist, tlist, elist)) =
+            let val ee = transPolyExp(exp, d) (* was mkPE(exp, d, btvs) *)
                 (* [ZHONG?] we no longer track type bindings at RVB anymore ! *)
                 val vt = toLty d ty
             in (v::vlist, vt::tlist, ee::elist)
             end
-        | mkRVB _ = bug "unexpected valrec bindings in mkRVBs"
+        | mkRVB _ = bug "mkRVBs: not a val rec (RVB)"
 
       val (vlist, tlist, elist) = foldr mkRVB ([], [], []) rvbs
 
@@ -992,7 +973,8 @@ and mkExp (exp, d) =
         | mkExp0 (STRINGexp s) = STRING s
 (* QUESTION: do we want to map characters to word8? *)
 (** NOTE: the following won't work for cross compiling to multi-byte characters **)
-        | mkExp0 (CHARexp s) = INT{
+        | mkExp0 (CHARexp s) =
+	    INT{
 	      ival = IntInf.fromInt(Char.ord(String.sub(s, 0))),
 	      ty = Tgt.defaultIntSz
 	    }

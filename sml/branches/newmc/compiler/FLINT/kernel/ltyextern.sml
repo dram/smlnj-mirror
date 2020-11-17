@@ -231,14 +231,17 @@ fun ltw_iscont (lt, f, g, h) =
 (** other misc utility functions *)
 fun tc_select(tc, i) =
   (case tc_out tc
-    of LT.TC_TUPLE (_,zs) =>
-         ((List.nth(zs, i)) handle _ => bug "wrong TC_TUPLE in tc_select")
+    of LT.TC_TUPLE zs =>
+         (List.nth (zs, i)
+	  handle Subscript => bug ("wrong TC_TUPLE in tc_select: i="^Int.toString i^
+				  ", |zs| = "^Int.toString(length zs)))
      | _ => tc_bug tc "wrong TCs in tc_select")
 
 fun lt_select(t, i) =
   (case lt_out t
     of LT.LT_STR ts =>
-         ((List.nth(ts, i)) handle _ => bug "incorrect LT_STR in lt_select")
+         (List.nth (ts, i)
+          handle Subscript => bug "incorrect LT_STR in lt_select")
      | LT.LT_TYC tc => ltc_tyc(tc_select(tc, i))
      | _ => bug "incorrect lambda types in lt_select")
 
@@ -268,7 +271,7 @@ fun ltd_fkfun (lty: lty) : lty list * lty list =
         in (atys, rtys)
        end
 
-fun ltc_rkind (FL.RK_TUPLE _, lts) = ltc_tuple lts
+fun ltc_rkind (FL.RK_TUPLE, lts) = ltc_tuple lts
   | ltc_rkind (FL.RK_STRUCT, lts) = ltc_str lts
   | ltc_rkind (FL.RK_VECTOR t, _) = ltc_vector (ltc_tyc t)
 
@@ -313,7 +316,7 @@ fun tnarrow_gen () =
         (case (tc_out t)
           of LT.TC_PRIM pt =>
                if PT.isvoid pt then tcc_void else t
-           | LT.TC_TUPLE (_, tcs) => tcc_tuple (map tcf tcs)
+           | LT.TC_TUPLE tcs => tcc_tuple (map tcf tcs)
            | LT.TC_ARROW (r, ts1, ts2) =>
                tcc_arrow(ffc_fixed, map tcf ts1, map tcf ts2)
            | _ => tcc_void)
@@ -349,7 +352,7 @@ fun twrap_gen bbb =
            | LT.TC_FIX{family={size=n,names,gen=tc,params=ts},index=i} =>
                tcc_fix((n, names, tc_norm (u tc), map w ts), i)
 
-           | LT.TC_TUPLE (_, ts) => tcc_wrap(tcc_tuple (map w ts)) (* ? *)
+           | LT.TC_TUPLE ts => tcc_wrap (tcc_tuple (map w ts)) (* ? *)
            | LT.TC_ARROW (LT.FF_VAR(b1,b2), ts1, ts2) =>
                let val nts1 =    (* too specific ! *)
                      (case ts1 of [t11,t12] => [w t11, w t12]
@@ -376,7 +379,7 @@ fun twrap_gen bbb =
            | LT.TC_FIX{family={size=n,names,gen=tc,params=ts},index=i} =>
                tcc_fix((n, names, tc_norm (u tc), map w ts), i)
 
-           | LT.TC_TUPLE (rk, tcs) => tcc_tuple(map u tcs)
+           | LT.TC_TUPLE tcs => tcc_tuple (map u tcs)
            | LT.TC_ARROW (LT.FF_VAR(b1,b2), ts1, ts2) =>
                tcc_arrow(ffc_fixed, map u ts1, map u ts2)
            | LT.TC_ARROW (LT.FF_FIXED, _, _) =>
@@ -466,8 +469,8 @@ fun tc_nvar_elim_gen() = let
                             tcc_sum (rs ts)
                       | LT.TC_FIX {family={size,names,gen,params},index} =>
                             tcc_fix ((size,names,r gen,rs params),index)
-                      | LT.TC_TUPLE (rf,ts) =>
-                            tcc_tuple (rs ts)
+                      | LT.TC_TUPLE ts =>
+                            tcc_tuple ts
                       | LT.TC_ARROW (ff, ts, ts') =>
                             tcc_arrow (ff, rs ts, rs ts')
                       | LT.TC_PARROW (t, t') =>
@@ -595,7 +598,7 @@ fun tc_nvar_subst_gen() = let
                             tcc_sum (map loop ts)
                       | LT.TC_FIX{family={size,names,gen,params},index} =>
                             tcc_fix ((size, names, loop gen, map loop params),index)
-                      | LT.TC_TUPLE (rf,ts) =>
+                      | LT.TC_TUPLE ts =>
                             tcc_tuple (map loop ts)
                       | LT.TC_ARROW (ff, ts, ts') =>
                             tcc_arrow (ff, map loop ts, map loop ts')
@@ -735,8 +738,8 @@ fun tc_nvar_cvt_gen() = let
                             tcc_sum (rs ts)
                       | LT.TC_FIX{family={size,names,gen,params},index} =>
                             tcc_fix ((size, names, r gen, rs params), index)
-                      | LT.TC_TUPLE (rf,ts) =>
-                            tcc_tuple (rs ts)
+                      | LT.TC_TUPLE ts =>
+                            tcc_tuple ts
                       | LT.TC_ARROW (ff, ts, ts') =>
                             tcc_arrow (ff, rs ts, rs ts')
                       | LT.TC_PARROW (t, t') =>

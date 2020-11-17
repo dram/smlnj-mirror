@@ -19,7 +19,6 @@ structure FLINT : FLINT =
     type lvar = LV.lvar
 
     type fflag = LD.fflag
-    type rflag = LD.rflag
 
   (* what kind of inlining behavior is desired for the function *)
     datatype ilhint
@@ -55,9 +54,9 @@ structure FLINT : FLINT =
 
   (** classifying various kinds of records *)
     datatype rkind
-      = RK_VECTOR of tyc           (* vector: all elements have same type *)
-      | RK_STRUCT                  (* module: elements may be polymorphic *)
-      | RK_TUPLE of rflag          (* tuple: all elements are monomorphic *)
+      = RK_VECTOR of tyc  (* vector: all elements have same type *)
+      | RK_STRUCT         (* module: elements may be polymorphic *)
+      | RK_TUPLE          (* tuple: all elements are monomorphic *)
 
   (*
    * dcon records the name of the constructor (for debugging), the

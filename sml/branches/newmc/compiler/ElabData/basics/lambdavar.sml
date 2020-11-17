@@ -31,17 +31,18 @@ structure LambdaVar :> LAMBDA_VAR =
 
     val lvarIsNamed = Tbl.inDomain lvarNames
 
-    fun prLvar (lvar:lvar) = Int.toString lvar
+    fun prLvar (lvar: lvar) = Int.toString lvar
 
-    fun sameName (v, w) = if !saveLvarNames
-	  then (case findName w
-	     of SOME x => giveLvarName(v, x)
-	      | NONE => (case findName v
-		   of SOME x => giveLvarName (w, x)
-		    | NONE => ()
-		  (* end case *))
-	    (* end case *))
-	  else ()
+    fun sameName (v, w) =
+	if !saveLvarNames
+        then (case findName w
+	       of SOME x => giveLvarName(v, x)
+		| NONE => (case findName v
+			    of SOME x => giveLvarName (w, x)
+			     | NONE => ()
+			  (* end case *))
+	     (* end case *))
+	else ()
 
     val mkLvar = newLvar varcount
 
@@ -85,12 +86,15 @@ structure LambdaVar :> LAMBDA_VAR =
 
 	type t = lvar list
 
-	fun enter (new : lvar, l) = let
-	      fun f [] = [new]
-		| f (l as h::t) = if new<h then new::l else if new>h then h::f t else l
-	      in
-		f l
-	      end
+	fun enter (new : lvar, l: lvar list) =
+	    let fun f [] = [new]
+		  | f (l as h::t) =
+		    case Int.compare (new,h)
+		     of LESS => new::l
+		      | GREATER => h::f t
+		      | EQUAL => l
+	     in f l
+	    end
 
 	fun merge (a, []) = a
 	  | merge ([], a) = a

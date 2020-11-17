@@ -5,18 +5,22 @@
  *)
 
 structure VarCon : VARCON =
-  struct
+struct
 
+local
     structure A  = Access
     structure T  = Types
     structure S  = Symbol
     structure SP = SymPath
 
+    fun bug msg = ErrorMsg.impossible ("Var: "^msg)
+in
+
     datatype var
       = VALvar of			(* ordinary variables *)
 	  {path : SP.path,
 	   typ : T.ty ref,
-	   btvs : T.tyvar list ref,
+	   btvs : T.tyvar list ref,     (* polymorphic "parameters" of the variable? *)
 	   access : A.access,
 	   prim : PrimopId.prim_id}
       | OVLDvar of       	      	(* overloaded identifier *)
@@ -24,11 +28,26 @@ structure VarCon : VARCON =
 	   variants : var list}         (* variant variables (VALvars) *)
       | ERRORvar			(* error variables *)
 
-    type datacon = T.datacon
+    fun varPath (VALvar{path,...}) = path
+      | varPath _ = bug "varPath"
 
-    datatype value
-      = VAL of var
-      | CON of datacon
+    fun varName (VALvar{path,...}) = SymPath.last path
+      | varName _ = bug "varName"
+
+    fun varType (VALvar{typ,...}) = !typ
+      | varType _ = bug "varType"
+
+    fun varAccess (VALvar{access,...}) = access
+      | varAccess _ = bug "varAccess"
+
+    fun varBtvs (VALvar{btvs, ...}) = !btvs
+      | varBtvs _ = bug "varBtvs"
+
+    fun hasLvarAccess (VALvar{access = A.LVAR _, ...}) = true
+      | hasLvarAccess _ = false
+			      
+    fun varToLvar (VALvar{access = A.LVAR lv, ...}) = lv
+      | varToLvar var = bug ("varToLvar: " ^ S.name(varName var))
 
     fun mkVALvar (id, acc) =
 	  VALvar{path = SP.SPATH [id],
@@ -37,26 +56,59 @@ structure VarCon : VARCON =
 		 btvs = ref [],
 		 prim = PrimopId.NonPrim}
 
-    val bogusCON = T.DATACON{
-	    name=S.varSymbol "bogus",
-	    typ=T.WILDCARDty,
-	    rep=A.CONSTANT 0,
-	    const=true,
-	    lazyp=false,
-	    sign=A.CSIG(0,1)
-	  }
+    fun newVALvar (id, ty) =
+	  VALvar{path = SP.SPATH [id],
+		 typ = ref ty,
+		 access = A.LVAR (LambdaVar.mkLvar()),
+		 btvs = ref [],
+		 prim = PrimopId.NonPrim}
 
-    val bogusEXN = T.DATACON{
-	    name=S.varSymbol "bogus",
-	    typ=BasicTypes.exnTy,
-	    rep=A.CONSTANT 0,
-	    const=true,
-	    lazyp=false,
-	    sign=A.CNIL
-	  }
+    (* replaceLvar : var -> var * LV.lvar *)
+    fun replaceLvar (VALvar{path, typ, access, btvs, prim}) =
+	(case access
+	  of A.LVAR _ =>
+	       let val newlvar = LambdaVar.mkLvar()
+	       in (VALvar{path=path, typ=typ, btvs=btvs, prim=prim,
+			  access=A.LVAR(newlvar)},
+		   newlvar)
+	       end
+ 	     | _ => bug "replaceLvar: VALvar{access,...}")
+      | replaceLvar _ = bug "replaceLvar: not VALvar"
+			    
+    (* eqVar : var * var -> bool *)
+    (* eqVar should only be applied to local bound vars, which are VALvars
+     * with LVAR accesses. Equality is based on equal lvars. *)
+    fun eqVar (var1 as VALvar{access=a1,...}, var2 as VALvar{access=a2,...}) =
+	(case a1
+	  of A.LVAR lv1 =>
+	     (case a2
+	       of A.LVAR lv2 => LambdaVar.same (lv1, lv2)
+		| _ => bug ("eqVar: second arg access not LVAR: "^
+			   Symbol.name(varName var2)))
+	   | _ => bug ("eqVar: first arg access not LVAR: "^
+		       Symbol.name(varName var1)))
+      | eqVar _ = bug "eqVar: an arg is not a VALvar"
 
-  end (* structure VarCon *)
+(* Wildcard special "variable" *)
 
-(* rename Var : VAR, with value datatype moved to Absyn(?), and
- * bogusCON and bogusEXN moved to TypesUtil.
+val wildSymbol = S.varSymbol "WILD"
+			     
+val wildVar = VALvar{path = SP.SPATH [wildSymbol],
+		     typ = ref(Types.UNDEFty),
+		     btvs = ref nil,
+		     access = A.NO_ACCESS,
+		     prim = PrimopId.NonPrim}
+
+fun isWildVar (VALvar{path,...}) = S.eq (SymPath.last path, wildSymbol)
+
+fun toString (VALvar{path, access, ...}) = 
+    concat [S.name(SymPath.last path), "[", A.prAcc access, "]"]
+  | toString (OVLDvar _) = "OVLD"
+  | toString ERRORvar = "ERROR"
+
+end (* local *)
+end (* structure VarCon *)
+
+(* Should rename VarCon to Var : VAR, since value datatype was moved to Absyn, and
+ * bogusCON and bogusEXN were moved to AbsynUtil (or perhaps TypesUtil).
  *)

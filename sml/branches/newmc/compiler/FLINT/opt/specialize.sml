@@ -22,11 +22,21 @@ local structure LD = LtyDef
       structure PT = PrimTyc
       structure PF = PFlatten
       structure LVMap = LambdaVar.Map
+      structure PP = PrettyPrint
       open FLINT
 in
 
+val debugging = FLINT_Control.spdebugging
 val say = Control_Print.say
 fun bug s = ErrorMsg.impossible ("SpecializeNvar: " ^ s)
+fun pp_fflag (fflag : LD.fflag) =
+    PP.with_default_pp (fn ppstrm => PPLty.ppFflag ppstrm fflag)
+fun pp_lvar (lvar : LambdaVar.lvar) =
+    PP.with_default_pp (fn ppstrm => PP.string ppstrm
+			  ("f = "^(LambdaVar.prLvar lvar)))
+fun pp_lty (lty : LD.lty) =
+    PP.with_default_pp (fn ppstrm => PPLty.ppLty 20 ppstrm lty)
+
 fun mkv _ = LambdaVar.mkLvar()
 val ident = fn le : FLINT.lexp => le
 
@@ -462,12 +472,19 @@ fun transform (ienv, d, nmap, smap, did_flat) =
                    lplets (map #1 vts, be, fn e => e))
         | lpfd (fk as {cconv=CC_FUN fflag,isrec,known,inline}, f, vts, be) =
            let (** first get the original arg and res types of f *)
-               val (fflag', atys, rtys) = LT.ltd_arrow (getlty (VAR f))
+	       val f_lty = getlty (VAR f)
+               val (fflag_f, atys, rtys) = LT.ltd_arrow f_lty
 		   handle LT.DeconExn => bug "lpfd"
                (** just a sanity check; should turn it off later **)
+               val _ =
+		   if !debugging
+		   then (pp_lvar f; print "fflag = "; pp_fflag fflag;
+			 print "fflag(f) = "; pp_fflag fflag_f;
+	                 print "lpfd: f_lty = "; pp_lty f_lty)
+		   else ()
                val (b1,b2) =
-                 if LT.ff_eqv (fflag, fflag') then LT.ffd_fspec fflag
-                 else bug "unexpected code in lpfd"
+                 (* if LT.ff_eqv (fflag, fflag_f) then *) LT.ffd_fspec fflag
+                 (* else bug "unexpected code in lpfd" *)
 
                (** get the newly specialized types **)
                val (natys, nrtys) = (map ltf atys, map ltf rtys)

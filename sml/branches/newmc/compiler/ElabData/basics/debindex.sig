@@ -30,6 +30,6 @@ sig
 
   val innermost : index
   val innersnd : index
-  val di_inner : index -> index
+(*  val di_inner : index -> index *)
 
 end (* signature DEB_INDEX *)

@@ -672,7 +672,7 @@ fun elab (BaseStr decl, env, entEnv, region) =
       let val _ = debugmsg ">>elab[BaseStr]"
 
           (* we enter the epcontext when we get into BaseStr *)
-          val epContext'=EPC.enterOpen(epContext,entsv)
+          val epContext' = EPC.enterOpen(epContext,entsv)
           val (absDecl, entDecl, env', entEnv') =
                  elabDecl0(decl, env, entEnv, inStr context, true, tdepth,
                            epContext', rpath, region, compInfo)
@@ -1365,7 +1365,7 @@ fun loop([], decls, entDecls, env, entEnv) =
 end (* function elabStrbs *)
 
 
-(*** elabDecl0: elaborate an arbitrary module-level declarations ***)
+(*** elabDecl0: elaborate an arbitrary module-level declaration ***)
 and elabDecl0
       (decl: Ast.dec,
        env0: SE.staticEnv,
@@ -1543,14 +1543,13 @@ and elabDecl0
 			 epContext, rpath, region, compInfo)
 
            (*** DAVE? what is the right epContext to pass here? ***)
-           val env = SE.atop(env_in,env0)
-           val entEnv = EE.mark(mkStamp,EE.atop(entEnv_in,entEnv0))
+           val env = SE.atop (env_in, env0)
+           val entEnv = EE.mark (mkStamp, EE.atop (entEnv_in, entEnv0))
            val (absyn_out, entDecl_out, env_out, entEnv_out) =
                elabDecl0(decl_out, env, entEnv, context, top, tdepth,
 			 epContext, rpath, region, compInfo)
 
-           val resAbsyn = A.LOCALdec(absyn_in,absyn_out)
-
+           val resAbsyn = A.LOCALdec (absyn_in, absyn_out)
 
            val (entDec, resEE) =
              case context
@@ -1591,7 +1590,7 @@ and elabDecl0
 		     val env2 = SE.consolidateLazy (SE.atop(env',env))
                   in loop(rest, absyn::asdecls, entDecl::entDecls,
                           env2,
-                          EE.mark(mkStamp,EE.atop(entEnv',entEnv)))
+                          EE.mark (mkStamp, EE.atop (entEnv', entEnv)))
                  end
 
         in loop(decls, nil, nil, SE.empty, EE.empty)
@@ -1702,12 +1701,13 @@ and elabDecl0
 
             fun chkError () = !anyErrors
             (* note that transform is applied to decl before type checking *)
-            val decl' = Typecheck.decType(SE.atop(env',env0), transform decl,
-                                          tdepth, top, error, chkError, region)
+            val decl0 = Typecheck.decType(SE.atop(env',env0), transform decl,
+                                          top, error, chkError, region)
+	    val decl1 = MatchComp.transMatchDec decl0
             val (entEnv, entDec) =
-              bindNewTycs(context, epContext, mkStamp, abstycs, withtycs,
-			  rpath, error region)
-         in (decl', entDec, env', entEnv)
+                bindNewTycs(context, epContext, mkStamp, abstycs, withtycs,
+			    rpath, error region)
+         in (decl1, entDec, env', entEnv)
         end
         handle EE.Unbound =>
 	  (debugmsg("$elabDecl0: AbstypeDec");
@@ -1727,23 +1727,26 @@ and elabDecl0
                           | _ => false))
                 | _ => (fn _ => false))
 
-            val (decl,env') = EC.elabDec(dec, env0, isFree,
-                                         rpath, region, compInfo)
-              handle EE.Unbound => (debugmsg("$EC.elabDec"); raise EE.Unbound)
+            val (decl0, env') = EC.elabDec(dec, env0, isFree,
+                                           rpath, region, compInfo)
+                                handle EE.Unbound =>
+				  (debugmsg("$EC.elabDec"); raise EE.Unbound)
             val _ = debugmsg (">>elabDecl0.dec[after EC.elabDec: top="
                               ^ (Bool.toString top))
-            val decl' = transform decl
-            val _ = debugmsg ">>elabDecl0.dec[after transform]"
+            val decl1 = transform decl0
+            val _ = debugmsg ">>elabDecl0.dec [after transform]"
             fun chkError () = !anyErrors
-            val decl'' = Typecheck.decType(SE.atop(env',env0), decl',
-                                           tdepth, top, error, chkError, region)
+            val decl2 = Typecheck.decType(SE.atop(env',env0), decl1,
+                                          top, error, chkError, region)
                          handle EE.Unbound => (debugmsg("$decType");
                                                raise EE.Unbound)
+	    val decl3 = MatchComp.transMatchDec decl2
             val _ = debugmsg ">>elabDecl0.dec[after decType]"
-         in (decl'', M.EMPTYdec, env', EE.empty)
+         in (decl3, M.EMPTYdec, env', EE.empty)
         end handle EE.Unbound =>
-	      (debugmsg("$elabDecl0: CoreDec"); raise EE.Unbound)))
-
+		   (debugmsg("$elabDecl0: CoreDec"); raise EE.Unbound))
+    (* end case *))
+    (* end elabDecl0 *)
 
 (*** the top-level wrapper for the elabDecl0 function ***)
 fun elabDecl {ast, statenv, entEnv, context, level, tdepth,

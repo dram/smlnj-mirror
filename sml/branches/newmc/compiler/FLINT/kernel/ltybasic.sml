@@ -69,7 +69,7 @@ fun tkc_int 0 = tkc_mono
   | tkc_int 3 = tkc_fn3
   | tkc_int i = tkc_fun(tkc_arg i, tkc_mono)
 
-(** primitive fflags and rflags *)
+(** primitive fflags *)
 val ffc_plambda = ffc_var (false, false)
 val ffc_rrflint = ffc_var (true, true)
 
@@ -94,9 +94,9 @@ val tcc_bool   =
    in tcc_fix((1, #["bool"], tsig_bool, []), 0)
   end
 
-val tcc_list   =  (* not exported, used for the printing purpose *)
-  let val alpha = tcc_var (DI.innermost, 0)
-      val tlist = tcc_var (DI.innersnd, 0)
+val tcc_list   =  (* not exported, used for printing *)
+  let val alpha = tcc_var (1, 0)  (* innermost type abstraction *)
+      val tlist = tcc_var (2, 0)  (* next to innermost type abstraction *)
       val alist = tcc_app (tlist, [alpha])
       val tcc_cons = tcc_tuple [alpha, alist]
       val tlist = tcc_fn([tkc_mono], tcc_sum [tcc_cons, tcc_unit])
@@ -134,16 +134,14 @@ val ltc_top = ltc_ppoly([tkc_mono], ltc_tv 0)
  *            UTILITY FUNCTIONS FOR TESTING EQUIVALENCE                    *
  ***************************************************************************)
 
-(** testing equivalence of tkinds, tycs, ltys, fflags, and rflags *)
+(** testing equivalence of tkinds, tycs, ltys, fflags *)
 val tk_eqv    : tkind * tkind -> bool = LK.tk_eqv
 val tc_eqv    : tyc * tyc -> bool = LK.tc_eqv
 val lt_eqv    : lty * lty -> bool = LK.lt_eqv
 val ff_eqv    : fflag * fflag -> bool = LK.ff_eqv
-val rf_eqv    : rflag * rflag -> bool = LK.rf_eqv
-
 
 (***************************************************************************
- *            UTILITY FUNCTIONS FOR PRETTY PRINTING                        *
+ *            UTILITY FUNCTIONS FOR [[PRETTY]] PRINTING                        *
  ***************************************************************************)
 
 (** (pretty?) printing of tkinds, tycs, and ltys -- see pplty.sml for real
@@ -183,7 +181,7 @@ fun tc_print (x : tyc) =
                end)
      | LT.TC_ABS t => "Ax(" ^ (tc_print t) ^ ")"
      | LT.TC_BOX t => "Bx(" ^ (tc_print t) ^ ")"
-     | LT.TC_TUPLE(_,zs) => "TT<" ^ (plist(tc_print, zs)) ^ ">"
+     | LT.TC_TUPLE zs => "TT<" ^ (plist(tc_print, zs)) ^ ">"
      | LT.TC_ARROW (ff,z1,z2) =>
          parw(fn u => plist(tc_print,u),(ff,z1,z2))
      | LT.TC_PARROW _ => bug "unexpected TC_PARROW in tc_print"
@@ -276,22 +274,21 @@ val teCons = LT.teCons
  ***************************************************************************)
 
 (** utility values and functions on ltyEnv *)
-type ltyEnv = (lty * DebIndex.depth) LambdaVar.Map.map
+type ltyEnv = (lty * DI.depth) LambdaVar.Map.map
 
-exception ltUnbound
 val initLtyEnv : ltyEnv = LambdaVar.Map.empty
 
+(* ltLookup : ltyEnv * LambdaVar.lvar * DI.depth -> SOME lty *)
 fun ltLookup (venv, lv, nd) =
-  (case LambdaVar.Map.find(venv, lv)
-     of NONE  =>
-	  (say "**** hmmm, I didn't find the variable ";
-	   say (LambdaVar.prLvar lv); say "\n";
-	   raise ltUnbound)
-      | SOME (lt, d) =>
-	  if d=nd then lt
-	  else if d > nd then bug "unexpected depth info in ltLookup"
-	       else ltc_env(lt, 0, nd - d, LT.teEmpty)
-  (*easc*))
+    (case LambdaVar.Map.find (venv, lv)
+       of NONE  =>
+	    (say ("ltLookup: unbound lvar: " ^ LambdaVar.prLvar lv ^ "\n");
+	     NONE)
+	| SOME (lty, d) =>
+	    if d=nd then SOME lty
+	    else if d > nd then bug "ltLookup: unexpected depth"
+	    else SOME (ltc_env (lty, 0, nd - d, LT.teEmpty))
+    (*end case*))
 
 fun ltInsert (venv, lv, lt, d) = LambdaVar.Map.insert(venv, lv, (lt, d))
 

@@ -55,6 +55,8 @@ fun mkLetVar (var: V.var, defexp, body) =
 fun mkLetSvar (svar: SV.svar, defexp, body) =
     mkLetVar(SV.svarToVar svar, defexp, body)
 
+fun numLitToString ({ival,...} : num_lit) = IntInf.toString ival
+
 (* keyToPat : MT.key * SV.svar option -> AS.pat *)
 (* svarOp is SOME sv if key is D dcon where dcon is not constant *)
 fun keyToPat (key, svarOp) =
@@ -63,10 +65,14 @@ fun keyToPat (key, svarOp) =
 	   (case svarOp
 	     of NONE => CONpat(dcon, tvs)  (* => dcon is constant *)
 	      | SOME sv => APPpat(dcon, tvs, VARpat(SV.svarToVar sv)))
-       | MT.I num => NUMpat ("", num)
-       | MT.W num => NUMpat ("", num)
+       | MT.I num => NUMpat (numLitToString num, num)
+       | MT.W num => NUMpat (numLitToString num, num)
        | MT.S s => STRINGpat s
-       | MT.C c => CHARpat (Char.toString c)
+       | MT.C c =>  (* character constant patterns mapped to int patterns *)
+	 let val c_ord = Char.ord c
+	     val src = Int.toString c_ord
+	  in NUMpat (src, {ival = IntInf.fromInt c_ord, ty = BT.intTy})
+	 end
        | _ => bug "keyToPat") (* does not apply to V, R keys *)
 
 (* Letr : SV.svar list * SV.svar * mcexp -> mcexp *)
@@ -75,20 +81,18 @@ fun Letr (svars, svar, body) =
     let val defvar = SV.svarToVar svar  (* variable bound to the record/tuple *)
 	fun wrapLets (nil, _) = body
 	  | wrapLets (sv::rest, n) =
-	      mkLetSvar (sv, AS.SELECTexp(defvar, n, true), (* record selection *)
-		    wrapLets (rest, n+1))
+	      mkLetSvar (sv, AS.RSELECTexp (defvar, n), wrapLets (rest, n+1))
     in wrapLets (svars, 0)  (* selection index 0 based *)
     end
 
 (* Letv : SV.svar list * SV.svar * mcexp -> mcexp *)
 (* "let #[sv1,...,svn] = sv0 in body"; destructure a vector *)
-(* Vector selection represented by SELECTexp with third element "false". *)
+(* Vector selection represented by VSELECTexp. *)
 fun Letv (svars, svar, body) =
     let val defvar = SV.svarToVar svar
 	fun wrapLets (nil, _) = body
 	  | wrapLets (sv::rest, n) =
-	      mkLetSvar (sv, AS.SELECTexp(defvar, n, false), (* vector selection *)
-		    wrapLets (rest, n+1))
+	      mkLetSvar (sv, AS.VSELECTexp (defvar, n), wrapLets (rest, n+1))
     in wrapLets (svars, 0)
     end
 
@@ -126,22 +130,36 @@ fun Switch (svar: SV.svar, cases, defaultOp) =
  * BUG? pvars for different functions may overlap, introducing duplication
  * among lambda bound lvars. Do lvar alpha-conversion to make bound lvars
  * unique? (fcontract problem). *)
-fun Sfun (pvars, body) =
-    let val pvarsTy = BasicTypes.tupleTy(map V.varType pvars)
-	val argvar = V.newVALvar (S.varSymbol "SfunArg", pvarsTy)
-	fun wrapLets (nil, _) = body
-	  | wrapLets (v::rest, n) =
-	      mkLetVar (v, AS.SELECTexp(argvar, n, true), (* record selection *)
-			 wrapLets (rest, n+1))
-	val wrappedBody = wrapLets (pvars, 0)
-	val rule = RULE(AS.VARpat argvar, wrappedBody)
-     in AS.FNexp([rule], pvarsTy, T.UNDEFty) (* result not relevant *)
-    end
+fun Sfun (pvars, body, rhsTy) =
+    (case pvars
+       of nil => (* pattern was WILDpat, hence no bound variables *)
+	  let val dummyVar = V.newVALvar (S.varSymbol "sarg", BT.unitTy)
+	      val rule = RULE (AS.VARpat dummyVar, body)
+	     in AS.FNexp([rule], BT.unitTy, rhsTy)
+	    end
+        | [pvar] => (* single variable *)
+	    let val pvarTy = V.varType pvar
+		val rule = RULE (AS.VARpat pvar, body)
+	     in AS.FNexp([rule], pvarTy, rhsTy) (* result ty not relevant *)
+	    end
+        | _ => (* multiple variables *)
+	    let val pvarsTy = BasicTypes.tupleTy(map V.varType pvars)
+		val argvar = V.newVALvar (S.varSymbol "sarg", pvarsTy)
+		fun wrapLets (nil, _) = body
+		  | wrapLets (v::rest, n) =
+		      mkLetVar (v, AS.RSELECTexp (argvar, n), wrapLets (rest, n+1))
+		val wrappedBody = wrapLets (pvars, 0)
+		val rule = RULE( AS.VARpat argvar, wrappedBody)
+	     in AS.FNexp([rule], pvarsTy, rhsTy) (* result ty not relevant *)
+	    end)
 
 (* Sapp : SV.svar * SV.svar list -> mcexp *)
 (* passing a single tuple value, consistent with Translate. *)
 fun Sapp (funsvar, argsvars) =
-    AS.APPexp(Var funsvar, AU.TUPLEexp(map Var argsvars))
+    (case argsvars
+       of nil => AS.APPexp(Var funsvar, AU.unitExp)
+        | [svar] => AS.APPexp(Var funsvar, Var svar)
+	| _ => AS.APPexp(Var funsvar, AU.TUPLEexp(map Var argsvars)))
 
 (* Failure : datacon * ty -> mcexp *)
 (* "raise matchExn"; causes appropriate exception (Match or Bind) to be

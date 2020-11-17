@@ -433,7 +433,7 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 		      val nvl = lpvars vl
 		      val ce = loop(e, c)
 		   in case rk
-		       of F.RK_TUPLE _ =>
+		       of F.RK_TUPLE =>
 			   if (all_float ts) then recordFL(nvl, ts, v, ce)
 			   else recordNM(nvl, ts, v, ce)
 			| F.RK_VECTOR _ =>

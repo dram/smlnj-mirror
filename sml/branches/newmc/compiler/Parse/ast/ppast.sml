@@ -46,10 +46,12 @@ fun strength(ty) =
 fun stripMark (MarkExp(a,_)) = stripMark a
   | stripMark x = x
 
+(*
 fun trim [x] = []
   | trim (a::b) = a::trim b
   | trim [] = []
-
+*)
+		      
 fun pp_path ppstrm symbols =
     let fun pr ppstrm (symbol) = (ppSym ppstrm symbol)
      in ppSequence ppstrm
@@ -67,7 +69,7 @@ fun ppPat sourceOp ppstrm =
 	  | ppPat' (IntPat(src, _),_) = pps src
 	  | ppPat' (WordPat(src, _),_) = pps src
 	  | ppPat' (StringPat s, _) = ppString ppstrm s
-	  | ppPat' (CharPat s,_) = (pps "#"; ppString ppstrm s)
+	  | ppPat' (CharPat c, _) = (pps "#"; ppString ppstrm (Char.toString c))
 	  | ppPat' (LayeredPat {varPat,expPat},d) =
 	      (openHVBox 0;
 	       ppPat'(varPat,d); pps " as "; ppPat'(expPat,d-1);
@@ -203,7 +205,7 @@ and ppExp sourceOp ppstrm =
 	       pps "(case "; ppExp'(expr,true,d-1); nl_indent ppstrm 2;
 	       ppvlist ppstrm ("of ","   | ",
 		 (fn ppstrm => fn r => ppRule sourceOp ppstrm (r,d-1)),
-                  trim rules);
+                  (* trim *) rules);
 	       rparen();
 	       closeBox ())
 	| ppExp' (LetExp {dec, expr},_,d) =
@@ -238,11 +240,11 @@ and ppExp sourceOp ppstrm =
                                  else parenThunk()
                      | _ => parenThunk()
                 end
-	| ppExp' (IntExp(src, _),_,_) = pps src
-	| ppExp' (WordExp(src, _),_,_) = pps src
-	| ppExp' (RealExp(src, _),_,_) = pps src
-	| ppExp' (StringExp s,_,_) = ppString ppstrm s
-	| ppExp' (CharExp s,_,_) = (pps "#"; ppString ppstrm s)
+	| ppExp' (IntExp(src, _), _, _) = pps src
+	| ppExp' (WordExp(src, _), _, _) = pps src
+	| ppExp' (RealExp(src, _), _, _) = pps src
+	| ppExp' (StringExp s, _, _) = ppString ppstrm s
+	| ppExp' (CharExp c, _, _) = (pps "#"; ppString ppstrm (Char.toString c))
 	| ppExp'(r as RecordExp fields,_,d) =
 	   (ppClosedSequence ppstrm
 	      {front=(C PP.string "{"),

@@ -12,6 +12,7 @@ sig
   val mkTUPLEtyc : int -> Types.tycon
   val isTUPLEtyc : Types.tycon -> bool
   val mkRECORDtyc : Types.label list -> Types.tycon
+  val mkTUPLEtype : Types.ty list -> Types.ty
 
 end  (* signature TUPLES *)
 
@@ -100,4 +101,7 @@ fun checklabels (2,nil) = false   (* {1:t} is not a tuple *)
 fun isTUPLEtyc(RECORDtyc labels) = checklabels(1,labels)
   | isTUPLEtyc _ = false
     
+(* mkTUPLEtype : ty list -> ty *)
+fun mkTUPLEtype (elemTys) = CONty(mkTUPLEtyc (length elemTys), elemTys)
+
 end (* structure Tuples *)

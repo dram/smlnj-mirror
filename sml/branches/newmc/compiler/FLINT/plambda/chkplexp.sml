@@ -271,11 +271,12 @@ fun check (kenv, venv, d) =
 	  in
 	      (case le
 		of VAR v =>
-		   (LT.ltLookup(venv, v, d)
-		    handle LT.ltUnbound =>
-			   (say ("** Lvar ** " ^ (LV.lvarName(v))
-				 ^ " is unbound *** \n");
-			    bug "unexpected lambda code in checkLty"))
+		   (case LT.ltLookup(venv, v, d)
+		      of NONE =>
+			   (say ("ChkPlexp.check: unbound lvar: " ^ LV.lvarName(v)
+				 ^ "\n");
+			    bug "unexpected lambda code in checkLty")
+		       | SOME lty => lty)
 		 | INT{ty = 0, ...} => bug "unexpected IntInf in checkLty"
 		 | INT{ty, ...} => LT.ltc_num ty
 		 | WORD{ty, ...} => LT.ltc_num ty

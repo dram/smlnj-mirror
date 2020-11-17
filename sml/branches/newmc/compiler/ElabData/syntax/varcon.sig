@@ -5,7 +5,7 @@
  *)
 
 signature VARCON =
-  sig
+sig
 
     datatype var
       = VALvar of	                (* ordinary variables *)
@@ -19,15 +19,24 @@ signature VARCON =
 	 variants : var list}           (* variant variables (VALvars) *)
       | ERRORvar
 
-    type datacon = Types.datacon
+    val varPath : var -> SymPath.path
+    val varName : var -> Symbol.symbol
+    val varType : var -> Types.ty
+    val varAccess : var -> Access.access
+    val varBtvs : var -> Types.tyvar list   (* generalized (polymorphically bound) tyvars *)
+    val hasLvarAccess : var -> bool
+    val varToLvar : var -> LambdaVar.lvar
 
-    datatype value
-      = VAL of var
-      | CON of datacon
+    val mkVALvar : Symbol.symbol * Access.access -> var
+    val newVALvar : Symbol.symbol * Types.ty -> var
+    val replaceLvar : var -> var * LambdaVar.lvar
 
-    val mkVALvar : Symbol.symbol * Access.access ->  var
+    val eqVar : var * var -> bool
 
-    val bogusCON : datacon
-    val bogusEXN : datacon
+    val wildVar : var
 
-  end (* signature VARCON *)
+    val isWildVar : var -> bool
+
+    val toString : var -> string
+
+end (* signature VARCON *)

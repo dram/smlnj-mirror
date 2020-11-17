@@ -6,7 +6,7 @@
 
 (* Match compiler controls *)
 structure Control_MC : MCCONTROL =
-  struct
+struct
 
     val priority = [10, 10, 4]
     val obscurity = 2
@@ -42,6 +42,7 @@ structure Control_MC : MCCONTROL =
     val debugging = flag ("debugging", "general match compiler debugging", false)
     val printArgs = flag ("print-args", "arguments print mode", false)
     val printRet = flag ("print-ret", "return print mode", false)
+
     val bindNoVariableWarn =
 	flag ("nobind-warn", "whether to warn if no variables get bound",
 	      false)
@@ -63,7 +64,8 @@ structure Control_MC : MCCONTROL =
     val matchRedundantError =
 	flag ("error-redundant", "whether a redundant match is an error", true)
     (* matchRedundantError overrides matchRedundantWarn *)
-  end (* structure Control_MC *)
+
+end (* structure Control_MC *)
 
 
 (* Code generation controls (including some used in FLINT?) *)

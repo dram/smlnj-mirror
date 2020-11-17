@@ -25,6 +25,7 @@ signature FLINTCONTROL =
     val dropinvariant	: bool ref
 
     val specialize	: bool ref   (* whether to specialize *)
+    val spdebugging	: bool ref   (* Specialize debugging *)
     (* val liftLiterals	: bool ref *)
     val sharewrap	: bool ref   (* whether to share wrappers *)
     val saytappinfo	: bool ref   (* for verbose typelifting *)
