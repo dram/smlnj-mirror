@@ -1,0 +1,81 @@
+FLINT Types (FLINT/kernel)
+
+MAP
+---
+
+Lty (lty.{sig,sml})
+
+LtyKernel (ltykernel.{sig,sml})
+  includes Lty
+
+LtyDef (ltydef.{sig,sml})
+  LT = Lty
+  LK = LtyKernel (which includes Lty)
+
+LtyBasic (ltybasic.{sig,sml})
+  includes Lty
+  includes LtyDef
+  LK = LtyKernel
+
+LtyExtern (ltyextern.{sig,sml})
+  includes LtyBasic (=> includes Lty and LtyDef)
+  LT = Lty
+  LK = LtyKernel
+
+PLambdaType == LtyExtern
+
+Descriptions
+------------
+
+Lty:
+  Basic type structure, raw and hash consed (shared)
+  types:
+    tkind: type "kinds", characterizing tycons
+    tkindI: raw ty
+      TK_MONO -- monomorphic ground tycons (e.g. int63)
+      TK_BOX -- "boxed" tycons
+      TK_SEQ -- sequence (product?) of tycons
+      TK_FUN -- tycon function (n-ary)
+      -- What is the relation between TK_MONO and TK_BOX?
+         Is TK_BOX a subset of TK_MONO?
+      -- TK_FUN taking a TK_SEQ vs TK_FUN taking multiple args?
+
+    tyc: type "constructors" (tycons)
+    tycI: raw form datatype (hashcons to tyc)
+
+    lty: "types"
+      tyc "included" in lty (?)
+      --What is in lty that isn't in tyc?
+      --What is the fundamental distinction between tyc and lty, and why
+        is it needed?
+    ltyI: raw form datatype (hashcons to lty)
+
+
+
+
+
+
+================================================================================
+Proposal: only "named" type variables in PLambda and FLINT (and, eventually, front-end)
+
+The existence of two forms of type variables, deBruijn and "named" (by lvars), in
+FLINT adds complexity. I propose as a simplification to use only "named" type variables.
+This means in particular:
+
+1. FLINT types would use only named type variables (strpmgly affecting FLINT/kernel and
+   Translate.TransTypes).
+2. PLambda.lexp would use these named type variables, instead of deBruijn type variables.
+3. Translate.translate would produce these new PLambda.lexp expressions.
+4. FlintNM.norm (plambda/flintnm.sml) will translate PLambda.lexp with named type variables
+   to FLINT.fundec (FLINT.lexp) with named type variables.
+5. deb2names and names2dev (in TvarCvt) will no longer be necessary, since deBruijn type
+   variables will no longer exist.
+6. The FLINT type checker in ChkFlint will be modified to work on FLINT with named type
+   variables.
+7. The consumer of the "inline" (fi: FLINT.prog option) component of the phase result quadruples
+   (f, fi, fk, l) (: phaseData in my version of flint-opt.sml) will be modified to accept
+   FLINT.prog with named type variables, so optimize will not have to apply names2deb to
+   this component of its result.
+
+Later on, this change will be helpful when the front-end abstract syntax and type checker are modifed to use "named" type variables for expression-level type parameters. Polymorphic types
+will continue to use deBruijn style bound type variables (IBOUND) in their bodies.

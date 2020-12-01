@@ -2571,6 +2571,142 @@ Do patterns form a lattice under <?  NO.
 
 
 ================================================================================
+[38] polymorphism, bound type variables
+================================================================================
+
+The problems:
+  (1) how to determine and track type variable bindings and their associated
+      occurences within types embedded in expressions.
+  (2) How to determine the type arguments used to "instantiate" polymorphic
+      variables (TCAPP).
+
+These issues have to be treated consistently in the front-end absyn and FLINT
+lexp (plambda/flint) representations.  What can be done at the absyn - typecheck
+level and what is handled in translation to plambda.
+
+Another issue is that in plambda/flint, type variables and their bindings are
+represented in two different ways.
+
+  (1) by deBruijn indices (depth and index in a tuple of type variable bindings),
+  (2) by type-levelo lvars (after deb2names transformation)
+
+These to forms of type variable representation coexist to some extent.
+
+The elaboration and type checking phases need to be revised to treat type
+variable abstraction and type variable references (in types and expressions)
+is a consistent, "first-class" way.  This will involve reconsideration of the
+machinery used to determine binding points of implicitly bound, explicitely
+occurring type variables in expressions.`
+
+Questions:
+
+1. What is the relation between the boundtvs field of VB and the btvs field of
+individual bound variables (i.e. pattern variables). In the case of simple
+VB bindings with a variable pattern, are they the same?
+
+2. In boundtvs and btvs, what is the significance of the order of variables?  And
+can they differ between "equivalent" boundtvs and btvs.
+
+Examples:
+
+1. let val (x::y, u::v) = e
+    in ((x,u), (y,v))
+   end	       
+
+Two type variables, four value variables.
+Matchcomp translation: (Wrong -- not using ptuplevar)
+  
+   let a = e         -- what's the type of e?  Let's assume e : 'a list * 'b list
+     let b = a.1
+       let c = a.2
+         switch b   -- based on OR priority
+	   nil => FAIL (BIND)
+	   :: d => let e = d.1    -- x
+	             let f = d.2  -- y
+		       switch c
+		         nil => FAIL (BIND)
+			 :: g => let h = g.1    -- u
+			           let i = g.2  -- v
+				     ((e,h), (f,i))
+
+   a,b,c,...,i are administrative variables, assumed not to be polymorphic
+   what are their types?  [Assume 'a and 'b bound in an outer scope, determined
+   by a depth parameter d?.]
+
+   a : 'a list * 'b list  ('a and 'b bound outside the outermost let)
+   b : 'a list
+   c : 'b list
+   d : 'a * 'a list  -- decon of b (:: case)
+   e : 'a
+   f : 'a list
+   g : 'b * 'b list  -- decon of c (:: case)
+   h : 'b
+   i : 'b list
+   ((x,u), (y,v)) = ((e,h), (f,i)) : ('a * 'b) * ('a list * 'b list)
+
+Lexp translation (?)
+
+-------------------------------------------------------------------------------
+
+Removal of wrapRECdec function.
+
+The wrapRECdec function in ElabUtil (and associated functions) has been removed.
+Connected with this was the fact that the RVB case of Typecheck.decType0 did not
+generalize the types of recursively defined variables, so this case was modified
+to restore the generalization of _val rec_ declarations, making them (potentially)
+polymorphic.
+
+A side effect of this (going back to directly and fully type checking val rec
+declarations) is that Translate produces explicitly polymorphic declarations
+for the declarations within a FIX lexp. Unfortunately, FlintNM.norm (FLINT/plambda/flintnm.sml),
+which translates plambda lexps into the Flint IL, assumes that the declarations in
+a plambda FIX are of simple, non-polymorphic functions, and it fails on a simple
+example like
+
+  fun f x = x
+
+where the resulting val rec typing of f is polymorphic ('a -> 'a).
+
+Since it is likely that this assumption of nonpolymorphic FIX bindings hold
+in many places throughout the FLINT optimization phases, rather than "fixing"
+FlintNM and multiple other similar places in the FLINT code that may be relying
+on this assumption, the proposed fix is to "restore" the effect of wrapRECdec
+during the translate phase, effectively moving the polymorphism to wrapped
+VALdec redeclarations of the recursive function names.
+
+The main issue in doing a Translate version of wrapRECdec is to manage the
+polymorphic bindings of type variables (TFN) and related instantiations
+(TAPP) of those type variables.
+
+Algorithm Sketch
+----------------
+
+1. typecheck RVB bindings as usual, producing (potentially) polymorphic function
+bindings (with the function absyn expressions containing "bound" metatyvars).
+
+2. determine the polymorphic signature of the function tuple (how many bound
+metatyvars, list of bound metatyvars).  Let ft be the variable bound to the
+function tuple. Determine its polymorphic type.
+
+3. determine the mapping between the bound metatyvars (or IBOUNDs) of ft and its
+type and the metatyvars of the individual functions of the RVB.
+
+4. Updata the DB indexes of the tyvars contained in the function expressions to
+be those of the ft bound type variables. This will give the boundtvs to be used
+when translating the RVB.
+
+5. Build the new (lexp) declaration structure around the RVB structure (declaring ft
+and the function rebindings to selections from ft). Translate these with the
+appropriate type abstractions and type arguments (TAPP args) for ft, as in the
+old mkVB. The type arguments will be based on a mapping from btvs tyvars for each
+function to ft type argument indices.
+
+See function transRVBs in FLINT/trans/translate-new.sml for the new implementation that
+wraps VALRECdec rvbs to avoid explicit polymorphism in the rvb bindings after
+translation.
+
+
+================================================================================
 [NN] Literature
 ================================================================================
 
@@ -2583,6 +2719,7 @@ analyze next.
 Describes pattern matching as implemented in LML (Lazy ML).
 
 n. Sestoft, "ML Pattern Match Compilation and Partial Evaluation", ?, ?
+
 
 ================================================================================
 [0] High level overview of the new match compiler [email to Bob, 2020.5.31]

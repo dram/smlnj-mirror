@@ -1,0 +1,13 @@
+* FLINT middle-end was introduced in SML/NJ 109.24 (before 2003).  [Monnier-phd-2003.pdf, Chpt 2, p 6].
+
+* SML/NJ 110.0 released sometime shortly after 10/20/2000.
+This narrows the time interval for 109.24 to 10/2000 -- 12/2003 (Monnier's thesis).
+
+Monnier's thesis mentioned 109.24 as a version incorporating FLINT.
+Zhong Shao et al also mention 109.24 (dated January 1997) in
+"Implementing Typed Intermediate Languages", published 1998.
+
+109.32 may be the last point release before 110, produced around the
+end of 1997 or beginning of 1998.  The 110 release came in early 1998.
+
+
