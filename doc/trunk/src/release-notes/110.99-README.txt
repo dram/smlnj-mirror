@@ -34,7 +34,8 @@ FILES::
 This release is primarily a bug fix release with some additional changes to help
 prepare for an evential switch to using an *LLVM* backend for the *AMD64* target.
 
-There was a patch release for 110.98 that addressed some of the pretty printing
+https:://smlnj.org/dist/working/110.98.1/110.98-README.html[Version 110.98.1]
+was a patch release that addressed some of the pretty printing
 regressions introduced in 110.98.  The release notes for those fixes are included
 here.
 
@@ -99,8 +100,10 @@ for more details.
 
 [.buglist,cols="^1,<15"]
 |=======
+| [.bugid]#254#
+| `Real.fromLargeInt` produces negative results
 | [.bugid]#266#
-| Pretty printing regression in SML/NJ 110.98
+| Pretty printing regression in *SML/NJ* 110.98
 | [.bugid]#267#
 | Returns an incorrect result for a calculation on `Position.int` for 32bit mode.
 | [.bugid]#268#
