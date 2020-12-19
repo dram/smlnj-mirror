@@ -31,11 +31,16 @@ FILES::
 
 == Summary
 
-// **** summary description of release
+This release is primarily a bug fix release with some additional changes to help
+prepare for an evential switch to using an *LLVM* backend for the *AMD64* target.
+
+There was a patch release for 110.98 that addressed some of the pretty printing
+regressions introduced in 110.98.  The release notes for those fixes are included
+here.
 
 Also note that this release is the last *110* release.  We are switching
 our release numbering scheme to a __<year>.<relnum>__, so the next
-release will be either *2020.4* or *2021.1* (depending on when it is released).
+release will be *2021.1* (depending on when it is released).
 
 == Details
 
@@ -96,12 +101,14 @@ for more details.
 |=======
 | [.bugid]#266#
 | Pretty printing regression in SML/NJ 110.98
+| [.bugid]#267#
+| Returns an incorrect result for a calculation on `Position.int` for 32bit mode.
 | [.bugid]#268#
 | Polymorphic Type Pretty Printing Regression
 | [.bugid]#269#
 | `Word64.fromString` causes an `Overflow` for greater than 2^32^-1
 | [.bugid]#271#
-| pretty printer regression for structure binding
+| Pretty printer regression for structure binding
 |=======
 
 // ***** include a list of unnumbered bugs here *****
