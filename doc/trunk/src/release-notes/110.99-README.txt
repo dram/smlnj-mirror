@@ -1,5 +1,3 @@
-// A template for creating release notes for a version
-//
 :version: 110.99
 :date: @DATE@
 :dist-dir: https://smlnj.org/dist/working/{version}/
