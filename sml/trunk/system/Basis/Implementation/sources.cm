@@ -453,6 +453,7 @@ is
 	Target32Bit/bind-structs.sml
 	Target32Bit/int.sml
 	Target32Bit/int64.sml
+	Target32Bit/intinf-to-real64.sml
 	Target32Bit/pack-word-b64.sml
 	Target32Bit/pack-word-l64.sml
 	Target32Bit/pointer.sml
@@ -462,6 +463,7 @@ is
 	Target64Bit/bind-structs.sml
 	Target64Bit/int.sml
 	Target64Bit/int64.sml
+	Target64Bit/intinf-to-real64.sml
 	Target64Bit/pack-word-b64.sml
 	Target64Bit/pack-word-l64.sml
 	Target64Bit/pointer.sml
