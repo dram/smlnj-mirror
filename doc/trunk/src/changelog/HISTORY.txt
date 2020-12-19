@@ -98,6 +98,32 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //--------------------------------------------------------------------
 [2020/10/13]::
 +
+Fixed bug bugref:254[] (`Real.fromLargeInt` produces negative results).
+The problem was because the digit size for `IntInf.int` is only one bit
+smaller than the default int and the scaling factor `rbase` was being
+computed using the `InlineT.Real64.from_int` function (so `rbase`
+ends up being negative). Thus it would return incorrect results
+whenever the IntInf representation involved more than one digit.
+This is a bug on both 32-bit and 64-bit systems. The fix was to
+switch to using `InlineT.Real64.from_int{32,64}` to convert `rbase`
+and digits to real values.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2020/10/13]::
++
+Fixed bug bugref:267[] (Returns an incorrect result for a calculation
+on `Position.int` for 32-bit mode). The problem was that on 32-bit
+machines, 64-bit division is implemented by the IntInf module with
+the result then being converted to 64-bits. The conversion used did
+not test for overflow in the result.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2020/10/13]::
++
 Changed the semantics of the spans returned by *ml-ulex* so that the
 second component of a span is the position of the rightmost character
 in the token (instead of the character following the token).

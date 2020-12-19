@@ -103,7 +103,7 @@ for more details.
 | [.bugid]#266#
 | Pretty printing regression in *SML/NJ* 110.98
 | [.bugid]#267#
-| Returns an incorrect result for a calculation on `Position.int` for 32bit mode.
+| Returns an incorrect result for a calculation on `Position.int` for 32-bit mode.
 | [.bugid]#268#
 | Polymorphic Type Pretty Printing Regression
 | [.bugid]#269#
