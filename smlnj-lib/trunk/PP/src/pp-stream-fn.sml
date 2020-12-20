@@ -29,27 +29,53 @@ functor PPStreamFn (
       | Rel of int		(* indent relative to start of box *)
 
   (**** DATA STRUCTURES ****)
-    datatype pp_token
-      = TEXT of string			(* raw text.  This includes tokens.  The *)
-					(* width and style information is taken *)
-					(* care of when they are inserted in *)
-					(* queue. *)
-      | NBSP of int			(* some number of non-breakable spaces *)
-      | BREAK of {nsp : int, offset : int}
-      | BEGIN of (indent * box_type)
-      | END
-      | PUSH_STYLE of style
-      | POP_STYLE
-      | NL
-      | IF_NL
-      | CTL of (device -> unit)		(* device control operation *)
 
-   and box_type = HBOX | VBOX | HVBOX | HOVBOX | BOX | FITS
+  (* tokens represent pending pretty-printing operations in the queue *)
+    datatype pp_token
+      = TEXT of string		(* raw text.  This includes tokens.  The *)
+				(* width and style information is taken *)
+				(* care of when they are inserted in *)
+				(* queue. *)
+      | NBSP of int		(* some number of non-breakable spaces *)
+      | BREAK of {              (* a potential line break *)
+            nsp : int,          (* width of whitespace used if there is no break *)
+            offset : int        (* indentation offset of next line if there is a break *)
+          }
+      | BEGIN of {		(* the beginning of a box *)
+            indent : indent,	(* the box's indentation mode and width *)
+	    ty : box_type	(* the type of box *)
+	  }
+      | END			(* the end of a box *)
+      | PUSH_STYLE of style	(* push a style on the style stack *)
+      | POP_STYLE		(* pop a style off of the style stack *)
+      | NL			(* hard newline *)
+      | IF_NL			(* [unimplemented] *)
+      | CTL of (device -> unit)	(* device control operation *)
+
+  (* the types of boxes *)
+   and box_type
+    = HBOX			(* horizontal box: breaks map to spaces *)
+    | VBOX			(* vertical box: break map to newlines *)
+    | HVBOX			(* horizontal/vertical box: like an HBOX if the stuff fits,
+				 * otherwise like a VBOX.
+				 *)
+    | HOVBOX			(* packing box: breaks are converted to spaces when they
+				 * fix; otherwise line breaks are introduced.
+				 *)
+    | BOX			(* structural box: like a packing box, but breaks are mapped
+				 * to newlines when the result of doing so would move the indent
+				 * to the left.
+				 *)
+    | FITS			(* internal marker for boxes that have been determined to fit
+				 * on the current line.
+				 *)
 
     type pp_queue_elem = {	(* elements of the PP queue *)
-	tok : pp_token,
-	sz : int ref,			(* size of block (set when known) *)
-	len : int			(* length of token *)
+	tok : pp_token,		(* the element *)
+	sz : int ref,		(* size of block (set when known) *)
+	len : int		(* the display length of the token for strings and breaks;
+				 * all other tokens have len = 0.
+				 *)
       }
 
     datatype stream = PP of {
@@ -86,7 +112,7 @@ functor PPStreamFn (
       | tokToString (NBSP n) = concat["NBSP ", Int.toString n]
       | tokToString (BREAK{nsp, offset}) =
 	  F.format "BREAK{nsp=%d, offset=%d}" [F.INT nsp, F.INT offset]
-      | tokToString (BEGIN(indent, ty)) = F.format "BEGIN(%s, %s)" [
+      | tokToString (BEGIN{indent, ty}) = F.format "BEGIN{indent=%s, ty=%s}" [
 	    F.STR(indentToString indent), F.STR(boxTypeToString ty)
 	  ]
       | tokToString END = "END"
@@ -185,6 +211,7 @@ functor PPStreamFn (
 
   (**** FORMATTING ****)
 
+  (* `format (strm, sz, tok)` formats a PP token that has the specified size *)
     fun format (strm, sz, tok) = (case tok
 	   of (TEXT s) => let
 		val PP{spaceLeft, ...} = strm
@@ -216,7 +243,7 @@ functor PPStreamFn (
 		    | ((FITS, wid)::_) => breakSameLine (strm, nsp)
 		    | _ => () (* no open box *)
 		end
-	    | (BEGIN(indent, ty)) => let
+	    | (BEGIN{indent, ty}) => let
 		val PP{curIndent, spaceLeft, width, fmtStk, ...} = strm
 		val spaceLeft' = !spaceLeft
 		val insPt = width - spaceLeft'
@@ -340,7 +367,7 @@ functor PPStreamFn (
 	  scanStk := (!rightTot, tok) :: !scanStk)
 
   (* Open a new box *)
-    fun ppOpenBox (strm, indent, brType) = let
+    fun ppOpenBox (strm, indent, boxTy) = let
 	  val PP{rightTot, curDepth, ...} = strm
 	  in
 	    curDepth := !curDepth + 1;
@@ -349,7 +376,7 @@ functor PPStreamFn (
 ****)
 	    pushScanElem (strm, false, {
 		sz = ref(~(!rightTot)),
-		tok = BEGIN(indent, brType),
+		tok = BEGIN{indent=indent, ty=boxTy},
 		len = 0
 	      })
 	  end
@@ -358,7 +385,9 @@ functor PPStreamFn (
     fun openSysBox (strm as PP{rightTot, curDepth, ...}) = (
 	  curDepth := !curDepth + 1;
 	  pushScanElem (strm, false, {
-	      sz = ref(~(!rightTot)), tok = BEGIN(Rel 0, HOVBOX), len = 0
+	      sz = ref(~(!rightTot)),
+	      tok = BEGIN{indent=Rel 0, ty=HOVBOX},
+	      len = 0
 	    }))
 
   (* close a box *)
