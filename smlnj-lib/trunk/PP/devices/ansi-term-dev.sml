@@ -1,6 +1,6 @@
 (* ansi-term-dev.sml
  *
- * COPYRIGHT (c) 2005 John Reppy (http://www.cs.uchicago.edu/~jhr)
+ * COPYRIGHT (c) 2020 John Reppy (http://www.cs.uchicago.edu/~jhr)
  * All rights reserved.
  *
  * A pretty-printing device for text output to ANSI terminals.  This device
@@ -19,7 +19,7 @@ structure ANSITermDev : sig
 
   (* enable/disable/query styled output.
    *
-   *	styleMode (dev, NONE)	-- query current mode
+   *	styleMode (dev, NONE)	        -- query current mode
    *	styleMode (dev, SOME true)	-- enable styled output
    *	styleMode (dev, SOME false)	-- disable styled output
    *
@@ -105,7 +105,7 @@ structure ANSITermDev : sig
     datatype device = DEV of {
 	mode : bool ref,
 	dst : TextIO.outstream,
-	wid : int,
+	wid : int option ref,
 	stk : state list ref
       }
 
@@ -151,19 +151,34 @@ structure ANSITermDev : sig
 	  end
 
     fun openDev {dst, wid} = DEV{
-	    dst = dst, wid = wid, mode = ref(isTTY dst), stk = ref[]
+	    dst = dst, wid = ref(SOME wid), mode = ref(isTTY dst), stk = ref[]
 	  }
 
   (* maximum printing depth (in terms of boxes) *)
     fun depth _ = NONE
+    fun setDepth _ = ()
+
+    fun ellipses _ = ("", 0)
+    fun setEllipses _ = ()
+    fun setEllipsesWithSz _ = ()
 
   (* the width of the device *)
-    fun lineWidth (DEV{wid, ...}) = SOME wid
+    fun lineWidth (DEV{wid, ...}) = !wid
+    fun setLineWidth (DEV{wid, ...}, w) = wid := w
+
+  (* the suggested maximum width of indentation; `NONE` is interpreted as no limit. *)
+    fun maxIndent _ = NONE
+    fun setMaxIndent _ = ()
+
   (* the suggested maximum width of text on a line *)
     fun textWidth _ = NONE
+    fun setTextWidth _ = ()
 
   (* output some number of spaces to the device *)
     fun space (DEV{dst, ...}, n) = TextIO.output (dst, StringCvt.padLeft #" " n "")
+
+  (* output an indentation of the given width to the device *)
+    val indent = space
 
   (* output a new-line to the device *)
     fun newline (DEV{dst, ...}) = TextIO.output1 (dst, #"\n")

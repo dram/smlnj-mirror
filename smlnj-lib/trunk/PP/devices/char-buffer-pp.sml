@@ -1,6 +1,6 @@
 (* char-buffer-pp.sml
  *
- * COPYRIGHT (c) 2018 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
  * A pretty printer that puts its output in a CharBuffer.buf object.  There
@@ -22,43 +22,27 @@ structure CharBufferPP : sig
 
   end = struct
 
-    structure Device = struct
-
-	datatype device = DEV of {
-	    dst : CharBuffer.buf,
-	    wid : int
-	  }
-
+    structure DevOps = struct
+	type t = CharBuffer.buf
       (* no style support *)
 	type style = unit
 	fun sameStyle _ = true
 	fun pushStyle _ = ()
 	fun popStyle _ = ()
 	fun defaultStyle _ = ()
-
-	val openDev = DEV
-
-      (* maximum printing depth (in terms of boxes) *)
-	fun depth _ = NONE
-
-      (* the width of the device *)
-	fun lineWidth (DEV{wid, ...}) = SOME wid
-      (* the suggested maximum width of text on a line *)
-	fun textWidth _ = NONE
-
       (* output some number of spaces to the device *)
-	fun space (DEV{dst, ...}, n) = CharBuffer.addVec (dst, StringCvt.padLeft #" " n "")
-
+        fun space (dst, n) = CharBuffer.addVec (dst, StringCvt.padLeft #" " n "")
+	val indent = space
       (* output a new-line to the device *)
-	fun newline (DEV{dst, ...}) = CharBuffer.add1 (dst, #"\n")
-
+	fun newline dst = CharBuffer.add1 (dst, #"\n")
       (* output a string/character in the current style to the device *)
-	fun string (DEV{dst, ...}, s) = CharBuffer.addVec (dst, s)
-	fun char (DEV{dst, ...}, c) = CharBuffer.add1 (dst, c)
-
+	fun string (dst, s) = CharBuffer.addVec (dst, s)
+	fun char (dst, c) = CharBuffer.add1 (dst, c)
       (* nothing to flush *)
-	fun flush _ = ()
+	fun flush dst = ()
       end
+
+    structure Device = DefaultDeviceFn (DevOps)
 
     structure PP = PPStreamFn (
       structure Token = StringToken
@@ -66,7 +50,6 @@ structure CharBufferPP : sig
 
     open PP
 
-    fun openBuf arg = openStream(Device.openDev arg)
+    fun openBuf {dst, wid} = PP.openStream (Device.newWithWidth (dst, wid))
 
   end;
-

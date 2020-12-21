@@ -25,6 +25,7 @@ is
   ansi-term-dev.sml
   ansi-term-pp.sml
   char-buffer-pp.sml
+  default-device-fn.sml
   simple-textio-dev.sml
   string-token.sml
   textio-pp.sml

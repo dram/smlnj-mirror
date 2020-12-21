@@ -13,12 +13,38 @@ functor PPStreamFn (
 (**
   ) : PP_STREAM =
 **)
-  ) : sig include PP_STREAM val dump : (TextIO.outstream * stream) -> unit end =
-  struct
+  ) : sig
+    include PP_STREAM
+    val dump : (TextIO.outstream * stream) -> unit
+  end = struct
 
     structure D = Device
     structure T = Token
     structure Q = Queue
+
+  (* imperative stacks *)
+    structure Stk :> sig
+	type 'a t
+	val new : unit -> 'a t		(* create a new stack *)
+	val clear : 'a t -> unit	(* reset the stack to empty *)
+	val push : 'a t * 'a -> unit	(* push an item *)
+	val pop : 'a t -> 'a option	(* pop an item (`NONE` on empty) *)
+	val top : 'a t -> 'a option	(* top of stack or `NONE` *)
+        val discard : 'a t -> unit	(* discard top element (or nop on empty) *)
+	val toList : 'a t -> 'a list	(* list of items; top first *)
+      end = struct
+	type 'a t = 'a list ref
+	fun new () : 'a t = ref[]
+	fun clear (stk : 'a t) = stk := []
+	fun push (stk : 'a t, x) = stk := x :: !stk
+	fun pop (stk : 'a t) = (case !stk
+	       of [] => NONE
+		| x::r => (stk := r; SOME x)
+	      (* end case *))
+	fun top (stk : 'a t) = (case !stk of [] => NONE | x::_ => SOME x)
+        fun discard (stk : 'a t) = (case !stk of [] => () | _::r => stk := r)
+	fun toList (stk : 'a t) = !stk
+      end
 
     type device = D.device
     type token = T.token
@@ -43,7 +69,7 @@ functor PPStreamFn (
           }
       | BEGIN of {		(* the beginning of a box *)
             indent : indent,	(* the box's indentation mode and width *)
-	    ty : box_type	(* the type of box *)
+	    ty : box_ty	(* the type of box *)
 	  }
       | END			(* the end of a box *)
       | PUSH_STYLE of style	(* push a style on the style stack *)
@@ -53,7 +79,7 @@ functor PPStreamFn (
       | CTL of (device -> unit)	(* device control operation *)
 
   (* the types of boxes *)
-   and box_type
+   and box_ty
     = HBOX			(* horizontal box: breaks map to spaces *)
     | VBOX			(* vertical box: break map to newlines *)
     | HVBOX			(* horizontal/vertical box: like an HBOX if the stuff fits,
@@ -63,11 +89,11 @@ functor PPStreamFn (
 				 * fix; otherwise line breaks are introduced.
 				 *)
     | BOX			(* structural box: like a packing box, but breaks are mapped
-				 * to newlines when the result of doing so would move the indent
-				 * to the left.
+				 * to newlines when the result of doing so would move the
+				 * indent to the left.
 				 *)
-    | FITS			(* internal marker for boxes that have been determined to fit
-				 * on the current line.
+    | FITS			(* internal marker for boxes that have been determined to
+				 * fit on the current line.
 				 *)
 
     type pp_queue_elem = {	(* elements of the PP queue *)
@@ -89,13 +115,13 @@ functor PPStreamFn (
 	leftTot : int ref,		(* total width of tokens already printed *)
 	rightTot : int ref,		(* total width of tokens ever inserted *)
 					(* into the queue. *)
+	newline : bool ref,		(* `true` when we are at the start of a new line *)
 	queue : pp_queue_elem Q.queue,	(* the queue of pending tokens *)
-	fmtStk				(* stack of information about currently *)
-	  : (box_type * int) list ref,	(* active blocks.  The int is the indentation *)
+	fmtStk : (box_ty * int) Stk.t,  (* active blocks.  The int is the indentation *)
 					(* of the block *)
 	scanStk
-	  : (int * pp_queue_elem) list ref,
-	styleStk : style list ref
+	  : (int * pp_queue_elem) Stk.t,
+	styleStk : style Stk.t
       }
 
   (**** DEBUGGING FUNCTIONS ****)
@@ -126,28 +152,29 @@ functor PPStreamFn (
 	  ]
     fun scanElemToString (n, elem) =
 	  F.format "(%d, %s)" [F.INT n, F.STR(qelemToString elem)]
+    fun fmtElemToString (ty, n) =
+	  F.format "(%s, %d)" [F.STR(boxTypeToString ty), F.INT n]
     fun dump (outStrm, PP pp) = let
 	  fun pr s = TextIO.output(outStrm, s)
 	  fun prf (fmt, items) = pr(F.format fmt items)
-	  fun fmtElemToString (ty, n) =
-		F.format "(%s, %d)" [F.STR(boxTypeToString ty), F.INT n]
 	  fun prl fmtElem [] = pr "[]"
 	    | prl fmtElem l = pr(ListFormat.fmt {
 		  init = "[\n    ", final = "]", sep = "\n    ", fmt = fmtElem
 		} l)
 	  in
 	    pr  ("BEGIN\n");
-	    prf ("  width     = %3d\n", [F.INT(#width pp)]);
-	    prf ("  curIndent = %3d, curDepth = %3d\n", [
+	    prf ("  width     = %3d, spaceLeft = %3d\n", [
+		F.INT(#width pp), F.INT(!(#spaceLeft pp))
+	      ]);
+	    prf ("  curIndent = %3d, curDepth  = %3d\n", [
 		F.INT(!(#curIndent pp)), F.INT(!(#curDepth pp))
 	      ]);
-	    prf ("  leftTot   = %3d, rightTot = %3d\n", [
+	    prf ("  leftTot   = %3d, rightTot  = %3d\n", [
 		F.INT(!(#leftTot pp)), F.INT(!(#rightTot pp))
 	      ]);
-	    prf ("  spaceLeft = %3d\n", [F.INT(!(#spaceLeft pp))]);
 	    pr   "  queue = "; prl qelemToString (Q.contents(#queue pp)); pr "\n";
-	    pr   "  fmtStk = "; prl fmtElemToString (!(#fmtStk pp)); pr "\n";
-	    pr   "  scanStk = "; prl scanElemToString (!(#scanStk pp)); pr "\n";
+	    pr   "  fmtStk = "; prl fmtElemToString (Stk.toList(#fmtStk pp)); pr "\n";
+	    pr   "  scanStk = "; prl scanElemToString (Stk.toList(#scanStk pp)); pr "\n";
 	    pr  ("END\n")
 	  end
 
@@ -155,9 +182,27 @@ functor PPStreamFn (
 
     val infinity = Option.getOpt(Int.maxInt, 1000000000)
 
-  (* output functions *)
-    fun output (PP{dev, ...}, s) = D.string(dev, s)
-    fun outputNL (PP{dev, ...}) = D.newline dev
+  (* output text to the device; note that the size is specified separately,
+   * since it might be different from the actual string length (e.g., UTF8
+   * multibyte characters)
+   *)
+    fun output (_, "", 0) = ()
+      | output (PP{dev, spaceLeft, newline, ...}, s, sz) = (
+	  spaceLeft := !spaceLeft - sz;
+	  newline := false;
+	  D.string(dev, s))
+
+  (* output a newline to the device *)
+    fun outputNL (PP{dev, newline, ...}) = (
+	  newline := true;
+	  D.newline dev)
+
+(* TODO: add `indent` function to device API *)
+  (* output indentation to the device *)
+    fun outputIndent (_, 0) = ()
+      | outputIndent (PP{dev, ...}, n) = D.space (dev, n)
+
+  (* output non-indent spaces to the device *)
     fun blanks (_, 0) = ()
       | blanks (PP{dev, ...}, n) = D.space (dev, n)
 
@@ -179,10 +224,10 @@ functor PPStreamFn (
 	  val indent = min(maxIndent, indent)
 *****)
 	  in
+	    outputNL strm;
 	    curIndent := indent;
 	    spaceLeft := width - indent;
-	    outputNL strm;
-	    blanks (strm, indent)
+	    outputIndent (strm, indent)
 	  end
 
   (* format a break as spaces.
@@ -193,32 +238,33 @@ functor PPStreamFn (
 	  spaceLeft := !spaceLeft - nsp;
 	  blanks (strm, nsp))
 
-(***** this function is in the CAML version, but is currently not used.
-    fun forceLineBreak (strm as PP{fmtStk, spaceLeft, ...}) = (case !fmtStk
-	   of ((ty, wid)::r) => if (wid > !spaceLeft)
+(***** this function is in the CAML version and is used when the current
+ **    insertion point is beyond the maximum indentation level.  Since we
+ **    do not support a maximum indentation level yet, we don't need this
+ **    function.
+    fun forceLineBreak (strm as PP{fmtStk, spaceLeft, ...}) = (case Stk.top fmtStk
+	   of SOME(ty, wid) => if (wid > !spaceLeft)
 		then (case ty
 		   of (FITS | HBOX) => ()
 		    | _ => breakNewLine (strm, 0, wid)
 		  (* end case *))
 		else ()
-	    | _ => outputNL strm
+	    | NONE => outputNL strm
 	  (* end case *))
 *****)
 
   (* return the current style of the PP stream *)
-    fun currentStyle (PP{styleStk = ref [], dev, ...}) = D.defaultStyle dev
-      | currentStyle (PP{styleStk = ref(sty::_), ...}) = sty
+    fun currentStyle (PP{styleStk, dev, ...}) = (case Stk.top styleStk
+	   of NONE => D.defaultStyle dev
+	    | SOME sty => sty
+	  (* end case *))
 
   (**** FORMATTING ****)
 
   (* `format (strm, sz, tok)` formats a PP token that has the specified size *)
-    fun format (strm, sz, tok) = (case tok
-	   of (TEXT s) => let
-		val PP{spaceLeft, ...} = strm
-		in
-		  spaceLeft := !spaceLeft - sz;
-		  output(strm, s)
-		end
+    fun format (strm, sz, tok) = (
+	  case tok
+	   of (TEXT s) => output (strm, s, sz)
 	    | (NBSP n) => let
 		val PP{spaceLeft, ...} = strm
 		in
@@ -228,20 +274,20 @@ functor PPStreamFn (
 	    | (BREAK{nsp, offset}) => let
 		val PP{fmtStk, spaceLeft, width, curIndent, ...} = strm
 		in
-		  case !fmtStk
-		   of ((HBOX, wid)::_) => breakSameLine (strm, nsp)
-		    | ((VBOX, wid)::_) => breakNewLine (strm, offset, wid)
-		    | ((HVBOX, wid)::_) => breakNewLine (strm, offset, wid)
-		    | ((HOVBOX, wid)::_) => if (sz > !spaceLeft)
+		  case Stk.top fmtStk
+		   of SOME(HBOX, wid) => breakSameLine (strm, nsp)
+		    | SOME(VBOX, wid) => breakNewLine (strm, offset, wid)
+		    | SOME(HVBOX, wid) => breakNewLine (strm, offset, wid)
+		    | SOME(HOVBOX, wid) => if (sz > !spaceLeft)
 			then breakNewLine (strm, offset, wid)
 			else breakSameLine (strm, nsp)
-		    | ((BOX, wid)::_) =>
+		    | SOME(BOX, wid) =>
 			if ((sz > !spaceLeft)
 			orelse (!curIndent > (width - wid)+offset))
 			  then breakNewLine (strm, offset, wid)
 			  else breakSameLine (strm, nsp)
-		    | ((FITS, wid)::_) => breakSameLine (strm, nsp)
-		    | _ => () (* no open box *)
+		    | SOME(FITS, wid) => breakSameLine (strm, nsp)
+		    | NONE => () (* no open box *)
 		end
 	    | (BEGIN{indent, ty}) => let
 		val PP{curIndent, spaceLeft, width, fmtStk, ...} = strm
@@ -250,9 +296,9 @@ functor PPStreamFn (
 	      (* compute offset from right margin of this block's indent *)
 		val offset = (case indent
 		       of (Rel off) => spaceLeft' - off
-			| (Abs off) => (case !fmtStk
-			     of ((_, wid)::_) => wid - off
-			      | _ => width - (!curIndent + off)
+			| (Abs off) => (case Stk.top fmtStk
+			     of SOME(_, wid) => wid - off
+			      | NONE => width - (!curIndent + off)
 (* maybe this can be
 			      | _ => width - off
 ??? *)
@@ -268,14 +314,12 @@ functor PPStreamFn (
 			| _ => if (sz > spaceLeft') then ty else FITS
 		      (* end case *))
 		in
-		  fmtStk := (ty', offset) :: !fmtStk
+		  Stk.push (fmtStk, (ty', offset))
 		end
 	    | END => let
 		val PP{fmtStk, ...} = strm
 		in
-		  case !fmtStk
-		   of (_ :: (l as _::_)) => fmtStk := l
-		    | _ => () (* error: no open blocks *)
+		  Stk.discard fmtStk
 		end
 	    | (PUSH_STYLE sty) => let
 		val PP{dev, ...} = strm
@@ -290,9 +334,9 @@ functor PPStreamFn (
 	    | NL => let
 		val PP{fmtStk, ...} = strm
 		in
-		  case !fmtStk
-		   of ((_, wid)::r) => breakNewLine (strm, 0, wid)
-		    | _ => outputNL strm
+		  case Stk.top fmtStk
+		   of SOME(_, wid) => breakNewLine (strm, 0, wid)
+		    | NONE => outputNL strm
 		  (* end case *)
 		end
 	    | IF_NL => raise Fail "IF_NL"
@@ -336,27 +380,27 @@ functor PPStreamFn (
     val scanStkBot = (~1, {sz = ref ~1, tok = TEXT "", len = 0})
 
   (* clear the scan stack *)
-    fun clearScanStk (PP{scanStk, ...}) = scanStk := [scanStkBot]
+    fun clearScanStk (PP{scanStk, ...}) = (
+	  Stk.clear scanStk;
+	  Stk.push(scanStk, scanStkBot))
 
   (* Set the size of the element on the top of the scan stack.  The isBreak
    * flag is set to true for breaks and false for boxes.
    *)
-    fun setSize (strm, isBreak) = (
-	(* NOTE: scanStk should never be empty *)
-	  case strm
-	   of PP { scanStk as ref [], ... } =>
-		raise Fail "PPStreamFn:setSize: impossible: scanStk is empty"
-	    | PP{leftTot, rightTot, scanStk as ref((leftTot', elem)::r), ...} =>
+    fun setSize (strm as PP{leftTot, rightTot, scanStk, ...}, isBreak) = (
+	  case Stk.top scanStk
+	   of NONE => raise Fail "PPStreamFn:setSize: impossible: scanStk is empty"
+	    | SOME(leftTot', elem) =>
 	      (* check for obsolete elements *)
 		if (leftTot' < !leftTot)
 		  then clearScanStk strm
 		  else (case (elem, isBreak)
 		     of ({sz, tok=BREAK _, ...}, true) => (
 			  sz := !sz + !rightTot;
-			  scanStk := r)
+			  Stk.discard scanStk)
 		      | ({sz, tok=BEGIN _, ...}, false) => (
 			  sz := !sz + !rightTot;
-			  scanStk := r)
+			  Stk.discard scanStk)
 		      | _ => ()
 		    (* end case *))
 	  (* end case *))
@@ -364,7 +408,7 @@ functor PPStreamFn (
     fun pushScanElem (strm as PP{scanStk, rightTot, ...}, setSz, tok) = (
 	  enqueueTok (strm, tok);
 	  if setSz then setSize (strm, true) else ();
-	  scanStk := (!rightTot, tok) :: !scanStk)
+	  Stk.push (scanStk, (!rightTot, tok)))
 
   (* Open a new box *)
     fun ppOpenBox (strm, indent, boxTy) = let
@@ -409,15 +453,16 @@ functor PPStreamFn (
 	    }))
 
     fun ppInit (strm as PP pp) = (
-	  #leftTot pp := 1;
-	  #rightTot pp := 1;
 	  Q.clear(#queue pp);
 	  clearScanStk strm;
+	  #spaceLeft pp := #width pp;
 	  #curIndent pp := 0;
 	  #curDepth pp := 0;
-	  #spaceLeft pp := #width pp;
-	  #fmtStk pp := [];
-	  #styleStk pp := [];
+	  #leftTot pp := 1;
+	  #rightTot pp := 1;
+	  #newline pp := true;
+	  Stk.clear (#fmtStk pp);
+	  Stk.clear (#styleStk pp);
 	  openSysBox strm)
 
     fun ppNewline strm =
@@ -447,10 +492,11 @@ functor PPStreamFn (
 		  curDepth = ref 0,
 		  leftTot = ref 1,	(* why 1 ? *)
 		  rightTot = ref 1,	(* why 1 ? *)
+		  newline = ref true,
 		  queue = Q.mkQueue(),
-		  fmtStk = ref [],
-		  scanStk = ref [],
-		  styleStk = ref []
+		  fmtStk = Stk.new(),
+		  scanStk = Stk.new(),
+		  styleStk = Stk.new()
 		}
 	  in
 	    ppInit strm;
@@ -484,14 +530,12 @@ functor PPStreamFn (
 	  if (D.sameStyle(currentStyle strm, sty))
 	    then ()
 	    else enqueueToken (strm, PUSH_STYLE sty);
-	  styleStk := sty :: !styleStk)
-    fun popStyle (strm as PP{styleStk, ...}) = (case !styleStk
-	   of [] => raise Fail "PP: unmatched popStyle"
-	    | (sty::r) => (
-		styleStk := r;
-		if (D.sameStyle(currentStyle strm, sty))
-		  then ()
-		  else enqueueToken (strm, POP_STYLE))
+	  Stk.push (styleStk, sty))
+    fun popStyle (strm as PP{styleStk, ...}) = (case Stk.pop styleStk
+	   of NONE => raise Fail "PP: unmatched popStyle"
+	    | SOME sty => if (D.sameStyle(currentStyle strm, sty))
+		then ()
+		else enqueueToken (strm, POP_STYLE)
 	  (* end case *))
 
     fun break strm arg = ppBreak (strm, arg)
@@ -503,4 +547,3 @@ functor PPStreamFn (
     fun control strm ctlFn = enqueueToken (strm, CTL ctlFn)
 
   end
-

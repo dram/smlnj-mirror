@@ -1,6 +1,6 @@
 (* text-pp.sml
  *
- * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
  * A pretty printer that generates plain text; either to a TextIO.outstream
@@ -19,45 +19,31 @@ structure TextPP : sig
 
   end = struct
 
-    structure Device = struct
-
-	datatype device = DEV of {
+    structure DevOps = struct
+	datatype t = OPS of {
 	    add1 : char -> unit,
 	    addVec : string -> unit,
-	    flush : unit -> unit,
-	    wid : int
+	    flush : unit -> unit
 	  }
-
       (* no style support *)
 	type style = unit
 	fun sameStyle _ = true
 	fun pushStyle _ = ()
 	fun popStyle _ = ()
 	fun defaultStyle _ = ()
-
-	val openDev = DEV
-
-      (* maximum printing depth (in terms of boxes) *)
-	fun depth _ = NONE
-
-      (* the width of the device *)
-	fun lineWidth (DEV{wid, ...}) = SOME wid
-      (* the suggested maximum width of text on a line *)
-	fun textWidth _ = NONE
-
       (* output some number of spaces to the device *)
-	fun space (DEV{addVec, ...}, n) = addVec (StringCvt.padLeft #" " n "")
-
+	fun space (OPS{addVec, ...}, n) = addVec (StringCvt.padLeft #" " n "")
+	val indent = space
       (* output a new-line to the device *)
-	fun newline (DEV{add1, ...}) = add1 #"\n"
-
+	fun newline (OPS{add1, ...}) = add1 #"\n"
       (* output a string/character in the current style to the device *)
-	fun string (DEV{addVec, ...}, s) = addVec s
-	fun char (DEV{add1, ...}, c) = add1 c
-
-      (* nothing to flush *)
-	fun flush (DEV{flush, ...}) = flush()
+	fun string (OPS{addVec, ...}, s) = addVec s
+	fun char (OPS{add1, ...}, c) = add1 c
+      (* flush output *)
+	fun flush (OPS{flush, ...}) = flush()
       end
+
+    structure Device = DefaultDeviceFn (DevOps)
 
     structure PP = PPStreamFn (
       structure Token = StringToken
@@ -65,18 +51,24 @@ structure TextPP : sig
 
     open PP
 
-    fun openOutstream {dst, wid} = openStream(Device.DEV{
-	    add1 = fn c => TextIO.output1 (dst, c),
-	    addVec = fn c => TextIO.output (dst, c),
-	    flush = fn () => TextIO.flushOut dst,
-	    wid = wid
-	  })
+    fun openOutstream {dst, wid} = let
+	  val dev = Device.newWithWidth (DevOps.OPS{
+		  add1 = fn c => TextIO.output1 (dst, c),
+		  addVec = fn c => TextIO.output (dst, c),
+		  flush = fn () => TextIO.flushOut dst
+		}, wid)
+	  in
+	    PP.openStream dev
+	  end
 
-    fun openBuffer {dst, wid} = openStream(Device.DEV{
-	    add1 =  fn c => CharBuffer.add1 (dst, c),
-	    addVec = fn c => CharBuffer.addVec (dst, c),
-	    flush = fn () => (),
-	    wid = wid
-	  })
+    fun openBuffer {dst, wid} = let
+	  val dev = Device.newWithWidth (DevOps.OPS{
+		  add1 =  fn c => CharBuffer.add1 (dst, c),
+		  addVec = fn c => CharBuffer.addVec (dst, c),
+		  flush = fn () => ()
+		}, wid)
+	  in
+	    PP.openStream dev
+	  end
 
   end

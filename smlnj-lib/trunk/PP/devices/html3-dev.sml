@@ -1,6 +1,6 @@
 (* html3-dev.sml
  *
- * COPYRIGHT (c) 2018 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
  * A pretty printing device that uses HTML (Version 3.2) markup to control layout.
@@ -54,8 +54,8 @@ structure HTML3Dev : sig
       | STYS of style list
 
     datatype device = DEV of {
-	lineWid : int,
-	textWid : int option,
+	lineWid : int option ref,
+	textWid : int option ref,
 	emphStk	: (HTML.text list * style) list ref,
 	txt : HTML.text list ref
       }
@@ -129,14 +129,31 @@ structure HTML3Dev : sig
 
   (* maximum printing depth (in terms of boxes) *)
     fun depth _ = NONE
+    fun setDepth _ = ()
+
+  (* the sized string to print in place of boxes when the maximum depth is reached. *)
+    fun ellipses _ = ("", 0)
+    fun setEllipses _ = ()
+    fun setEllipsesWithSz _ = ()
+
   (* the width of the device *)
-    fun lineWidth (DEV{lineWid, ...}) = SOME lineWid
+    fun lineWidth (DEV{lineWid, ...}) = !lineWid
+    fun setLineWidth (DEV{lineWid, ...}, w) = lineWid := w
+
+  (* the suggested maximum width of indentation; `NONE` is interpreted as no limit. *)
+    fun maxIndent _ = NONE
+    fun setMaxIndent _ = ()
+
   (* the suggested maximum width of text on a line *)
-    fun textWidth (DEV{textWid, ...}) = textWid
+    fun textWidth (DEV{textWid, ...}) = !textWid
+    fun setTextWidth (DEV{textWid, ...}, w) = textWid := w
 
   (* output some number of spaces to the device *)
     fun space (dev, n) =
 	  pcdata(dev, concat(List.tabulate (n, fn _ => "&nbsp;")))
+
+  (* output an indentation of the given width to the device *)
+    val indent = space
 
   (* output a new-line to the device *)
     fun newline (dev as DEV{txt, ...}) =
@@ -177,8 +194,8 @@ structure HTML3Dev : sig
     fun openDev {wid, textWid} = DEV{
 	    txt = ref [],
 	    emphStk = ref [],
-	    lineWid = wid,
-	    textWid = textWid
+	    lineWid = ref (SOME wid),
+	    textWid = ref textWid
 	  }
 
     fun done (dev as DEV{emphStk = ref [], txt, ...}) = (case (concatTxt dev)
