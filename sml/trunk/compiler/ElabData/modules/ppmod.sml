@@ -30,10 +30,6 @@ sig
 
   (* module internals *)
 
-  val ppElements : (StaticEnv.staticEnv * int * Modules.entityEnv option)
-                   -> PrettyPrint.stream
-                   -> Modules.elements -> unit
-
   val ppEntity : PrettyPrint.stream
                  -> Modules.entity * StaticEnv.staticEnv * int
                  -> unit
@@ -141,6 +137,13 @@ fun is_ppable_ConBinding (T.DATACON{rep=A.EXN _, ...}, _) = true
 		end
        in (!internals orelse not visibleDconTyc)
       end
+
+(* filter out non-exception data constructors, since they should not be printed *)
+fun removeDCons elements = List.filter
+      (fn (_,M.CONspec{spec=T.DATACON{rep=A.EXN _,...},...}) => true
+	| (_,M.CONspec{spec=dcon,...}) => false
+	| _ => true)
+	elements
 
 fun all_ppable_bindings alist env =
     List.filter (fn (name,B.CONbind con) => is_ppable_ConBinding(con,env)
@@ -411,22 +414,17 @@ and ppSignature0 ppstrm (sign,env,depth,entityEnvOp) =
 	val somePrint = ref false (* i.e., signature is not empty sig end *)
      in if depth <= 0 then pps "<sig>" else
 	case sign
-	  of M.SIG {stamp,name,elements,typsharing,strsharing,...} =>
-	     let
-		 (* Filter out ordinary dcon that do not print in ppElements
-		    for element printing so that we do not print the spurious
-	            newline. We still use the unfiltered elements
-		    for determining whether the sig ... end should be
-		    multiline even with just one datatype. *)
-                val nonConsElems =
-		    List.filter
-		    (fn (_,M.CONspec{spec=T.DATACON{rep=A.EXN _,...},...})
-			    => true
-		      | (_,M.CONspec{spec=dcon,...}) => false
-		      | _ => true)
-		    elements
-	     in if !internals then
-		  (PP.openHVBox ppstrm (PP.Abs 0);
+	 of M.SIG {stamp,name,elements,typsharing,strsharing,...} =>  let
+	   (* Filter out ordinary dcon that do not print in ppElements
+	      for element printing so that we do not print the spurious
+	      newline. We still use the unfiltered elements
+	      for determining whether the sig ... end should be
+	      multiline even with just one datatype.
+	    *)
+	      val nonConsElems = removeDCons elements
+	      in
+	        if !internals then (
+		  PP.openHVBox ppstrm (PP.Abs 0);
 		    pps "SIG:";
 		    PP.openVBoxI ppstrm 2;
 		     pps "stamp: "; pps (Stamps.toShortString stamp);
@@ -452,31 +450,32 @@ and ppSignature0 ppstrm (sign,env,depth,entityEnvOp) =
 				ppConstraints("type ",typsharing));
 		    closeBox();
 		   closeBox())
-		 else (* not !internals *)
-		   (case elements
-		     of nil => pps "sig end"
-		      | _ =>
-			(PP.openVBox ppstrm (PP.Abs 0);
-			   PP.string ppstrm "sig";
-			   PP.openVBox ppstrm (PP.Abs 2);
-			     PP.cut ppstrm;
-			     PU.ppvseqNoBox ppstrm
-				(fn ppstrm => (fn elem =>
-				    ppElement (env,depth,entityEnvOp) ppstrm elem))
-				nonConsElems;
-			     case strsharing
-			       of nil => ()
-				| _ => (PP.cut ppstrm;
-					ppConstraints("",strsharing));
-			     case typsharing
-			       of nil => ()
-				| _ => (PP.cut ppstrm;
-					ppConstraints("type ",typsharing));
-			   closeBox();
-			   PP.cut ppstrm;
-			   (* PP.string ppstrm "#"; *)
-			   PP.string ppstrm "end";
-			 closeBox()))
+		else ( (* not !internals *)
+		  case elements
+		   of nil => pps "sig end"
+		    | _ => (
+		        PP.openVBox ppstrm (PP.Abs 0);
+			  PP.string ppstrm "sig";
+			  PP.openVBox ppstrm (PP.Abs 2);
+			    PP.cut ppstrm;
+			    PU.ppvseqNoBox ppstrm
+			       (fn ppstrm => (fn elem =>
+				   ppElement (env,depth,entityEnvOp) ppstrm elem))
+			       nonConsElems;
+			    case strsharing
+			      of nil => ()
+			       | _ => (PP.cut ppstrm;
+				       ppConstraints("",strsharing));
+			    case typsharing
+			      of nil => ()
+			       | _ => (PP.cut ppstrm;
+				       ppConstraints("type ",typsharing));
+			  closeBox();
+			  PP.cut ppstrm;
+			  (* PP.string ppstrm "#"; *)
+			  PP.string ppstrm "end";
+			closeBox())
+		  (* end case *))
 	     end
 	   | M.ERRORsig => pps "<error sig>"
     end
@@ -995,40 +994,39 @@ and ppEnv ppstrm (env,topenv,depth,boundsyms) =
 	  (all_ppable_bindings bindings pp_env)
     end
 
-(* ppElements : (StaticEnv.staticEnv * int * Modules.entityEnv option)
-                -> PrettyPrint.stream
-                -> Modules.elements -> unit *)
-fun ppElements arg1 ppstrm elements =
-      PU.ppvseq ppstrm 2 ""
-	 (fn ppstrm => (fn elem => ppElement arg1 ppstrm elem))
-	 elements
-
-fun ppOpen ppstrm (path,str,env,depth) =
-    let val {openHVBox,openHOVBox,openVBox,closeBox,pps,ppi,break,newline} =
-	    en_pp ppstrm
-     in openHVBox 0;
-	 openHVBox 2;
-	  pps "opening ";
-	  pps (SymPath.toString path);
-	  if depth < 1 then ()
-          else (case str
-		  of M.STR { sign, rlzn as {entities,...}, ... } =>
-		     (case sign
-			 of M.SIG {elements = [],...} => ()
-			  | M.SIG {elements,...} =>
-			    (ppElements (SE.atop(sigToEnv sign, env),
-					depth,SOME entities)
-			      ppstrm elements)
-			  | M.ERRORsig => ())
-		   | M.ERRORstr => ()
-		   | M.STRSIG _ => bug "ppOpen");
-         closeBox ();
-	 PP.cut ppstrm;
-        closeBox ()
-    end
+fun ppOpen ppstrm (path, str, env, depth) = (
+      PP.openVBox ppstrm (PP.Abs 0);
+	PP.openVBox ppstrm (PP.Abs 2);
+	  PP.openHBox ppstrm;
+	    PP.string ppstrm "opening";
+	    PP.space ppstrm 1;
+	    PP.string ppstrm (SymPath.toString path);
+	  PP.closeBox ppstrm;
+	  if depth < 1
+	    then ()
+	    else (case str
+	       of M.STR{sign, rlzn as {entities,...}, ...} => (case sign
+		     of M.SIG{elements = [],...} => ()
+		      | M.SIG{elements,...} => let
+			  val ppElem = ppElement
+				(SE.atop(sigToEnv sign, env), depth, SOME entities)
+				  ppstrm
+			  in
+			    List.app
+			      (fn elem => (PP.cut ppstrm; ppElem elem))
+				(removeDCons elements)
+			  end
+		      | M.ERRORsig => ()
+		    (* end case *))
+		| M.ERRORstr => ()
+		| M.STRSIG _ => bug "ppOpen"
+	      (* end case *));
+	PP.closeBox ppstrm;
+	PP.cut ppstrm;
+      PP.closeBox ppstrm)
 
 fun ppSignature ppstrm (sign,env,depth) =
-    ppSignature0 ppstrm (sign,env,depth,NONE)
+      ppSignature0 ppstrm (sign,env,depth,NONE)
 
 end (* local *)
 end (* structure PPModules *)
