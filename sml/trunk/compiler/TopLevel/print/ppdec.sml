@@ -254,16 +254,18 @@ fun ppDec ({static,dynamic,...}: Environment.environment)
 	       closeBox ppstrm)
 
 	and ppStrb (STRB{name, str, ...}) = (
-	      openHVBox ppstrm (PP.Rel 0);
-		openHVBox ppstrm (PP.Rel 0);
-		  pps "structure ";
+	      PP.openHVBox ppstrm (PP.Abs 0);
+		PP.openHBox ppstrm;
+		  PP.string ppstrm "structure";
+		  PP.space ppstrm 1;
 		  ppSym ppstrm name;
-		  pps " :";
-		  break ppstrm {nsp=1,offset=2};
-		  PPModules.ppStructure ppstrm (str,static,!signatures);
-		closeBox ppstrm;
+		  PP.space ppstrm 1;
+		  PP.string ppstrm ":";
+		  PP.space ppstrm 1;
+		PP.closeBox ppstrm;
+		PPModules.ppStructure ppstrm (str,static,!signatures);
 	        PP.newline ppstrm;
-	      closeBox ppstrm)
+	      PP.closeBox ppstrm)
 
 	and ppFctb (FCTB{name, fct, ...}) =
 	    (openHVBox ppstrm (PP.Rel 0);

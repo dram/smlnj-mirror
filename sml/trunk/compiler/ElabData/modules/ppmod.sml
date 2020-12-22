@@ -929,11 +929,14 @@ and ppBinding ppstrm (name,binding:B.binding,env:SE.staticEnv,depth:int) =
 	 let val {openHVBox,openHOVBox,openVBox,closeBox,pps,ppi,break,...} =
 		 en_pp ppstrm
 	   in PP.openVBox ppstrm (Abs 0);
-	        PP.string ppstrm "signature";
-	        PP.break ppstrm {nsp=1,offset=0};
-	        ppSym ppstrm name;
-	        PP.break ppstrm {nsp=1,offset=0};
-	        PP.string ppstrm "=";
+		PP.openHBox ppstrm;
+	          PP.string ppstrm "signature";
+	          PP.space ppstrm 1;
+	          ppSym ppstrm name;
+	          PP.space ppstrm 1;
+	          PP.string ppstrm "=";
+                  PP.space ppstrm 1;
+	        PP.closeBox ppstrm;
 	        ppSignature0 ppstrm (sign,env,depth,NONE);
 	      PP.closeBox ppstrm
 	  end
@@ -947,16 +950,18 @@ and ppBinding ppstrm (name,binding:B.binding,env:SE.staticEnv,depth:int) =
 		 closeBox();
 	      closeBox()
 	  end
-       | B.STRbind str =>
-	  let val {openHVBox,openVBox,closeBox,pps,...} = en_pp ppstrm
-	   in openHVBox 0;
-	       pps "structure "; ppSym ppstrm name; pps " :";
-	       openVBox 2;
-		 PP.cut ppstrm;
-		 ppStructure ppstrm (str,env,depth);
-	       closeBox();
-	      closeBox()
-	  end
+       | B.STRbind str => (
+	  PP.openHVBox ppstrm (Abs 0);
+	    PP.openHBox ppstrm;
+	      PP.string ppstrm "structure";
+	      PP.space ppstrm 1;
+	      ppSym ppstrm name;
+	      PP.space ppstrm 1;
+	      PP.string ppstrm ":";
+	      PP.space ppstrm 1;
+	    PP.closeBox ppstrm;
+	    ppStructure ppstrm (str, env, depth);
+	  PP.closeBox ppstrm)
        | B.FCTbind fct =>
 	  let val {openHVBox,openVBox,closeBox,pps,break,...} = en_pp ppstrm
 	   in openHVBox 0;
