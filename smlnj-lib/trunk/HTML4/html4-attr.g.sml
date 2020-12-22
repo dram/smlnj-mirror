@@ -40,16 +40,16 @@ HTML4AttrTokens
     structure UserCode =
       struct
 
-fun attr_PROD_1_SUBRULE_1_PROD_1_ACT (NAME, EQUALS, attr_value, NAME_SPAN : (Lex.pos * Lex.pos), EQUALS_SPAN : (Lex.pos * Lex.pos), attr_value_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun attr_PROD_1_SUBRULE_1_PROD_1_ACT (attr_value, EQUALS, NAME, attr_value_SPAN : (Lex.pos * Lex.pos), EQUALS_SPAN : (Lex.pos * Lex.pos), NAME_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (attr_value)
 fun attr_PROD_1_ACT (SR, NAME, SR_SPAN : (Lex.pos * Lex.pos), NAME_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ((NAME, SR))
-fun attr_value_PROD_2_SUBRULE_1_PROD_1_ACT (DOT, NAME, DOT_SPAN : (Lex.pos * Lex.pos), NAME_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun attr_value_PROD_2_SUBRULE_1_PROD_1_ACT (NAME, DOT, NAME_SPAN : (Lex.pos * Lex.pos), DOT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (NAME)
 fun attr_value_PROD_2_ACT (SR, NAME, SR_SPAN : (Lex.pos * Lex.pos), NAME_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ((Atom.toString NAME) ^ (String.concatWith "."
                                          (map Atom.toString SR)))
-fun attr_value_PROD_3_SUBRULE_1_PROD_1_ACT (DOT, NUMBER, DOT_SPAN : (Lex.pos * Lex.pos), NUMBER_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun attr_value_PROD_3_SUBRULE_1_PROD_1_ACT (NUMBER, DOT, NUMBER_SPAN : (Lex.pos * Lex.pos), DOT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (NUMBER)
 fun attr_value_PROD_3_ACT (SR, NUMBER, SR_SPAN : (Lex.pos * Lex.pos), NUMBER_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (NUMBER ^ (String.concatWith "." SR))
@@ -150,7 +150,7 @@ fun attr_value_NT (strm) = let
                   val (NAME_RES, NAME_SPAN, strm') = matchNAME(strm')
                   val FULL_SPAN = (#1(DOT_SPAN), #2(NAME_SPAN))
                   in
-                    (UserCode.attr_value_PROD_2_SUBRULE_1_PROD_1_ACT (DOT_RES, NAME_RES, DOT_SPAN : (Lex.pos * Lex.pos), NAME_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+                    (UserCode.attr_value_PROD_2_SUBRULE_1_PROD_1_ACT (NAME_RES, DOT_RES, NAME_SPAN : (Lex.pos * Lex.pos), DOT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                       FULL_SPAN, strm')
                   end
             fun attr_value_PROD_2_SUBRULE_1_PRED (strm) = (case (lex(strm))
@@ -170,7 +170,7 @@ fun attr_value_NT (strm) = let
                   val (NUMBER_RES, NUMBER_SPAN, strm') = matchNUMBER(strm')
                   val FULL_SPAN = (#1(DOT_SPAN), #2(NUMBER_SPAN))
                   in
-                    (UserCode.attr_value_PROD_3_SUBRULE_1_PROD_1_ACT (DOT_RES, NUMBER_RES, DOT_SPAN : (Lex.pos * Lex.pos), NUMBER_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+                    (UserCode.attr_value_PROD_3_SUBRULE_1_PROD_1_ACT (NUMBER_RES, DOT_RES, NUMBER_SPAN : (Lex.pos * Lex.pos), DOT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                       FULL_SPAN, strm')
                   end
             fun attr_value_PROD_3_SUBRULE_1_PRED (strm) = (case (lex(strm))
@@ -198,7 +198,7 @@ fun attr_NT (strm) = let
             val (attr_value_RES, attr_value_SPAN, strm') = attr_value_NT(strm')
             val FULL_SPAN = (#1(EQUALS_SPAN), #2(attr_value_SPAN))
             in
-              (UserCode.attr_PROD_1_SUBRULE_1_PROD_1_ACT (NAME_RES, EQUALS_RES, attr_value_RES, NAME_SPAN : (Lex.pos * Lex.pos), EQUALS_SPAN : (Lex.pos * Lex.pos), attr_value_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.attr_PROD_1_SUBRULE_1_PROD_1_ACT (attr_value_RES, EQUALS_RES, NAME_RES, attr_value_SPAN : (Lex.pos * Lex.pos), EQUALS_SPAN : (Lex.pos * Lex.pos), NAME_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       fun attr_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
