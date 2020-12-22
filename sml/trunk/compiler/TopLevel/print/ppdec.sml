@@ -1,5 +1,8 @@
-(* Copyright 1996 by AT&T Bell Laboratories *)
-(* ppdec.sml *)
+(* ppdec.sml
+ *
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *)
 
 signature PPDEC =
 sig
@@ -59,7 +62,8 @@ fun ppDec ({static,dynamic,...}: Environment.environment)
        fun isExport (x : Access.lvar, []) = false
          | isExport (x, a::r) = if x = a then true else isExport(x, r)
 
-       val pps = PP.string ppstrm
+        val pps = PP.string ppstrm
+	fun sp () = PP.space ppstrm
 	(* trueValType: get the type of the bound variable from static,
 	   since the stamps in the absyn haven't been converted by the pickler *)
        fun trueValType path =
@@ -90,42 +94,40 @@ fun ppDec ({static,dynamic,...}: Environment.environment)
                 of #"$":: #","::_ => true
                  | _ => false
 
-       fun ppVar (VALvar{path, access, typ=(t0 as ref ty), prim, ...}) =
-            if isLazyBogus path then () else
-             (openHVBox ppstrm (PP.Rel 0);
-	      openHOVBox ppstrm (PP.Rel 2);
-	      PP.string ppstrm "val ";
-	      PP.string ppstrm (SymPath.toString path);
-	      PP.string ppstrm " =";
-	      break ppstrm {nsp=1,offset=0};
-	      case access
-	       of LVAR lv =>
-                    (case StaticEnv.look (static, SymPath.last path)
-                      of VALbind(VALvar{access=PATH (EXTERN pid, pos), ...}) =>
-                           if isExport(lv, exportLvars)
-                           then (let val objv =
-					 valOf (DynamicEnv.look dynamic pid)
-				     val obj = xtract (objv, pos)
-                                  in ppObj static ppstrm
-                                       (obj, ty, !printDepth);
-				     break ppstrm {nsp=1,offset=0};
-				     PP.string ppstrm ": ";
-			 	     ppType static ppstrm (trueValType path
-					   handle OVERLOAD => ty)
-                                 end)
-                           else (PP.string ppstrm "<hidden>";
-				 break ppstrm {nsp=1,offset=0};
-				 PP.string ppstrm ": ";
-			 	 ppType static ppstrm ty)
-		       | _ => PP.string ppstrm "<hidden>")
-
- 	        | _ => ErrorMsg.impossible "ppDec.ppVar";
-
-	      closeBox ppstrm;
-	      PP.newline ppstrm;
- 	      closeBox ppstrm)
-
-         | ppVar _ = ()
+        fun ppVar (VALvar{path, access, typ=(t0 as ref ty), prim, ...}) =
+              if isLazyBogus path then ()
+	      else (
+	        openHVBox ppstrm (PP.Rel 0);
+	          openHOVBox ppstrm (PP.Rel 2);
+	            PP.openHBox ppstrm;
+	              pps "val"; sp (); pps "=";
+		    PP.closeBox ppstrm;
+		    sp ();
+		    case access
+		     of LVAR lv => (case StaticEnv.look (static, SymPath.last path)
+			   of VALbind(VALvar{access=PATH (EXTERN pid, pos), ...}) =>
+				if isExport(lv, exportLvars)
+				  then let
+				    val SOME objv = DynamicEnv.look dynamic pid
+				    val obj = xtract (objv, pos)
+				    in
+				      ppObj static ppstrm (obj, ty, !printDepth);
+				      sp (); pps ":"; sp();
+				      ppType static ppstrm (
+					trueValType path handle OVERLOAD => ty)
+				    end
+				  else (
+				    PP.string ppstrm "<hidden>";
+				    sp (); pps ":"; sp();
+				    ppType static ppstrm ty)
+			    | _ => PP.string ppstrm "<hidden>"
+			  (* end case *))
+		      | _ => ErrorMsg.impossible "ppDec.ppVar"
+		    (* end case *);
+	          closeBox ppstrm;
+	          PP.newline ppstrm;
+	        closeBox ppstrm)
+          | ppVar _ = ()
 
        fun ppVb (VB{pat,...}) =
 	 let fun ppBind(pat) =

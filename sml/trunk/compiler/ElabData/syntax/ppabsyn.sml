@@ -137,16 +137,14 @@ fun ppPat env ppstrm =
 	      if isTUPLEpat r
 	      then PU.ppClosedSequence ppstrm
 		     {front=(C PP.string "("),
-		      sep=(fn ppstrm => (PP.string ppstrm ",";
-					 PP.break ppstrm {nsp=0,offset=0})),
+		      sep = PU.sepWithCut ",",
 		      back=(C PP.string ")"),
 		      pr=(fn _ => fn (sym,pat) => ppPat'(pat,d-1)),
 		      style=PU.INCONSISTENT}
 		     fields
 	      else PU.ppClosedSequence ppstrm
 		     {front=(C PP.string "{"),
-		      sep=(fn ppstrm => (PP.string ppstrm ",";
-					 PP.break ppstrm {nsp=0,offset=0})),
+		      sep = PU.sepWithCut ",",
 		      back=(fn ppstrm => if flex then PP.string ppstrm ",...}"
 				         else PP.string ppstrm "}"),
 		      pr=(fn ppstrm => fn (sym,pat) =>
@@ -159,8 +157,7 @@ fun ppPat env ppstrm =
 	      let fun pr _ pat = ppPat'(pat, d-1)
 	       in PU.ppClosedSequence ppstrm
 		    {front=(C PP.string "#["),
-		     sep=(fn ppstrm => (PP.string ppstrm ",";
-					PP.break ppstrm {nsp=0,offset=0})),
+		     sep= PU.sepWithCut ",",
 		     back=(C PP.string "]"),
 		     pr=pr,
 		     style=PU.INCONSISTENT}
@@ -173,8 +170,9 @@ fun ppPat env ppstrm =
 	      in
 		PU.ppClosedSequence ppstrm {
 		    front = (C PP.string "("),
-		    sep = fn ppstrm => (PP.break ppstrm {nsp=1,offset=0};
-                                        PP.string ppstrm "| "),
+		    sep = fn ppstrm => (PP.space ppstrm 1;
+                                        PP.string ppstrm "|";
+					PP.space ppstrm 1),
 		    back = (C PP.string ")"),
 		    pr = pr,
 		    style = PU.INCONSISTENT
@@ -264,16 +262,14 @@ fun ppExp (context as (env,source_opt)) ppstrm =
 	      if isTUPLEexp r
 	      then PU.ppClosedSequence ppstrm
 		     {front=(C PP.string "("),
-		      sep=(fn ppstrm => (PP.string ppstrm ",";
-					 PP.break ppstrm {nsp=0,offset=0})),
+		      sep=PU.sepWithCut ",",
 		      back=(C PP.string ")"),
 		      pr=(fn _ => fn (_,exp) => ppExp'(exp,false,d-1)),
 		      style=PU.INCONSISTENT}
 		     fields
 	      else PU.ppClosedSequence ppstrm
 		     {front=(C PP.string "{"),
-		      sep=(fn ppstrm => (PP.string ppstrm ",";
-					 PP.break ppstrm {nsp=0,offset=0})),
+		      sep=PU.sepWithCut ",",
 		      back=(C PP.string "}"),
 		      pr=(fn ppstrm => fn (LABEL{name,...},exp) =>
 			  (PU.ppSym ppstrm name; pps "=";
@@ -292,8 +288,7 @@ fun ppExp (context as (env,source_opt)) ppstrm =
 	      let fun pr _ exp = ppExp'(exp,false,d-1)
 	      in  PU.ppClosedSequence ppstrm
 		    {front=(C PP.string "#["),
-		     sep=(fn ppstrm => (PP.string ppstrm ",";
-					PP.break ppstrm {nsp=1,offset=0})),
+		     sep=PU.sepWithSpc ",",	(* should this be sepWithCut like tuples? *)
 		     back=(C PP.string "]"),
 		     pr=pr,
 		     style=PU.INCONSISTENT}
@@ -302,8 +297,7 @@ fun ppExp (context as (env,source_opt)) ppstrm =
 	  | ppExp' (SEQexp exps,_,d) =
 	      PU.ppClosedSequence ppstrm
 	        {front=(C PP.string "("),
-		 sep=(fn ppstrm => (PP.string ppstrm ";";
-				    PP.break ppstrm {nsp=1,offset=0})),
+		 sep=PU.sepWithSpc ",",
 		 back=(C PP.string ")"),
 		 pr=(fn _ => fn exp => ppExp'(exp,false,d-1)),
 		 style=PU.INCONSISTENT}
@@ -728,7 +722,7 @@ and ppDec (context as (env,source_opt)) ppstrm =
 
 and ppStrexp (context as (statenv,source_opt)) ppstrm =
     let val pps = PP.string ppstrm
-				   
+
       fun ppStrexp'(_,0) = pps "<strexp>"
 
 	| ppStrexp'(VARstr str, d) = (ppStr ppstrm str)
