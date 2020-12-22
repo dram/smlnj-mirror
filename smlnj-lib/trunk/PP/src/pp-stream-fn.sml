@@ -109,6 +109,8 @@ functor PPStreamFn (
 	closed : bool ref,		(* set to true, when the stream is *)
 					(* closed *)
 	width : int,			(* the width of the device *)
+	maxIndent : int,		(* the maximum indentation allowed *)
+	maxDepth : int,			(* maximum nesting depth of open boxes *)
 	spaceLeft : int ref,		(* space left on current line *)
 	curIndent : int ref,		(* current indentation *)
 	curDepth : int ref,		(* current nesting level of boxes. *)
@@ -180,7 +182,8 @@ functor PPStreamFn (
 
   (**** UTILITY FUNCTIONS ****)
 
-    val infinity = Option.getOpt(Int.maxInt, 1000000000)
+  (* use as a limit value for when the device does not specify a limit *)
+    val infinity = (case Int.maxInt of SOME n => n-1 | _ => 1000000)
 
   (* output text to the device; note that the size is specified separately,
    * since it might be different from the actual string length (e.g., UTF8
@@ -218,11 +221,9 @@ functor PPStreamFn (
    *		   innermost enclosing box.
    *)
     fun breakNewLine (strm, offset, wid) = let
-	  val PP{width, curIndent, spaceLeft, ...} = strm
-	  val indent = (width - wid) + offset
-(***** CAML version does the following: *****
-	  val indent = min(maxIndent, indent)
-*****)
+	  val PP{width, maxIndent, curIndent, spaceLeft, ...} = strm
+	(* limit indentation to maximum amount *)
+	  val indent = Int.min(maxIndent, (width - wid) + offset)
 	  in
 	    outputNL strm;
 	    curIndent := indent;
@@ -238,10 +239,9 @@ functor PPStreamFn (
 	  spaceLeft := !spaceLeft - nsp;
 	  blanks (strm, nsp))
 
-(***** this function is in the CAML version and is used when the current
- **    insertion point is beyond the maximum indentation level.  Since we
- **    do not support a maximum indentation level yet, we don't need this
- **    function.
+  (* force a line break when opening a box would make the indentation larger than
+   * the limit.
+   *)
     fun forceLineBreak (strm as PP{fmtStk, spaceLeft, ...}) = (case Stk.top fmtStk
 	   of SOME(ty, wid) => if (wid > !spaceLeft)
 		then (case ty
@@ -251,7 +251,14 @@ functor PPStreamFn (
 		else ()
 	    | NONE => outputNL strm
 	  (* end case *))
-*****)
+
+  (* skip a token *)
+    fun skip (PP{queue, leftTot, spaceLeft, ...}) = (case Q.next queue
+	   of NONE => ()
+	    | SOME{tok, sz, len} => (
+		leftTot := !leftTot - len;
+		spaceLeft := !spaceLeft + !sz)
+	  (* end case *))
 
   (* return the current style of the PP stream *)
     fun currentStyle (PP{styleStk, dev, ...}) = (case Stk.top styleStk
@@ -272,7 +279,7 @@ functor PPStreamFn (
 		  blanks (strm, n)
 		end
 	    | (BREAK{nsp, offset}) => let
-		val PP{fmtStk, spaceLeft, width, curIndent, ...} = strm
+		val PP{fmtStk, spaceLeft, width, curIndent, newline, ...} = strm
 		in
 		  case Stk.top fmtStk
 		   of SOME(HBOX, wid) => breakSameLine (strm, nsp)
@@ -282,33 +289,31 @@ functor PPStreamFn (
 			then breakNewLine (strm, offset, wid)
 			else breakSameLine (strm, nsp)
 		    | SOME(BOX, wid) =>
-			if ((sz > !spaceLeft)
-			orelse (!curIndent > (width - wid)+offset))
+			if !newline
+			  then breakSameLine (strm, nsp)
+			else if (sz > !spaceLeft)
+			  then breakNewLine (strm, offset, wid)
+			else if (!curIndent > (width - wid) + offset)
 			  then breakNewLine (strm, offset, wid)
 			  else breakSameLine (strm, nsp)
 		    | SOME(FITS, wid) => breakSameLine (strm, nsp)
 		    | NONE => () (* no open box *)
+		  (* end case *)
 		end
 	    | (BEGIN{indent, ty}) => let
-		val PP{curIndent, spaceLeft, width, fmtStk, ...} = strm
+		val PP{maxIndent, curIndent, spaceLeft, width, fmtStk, ...} = strm
+		val _ = if (width - !spaceLeft) > maxIndent
+		      then forceLineBreak strm
+		      else ()
 		val spaceLeft' = !spaceLeft
-		val insPt = width - spaceLeft'
 	      (* compute offset from right margin of this block's indent *)
 		val offset = (case indent
 		       of (Rel off) => spaceLeft' - off
 			| (Abs off) => (case Stk.top fmtStk
 			     of SOME(_, wid) => wid - off
 			      | NONE => width - (!curIndent + off)
-(* maybe this can be
-			      | _ => width - off
-??? *)
 			    (* end case *))
 		      (* end case *))
-(***** CAML version does the following: ****
-		val _ = if (insPt > maxIndent)
-			then forceLineBreak strm
-			else ()
-*****)
 		val ty' = (case ty
 		       of VBOX => VBOX
 			| _ => if (sz > spaceLeft') then ty else FITS
@@ -339,7 +344,14 @@ functor PPStreamFn (
 		    | NONE => outputNL strm
 		  (* end case *)
 		end
-	    | IF_NL => raise Fail "IF_NL"
+	    | IF_NL => let
+		val PP{newline, ...} = strm
+		in
+(* NOTE: the Ocaml version tests if !curIndent = width - !spaceLeft, but the newline
+ * flag should be true in that case.
+ *)
+		  if !newline then () else skip strm
+		end
 	    | (CTL ctlFn) => let
 		val PP{dev, ...} = strm
 		in
@@ -412,40 +424,38 @@ functor PPStreamFn (
 
   (* Open a new box *)
     fun ppOpenBox (strm, indent, boxTy) = let
-	  val PP{rightTot, curDepth, ...} = strm
+	  val PP{dev, rightTot, maxDepth, curDepth, ...} = strm
 	  in
 	    curDepth := !curDepth + 1;
-(**** CAML code
-	    (* check that !curDepth < maxDepth *)
-****)
-	    pushScanElem (strm, false, {
-		sz = ref(~(!rightTot)),
-		tok = BEGIN{indent=indent, ty=boxTy},
-		len = 0
-	      })
+	    if (!curDepth < maxDepth)
+	      then pushScanElem (strm, false, {
+		  sz = ref(~(!rightTot)),
+		  tok = BEGIN{indent=indent, ty=boxTy},
+		  len = 0
+		})
+	    else if (!curDepth = maxDepth)
+	      then let
+		val (s, len) = D.ellipses dev
+		in
+		  enqueueStringWithLen (strm, s, len)
+		end
+	      else ()
 	  end
 
   (* the root box, which is always open *)
-    fun openSysBox (strm as PP{rightTot, curDepth, ...}) = (
-	  curDepth := !curDepth + 1;
-	  pushScanElem (strm, false, {
-	      sz = ref(~(!rightTot)),
-	      tok = BEGIN{indent=Rel 0, ty=HOVBOX},
-	      len = 0
-	    }))
+    fun openSysBox strm = ppOpenBox (strm, Rel 0, HOVBOX)
 
   (* close a box *)
-    fun ppCloseBox (strm as PP{curDepth as ref depth, ...}) =
-	  if (depth > 1)
+    fun ppCloseBox (strm as PP{maxDepth, curDepth as ref depth, ...}) =
+	  if (depth <= 1)
+	    then raise Fail "unmatched close box"
+	  else if (depth < maxDepth)
 	    then (
-(**** CAML code
-	    (* check that depth < maxDepth *)
-****)
 	      enqueueTok (strm, {sz = ref 0, tok = END, len = 0});
 	      setSize (strm, true);
 	      setSize (strm, false);
 	      curDepth := depth-1)
-	    else raise Fail "unmatched close box"
+	    else curDepth := depth-1
 
     fun ppBreak (strm as PP{rightTot, ...}, arg) = (
 	  pushScanElem (strm, true, {
@@ -483,10 +493,16 @@ functor PPStreamFn (
 
   (**** USER FUNCTIONS ****)
     fun openStream d = let
+	  fun limit optInt = Option.getOpt(optInt, infinity)
+	  val width = limit(D.lineWidth d)
+	  val maxIndent = Int.min(limit(D.maxIndent d), width-1)
+	  val maxDepth = Int.max(limit(D.maxIndent d), 2)
 	  val strm = PP{
 		  dev = d,
 		  closed = ref false,
-		  width = Option.getOpt(D.lineWidth d, infinity),
+		  width = width,
+		  maxIndent = maxIndent,
+		  maxDepth = maxDepth,
 		  spaceLeft = ref 0,
 		  curIndent = ref 0,
 		  curDepth = ref 0,
@@ -499,6 +515,10 @@ functor PPStreamFn (
 		  styleStk = Stk.new()
 		}
 	  in
+	    if (width < 0) orelse (maxIndent < 0) orelse (maxDepth < 0)
+	    orelse (width < maxIndent)
+	      then raise Size
+	      else ();
 	    ppInit strm;
 	    strm
 	  end

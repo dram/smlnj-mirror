@@ -107,8 +107,8 @@ functor DefaultDeviceFn (D : DEVICE_OPS) : sig
     fun flush (Dev{ops, ...}) = D.flush ops
 
   (* device properties *)
-    fun depth (Dev{depthLimit, ...}) = !depthLimit
-    fun setDepth (Dev{depthLimit, ...}, d) = depthLimit := d
+    fun maxDepth (Dev{depthLimit, ...}) = !depthLimit
+    fun setMaxDepth (Dev{depthLimit, ...}, d) = depthLimit := d
     fun ellipses (Dev{ellipses, ...}) = !ellipses
     fun setEllipses (Dev{ellipses, ...}, s) = ellipses := (s, String.size s)
     fun setEllipsesWithSz (Dev{ellipses, ...}, s, sz) = ellipses := (s, sz)

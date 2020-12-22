@@ -128,8 +128,10 @@ structure HTML3Dev : sig
     fun defaultStyle _ = NOEMPH
 
   (* maximum printing depth (in terms of boxes) *)
-    fun depth _ = NONE
-    fun setDepth _ = ()
+    fun maxDepth _ = NONE
+    fun setMaxDepth _ = ()
+(* DEPRECATED *)
+    val depth = maxDepth
 
   (* the sized string to print in place of boxes when the maximum depth is reached. *)
     fun ellipses _ = ("", 0)

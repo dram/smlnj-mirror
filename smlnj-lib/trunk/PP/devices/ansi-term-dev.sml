@@ -155,8 +155,8 @@ structure ANSITermDev : sig
 	  }
 
   (* maximum printing depth (in terms of boxes) *)
-    fun depth _ = NONE
-    fun setDepth _ = ()
+    fun maxDepth _ = NONE
+    fun setMaxDepth _ = ()
 
     fun ellipses _ = ("", 0)
     fun setEllipses _ = ()

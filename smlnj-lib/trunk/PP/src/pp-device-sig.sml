@@ -48,8 +48,8 @@ signature PP_DEVICE =
   (* the maximum printing depth (in number of open boxes); `NONE` is
    * interpreted as no limit.
    *)
-    val depth : device -> int option
-    val setDepth : device * int option -> unit
+    val maxDepth : device -> int option
+    val setMaxDepth : device * int option -> unit
 
   (* the sized string to print in place of boxes when the maximum depth is reached. *)
     val ellipses : device -> string * int
