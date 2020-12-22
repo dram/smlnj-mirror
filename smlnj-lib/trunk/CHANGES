@@ -1,6 +1,23 @@
 This is a list of changes to the SML/NJ Library; the version numbers
 correspond to SML/NJ releases.
 
+--------------------------------------------------------------------------------
+SML/NJ 110.99
+-------------------
+
+[2020-12-21]
+	Significant improvements to the pretty printing library.
+	Added a number of device "properties" to the `PP_DEVICE`
+	signature (max indentation, max depth, ellipses, ...)
+	with functions to set the properties.  Also updated the
+	pretty printing engine to use the max depth and max
+	indentation properties when rendering.  Restructured
+	and cleaned up a bunch of code in the process.
+
+--------------------------------------------------------------------------------
+SML/NJ 110.98
+-------------------
+
 [2020-07-08]
 	Fixed bug #263 (JSON parser ignores suffixes).  To fix this
 	bug required changing the interface to the `JSONParser`
