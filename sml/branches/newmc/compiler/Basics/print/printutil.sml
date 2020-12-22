@@ -39,6 +39,13 @@ struct
   fun quoteString s = concat ["\"", String.toString s, "\""]
   fun formatString s = quoteString (trimmed (s, !Control_Print.stringDepth))
   fun formatIntInf i = trimmed (IntInf.toString i, !Control_Print.intinfDepth)
+  
+  fun listToString (front,sep,back) (toStr : 'a -> string) (l: 'a list) =
+      let fun prElems nil = [back]
+	    | prElems [x] = [toStr x, back]
+	    | prElems (x::xs) = toStr x :: sep :: prElems xs
+       in concat ( front :: prElems l )
+      end
 
 end (* structure PrintUtil *)
 

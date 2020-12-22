@@ -19,6 +19,9 @@ sig
                              pr:PrettyPrint.stream->'a->unit,
 			     style:break_style}
 			 -> 'a list -> unit
+  val ppBracketedSequence : (string * string * (PrettyPrint.stream -> 'a -> unit))
+		    -> PrettyPrint.stream -> 'a list -> unit
+
   val ppSym : PrettyPrint.stream -> Symbol.symbol -> unit
   val ppString : PrettyPrint.stream -> string -> unit
 

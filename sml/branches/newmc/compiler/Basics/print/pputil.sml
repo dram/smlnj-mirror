@@ -16,7 +16,7 @@ struct
         of CONSISTENT => PP.openHVBox
          | INCONSISTENT => PP.openHOVBox
 
-  fun ppSequence0 ppstream (sep:PP.stream->unit,pr,elems) =
+  fun ppSequence0 ppstream (sep: PP.stream -> unit, pr, elems) =
       let fun prElems [] = ()
 	    | prElems [el] = pr ppstream el
 	    | prElems (el::rest) =
@@ -26,15 +26,20 @@ struct
        in prElems elems
       end
 
-  fun ppSequence ppstream {sep:PP.stream->unit, pr:PP.stream->'a->unit,
-                           style:break_style} (elems: 'a list) =
+  fun ppSequence ppstream {sep: PP.stream -> unit,
+			   pr: PP.stream -> 'a -> unit,
+                           style: break_style}
+		 (elems: 'a list) =
       (openStyleBox style ppstream (PP.Abs 0);
        ppSequence0 ppstream (sep,pr,elems);
        PP.closeBox ppstream)
 
-  fun ppClosedSequence ppstream{front:PP.stream->unit,sep:PP.stream->unit,
-                                back:PP.stream->unit,pr:PP.stream->'a->unit,
-                                style:break_style} (elems:'a list) =
+  fun ppClosedSequence ppstream {front: PP.stream -> unit,
+				 sep: PP.stream -> unit,
+                                 back: PP.stream -> unit,
+				 pr: PP.stream -> 'a -> unit,
+                                 style: break_style}
+		       (elems: 'a list) =
       (PP.openHVBox ppstream (PP.Rel 1);
        front ppstream;
        openStyleBox style ppstream (PP.Abs 0);
@@ -42,6 +47,13 @@ struct
        PP.closeBox ppstream;
        back ppstream;
        PP.closeBox ppstream)
+
+  fun ppBracketedSequence (front: string, back: string, ppElem) ppstrm elems =
+      (PP.openHBox ppstrm;
+       PP.string ppstrm front;
+       ppSequence0 ppstrm ((fn ps => PP.string ps ","), ppElem, elems);
+       PP.string ppstrm back;
+       PP.closeBox ppstrm)
 
   fun ppSym ppstream (s:S.symbol) = PP.string ppstream (S.name s)
 
