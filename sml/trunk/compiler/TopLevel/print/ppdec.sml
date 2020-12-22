@@ -63,7 +63,7 @@ fun ppDec ({static,dynamic,...}: Environment.environment)
          | isExport (x, a::r) = if x = a then true else isExport(x, r)
 
         val pps = PP.string ppstrm
-	fun sp () = PP.space ppstrm
+	fun sp () = PP.space ppstrm 1
 	(* trueValType: get the type of the bound variable from static,
 	   since the stamps in the absyn haven't been converted by the pickler *)
        fun trueValType path =
@@ -100,7 +100,7 @@ fun ppDec ({static,dynamic,...}: Environment.environment)
 	        openHVBox ppstrm (PP.Rel 0);
 	          openHOVBox ppstrm (PP.Rel 2);
 	            PP.openHBox ppstrm;
-	              pps "val"; sp (); pps "=";
+	              pps "val"; sp (); pps (SymPath.toString path); sp(); pps "=";
 		    PP.closeBox ppstrm;
 		    sp ();
 		    case access
