@@ -57,12 +57,13 @@ structure OldPrettyPrint :> OLD_PRETTYPRINT =
 	fun setEllipsesWithSz _ = ()
 	fun lineWidth {consumer, linewidth, flush} = SOME linewidth
 	fun setLineWidth _ = ()
-	fun maxIndent : device -> int option
+	fun maxIndent _ = NONE
 	fun setMaxIndent _ = ()
 	fun textWidth _ = NONE
 	fun setTextWidth _ = ()
 	fun space ({consumer, linewidth, flush}, n) =
 	      consumer (StringCvt.padLeft #" " n "")
+	val indent = space
 	fun newline {consumer, linewidth, flush} = consumer "\n"
 	fun string ({consumer, linewidth, flush}, s) = consumer s
 	fun char ({consumer, linewidth, flush}, c) = consumer(str c)
