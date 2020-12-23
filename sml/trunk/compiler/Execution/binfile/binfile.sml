@@ -173,22 +173,28 @@ structure Binfile :> BINFILE =
 	  end
     end (* local *)
 
+  (* the "magic number" is a 16-byte string that is formed from the architecture
+   * and version number.  The basic format is "<arch>-<version>", with the architecture
+   * limited to 7 characters and the verion limited to 8 (one character for the "-").
+   * It is padded with spaces as necessary to fill out 16 bytes.
+   *)
     fun mkMAGIC (arch, version_id) = let
-	  val vbytes = 8			(* version part *)
-	  val abytes = magicBytes - vbytes - 1  (* arch part *)
+	  val vbytes = 8			(* version part; allow for xxxx.y.z *)
+	  val abytes = magicBytes - vbytes      (* arch part *)
 	  fun fit (i, s) = let
 	        val s = StringCvt.padRight #" " i s
 		in
 		  if (size s = i) then s else substring (s, 0, i)
 		end
-	(* use at most the first two components of version_id *)
+	(* use at most the first three components of version_id *)
 	  fun version [] = []
 	    | version [x] = [Int.toString x]
-	    | version (x :: y :: _) = [Int.toString x, ".", Int.toString y]
+	    | version [x, y] = [Int.toString x, ".", Int.toString y]
+	    | version (x :: y :: z :: _) = [Int.toString x, ".", Int.toString y, ".", Int.toString z]
 	  val v = fit (vbytes, concat (version version_id))
 	  val a = fit (abytes, arch)
 	  in
-	    concat [v, a, "\n"]
+	     v ^ a
 	    (* assert (W8V.length (MAGIC <arch>) = magicBytes *)
 	  end
 
