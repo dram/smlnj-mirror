@@ -5,7 +5,7 @@ correspond to SML/NJ releases.
 SML/NJ 110.99
 -------------------
 
-[2020-12-22]
+[2020-12-23]
 	Split out the `CharBufferDev` structure from the `CharBufferPP`
 	structure.
 
