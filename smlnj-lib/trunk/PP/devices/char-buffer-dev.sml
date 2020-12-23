@@ -2,6 +2,9 @@
  *
  * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
+ *
+ * A pretty printer that puts its output in a CharBuffer.buf object.  There
+ * are no styles and tokens are strings.
  *)
 
 structure CharBufferDev : sig
