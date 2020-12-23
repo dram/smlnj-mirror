@@ -51,6 +51,7 @@ structure OldPrettyPrint :> OLD_PRETTYPRINT =
 	fun popStyle _ = ()
 	fun defaultStyle _ = ()
 	fun maxDepth _ = NONE
+val depth = maxDepth (* DEPRECATED *)
         fun setMaxDepth _ = ()
 	fun ellipses _ = ("", 0)
 	fun setEllipses _ = ()
