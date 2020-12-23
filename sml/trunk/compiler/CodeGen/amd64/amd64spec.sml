@@ -1,7 +1,9 @@
 (* amd64spec.sml
  *
- * COPYRIGHT (c) 2017 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
+ *
+ * See dev-notes/amd64-stack-frame.numbers for stack-frame layout information.
  *)
 
 structure AMD64Spec : MACH_SPEC =
@@ -20,9 +22,11 @@ structure AMD64Spec : MACH_SPEC =
   (* spill-area info; this should match the layout in runtime/mach-dep/AMD.prim.asm,
    * which is also documented in dev-info/amd64-stack-frame.numbers.
    *)
-    val spillAreaSz = 8192
-    val initialSpillOffset = 80	(* offset from %rsp (or vfp) *)
-    val startgcOffset = 64
+    val spillAreaSz = AMD64FrameLayout.spillAreaSzb
+    val initialSpillOffset = AMD64FrameLayout.spillAreaOffset	(* offset from %rsp (or vfp) *)
+
+  (* stack offset of `saveregs` address *)
+    val startgcOffset = AMD64FrameLayout.saveregsOffset
 
     val numRegs = 10	(* length AMD64CpsRegs.miscregs + 3 *)
     val numArgRegs = 4 (* non-callee-save misc regs *)
@@ -31,7 +35,10 @@ structure AMD64Spec : MACH_SPEC =
 
     val constBaseRegOffset = 0
 
-    val ML_STATE_OFFSET = 176
+  (* offset of the ML state pointer in the stack frame (relative to %rsp) *)
+    val ML_STATE_OFFSET = AMD64FrameLayout.mspOffset
+
+  (* offsets in ML state vector *)
     val VProcOffMSP = 8
     val InMLOffVSP = 8
     val LimitPtrMaskOffVSP = 200

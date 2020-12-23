@@ -27,6 +27,7 @@ TopLevel/backend/amd64-ccall.sml
 CodeGen/amd64/amd64CG.sml
 CodeGen/amd64/amd64CpsRegs.sml
 CodeGen/amd64/amd64MLTree.sml
+CodeGen/amd64/amd64-frame-layout.sml
 CodeGen/amd64/amd64gen.sml
 CodeGen/amd64/amd64spec.sml
 

@@ -1,6 +1,6 @@
 /*! \file AMD64.prim.asm
  *
- * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  */
 
@@ -11,6 +11,8 @@
 #include "ml-request.h"
 #include "mlstate-offsets.h"	/** this file is generated **/
 #include "ml-limits.h"
+
+#define LLVM_LAYOUT
 
 #if defined(OPSYS_LINUX) && defined(__ELF__)
 /* needed to disable the execution bit on the stack pages */
@@ -58,6 +60,31 @@
  *
  * for details.
  */
+#ifdef LLVM_LAYOUT
+
+#define tempmem0	REGOFF(8192,RSP)
+#define mlStatePtr	REGOFF(8200,RSP)
+#define signBit		REGOFF(8248,RSP)
+#define negateSignBit	REGOFF(8256,RSP)
+#define pc		REGOFF(8208,RSP)	/* gcLink */
+#define baseptr		REGOFF(8216,RSP)	/* start address of module */
+#define exncont		REGOFF(8224,RSP)
+#define varptr		REGOFF(8232,RSP)
+#define start_gc	REGOFF(8240,RSP)	/* holds address of saveregs */
+
+/* space reserved for spilling registers */
+#define ML_SPILL_SIZE	8192
+
+/* size of stack-frame region where ML stuff is stored. */
+#define ML_AREA_SIZE	72
+
+/* the amount to bump up the frame after the callee save registers have been
+ * pushed onto the stack.
+ */
+#define ML_FRAME_SIZE	(ML_SPILL_SIZE+ML_AREA_SIZE)
+
+#else /* MLRISC_LAYOUT */
+
 #define tempmem0	REGOFF(0,RSP)
 #define mlStatePtr	REGOFF(8, RSP)
 #define signBit		REGOFF(16,RSP)
@@ -68,15 +95,21 @@
 #define varptr		REGOFF(56,RSP)
 #define start_gc	REGOFF(64,RSP)	/* holds address of saveregs */
 
-/* we put the request code in tempmem before jumping to set_request */
-#define request_w	tempmem0
-
+/* space reserved for spilling registers */
 #define ML_SPILL_SIZE	8192
+
+/* size of stack-frame region where ML stuff is stored (includes alignment padding). */
+#define ML_AREA_SIZE	88
 
 /* the amount to bump up the frame after the callee save registers have been
  * pushed onto the stack.
  */
-#define ML_FRAME_SIZE	(ML_SPILL_SIZE+88)
+#define ML_FRAME_SIZE	(ML_SPILL_SIZE+ML_AREA_SIZE)
+
+#endif /* LLVM_LAYOUT */
+
+/* we put the request code in tempmem before jumping to set_request */
+#define request_w	tempmem0
 
 /* NOTE: this include must come after the definition of stdlink, etc. */
 #include "x86-macros.h"
