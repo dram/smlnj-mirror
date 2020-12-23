@@ -50,7 +50,8 @@ release will be *2021.1*.
 
 The binary-file format used to store compiled code has been simplified
 by eliminating support for multiple code objects in a file (a feature that
-has not been used in many years).
+has not been used in many years).  We have also changed the format of
+the "magic string" that is used to identify binfiles.
 
 === Runtime System
 
@@ -71,6 +72,10 @@ properties (max indentation, max depth, ellipses, ...), as well
 as functions for setting properties on a device.  The pretty-printer
 engine was updated to to use the max depth and max indentation
 properties when rendering.
+
+A new device module (`CharBufferDev`) was added.  This is a device
+for pretty printing to a character buffer and is the device structure
+that underlies the `CharBufferPP` structure.
 
 === ML-LPT
 

@@ -93,12 +93,36 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //////////////////////////////////////////////////////////////////////
 
 //====================================================================
-== Recent updates
+//== Recent updates
 
-//== Version 110.99; 2020/12/25
+//====================================================================
+== Version 110.99; 2020/12/24
 
 //--------------------------------------------------------------------
-[2020/12/19]::
+[2020/12/23]::
++
+Changed the layout of the *SML* stack frame on the *AMD64*
+architecture to make it compatible with the way that *LLVM*
+spills registers.  Essentially, this just involved swapping
+the order of the swap area and the ML stuff.  We took this opportunity,
+however, to localize up the representation of this information in
+the compiler.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2020/12/23]::
++
+Changed the format of the "magic string" in the header of binfiles.
+The new format is "__arch__``-``__version__", where the architecture
+name is limited to at most seven bytes and the version is limited to
+at most eight bytes.  The string is padded with spaces to a total
+length of 16 bytes.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2020/12/22]::
 +
 Various pretty-printer bug fixes:
 +
