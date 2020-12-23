@@ -61,6 +61,7 @@ structure CPIFDev : sig
 
   (* placeholders for the unsupported property functions *)
     fun maxDepth _ = NONE
+fun depth _ = NONE (* DEPRECATED *)
     fun setMaxDepth _ = ()
     fun ellipses _ = ("", 0)
     fun setEllipses _ = ()
