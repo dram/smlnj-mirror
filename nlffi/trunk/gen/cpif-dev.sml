@@ -60,7 +60,7 @@ structure CPIFDev : sig
 	  end
 
   (* placeholders for the unsupported property functions *)
-    fun depth _ = NONE
+    fun maxDepth _ = NONE
     fun setMaxDepth _ = ()
     fun ellipses _ = ("", 0)
     fun setEllipses _ = ()
@@ -68,7 +68,7 @@ structure CPIFDev : sig
     fun maxIndent _ = NONE
     fun setMaxIndent _ = ()
     fun textWidth _ = NONE
-    val setTextWidth _ = ()
+    fun setTextWidth _ = ()
 
   (* the width of the device *)
     fun lineWidth (DEV{wid, ...}) = !wid
