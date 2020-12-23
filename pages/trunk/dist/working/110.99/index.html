@@ -1,0 +1,199 @@
+<!-- Copyright (c) 2020 The Fellowship of SML/NJ -->
+
+<!DOCTYPE html>
+<HTML>
+<head>
+  <meta charset="utf-8" />
+  <title>SML/NJ 110.99 Distribution</title>
+  <style>
+    body {
+      background-color: white;
+    }
+    dd {
+      margin-bottom: 0.5em;
+    }
+    .file-list a {
+      font-family: "Courier", monospace;
+    }
+    span.tt {
+      font-family: "Courier", monospace;
+    }
+  </style>
+</head>
+<body>
+<h1>SML/NJ 110.99 Distribution Files</h1>
+
+<hr />
+
+<h3>Downloads</h3>
+
+<dl>
+  <dt><b>Unix (32 bits)</b></dt>
+  <dd>
+    <p>
+    The only file you need to download manually is
+    <a href="http://smlnj.cs.uchicago.edu/dist/working/110.99/config.tgz">config.tgz</a>.
+    Unpack, configure by editing <span class="tt">config/targets</span>, and install
+    by running <span class="tt">config/install.sh</span>.  The installer
+    automatically downloads any additional files it might need.
+    For more information, see the <a href="install.html">install.html</a> file.
+    </p>
+  </dd>
+  <dt><b>Linux (64 bits)</b></dt>
+  <dd>
+    <p>
+    As with the 32-bit Unix install above, download the file
+    <a href="http://smlnj.cs.uchicago.edu/dist/working/110.99/config.tgz">config.tgz</a>.
+    Unpack, configure by editing <span class="tt">config/targets</span>, and install
+    by running <span class="tt">config/install.sh -default 64</span>.
+    The installer automatically downloads any additional files it might need.
+    For more information, see the <a href="install.html">install.html</a> file.
+    </p>
+  </dd>
+  <dt><b>macOS (nèe Mac OS X) on Intel hardware</b></dt>
+  <dd>
+    <p>
+    You can either use the "generic Unix" procedure above or you can install
+    a pre-built system using an installer package.
+    We provide both 32-bit and 64-bit installers for Intel Macs:
+    </p>
+    <ul>
+      <li>
+        <a href="http://smlnj.cs.uchicago.edu/dist/working/110.99/smlnj-x86-110.99.pkg">
+        smlnj-x86-110.99.pkg</a> (32-bits).
+      </li>
+      <li>
+        <a href="http://smlnj.cs.uchicago.edu/dist/working/110.99/smlnj-amd64-110.99.pkg">
+        smlnj-amd64-110.99.pkg</a> (64-bits).
+      </li>
+    </ul>
+    <p>
+    The macOS installer (on Intel) puts SML/NJ in the directory
+    <span class="tt">/usr/local/smlnj</span>; if you have a previous version
+    installed, then it will be updated in place.
+    If you wish to install at a different location, you should use the build procedure
+    for Unix systems.
+    </p>
+    <p>
+    The AMD64 installer works on macOS Catalina, but you will need to right-click on
+    the installer to launch it, since it is not a notarized installer.
+    </p>
+   </dd>
+  <dt><b>Mac OS X on PowerPC</b></dt>
+  <dd>
+    <p>
+    We no longer have access to a working PowerPC Mac, so we are no longer providing
+    a Mac OS X/PowerPC installer.  If you wish to install SML/NJ 110.99 on such a
+    machine, you should use the build procedure for Unix systems.
+    </p>
+  </dd>
+  <dt><b>Microsoft Windows</b></dt>
+  <dd>
+    <p>
+    Download
+    <a href="http://smlnj.cs.uchicago.edu/dist/working/110.99/smlnj-110.99.msi">smlnj-110.99.msi</a>
+    and follow the instructions in <a href="windows.html">windows.html</a>.
+    </p>
+  </dd>
+  <dt><b>Direct access to subversion repository</b></dt>
+  <dd>
+    <p>
+    For information on how to use access the subversion repository,
+    refer to our <a href="../../../svn.html">subversion recipe page</a>.
+    <br />
+    <b>Warning:</b>  When pulling the latest sources via subversion,
+    there is no guarantee that <span class="tt">config/install.sh</span> will operate
+    successfully due to a lack of usable bootfiles.
+    In this case you might be able to
+    generate new bootfiles using the bootstrap compiler (of an older
+    version).  Even that can be very difficult or even impossible, however,
+    in which case you will have to wait for the next working version to
+    be released.
+    </p>
+  </dd>
+</dl>
+
+<h3>Documentation</h3>
+<ul class="file-list">
+<li><a href="110.99-README.html">README</a></li>
+<li><a href="HISTORY.html">CHANGE LOG</a></li>
+<li><a href="install.html">installation instructions for Unix</a></li>
+<li><a href="macos.html">installation instructions for macOS</a></li>
+<li><a href="windows.html">installation instructions for Windows</a></li>
+<li><a href="cygwin.html">installation instructions for Cygwin (32-bits)</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.99/doc.tgz">doc.tgz</a></li>
+</ul>
+
+<h3>Binary Files</h3>
+<ul class="file-list">
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.99/boot.amd64-unix.tgz">boot.amd64-unix.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.99/boot.ppc-unix.tgz">boot.ppc-unix.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.99/boot.sparc-unix.tgz">boot.sparc-unix.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.99/boot.x86-unix.tgz">boot.x86-unix.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.99/boot.x86-win32.tgz">boot.x86-win32.tgz</a></li>
+</ul>
+
+<h3>Source files</h3>
+<ul class="file-list">
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.99/config.tgz">config.tgz</a></li>
+</ul>
+
+<ul class="file-list">
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.99/cm.tgz">cm.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.99/compiler.tgz">compiler.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.99/runtime.tgz">runtime.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.99/system.tgz">system.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.99/MLRISC.tgz">MLRISC.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.99/smlnj-lib.tgz">smlnj-lib.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.99/old-basis.tgz">old-basis.tgz</a></li>
+</ul>
+
+<ul class="file-list">
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.99/ckit.tgz">ckit.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.99/nlffi.tgz">nlffi.tgz</a></li>
+</ul>
+
+<ul class="file-list">
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.99/cml.tgz">cml.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.99/eXene.tgz">eXene.tgz</a></li>
+</ul>
+
+<ul class="file-list">
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.99/ml-lpt.tgz">ml-lpt.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.99/ml-lex.tgz">ml-lex.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.99/ml-yacc.tgz">ml-yacc.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.99/ml-burg.tgz">ml-burg.tgz</a></li>
+</ul>
+
+<ul class="file-list">
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.99/pgraph.tgz">pgraph.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.99/trace-debug-profile.tgz">trace-debug-profile.tgz</a></li>
+</ul>
+
+<ul class="file-list">
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.99/heap2asm.tgz">heap2asm.tgz</a></li>
+</ul>
+
+<ul class="file-list">
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.99/smlnj-c.tgz">smlnj-c.tgz</a></li>
+</ul>
+
+<!--
+<h3>RPM Packages</h3>
+<ul class="file-list">
+<li>Coming soon.
+</ul>
+-->
+
+<hr />
+<div style="text-align:center;"><STRONG>
+| <A HREF="../../../index.html">Home</A>
+| <A HREF="../index.html">Downloads</A>
+|
+</STRONG></div>
+<hr />
+
+Send comments to <img src="../../../images/smlnj-list-logo.png" alt="smlnj-dev-list" style="vertical-align: middle;"><br />
+<span style="font-size: small">Copyright &#169; 2020, SML/NJ Fellowship.</span><br />
+</body>
+</html>
