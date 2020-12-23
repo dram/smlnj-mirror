@@ -173,28 +173,24 @@ structure Binfile :> BINFILE =
 	  end
     end (* local *)
 
-  (* the "magic number" is a 16-byte string that is formed from the architecture
+  (* The "magic string" is a 16-byte string that is formed from the architecture
    * and version number.  The basic format is "<arch>-<version>", with the architecture
    * limited to 7 characters and the verion limited to 8 (one character for the "-").
    * It is padded with spaces as necessary to fill out 16 bytes.
    *)
-    fun mkMAGIC (arch, version_id) = let
+    fun mkMAGIC (arch, version) = let
 	  val vbytes = 8			(* version part; allow for xxxx.y.z *)
-	  val abytes = magicBytes - vbytes      (* arch part *)
-	  fun fit (i, s) = let
-	        val s = StringCvt.padRight #" " i s
-		in
-		  if (size s = i) then s else substring (s, 0, i)
-		end
+	  val abytes = magicBytes - vbytes - 1  (* arch part *)
+	  fun trim (i, s) = if (size s > i) then substring (s, 0, i) else s
 	(* use at most the first three components of version_id *)
-	  fun version [] = []
-	    | version [x] = [Int.toString x]
-	    | version [x, y] = [Int.toString x, ".", Int.toString y]
-	    | version (x :: y :: z :: _) = [Int.toString x, ".", Int.toString y, ".", Int.toString z]
-	  val v = fit (vbytes, concat (version version_id))
-	  val a = fit (abytes, arch)
+	  fun vers2s [] = []
+	    | vers2s [x] = [Int.toString x]
+	    | vers2s [x, y] = [Int.toString x, ".", Int.toString y]
+	    | vers2s (x :: y :: z :: _) = [Int.toString x, ".", Int.toString y, ".", Int.toString z]
+	  val v = trim (vbytes, concat (vers2s version))
+	  val a = trim (abytes, arch)
 	  in
-	     v ^ a
+	     StringCvt.padRight #" " magicBytes (concat[a, "-", v])
 	    (* assert (W8V.length (MAGIC <arch>) = magicBytes *)
 	  end
 
