@@ -12,7 +12,8 @@ and the linking conventions.
 
 The *binfile* format was designed by Matthias Blume and was originally
 documented in the source code (`compiler/Execution/binfile/binfile.sml`
-and `runtime/kernel/boot.c`).
+and `runtime/kernel/boot.c`).  It was simplified by removing the
+support for multiple code objects in SML/NJ Version 110.99.
 
 == Binfile Format Description
 
@@ -55,6 +56,14 @@ The structure of a *binfile* is as follows:
 |   c+p+r+l+h |    e | pickle of static environment (`e == envSzB`)
 | e+c+p+r+l+h |    - | end of file
 |====
+
+=== Magic string
+
+The "magic string" is a 16-byte string that is formed from the architecture
+and version number.  The basic format is "``<``__arch__``>-<``__version__``>``",
+with the architecture limited to seven characters and the verion limited to
+eight (leaving one character for the "``-``").  The string is then padded
+with spaces to 16 bytes.
 
 === Import Tree Format Description
 
