@@ -29,17 +29,18 @@ FILES::
 
 == Summary
 
-This release is primarily a bug fix release with some additional changes to help
-prepare for an evential switch to using an *LLVM* backend for the *AMD64* target.
+This release is primarily a bug fix release with some additional runtime-system
+changes to help prepare for the planned switch to using an *LLVM* backend for
+the *AMD64* target.
 
-https:://smlnj.org/dist/working/110.98.1/110.98-README.html[Version 110.98.1]
-was a patch release that addressed some of the pretty printing
-regressions introduced in 110.98.  The release notes for those fixes are included
+https://smlnj.org/dist/working/110.98.1/110.98.1-README.html[Version 110.98.1]
+was a patch release that addressed some of the pretty printing regressions
+introduced in 110.98.  The release notes for those fixes are included
 here.
 
-Also note that this release is the last *110* release.  We are switching
-our release numbering scheme to a __<year>.<relnum>__, so the next
-release will be *2021.1* (depending on when it is released).
+Also note that this release is the last *110* series release.  We are switching
+our release numbering scheme to the format __<year>.<relnum>__, so the next
+release will be *2021.1*.
 
 == Details
 
@@ -47,23 +48,38 @@ release will be *2021.1* (depending on when it is released).
 
 === Compiler
 
-=== CM
-
-=== MLRISC
+The binary-file format used to store compiled code has been simplified
+by eliminating support for multiple code objects in a file (a feature that
+has not been used in many years).
 
 === Runtime System
 
-=== Basis Library
+The boot loader was updated to work with the new binary-file format for
+code.
+
+The layout of the stack frame used by *SML* code was changed to be
+compatible with the register spilling conventions used by *LLVM*.
+Specifically, the spill area is now at the top of the frame (_i.e._,
+at offset zero from the stack pointer and the various bits of
+stack-allocated state are at the bottom of the frame.
 
 === SML/NJ Library
 
-=== Successor ML
+Made a number of improvements to the pretty-printing library.
+The `PP_DEVICE` signature was extended with a number of additional
+properties (max indentation, max depth, ellipses, ...), as well
+as functions for setting properties on a device.  The pretty-printer
+engine was updated to to use the max depth and max indentation
+properties when rendering.
 
 === ML-LPT
 
-=== Documentation
-
-=== Installation
+Changed the semantics of the spans returned by *ml-ulex* so that the
+second component of a span is the position of the rightmost character
+in the token (instead of the character following the token).
+Specifically, the span latexmath:[(p_1, p_2)] specifies the
+latexmath:[p_2 - p_1 + 1] characters that start with the character at
+position latexmath:[p_1] and run to latexmath:[p_2] (inclusive).
 
 === 32-bit macOS issues
 
@@ -110,6 +126,12 @@ for more details.
 | `Word64.fromString` causes an `Overflow` for greater than 2^32^-1
 | [.bugid]#271#
 | Pretty printer regression for structure binding
+| [.bugid]#274#
+| Minor pretty printing glitch when printing structure specs
+| [.bugid]#276#
+| Missing option to control extra newlines in REPL
+| [.bugid]#277#
+| Excess white space when pretty printing a module signature
 |=======
 
 // ***** include a list of unnumbered bugs here *****

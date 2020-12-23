@@ -95,8 +95,25 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 == Recent updates
 
+//== Version 110.99; 2020/12/25
+
 //--------------------------------------------------------------------
-[2020/10/13]::
+[2020/12/19]::
++
+Various pretty-printer bug fixes:
++
+--
+* bug bugref:274[] (Minor pretty printing glitch when printing
+  structure specs)
+* bug bugref:276[] (Missing option to control extra newlines in REPL)
+* bug bugref:277[] (Excess white space when pretty printing a module
+  signature)
+--
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2020/12/19]::
 +
 Fixed bug bugref:254[] (`Real.fromLargeInt` produces negative results).
 The problem was because the digit size for `IntInf.int` is only one bit
@@ -111,7 +128,7 @@ and digits to real values.
 owner:cs.uchicago.edu/~jhr[John Reppy]
 
 //--------------------------------------------------------------------
-[2020/10/13]::
+[2020/12/19]::
 +
 Fixed bug bugref:267[] (Returns an incorrect result for a calculation
 on `Position.int` for 32-bit mode). The problem was that on 32-bit
@@ -214,7 +231,7 @@ owner:cs.uchicago.edu/~jhr[John Reppy]
 [2020/07/10]::
 +
 Changed the `config/install.sh` script so that the default size
-is 64 bits for any machine that reports its machine as "x86_64`."
+is 64 bits for any machine that reports its machine as "``x86_64``."
 +
 owner:cs.uchicago.edu/~jhr[John Reppy]
 
