@@ -22,27 +22,7 @@ structure CharBufferPP : sig
 
   end = struct
 
-    structure DevOps = struct
-	type t = CharBuffer.buf
-      (* no style support *)
-	type style = unit
-	fun sameStyle _ = true
-	fun pushStyle _ = ()
-	fun popStyle _ = ()
-	fun defaultStyle _ = ()
-      (* output some number of spaces to the device *)
-        fun space (dst, n) = CharBuffer.addVec (dst, StringCvt.padLeft #" " n "")
-	val indent = space
-      (* output a new-line to the device *)
-	fun newline dst = CharBuffer.add1 (dst, #"\n")
-      (* output a string/character in the current style to the device *)
-	fun string (dst, s) = CharBuffer.addVec (dst, s)
-	fun char (dst, c) = CharBuffer.add1 (dst, c)
-      (* nothing to flush *)
-	fun flush dst = ()
-      end
-
-    structure Device = DefaultDeviceFn (DevOps)
+    structure Device = CharBufferDev
 
     structure PP = PPStreamFn (
       structure Token = StringToken
@@ -50,6 +30,6 @@ structure CharBufferPP : sig
 
     open PP
 
-    fun openBuf {dst, wid} = PP.openStream (Device.newWithWidth (dst, wid))
+    fun openBuf arg = PP.openStream (Device.openDev arg)
 
-  end;
+  end

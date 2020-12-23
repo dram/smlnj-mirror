@@ -10,6 +10,7 @@ Group
 
   structure ANSITermDev
   structure ANSITermPP
+  structure CharBufferDev
   structure CharBufferPP
   structure SimpleTextIODev
   structure StringToken
@@ -24,6 +25,7 @@ is
 
   ansi-term-dev.sml
   ansi-term-pp.sml
+  char-buffer-dev.sml
   char-buffer-pp.sml
   default-device-fn.sml
   simple-textio-dev.sml

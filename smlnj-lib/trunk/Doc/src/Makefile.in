@@ -67,7 +67,7 @@ css:
 html:		index.html
 
 index.html:	index.json
-	$(GEN_PAGES) -v
+	$(GEN_PAGES) $(GEN_PAGES_FLAGS)
 
 index.json:	$(ADOC_FILES)
 	$(MAKE_INDEX) index.json

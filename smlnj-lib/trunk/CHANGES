@@ -5,6 +5,10 @@ correspond to SML/NJ releases.
 SML/NJ 110.99
 -------------------
 
+[2020-12-22]
+	Split out the `CharBufferDev` structure from the `CharBufferPP`
+	structure.
+
 [2020-12-21]
 	Significant improvements to the pretty printing library.
 	Added a number of device "properties" to the `PP_DEVICE`
