@@ -44,7 +44,7 @@ fun ppList ppstrm {sep: string, pp : PP.stream -> 'a -> unit} (list: 'a list) =
     ppClosedSequence ppstrm
       {front = fn ppstrm => (PP.string ppstrm "["),
        back = fn ppstrm => (PP.string ppstrm "]"),
-       sep = fn ppstrm => (PP.string ppstrm sep),
+       sep = PPUtil.sepWithCut sep,
        style = INCONSISTENT,
        pr = pp}
       list
@@ -213,7 +213,7 @@ and ppTyc pd ppstrm (tycon : Lty.tyc) =
 	  | ppTycI (Lty.TC_TUPLE(rflag, tycs)) =
 	    (ppClosedSequence ppstrm
                 {front = (fn s => PP.string s "{"),
-                 sep = (fn s => PP.string s ","),
+                 sep = PPUtil.sepWithCut ",",
                  back = (fn s => PP.string s "}"),
                  pr = ppTyc (pd-1),
                  style = INCONSISTENT}

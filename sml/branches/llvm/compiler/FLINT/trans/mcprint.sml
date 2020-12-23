@@ -90,7 +90,7 @@ fun ppList ppstrm ppfn elems =
     ppClosedSequence ppstrm
       {front = (fn strm => PP.string strm "["),
        back =  (fn strm => PP.string strm "]"),
-       sep =  (fn strm => PP.string strm ", "),
+       sep = PPUtil.sepWithSpc ",",
        pr = ppfn,
        style = CONSISTENT}
       elems

@@ -104,7 +104,7 @@ fun ppLexp (pd:int) ppstrm (l: lexp): unit =
             PU.ppClosedSequence
               {front = (fn s => PP.string s open),
                back = (fn s => PP.string s close),
-               sep = (fn s => PP.string s sep),
+               sep = PPUtil.sepWithCut sep,
                pr = ppfn,
                style = PU.INCONSISTENT}
               elems

@@ -239,8 +239,7 @@ fun ppTycon1 env ppstrm membersOp =
 		    pps "["; pps "D";
                     ppClosedSequence ppstrm
                       {front=C PP.string "(",
-                       sep=fn ppstrm => (PP.string ppstrm ",";
-				   PP.break ppstrm {nsp=0,offset=0}),
+                       sep=PU.sepWithCut ",",
 		       back=C PP.string ");",
 		       style=CONSISTENT,
                        pr=ppBool} strict;
@@ -251,8 +250,7 @@ fun ppTycon1 env ppstrm membersOp =
 	  | ppTyc(RECORDtyc labels) =
 	      ppClosedSequence ppstrm
 		{front=C PP.string "{",
-		 sep=fn ppstrm => (PP.string ppstrm ",";
-				   PP.break ppstrm {nsp=0,offset=0}),
+		 sep=PU.sepWithCut ",",
 		 back=C PP.string "}",
 		 style=INCONSISTENT,
 		 pr=ppSym} labels
@@ -303,8 +301,8 @@ and ppType1 env ppstrm (ty: ty, sign: T.polysign,
 		                handle Subscript => false
 		    in pps ((if eq then "''" else "'") ^ boundTyvarName n)
 		   end
-	       | CONty(tycon, args) =>
-		   let fun otherwise () =
+	       | CONty(tycon, args) => let
+		     fun otherwise () =
 			 (openHOVBox 2;
 			  ppTypeArgs args;
 			  break{nsp=0,offset=0};
@@ -367,8 +365,7 @@ and ppType1 env ppstrm (ty: ty, sign: T.polysign,
 	  | ppTypeArgs tys =
               ppClosedSequence ppstrm
 	        {front=C PP.string "(",
-		 sep=fn ppstrm => (PP.string ppstrm ",";
-                                   PP.break ppstrm {nsp=0,offset=0}),
+		 sep=PU.sepWithCut ",",
 		 back=C PP.string ") ",
 		 style=INCONSISTENT,
                  pr=fn _ => fn ty => prty ty}
@@ -433,13 +430,14 @@ and ppType1 env ppstrm (ty: ty, sign: T.polysign,
 			   | _ => pps printname)
 		   | _ => pps printname
 	    end
-     in prty ty
+    in
+      prty ty
     end  (* ppType1 *)
 
-and ppType (env:StaticEnv.staticEnv) ppstrm (ty:ty) : unit =
-      (PP.openHOVBox ppstrm (PP.Rel 1);
-       ppType1 env ppstrm (ty,[],NONE);
-       PP.closeBox ppstrm)
+and ppType (env:StaticEnv.staticEnv) ppstrm (ty:ty) : unit = (
+     PP.openHOVBox ppstrm (PP.Rel 1);
+       ppType1 env ppstrm (ty, [], NONE);
+     PP.closeBox ppstrm)
 
 fun ppDconDomain members (env:StaticEnv.staticEnv)
                  ppstrm (ty:ty) : unit =

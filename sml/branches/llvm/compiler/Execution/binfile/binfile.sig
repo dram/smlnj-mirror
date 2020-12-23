@@ -3,13 +3,15 @@
  * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
- * author: Matthias Blume (blume@research.bell-labs.com
+ * author: Matthias Blume
  *
  * This revised version of signature BINFILE is now machine-independent.
  * Moreover, it deals with the file format only and does not know how to
  * create new binfile contents (aka "compile") or how to interpret the
  * pickles.  As a result, it does not statically depend on the compiler.
  * (Eventually we might want to support a light-weight binfile loader.)
+ *
+ * See dev-notes/binfile.adoc for a description of the binfile format.
  *)
 
 signature BINFILE = sig

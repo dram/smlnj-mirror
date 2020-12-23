@@ -72,6 +72,7 @@
 #define varptr		REGOFF(8232,RSP)
 #define start_gc	REGOFF(8240,RSP)	/* holds address of saveregs */
 
+/* space reserved for spilling registers */
 #define ML_SPILL_SIZE	8192
 
 /* size of stack-frame region where ML stuff is stored. */
@@ -94,12 +95,16 @@
 #define varptr		REGOFF(56,RSP)
 #define start_gc	REGOFF(64,RSP)	/* holds address of saveregs */
 
+/* space reserved for spilling registers */
 #define ML_SPILL_SIZE	8192
+
+/* size of stack-frame region where ML stuff is stored (includes alignment padding). */
+#define ML_AREA_SIZE	88
 
 /* the amount to bump up the frame after the callee save registers have been
  * pushed onto the stack.
  */
-#define ML_FRAME_SIZE	(ML_SPILL_SIZE+88)
+#define ML_FRAME_SIZE	(ML_SPILL_SIZE+ML_AREA_SIZE)
 
 #endif /* LLVM_LAYOUT */
 

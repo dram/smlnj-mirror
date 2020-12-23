@@ -27,7 +27,7 @@ structure AMD64Spec : MACH_SPEC =
     val initialSpillOffset = 80	(* offset from %rsp (or vfp) *)
     val startgcOffset = 64	(* stack offset of `saveregs` address *)
 *)
-(* new LLVM offsets *)
+(* new LLVM-compatible offsets *)
     val initialSpillOffset = 0	(* offset from %rsp (or vfp) *)
     val startgcOffset = 8240	(* stack offset of `saveregs` address *)
 (* *)
@@ -43,7 +43,7 @@ structure AMD64Spec : MACH_SPEC =
 (* old MLRISC offsets
     val ML_STATE_OFFSET = 8
 *)
-(* new LLVM offsets *)
+(* new LLVM-compatible offsets *)
     val ML_STATE_OFFSET = 8200
 (* *)
 

@@ -16,6 +16,12 @@ struct
         of CONSISTENT => PP.openHVBox
          | INCONSISTENT => PP.openHOVBox
 
+(* pretty print a separator followed by a cut *)
+  fun sepWithCut sep ppstream = (PP.string ppstream sep; PP.cut ppstream)
+
+(* pretty print a separator followed by a space *)
+  fun sepWithSpc sep ppstream = (PP.string ppstream sep; PP.space ppstream 1)
+
   fun ppSequence0 ppstream (sep:PP.stream->unit,pr,elems) =
       let fun prElems [] = ()
 	    | prElems [el] = pr ppstream el
@@ -28,7 +34,7 @@ struct
 
   fun ppSequence ppstream {sep:PP.stream->unit, pr:PP.stream->'a->unit,
                            style:break_style} (elems: 'a list) =
-      (openStyleBox style ppstream (PP.Abs 0);
+      (openStyleBox style ppstream (PP.Abs 0); (* was `Rel 0` *)
        ppSequence0 ppstream (sep,pr,elems);
        PP.closeBox ppstream)
 
@@ -37,7 +43,7 @@ struct
                                 style:break_style} (elems:'a list) =
       (PP.openHVBox ppstream (PP.Rel 1);
        front ppstream;
-       openStyleBox style ppstream (PP.Abs 0);
+       openStyleBox style ppstream (PP.Abs 0); (* was `Rel 0` *)
        ppSequence0 ppstream (sep,pr,elems);
        PP.closeBox ppstream;
        back ppstream;
@@ -113,6 +119,7 @@ struct
 
   fun ppcomma_nl ppstrm  = (ppcomma ppstrm; PP.newline ppstrm)
 
+(* this function is bogus; its uses should be replaced by better boxes *)
   fun nl_indent ppstrm i =
       PP.break ppstrm {nsp=1000,offset=i}
 
@@ -126,7 +133,7 @@ struct
   fun br_app ppstrm f =
       let fun g [] = ()
 	    | g [el] = f ppstrm el
-	    | g (el::rst) = (f ppstrm el; PP.break ppstrm {nsp=1,offset=0}; g rst)
+	    | g (el::rst) = (f ppstrm el; PP.space ppstrm 1; g rst)
        in g
       end
 
@@ -145,7 +152,8 @@ struct
 	  fun loop i =
 	      let val elem = Array.sub(a,i)
 	       in pps (Int.toString i);
-		  pps ": ";
+		  pps ":";
+		  break {nsp=1,offset=0};
 		  f ppstrm elem;
 		  break {nsp=1,offset=0};
 		  loop (i+1)
@@ -157,12 +165,9 @@ struct
 
   fun C f x y = f y x;
 
-  fun ppTuple ppstrm f =
-      ppClosedSequence ppstrm
-	{front=C pps "(",
-	 sep=fn ppstrm => (pps ppstrm ","; PP.break ppstrm {nsp=0,offset=0}),
-	 back=C pps ")",
-	 pr=f, style=INCONSISTENT}
-
+  fun ppTuple ppstrm f = ppClosedSequence ppstrm {
+	  front = C pps "(", sep = sepWithCut ",", back = C pps ")",
+	  pr = f, style = INCONSISTENT
+        }
 
 end (* structure PPUtil *)
