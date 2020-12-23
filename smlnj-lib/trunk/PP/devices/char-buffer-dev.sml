@@ -11,7 +11,7 @@ structure CharBufferDev : sig
 
     include PP_DEVICE
 
-    val openDev : {dst : CharBuffer.buf, wid : int} -> stream
+    val openDev : {dst : CharBuffer.buf, wid : int} -> device
 
   end = struct
 
