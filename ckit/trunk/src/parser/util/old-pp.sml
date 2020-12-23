@@ -1,8 +1,9 @@
 (* old-pp.sml
  *
- * COPYRIGHT (c) 1998 Bell Labs, Lucent Technologies.
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
- * An implementation of the SML/NJ's PP interface.
+ * An implementation of the SML/NJ's old PP interface on top of the PP library.
  *)
 
 signature OLD_PRETTYPRINT =
@@ -49,11 +50,20 @@ structure OldPrettyPrint :> OLD_PRETTYPRINT =
 	fun pushStyle _ = ()
 	fun popStyle _ = ()
 	fun defaultStyle _ = ()
-	fun depth _ = NONE
+	fun maxDepth _ = NONE
+        fun setMaxDepth _ = ()
+	fun ellipses _ = ("", 0)
+	fun setEllipses _ = ()
+	fun setEllipsesWithSz _ = ()
 	fun lineWidth {consumer, linewidth, flush} = SOME linewidth
+	fun setLineWidth _ = ()
+	fun maxIndent _ = NONE
+	fun setMaxIndent _ = ()
 	fun textWidth _ = NONE
+	fun setTextWidth _ = ()
 	fun space ({consumer, linewidth, flush}, n) =
 	      consumer (StringCvt.padLeft #" " n "")
+	val indent = space
 	fun newline {consumer, linewidth, flush} = consumer "\n"
 	fun string ({consumer, linewidth, flush}, s) = consumer s
 	fun char ({consumer, linewidth, flush}, c) = consumer(str c)
