@@ -21,13 +21,13 @@ structure CoreInt64 =
       fun mul64 (x, y) = CII.testInf64 (CII.* (CII.extend64Inf x, CII.extend64Inf y))
 
       fun div64 (x, y) =
-	    CII.truncInf64 (CII.div (CII.extend64Inf x, CII.extend64Inf y))
+	    CII.testInf64 (CII.div (CII.extend64Inf x, CII.extend64Inf y))
 
       fun mod64 (x, y) =
 	    CII.truncInf64 (CII.mod (CII.extend64Inf x, CII.extend64Inf y))
 
       fun quot64 (x, y) =
-	    CII.truncInf64 (CII.quot (CII.extend64Inf x, CII.extend64Inf y))
+	    CII.testInf64 (CII.quot (CII.extend64Inf x, CII.extend64Inf y))
 
       fun rem64 (x, y) =
 	    CII.truncInf64 (CII.rem (CII.extend64Inf x, CII.extend64Inf y))

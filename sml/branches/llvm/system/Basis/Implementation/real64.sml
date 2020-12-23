@@ -23,7 +23,6 @@ structure Real64Imp : REAL =
     fun ?= (x, y) = (x == y) orelse unordered(x, y)
 
     val rbase = InlineT.Real64.from_int(InlineT.Word.toIntX CoreIntInf.base)
-    val baseBits = InlineT.Word.toIntX CoreIntInf.baseBits
 
   (* maximum finite 64-bit real value *)
     val maxFinite = Real64Values.maxFinite
@@ -42,7 +41,7 @@ structure Real64Imp : REAL =
     val trunc = trunc
     val round = round
 
-  (* This is the IEEE double-precision maxint *)
+  (* This is the IEEE double-precision maxint == 2^52 *)
     val maxInt = 4503599627370496.0
 
     local
@@ -181,32 +180,8 @@ structure Real64Imp : REAL =
 		in fromManExp { man = m', exp = e'+ e }
 	       end
 
-  (* some protection against insanity... *)
-    val _ = if baseBits < 18  (* i.e., 3 * baseBits < 53 *)
-	  then raise Fail "big digits in intinf implementation do not have enough bits"
-	  else ()
-
-    fun fromLargeInt(x : IntInf.int) = let
-	  val CoreIntInf.BI { negative, digits } = CoreIntInf.concrete x
-	  val w2r = fromInt o InlineT.Word.toIntX
-	(* Looking at at most 3 "big digits" is always enough to
-	 * get 53 bits of precision...
-	 * (See insanity insurance above.)
-	 *)
-	  fun dosign (x: real) = if negative then ~x else x
-	  fun calc (k, d1, d2, d3, []) =
-		dosign (Assembly.A.scalb (w2r d1 +
-					  rbase * (w2r d2 + rbase * w2r d3),
-					  k))
-	    | calc (k, _, d1, d2, d3 :: r) = calc (k + baseBits, d1, d2, d3, r)
-	  in
-	    case digits
-	     of [] => 0.0
-	      | [d] => dosign (w2r d)
-	      | [d1, d2] => dosign (rbase * w2r d2 + w2r d1)
-	      | d1 :: d2 :: d3 :: r => calc (0, d1, d2, d3, r)
-	    (* end case *)
-	  end
+  (* the conversion from IntInf.int is target dependent *)
+    val fromLargeInt = IntInfToReal64.cvt
 
   (* whole and split could be implemented more efficiently if we had
    * control over the rounding mode; but for now we don't.

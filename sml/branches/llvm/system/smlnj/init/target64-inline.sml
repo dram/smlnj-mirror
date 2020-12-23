@@ -86,6 +86,7 @@ structure InlineT =
         val min    : real * real -> real  = InLine.real64_min
         val max    : real * real -> real  = InLine.real64_max
 
+	val from_int64 : int64 -> real    = InLine.int64_to_real64
 	val from_int : int -> real        = InLine.int_to_real64
 
 (* FIXME: should use InLine.floor_real64_to_int, but it is currently not supported by

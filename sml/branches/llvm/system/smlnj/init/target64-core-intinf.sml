@@ -9,10 +9,11 @@
 
 structure CoreIntInf :> sig
 
-  (* We use a 62-bit representation, stored in 33-bit words for digits.
+  (* We use a 62-bit representation, stored in 63-bit words for digits.
    * This way we avoid the extra boxing that would come with 64-bit values
    * and also have the benefit of an extra bit that can be used to store
-   * carries.
+   * carries.  The digits are ordered least-significant first and zero
+   * is represented by the empty list of digits.
    *)
     datatype rep = BI of { negative : bool, digits : word list }
 

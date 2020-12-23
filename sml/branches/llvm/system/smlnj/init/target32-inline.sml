@@ -86,6 +86,7 @@ structure InlineT =
         val min    : real * real -> real  = InLine.real64_min
         val max    : real * real -> real  = InLine.real64_max
 
+	val from_int32 : int32 -> real    = InLine.int32_to_real64
 	val from_int : int -> real        = InLine.int_to_real64
 
 	fun floor (x : real) =
