@@ -18,7 +18,7 @@
 
 void usage ()
 {
-    std::cerr << "usage: codegen [ -o | -S | -c ] <pkl-file>\n";
+    std::cerr << "usage: codegen [ -o | -S | -c ] [ --emit-llvm ] <pkl-file>\n";
     exit (1);
 }
 
