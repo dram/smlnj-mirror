@@ -43,14 +43,14 @@ structure AMD64CpsRegs : CPSREGS =
     val allocptr	= rdi
     fun limitptr _ 	= r14
     fun storeptr _ 	= r15
-    fun exnptr useVFP	= regInMem(useVFP, 40)
+    fun exnptr useVFP	= regInMem(useVFP, AMD64FrameLayout.exnPtrOffset)
     fun stdarg _	= rbp
     fun stdcont _	= rsi
     fun stdlink  _	= r08
     fun stdclos  _	= r09
-    fun baseptr useVFP	= regInMem(useVFP, 32)
-    fun gcLink useVFP	= regInMem(useVFP, 48)
-    fun varptr useVFP 	= regInMem(useVFP, 56)
+    fun baseptr useVFP	= regInMem(useVFP, AMD64FrameLayout.basePtrOffset)
+    fun gcLink useVFP	= regInMem(useVFP, AMD64FrameLayout.gcLinkOffset)
+    fun varptr useVFP 	= regInMem(useVFP, AMD64FrameLayout.varPtrOffset)
 
     fun mkRegList (base, cnt) = List.tabulate(cnt, fn i => T.REG(64, GP(base+i)))
 

@@ -76,10 +76,10 @@ functor AMD64CG (
        * base/runtime/mach-dep/AMD64.prim.asm.
        *)
 	fun signBit ty = AMD64MLTree.ADD(64,
-		AMD64MLTree.LI 16,
+		AMD64MLTree.LI(IntInf.fromInt AMD64FrameLayout.signBitOffset),
 		AMD64MLTree.REG(64, AMD64Cells.rsp))
 	fun negateSignBit ty = AMD64MLTree.ADD(64,
-		AMD64MLTree.LI 24,
+		AMD64MLTree.LI(IntInf.fromInt AMD64FrameLayout.negSignBitOffset),
 		AMD64MLTree.REG(64, AMD64Cells.rsp))
       )
 
