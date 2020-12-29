@@ -146,14 +146,14 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 
   (* translate CPS RAWLOAD primop based on kind *)
     fun rawLoad (P.INT sz, args) = let
-	  val load = looker(TP.RAW_LOAD{kind=TP.INT, sz = sz}, args)
+	  val load = looker(TP.RAW_LOAD{kind=TP.INT, sz = normSz sz}, args)
 	  in
 	    if (sz < ity)
 		then signExtend (sz, load)
 		else load
 	  end
       | rawLoad (P.UINT sz, args) = let
-	  val load = looker(TP.RAW_LOAD{kind=TP.INT, sz = sz}, args)
+	  val load = looker(TP.RAW_LOAD{kind=TP.INT, sz = normSz sz}, args)
 	  in
 	    if (sz < ity)
 		then zeroExtend (sz, load)
@@ -161,8 +161,8 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 	  end
       | rawLoad (P.FLOAT sz, args) = looker(TP.RAW_LOAD{kind=TP.FLT, sz = sz}, args)
 
-    fun rawStore (P.INT sz) = TP.RAW_STORE{kind=TP.INT, sz = sz}
-      | rawStore (P.UINT sz) = TP.RAW_STORE{kind=TP.INT, sz = sz}
+    fun rawStore (P.INT sz) = TP.RAW_STORE{kind=TP.INT, sz = normSz sz}
+      | rawStore (P.UINT sz) = TP.RAW_STORE{kind=TP.INT, sz = normSz sz}
       | rawStore (P.FLOAT sz) = TP.RAW_STORE{kind=TP.FLT, sz = sz}
 
     fun gen info = let
@@ -215,7 +215,7 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 		      D.makeDesc' (length flds, D.tag_record),
 		      flds, x, bindVarIn(x, k))
 		  | SELECT(i, v, x, ty as CPS.NUMt{sz, ...}, k) =>
-		      genCont (rawSelect(TP.INT, sz, i, genV v), x, ty, k)
+		      genCont (rawSelect(TP.INT, normSz sz, i, genV v), x, ty, k)
 		  | SELECT(i, v, x, ty as CPS.FLTt sz, k) =>
 		      genCont (rawSelect(TP.FLT, sz, i, genV v), x, ty, k)
 		  | SELECT(i, v, x, ty, k) =>
