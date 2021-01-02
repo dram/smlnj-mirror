@@ -384,6 +384,7 @@ view Cxx {
         void init (code_buffer *buf, bool isFirst);
         void codegen (code_buffer *buf, bool isFirst);
 	llvm::Function *fn () const { return this->_fn; }
+	frag *entry () const { return this->_v_frags[0]; }
 %%
     { CFG.cluster } <= private_code %%
         llvm::Function *_fn;

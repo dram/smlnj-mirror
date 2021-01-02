@@ -165,6 +165,10 @@ namespace CFG {
       // add the cluster to the cluster map
 	buf->insertCluster (entry->get_lab(), this);
 
+      // set the current cluster in the code buffer (needed to allow access to the
+      // cluster's attributes)
+	buf->setCluster (this);
+
       // create and record the LLVM function for the cluster
 	auto params = entry->get_params();
 	std::vector<llvm::Type *> paramTys;

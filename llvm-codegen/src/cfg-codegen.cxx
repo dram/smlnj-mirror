@@ -191,23 +191,25 @@ llvm::dbgs() << "\n";
 
     void APPLY::codegen (code_buffer * buf)
     {
+	frag_kind fk = frag_kind::STD_FUN;
 	llvm::FunctionType *fnTy;
 	Value *fn;
 	LABEL *lab = dynamic_cast<LABEL *>(this->_v0);
 	if (lab == nullptr) {
-	    fnTy = buf->createFnTy (frag_kind::STD_FUN, genTypes (buf, this->_v2));
+	    fnTy = buf->createFnTy (fk, genTypes (buf, this->_v2));
 	    fn = buf->build().CreateBitCast(
 		this->_v0->codegen (buf),
 		fnTy->getPointerTo());
 	} else {
 	    cluster *f = buf->lookupCluster (lab->get_name());
 	    assert (f && "APPLY of unknown cluster");
+	    fk = f->entry()->get_kind();
 	    fn = f->fn();
 	    fnTy = f->fn()->getFunctionType();
 	}
 
       // evaluate the arguments
-	Args_t args = SetupStdArgs (buf, fnTy, frag_kind::STD_FUN, this->_v1);
+	Args_t args = SetupStdArgs (buf, fnTy, fk, this->_v1);
 
 	llvm::CallInst *call = buf->build().CreateCall(fnTy, fn, args);
 	call->setCallingConv (llvm::CallingConv::JWA);

@@ -127,6 +127,9 @@ void code_buffer::endModule ()
 
 void code_buffer::beginCluster (CFG::cluster *cluster, llvm::Function *fn)
 {
+    assert ((cluster != nullptr) && "undefined cluster");
+    assert ((fn != nullptr) && "undefined function");
+
     this->_overflowBB = nullptr;
     this->_fragMap.clear();
     this->_curFn = fn;

@@ -73,7 +73,10 @@ class code_buffer {
     void beginModule (std::string const & src, int nClusters);
     void endModule ();
 
-  // mark the beginning/end of a cluster
+  // set the current cluster (during preperation for code generation)
+    void setCluster (CFG::cluster *cluster) { this->_curCluster = cluster; }
+
+  // mark the beginning/end of a cluster for code generation
     void beginCluster (CFG::cluster *cluster, llvm::Function *fn);
     void endCluster ();
 
