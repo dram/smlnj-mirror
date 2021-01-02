@@ -23,13 +23,28 @@ static target_info AMD64Info = {
 	    0, 0, 0,			    // ALLOC_PTR, LIMIT_PTR, STORE_PTR
 // FIXME: we are using the stack layout used for the MLRISC backend, it may have
 // to be adjusted to be compatible with LLVM's stack layout conventions
-	    40, 56		   	// EXN_HNDLR, VAR_PTR
+	    8224, 8232		   	// EXN_HNDLR, VAR_PTR
 	},
-	64,				// call-gc offset
+	8240,				// call-gc offset
 	8*1024				// allocation slop
     };
 
 /* TODO: AArch64 */
+#ifdef AARCH64_DONE
+static target_info AArch64 = {
+	"aarch64",			// name
+	llvm::Triple::aarch64,
+	"",
+	64,				// wordSz
+	?,
+	3,				// numCalleeSaves
+// TODO: change the following to false
+	true,				// usesBasePtr
+	{ 0, 0, 0, 0, 0 },		// no memory reisters
+	?,				// call-gc offset
+	8*1024				// allocation slop
+    };
+#endif
 
 #define NUM_TARGETS	1
 static target_info const *Targets[NUM_TARGETS] = {
