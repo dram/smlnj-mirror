@@ -17,6 +17,7 @@
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/IR/LegacyPassManager.h"
+#include "llvm/Object/ObjectFile.h"
 
 class mc_gen {
   public:

@@ -11,7 +11,7 @@
 
 #include "cfg.hxx"
 #include "target-info.hxx"
-#include "codegen.hxx"
+//#include "codegen.hxx"
 
 namespace CFG {
 

@@ -84,7 +84,7 @@ class code_buffer {
     void beginFrag ();
 
   // get the IR builder
-    llvm::IRBuilder<> build () { return this->_builder; }
+    llvm::IRBuilder<> & build () { return this->_builder; }
 
   // define a new LLVM function for a cluster with the given type; the `isFirst` flag
   // should be true for the entry function of the module.
@@ -582,12 +582,12 @@ class code_buffer {
     Value *createLoad (Type *ty, Value *adr, unsigned align)
     {
       // NOTE: our loads are always aligned to the ABI alignment requirement
-	return this->_builder.CreateAlignedLoad (ty, adr, align);
+	return this->_builder.CreateAlignedLoad (ty, adr, llvm::MaybeAlign(align));
     }
     Value *createLoad (Type *ty, Value *adr)
     {
       // NOTE: our loads are always aligned to the ABI alignment requirement
-	return this->_builder.CreateAlignedLoad (ty, adr, 0);
+	return this->_builder.CreateAlignedLoad (ty, adr, llvm::MaybeAlign(0));
     }
   // create store of an ML value
     void createStoreML (Value *v, Value *adr)
@@ -595,14 +595,14 @@ class code_buffer {
 	this->_builder.CreateAlignedStore (
 	    this->asMLValue(v),
 	    adr,
-	    (unsigned)this->_wordSzB);
+	    llvm::MaybeAlign(this->_wordSzB));
     }
     void createStore (Value *v, Value *adr, unsigned align)
     {
 	this->_builder.CreateAlignedStore (
 	    v,
 	    adr,
-	    align);
+	    llvm::MaybeAlign(align));
     }
 
   /***** shorthand for type cast instructions *****/

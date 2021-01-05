@@ -460,7 +460,7 @@ inline Value *_loadFromStack (code_buffer *buf, int offset, std::string const &n
 {
     return buf->build().CreateAlignedLoad (
 	buf->stkAddr (buf->objPtrTy, offset),
-	buf->wordSzInBytes(),
+	llvm::MaybeAlign (buf->wordSzInBytes()),
 	name);
 }
 
@@ -480,7 +480,7 @@ void code_buffer::_storeMemReg (sml_reg_id r, Value *v)
     this->_builder.CreateAlignedStore (
 	v,
 	stkAddr,
-	this->_wordSzB);
+	llvm::MaybeAlign (this->_wordSzB));
 
 } // code_buffer::_storeMemReg
 
@@ -496,14 +496,14 @@ Value *code_buffer::allocRecord (uint64_t desc, Args_t const & args)
     this->build().CreateAlignedStore (
 	this->createIntToPtr(this->uConst(desc), this->mlValueTy),
 	allocPtr,
-	(unsigned)this->_wordSzB);
+	llvm::MaybeAlign (this->_wordSzB));
 
   // initialize the object's fields
     for (int i = 1;  i <= len;  ++i) {
 	this->build().CreateAlignedStore (
 	    this->asMLValue (args[i-1]),
 	    this->createGEP (allocPtr, i),
-	    (unsigned)this->_wordSzB);
+	    llvm::MaybeAlign (this->_wordSzB));
     }
 
   // compute the object's address and cast it to an ML value

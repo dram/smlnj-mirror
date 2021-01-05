@@ -18,7 +18,6 @@
 #include "llvm/Transforms/Scalar/GVN.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/SmallVectorMemoryBuffer.h"
-#include "llvm/Object/ObjectFile.h"
 
 #include "llvm/ExecutionEngine/Orc/JITTargetMachineBuilder.h"
 
@@ -31,6 +30,7 @@
 #include "llvm/InitializePasses.h"
 #include "llvm/Support/CommandLine.h"
 #endif
+#include "llvm/Support/Host.h"
 
 #include <iostream>
 
