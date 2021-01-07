@@ -626,9 +626,9 @@ llvm::Function *code_buffer::_getIntrinsic (llvm::Intrinsic::ID id, Type *ty) co
 	this->_module, id, llvm::ArrayRef<Type *>(ty));
 }
 
-void code_buffer::compile () const
+llvm::Expected<std::unique_ptr<llvm::object::ObjectFile>> code_buffer::compile () const
 {
-    this->_gen->compile (this->_module);
+    return this->_gen->compile (this->_module);
 }
 
 void code_buffer::dumpAsm () const

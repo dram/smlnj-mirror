@@ -109,9 +109,49 @@ void codegen (std::string const & src, bool emitLLVM, output out)
       case output::ObjFile:
 	CodeBuf->dumpObj (stem);
 	break;
-      case output::Memory:
-	CodeBuf->compile ();
-	break;
+      case output::Memory: {
+	    auto obj = CodeBuf->compile ();
+
+	    if (! obj) {
+		llvm::errs() << "unable to get object file\n";
+		return;
+	    }
+
+/* TODO: eventually, we should change the return type of this function to
+ *
+ *	llvm::Expected<llvm::StringRef>
+ *
+ * and just return the contents of the text segment.  We might want to verify
+ * that the entry function is at the beginning of the section.
+ */
+
+	  // print info about the sections
+	    llvm::dbgs() << "=== Sections ===\n";
+	    for (auto sect : (*obj)->sections()) {
+		auto name = sect.getName();
+		auto addr = sect.getAddress();
+		auto sz = sect.getSize();
+		if (name) {
+		    llvm::dbgs() << "  " << *name;
+		} else {
+		    llvm::dbgs() << "  <section>";
+		}
+		if (sect.isText()) llvm::dbgs() << " [TEXT] ";
+		else if (sect.isData()) llvm::dbgs() << " [DATA] ";
+		llvm::dbgs() << " " << (void *)addr << ".." << (void *)(addr+sz) << "\n";
+	    }
+
+	  // print the symbols
+	    llvm::dbgs() << "=== Symbols ===\n";
+	    for (auto sym : (*obj)->symbols()) {
+		auto name = sym.getName();
+		auto addr = sym.getAddress();
+		if (name && addr) {
+		    llvm::dbgs() << "  " << *name << " @ " << (void *)*addr << "\n";
+		}
+	    }
+
+	} break;
     }
 
     CodeBuf->endModule();

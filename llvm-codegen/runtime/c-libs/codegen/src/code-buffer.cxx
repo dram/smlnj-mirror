@@ -613,7 +613,7 @@ Value *code_buffer::castTy (Type *srcTy, Type *tgtTy, Value *v)
 	return this->_builder.CreatePtrToInt(v, tgtTy);
     }
     else {
-llvm::dbgs() << "castTy (" << *srcTy << ", " << *tgtTy << ", -)\n";
+//llvm::dbgs() << "castTy (" << *srcTy << ", " << *tgtTy << ", -)\n";
 	assert (false && "invalid type cast");
 	return nullptr;
     }

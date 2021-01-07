@@ -13,6 +13,21 @@ AR =		ar
 ARFLAGS =	rcv
 RANLIB =	ranlib
 
+CXX =           clang++ --std=c++14
+CXX_FLAGS =     -g
+
+#
+# LLVM configuration
+#
+SML_ROOT =      /Users/jhr/Work/smlnj/sml-llvm
+LLVM_DIR =      $(SML_ROOT)/llvm-codegen/llvm-debug
+LLVM_CONFIG =	$(LLVM_DIR)/bin/llvm-config
+
+LLVM_CPP_FLAGS = $(shell $(LLVM_CONFIG) --cppflags)
+LLVM_LD_FLAGS =	$(shell $(LLVM_CONFIG) --ldflags)
+LLVM_LIBS =	$(shell $(LLVM_CONFIG) --libs x86) \
+		$(shell $(LLVM_CONFIG) --system-libs)
+
 #
 # dummy version
 #
@@ -113,7 +128,7 @@ clean:
 
 
 $(RUNTIME):	$(VERSION) main.o $(OBJS) $(ALL_LIBS)
-	$(CC) -o $(RUNTIME) $(CFLAGS) $(LDFLAGS) main.o $(OBJS) $(ALL_LIBS) $(LD_LIBS)
+	$(CXX) -o $(RUNTIME) $(CXX_FLAGS) $(LDFLAGS) $(LLVM_LD_FLAGS) main.o $(OBJS) $(ALL_LIBS) $(LD_LIBS) $(LLVM_LIBS)
 
 $(RUNTIME_A):	$(VERSION) main.o $(OBJS) $(ALL_LIBS)
 	rm -f $(RUNTIME_A)
@@ -295,7 +310,8 @@ MK_ARGS =		VERSION="$(VERSION)" \
 			CC="$(CC)" CFLAGS="$(CFLAGS)" DEFS="$(DEFS)" \
 			AR="$(AR)" ARFLAGS="$(ARFLAGS)" \
 			RANLIB="$(RANLIB)" \
-			INCLUDES="$(GC_INCLUDES) -I../bytecode"
+			INCLUDES="$(GC_INCLUDES) -I../bytecode" \
+			LLVM_CPP_FLAGS="$(LLVM_CPP_FLAGS)"
 
 #
 # memory management library

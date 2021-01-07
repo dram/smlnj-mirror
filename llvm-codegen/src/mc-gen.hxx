@@ -34,7 +34,7 @@ class mc_gen {
   // dump the code to an output file
     void dumpCode (llvm::Module *module, std::string const & stem, bool asmCode = true) const;
 
-    bool compile (llvm::Module *module);
+    llvm::Expected<std::unique_ptr<llvm::object::ObjectFile>> compile (llvm::Module *module);
 
   private:
     std::unique_ptr<llvm::TargetMachine> _tgtMachine;

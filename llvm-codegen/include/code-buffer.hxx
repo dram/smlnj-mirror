@@ -22,6 +22,7 @@
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
+#include "llvm/Object/ObjectFile.h"
 
 /*DEBUG*/#include "llvm/Support/raw_os_ostream.h"
 /*DEBUG*/#include "llvm/Support/Debug.h"
@@ -662,7 +663,7 @@ class code_buffer {
   /***** Code generation *****/
 
   // compile to an in-memory code object
-    void compile () const;
+    llvm::Expected<std::unique_ptr<llvm::object::ObjectFile>> compile () const;
 
   // dump assembly code to stdout
     void dumpAsm () const;

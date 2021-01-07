@@ -48,7 +48,7 @@ $(VERSION) :
 	$(CC) $(CFLAGS) $(DEFS) $(INCLUDES) -Iinclude -c $<
 
 %.o: src/%.cxx $(INCLS)
-	$(CXX) -c $(CPP_FLAGS) $(DEFS) $(CXX_FLAGS) $<
+	$(CXX) -c $(CPP_FLAGS) $(LLVM_CPP_FLAGS) $(DEFS) $(CXX_FLAGS) $<
 
 clean :
 	rm -f v-* *.o $(LIBRARY)
