@@ -35,7 +35,7 @@ sml_registers::sml_registers (struct target_info const *target)
     }
 
   // initialize the register info for the target
-    this->_usesBasePtr = target->usesBasePtr;
+    this->_usesBasePtr = ! target->hasPCRel;
     for (int i = 0;  i < reg_info::NUM_REGS;  ++i) {
 	sml_reg_id id = static_cast<sml_reg_id>(i);
 	if (target->stkOffset[i] != 0) {
