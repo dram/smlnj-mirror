@@ -398,19 +398,18 @@ namespace CFG_Prim {
 
     void UNBOXED_ASSIGN::codegen (code_buffer * buf, Args_t const &args)
     {
-	buf->createStoreML (
-	    args[1],
-	    buf->createGEP (buf->intTy->getPointerTo(), args[0], args[1]));
+	buf->createStore (
+	    buf->asInt(args[1]),
+	    buf->asMLValue (args[0]),
+	    buf->wordSzInBytes());
 
     } // UNBOXED_ASSIGN::codegen
 
     void ASSIGN::codegen (code_buffer * buf, Args_t const &args)
     {
-	Value *adr = buf->createGEP (buf->objPtrTy, args[0], args[1]);
+	recordStore (buf, args[0]);
 
-	recordStore (buf, adr);
-
-	buf->createStoreML (args[1], adr);
+	buf->createStoreML (args[1], args[0]);
 
     } // ASSIGN::codegen
 
