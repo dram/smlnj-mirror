@@ -26,6 +26,7 @@ int main (int argc, char **argv)
 {
     output out = output::PrintAsm;
     bool emitLLVM = false;
+    bool dumpBits = false;
     std::string src = "";
 
     if (argc < 2) {
@@ -41,14 +42,16 @@ int main (int argc, char **argv)
 		out = output::AsmFile;
 	    } else if (flag == "-c") {
 		out = output::Memory;
-	    } else if (flag == "-emit-llvm") {
+	    } else if (flag == "--emit-llvm") {
 		emitLLVM = true;
+	    } else if (flag == "--bits") {
+		dumpBits = true;
 	    } else {
 		usage();
 	    }
 	}
 	else if ((i < argc-1) || (src != "")) {
-	    std::cerr << "usage: codegen [ -o | -S ] <pkl-file>\n";
+	    std::cerr << "usage: codegen [ -o | -S | -c ] [ --emit-llvm ] [ --bits ] <pkl-file>\n";
 	    exit (1);
 	}
 	else {
@@ -62,7 +65,7 @@ int main (int argc, char **argv)
     llvm::InitializeAllAsmParsers();
     llvm::InitializeAllAsmPrinters();
 
-    codegen (src, emitLLVM, out);
+    codegen (src, emitLLVM, dumpBits, out);
 
     return 0;
 

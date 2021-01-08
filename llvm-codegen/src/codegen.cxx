@@ -13,6 +13,8 @@
 #include "codegen.hxx"
 #include <iostream>
 
+#include "llvm/Support/Error.h"
+
 // Some global flags for controlling the code generator.
 // These are just for testing purposes
 bool disableGC = false;
@@ -54,7 +56,9 @@ class Timer {
 
 static code_buffer *CodeBuf = nullptr;
 
-void codegen (std::string const & src, bool emitLLVM, output out)
+static llvm::ExitOnError exitOnErr;
+
+void codegen (std::string const & src, bool emitLLVM, bool dumpBits, output out)
 {
     asdl::file_instream inS(src);
 
@@ -110,12 +114,7 @@ void codegen (std::string const & src, bool emitLLVM, output out)
 	CodeBuf->dumpObj (stem);
 	break;
       case output::Memory: {
-	    auto obj = CodeBuf->compile ();
-
-	    if (! obj) {
-		llvm::errs() << "unable to get object file\n";
-		return;
-	    }
+	    auto obj = exitOnErr (CodeBuf->compile ());
 
 /* TODO: eventually, we should change the return type of this function to
  *
@@ -127,7 +126,9 @@ void codegen (std::string const & src, bool emitLLVM, output out)
 
 	  // print info about the sections
 	    llvm::dbgs() << "=== Sections ===\n";
-	    for (auto sect : (*obj)->sections()) {
+	    bool foundTextSect = false;
+	    llvm::object::SectionRef textSect;
+	    for (auto sect : obj->sections()) {
 		auto name = sect.getName();
 		auto addr = sect.getAddress();
 		auto sz = sect.getSize();
@@ -136,18 +137,52 @@ void codegen (std::string const & src, bool emitLLVM, output out)
 		} else {
 		    llvm::dbgs() << "  <section>";
 		}
-		if (sect.isText()) llvm::dbgs() << " [TEXT] ";
-		else if (sect.isData()) llvm::dbgs() << " [DATA] ";
+		if (sect.isText()) {
+		    if (! foundTextSect) {
+			textSect = sect;
+			foundTextSect = true;
+		    }
+		    llvm::dbgs() << " [TEXT] ";
+		}
+		else if (sect.isData()) {
+		    llvm::dbgs() << " [DATA] ";
+		}
 		llvm::dbgs() << " " << (void *)addr << ".." << (void *)(addr+sz) << "\n";
 	    }
 
 	  // print the symbols
 	    llvm::dbgs() << "=== Symbols ===\n";
-	    for (auto sym : (*obj)->symbols()) {
+	    for (auto sym : obj->symbols()) {
 		auto name = sym.getName();
 		auto addr = sym.getAddress();
 		if (name && addr) {
 		    llvm::dbgs() << "  " << *name << " @ " << (void *)*addr << "\n";
+		}
+	    }
+
+	    if (dumpBits && foundTextSect) {
+	      // dump the bits of the text section
+		auto code = exitOnErr(textSect.getContents());
+		const unsigned char *bytes = (const unsigned char *)code.data();
+		llvm::dbgs () << "CONTENTS OF " << exitOnErr(textSect.getName()) << "\n";
+		for (size_t i = 0;  i < code.size(); i += 16) {
+		    size_t limit = std::min(i + 16, code.size());
+		    llvm::dbgs () << "  " << llvm::format_hex_no_prefix(i, 4) << ": ";
+		    for (int j = i;  j < limit;  j++) {
+			llvm::dbgs() << " " << llvm::format_hex_no_prefix(bytes[j], 2);
+		    }
+		    llvm::dbgs () << "\n";
+		}
+	      // dump relocation info
+		llvm::dbgs () << "RELOCATION INFO\n";
+		for (auto reloc : textSect.relocations()) {
+		    auto offset = reloc.getOffset();
+		    auto symb = *(reloc.getSymbol());
+		    llvm::dbgs () << "  " << exitOnErr(symb.getName())
+			<< ": addr = " << llvm::format_hex(exitOnErr(symb.getAddress()), 10)
+			<< "; value = "  << llvm::format_hex(symb.getValue(), 10)
+			<< "; offset = " << llvm::format_hex(offset, 10)
+			<< "; type = " << reloc.getType() << "\n";
 		}
 	    }
 
