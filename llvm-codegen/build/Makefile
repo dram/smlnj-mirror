@@ -13,7 +13,7 @@ CXX_FLAGS =	-g
 
 VPATH =		../src
 
-INCLS =		$(wildcard ../include/*hxx) $(wildcard ../../include/asdl/*hxx)
+INCLS =		$(wildcard *hxx) $(wildcard ../include/*hxx) $(wildcard ../../include/asdl/*hxx)
 
 SRCS =		cfg.cxx lambda-var.cxx \
 		codegen.cxx code-buffer.cxx mc-gen.cxx sml-registers.cxx target-info.cxx \
