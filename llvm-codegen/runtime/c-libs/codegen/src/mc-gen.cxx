@@ -19,18 +19,7 @@
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/SmallVectorMemoryBuffer.h"
 
-#include "llvm/ExecutionEngine/Orc/JITTargetMachineBuilder.h"
-
-/* define DEBUG_MC to enable printing of the IR after every internal LLVM step.
- * Warning: this produces 1000's of lines of output for even the smallest
- * example!!!
- */
-//#define DEBUG_MC
-#ifdef DEBUG_MC
-#include "llvm/InitializePasses.h"
-#include "llvm/Support/CommandLine.h"
-#endif
-#include "llvm/Support/Host.h"
+//#include "llvm/Support/Host.h" /* for getHostCPUName */
 
 #include <iostream>
 
@@ -47,7 +36,7 @@ mc_gen::mc_gen (llvm::LLVMContext &context, target_info const *info)
         assert(false);
     }
 
-llvm::dbgs() << "host CPU = " << llvm::sys::getHostCPUName() << "\n";
+//llvm::dbgs() << "host CPU = " << llvm::sys::getHostCPUName() << "\n";
 
     llvm::TargetOptions tgtOptions;
 
@@ -135,7 +124,7 @@ llvm::Expected<std::unique_ptr<llvm::object::ObjectFile>> mc_gen::compile (llvm:
     {
 	llvm::raw_svector_ostream objStrm(objBufferSV);
 	llvm::legacy::PassManager pass;
-	llvm::MCContext *ctx;
+	llvm::MCContext *ctx; /* result parameter */
 	if (this->_tgtMachine->addPassesToEmitMC(pass, ctx, objStrm)) {
 	    llvm::report_fatal_error ("unable to add pass to generate code", true);
 	}

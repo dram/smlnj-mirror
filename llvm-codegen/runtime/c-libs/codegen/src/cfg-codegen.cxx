@@ -173,18 +173,6 @@ namespace CFG {
 	    args.push_back (arg);
 	}
 
-llvm::dbgs() << "\n# SetupStdArgs: kind = "
-<< (fk == frag_kind::STD_CONT ? "STD_CONT\n"
-  : (fk == frag_kind::STD_FUN ? "STD_FUN\n"
-  : (fk == frag_kind::KNOWN_FUN ? "KNOWN_FUN\n"
-  : "INTERNAL\n")));
-llvm::dbgs() << "## fnTy = " << *fnTy << "\n";
-llvm::dbgs() << "## arg tys =";
-for (auto arg : args) {
-    llvm::dbgs() << " " << *(arg->getType());
-}
-llvm::dbgs() << "\n";
-
 	return args;
 
     } // SetupStdArgs
@@ -259,20 +247,11 @@ llvm::dbgs() << "\n";
 	for (auto arg : this->_v1) {
 	    args.push_back (arg->codegen (buf));
 	}
-llvm::dbgs() << "# GOTO: " << args.size() << " arguments\n";
-llvm::dbgs() << "## paramTys = ";
-for (int i = 0;  i < args.size();  ++i) {
-  if (i > 0) { llvm::dbgs() << ", "; }
-  llvm::dbgs() << *(dstFrag->paramTy(i));
-}
-llvm::dbgs() << "\n";
 
       // add outgoing values as incoming values to the destination's
       // phi nodes
 	for (int i = 0;  i < args.size();  ++i) {
 	  // make sure that the type match!
-llvm::dbgs() << "## arg[" << i << "] = ";
-if (args[i]) { llvm::dbgs() << *(args[i]) << "\n"; } else { llvm::dbgs() << "nullptr\n"; }
 	    assert (args[i]);
 	    Type *srcTy = args[i]->getType();
 	    Type *tgtTy = dstFrag->paramTy(i);
@@ -428,13 +407,6 @@ if (args[i]) { llvm::dbgs() << *(args[i]) << "\n"; } else { llvm::dbgs() << "nul
 	    roots.push_back (buf->asMLValue ((*it)->codegen (buf)));
 	}
 
-llvm::dbgs() << "# CALLGC: " << roots.size() << " arguments\n";
-llvm::dbgs() << "## argTys = ";
-for (int i = 0;  i < roots.size();  ++i) {
-  if (i > 0) { llvm::dbgs() << ", "; }
-  llvm::dbgs() << *(roots[i]);
-}
-llvm::dbgs() << "\n";
 	buf->callGC (roots, this->_v1);
 
       // compile continuation

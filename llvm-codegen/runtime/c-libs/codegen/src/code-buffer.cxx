@@ -419,10 +419,14 @@ llvm::Constant *code_buffer::blockDiff (llvm::BasicBlock *bb)
 
 Value *code_buffer::evalLabel (llvm::Function *fn)
 {
-    Value *basePtr = this->_regState.getBasePtr();
-
-    if (basePtr == nullptr) {
-      // define an alias for `(lab - 0)`
+    if (this->_target->hasPCRel) {
+#ifdef XXX
+      // the target supports PC-relative addressing, so we can directly
+      // refer to the function's label as a value.
+	return fn;
+#endif
+      // the target supports PC-relative addressing, but we still need to
+      // create an alias for `(lab - 0)` to force computation of the PC relative address.
 	return this->createGlobalAlias (
 	    this->intTy,
 	    fn->getName() + "_alias",
@@ -433,6 +437,10 @@ Value *code_buffer::evalLabel (llvm::Function *fn)
 		this->mlValueTy));
     }
     else {
+	Value *basePtr = this->_regState.getBasePtr();
+
+	assert ((basePtr != nullptr) && "basePtr is not defined");
+
       // compute basePtr + (lab - curFn)
 	auto labAdr = this->_builder.CreateIntToPtr(
 	    this->createAdd (basePtr, this->labelDiff (fn, this->_curFn)),

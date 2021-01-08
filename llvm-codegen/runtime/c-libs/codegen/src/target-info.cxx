@@ -17,8 +17,7 @@ static target_info AMD64Info = {
 	64,				// wordSz
 	18,				// numRegs
 	3,				// numCalleeSaves
-// TODO: change the following to false
-	true,				// usesBasePtr
+	true,				// hasPCRel
 	{				// offsets for memory registers
 	    0, 0, 0,			    // ALLOC_PTR, LIMIT_PTR, STORE_PTR
 // FIXME: we are using the stack layout used for the MLRISC backend, it may have
@@ -38,8 +37,7 @@ static target_info AArch64 = {
 	64,				// wordSz
 	?,
 	3,				// numCalleeSaves
-// TODO: change the following to false
-	true,				// usesBasePtr
+	true,				// hasPCRel
 	{ 0, 0, 0, 0, 0 },		// no memory reisters
 	?,				// call-gc offset
 	8*1024				// allocation slop
