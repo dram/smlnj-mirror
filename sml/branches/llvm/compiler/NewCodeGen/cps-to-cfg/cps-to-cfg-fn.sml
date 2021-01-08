@@ -331,7 +331,7 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 		  | PURE(P.WRAP(P.FLOAT 32), [v], x, _, k) => (* REAL32: FIXME *)
 		      error ["wrap for 32-bit floats is not implemented"]
 		  | PURE(P.WRAP(P.FLOAT 64), [v], x, _, k) => let
-		      val desc = D.makeDesc'(wordsPerDbl, D.tag_raw)
+		      val desc = D.makeDesc'(wordsPerDbl, D.tag_raw64)
 		      val oper = rawRecord (desc, TP.FLT, 64, 1)
 		      in
 			C.ALLOC(oper, [genV v], x, bindVarIn(x, k))
