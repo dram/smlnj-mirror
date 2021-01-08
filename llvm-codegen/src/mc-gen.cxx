@@ -18,7 +18,6 @@
 #include "llvm/Transforms/Scalar/GVN.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/SmallVectorMemoryBuffer.h"
-
 #include "llvm/ExecutionEngine/Orc/JITTargetMachineBuilder.h"
 
 /* define DEBUG_MC to enable printing of the IR after every internal LLVM step.
@@ -135,7 +134,7 @@ llvm::Expected<std::unique_ptr<llvm::object::ObjectFile>> mc_gen::compile (llvm:
     {
 	llvm::raw_svector_ostream objStrm(objBufferSV);
 	llvm::legacy::PassManager pass;
-	llvm::MCContext *ctx;
+	llvm::MCContext *ctx; /* result parameter */
 	if (this->_tgtMachine->addPassesToEmitMC(pass, ctx, objStrm)) {
 	    llvm::report_fatal_error ("unable to add pass to generate code", true);
 	}
