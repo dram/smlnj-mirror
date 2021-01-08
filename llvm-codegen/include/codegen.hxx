@@ -13,6 +13,6 @@
 
 enum class output { PrintAsm, AsmFile, ObjFile, Memory };
 
-void codegen (std::string const & src, bool emitLLVM, output out);
+void codegen (std::string const & src, bool emitLLVM, bool dumpBits, output out);
 
 #endif // !_CODEGEN_HXX_
