@@ -2,10 +2,10 @@
 #
 # COPYRIGHT (c) 2019 The SML/NJ Fellowship
 #
-# Makefile for macOS 10.10+ (Yosimite or later) on 64-bit Intel processors
+# Makefile for macOS 10.14+ (High Sierra or later) on 64-bit Intel processors
 #
 
-SDK =		-mmacosx-version-min=10.10
+SDK =		-mmacosx-version-min=10.14
 
 SHELL =		/bin/sh
 
@@ -15,9 +15,9 @@ CC =		cc -m64 -std=c99
 CFLAGS =	-g -O2 -D_DARWIN_C_SOURCE
 CPP =           cc -x assembler-with-cpp -E -P -std=c99
 XOBJS =
-XLIBS =         ../c-libs/dl/libunix-dynload.a
+XLIBS =         ../c-libs/dl/libunix-dynload.a ../c-libs/codegen/libcodegen.a
 LD_LIBS =
-XDEFS =
+XDEFS =		-DLLVM_CODEGEN
 BASE_DEFS =
 DEFS =		$(XDEFS) $(BASE_DEFS) -DARCH_AMD64 -DSIZE_64 \
 		-DOPSYS_UNIX -DOPSYS_DARWIN -DGNU_ASSEMBLER -DDLOPEN -DINDIRECT_CFUNC

@@ -69,7 +69,8 @@ CLIBS =		$(XCLIBS) \
 		$(CLIB_DIR)/posix-sysdb/libposix-sysdb.a \
 		$(CLIB_DIR)/posix-signal/libposix-signal.a \
 		$(CLIB_DIR)/posix-tty/libposix-tty.a \
-		$(CLIB_DIR)/posix-error/libposix-error.a
+		$(CLIB_DIR)/posix-error/libposix-error.a \
+		$(CLIB_DIR)/codegen/libcodegen.a
 
 #
 # The mmap version is the default memory subsystem
@@ -438,3 +439,6 @@ $(CLIB_DIR)/dl/libunix-dynload.a: FORCE
 
 $(CLIB_DIR)/smlnj-ccalls/libsmlnj-ccalls.a: FORCE
 	(cd $(CLIB_DIR)/smlnj-ccalls; $(MAKE) $(LIB_MK_ARGS) libsmlnj-ccalls.a)
+
+$(CLIB_DIR)/codegen/libcodegen.a: FORCE
+	(cd $(CLIB_DIR)/codegen; $(MAKE) $(LIB_MK_ARGS) libcodegen.a)

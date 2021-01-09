@@ -1,6 +1,11 @@
-/* clib-list.h
+/*! \file clib-list.h
  *
- * COPYRIGHT (c) 1994 AT&T Bell Laboratories.
+ * \author John Reppy
+ */
+
+/*
+ * COPYRIGHT (c) 2021 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  */
 
 C_LIBRARY(SMLNJ_RunT_Library)
@@ -44,3 +49,8 @@ C_LIBRARY(SMLNJ_CCalls_Library)
 #ifdef DLOPEN
 C_LIBRARY(UNIX_Dynload_Library)
 #endif
+
+#ifdef LLVM_CODEGEN
+C_LIBRARY(CodeGen_Library)
+#endif
+
