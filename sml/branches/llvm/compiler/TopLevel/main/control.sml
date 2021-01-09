@@ -153,6 +153,7 @@ structure Control_CG : CGCONTROL =
     val printClusters = new (b, "print-clusters", "whether to print clusters prior to codegen", false)
     val printCFG = new (b, "print-cfg", "whether to convert to CFG and print it", false)
     val dumpCFG = new (b, "dump-cfg", "whether to convert to CFG and pickle it", false)
+    val useLLVM = new (b, "llvm", "whether to use the LLVM code generator", false)
   end (* structure Control_CG *)
 
 
