@@ -21,6 +21,13 @@ signature CPS_COMP =
 	    data : Word8Vector.vector		(* literal data *)
 	  }
 
+  (* translate CPS to CFG *)
+    val toCFG : {
+            source : string,
+            clusters : Cluster.cluster list,
+            maxAlloc : CPS.lvar -> int
+          } -> CFG.comp_unit
+
   end
 
 functor CPSCompFn (MachSpec : MACH_SPEC) : CPS_COMP = struct
@@ -32,6 +39,8 @@ functor CPSCompFn (MachSpec : MACH_SPEC) : CPS_COMP = struct
     structure Spill = SpillFn(MachSpec)
 
     structure CPStoCFG = CPStoCFGFn (MachSpec)
+
+    val toCFG = CPStoCFG.translate
 
     fun bug s = ErrorMsg.impossible ("CPSComp:" ^ s)
     val say = Control.Print.say
@@ -56,6 +65,14 @@ functor CPSCompFn (MachSpec : MACH_SPEC) : CPS_COMP = struct
 	    say "\n"; e)
 	  else e
 
+  (* generate the clusters a limit checks for a list of first-order CPS functions *)
+    fun clusters funcs = let
+	  val clusters = Cluster.cluster (!Control.CG.useLLVM) funcs
+	  in
+	  (* add heap-limit checks etc. *)
+	    allocChks clusters
+	  end
+
     fun compile {source, prog} = let
 	(* convert to CPS *)
 	  val function = convert prog
@@ -77,14 +94,14 @@ functor CPSCompFn (MachSpec : MACH_SPEC) : CPS_COMP = struct
 	(* spill excess live variables *)
 	  val funcs = spill funcs
 (* TODO: move clustering and limit checks to here *)
-	(* optional CFG generation *)
+	(* optional CFG generation to a file for debugging purposes *)
 	  val _ = if !Control.CG.dumpCFG orelse !Control.CG.printCFG
 		then let
 		(* form clusters *)
 		  val clusters = Cluster.cluster true funcs
 		(* add heap-limit checks etc. *)
 		  val (clusters, maxAlloc) = allocChks clusters
-		  val cfg = CPStoCFG.translate {
+		  val cfg = toCFG {
 			  source = source, clusters = clusters, maxAlloc = maxAlloc
 			}
 		  val pklFile = if source = "stdin"
@@ -109,9 +126,7 @@ functor CPSCompFn (MachSpec : MACH_SPEC) : CPS_COMP = struct
 		  end
 		else ()
 	(* redo the clusters for now, since we haven't integrated the LLVM code gen yet *)
-	  val clusters = Cluster.cluster false funcs
-	(* add heap-limit checks etc. *)
-	  val (clusters, maxAlloc) = allocChks clusters
+	  val (clusters, maxAlloc) = clusters funcs
 	  in
 	    {clusters = clusters, maxAlloc = maxAlloc, data = data}
           end (* compile *)

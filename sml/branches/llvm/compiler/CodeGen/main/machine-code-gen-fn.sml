@@ -35,12 +35,28 @@ functor MachineCodeGenFn (
     fun compile {source, prog} = let
 	(* CPS compilation *)
 	  val {clusters, maxAlloc, data} = CPSGen.compile {source=source, prog=prog}
-	(* MLRISC cde generation *)
-	  val getEP = codegen {
-		  clusters = clusters, maxAlloc = maxAlloc, source = source
-		}
+	  val code = if !Control.CG.useLLVM
+		then let
+		(* convert to CFG IR *)
+		  val cfg = CPSGen.toCFG {
+			  source = source, clusters = clusters, maxAlloc = maxAlloc
+			}
+		(* pickle the IR into a vector *)
+		  val pkl = CFGPickler.toBytes cfg
+		  in
+		  (* invoke the LLVM code generator *)
+		    CodeObj.generate (source, pkl)
+		  end
+		else let
+		(* MLRISC code generation *)
+		  val getEP = codegen {
+			  clusters = clusters, maxAlloc = maxAlloc, source = source
+			}
+		  in
+		    collect getEP
+		  end
 	  in
-	    {code = collect getEP, data = data}
+	    {code = code, data = data}
 	  end
 
   end
