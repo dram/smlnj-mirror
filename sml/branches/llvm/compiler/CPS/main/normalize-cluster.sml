@@ -56,14 +56,25 @@ fun prCluster (fn1::fns) = (
   (***** cluster info *****)
 
     structure Info : sig
+      (* information about a group of CPS functions *)
 	type t
+      (* `mk (entries, frags)` creates the info structure for a cluster with
+       * entry functions `entries` and internal functions `frags`.
+       *)
 	val mk : C.function list * C.function list -> t
+      (* return the number of entry functions in the cluster *)
 	val nEntries : t -> int
+      (* return the number of internal functions in the cluster *)
 	val nOther : t -> int
+      (* return the total number of functions in the cluster *)
 	val nFuncs : t -> int
+      (* map a function's name to its integer ID *)
 	val idOf : t -> LV.lvar -> int
+      (* map a function's ID to its name *)
 	val labelOf : t -> int -> LV.lvar
+      (* map a function's ID to its definition *)
 	val funcOf : t -> int -> C.function
+      (* given a function ID, return the list of function IDs that it calls *)
 	val succs : t -> int -> int list
       (* `dfsApp info f id` does a DFS traversal of the graph starting at node `id`
        * and applies the function `f` to each reachable node as it is visited.
@@ -74,13 +85,12 @@ fun prCluster (fn1::fns) = (
 (* DEBUG*)
       end = struct
 
-      (* information about a group of CPS functions *)
 	type t = {
 	    nEntries : int,			(* the number of entries *)
 	    nOther : int,			(* the number of non-entry functions *)
 	    funcToID : LV.lvar -> int,		(* mapping from lvars to function IDs *)
 	    idToFunc : C.function array,	(* mapping from IDs to functions *)
-	    callGraph : int list array		(* representation of call graph *)
+	    callGraph : int list array		(* adjacency-list representation of call graph *)
 	  }
 
 	fun mk (entries, frags) : t = let
@@ -90,7 +100,7 @@ fun prCluster (fn1::fns) = (
 	    (* mapping of function names to a dense integer range *)
 	      val funcToIdTbl : int LTbl.hash_table = LTbl.mkTable(numFuncs, Fail "func->id")
 	      val funcToID = LTbl.lookup funcToIdTbl
-	    (* mapping of ids to functions *)
+	    (* compute the mapping of ids to functions *)
 	      val idToFuncTbl = let
 		    val tbl = Array.array(numFuncs, hd frags)
 		    val add = LTbl.insert funcToIdTbl
@@ -108,9 +118,9 @@ fun prCluster (fn1::fns) = (
 			  frags;
 		      tbl
 		    end
-	    (* create a call graph for the functions, represented as an array `g` of integer
-	     * IDs, where `Array.sub(g, id)` is the list of function IDs that the function
-	     * with ID `id` calls.
+	    (* create a call graph for the functions, represented as an array `g` of
+	     * integer IDs, where `Array.sub(g, id)` is the list of function IDs that
+	     * the function with ID `id` calls.
 	     *)
 	      val graph = Array.array(numFuncs, [])
 	      fun addEdges ((_, g, _, _, body), nodes) = let
@@ -247,7 +257,7 @@ fun prCluster (fn1::fns) = (
 
       end (* structure FSig *)
 
-  (***** Normailzation *****)
+  (***** Normalization *****)
 
   (* check if there is a back edge to the entry function; if so, we split the entry into
    * a trivial header function and a second function that will be the target of the back
@@ -343,8 +353,8 @@ val _ = say "### compute sigMap\n"
 		in
 		  Array.foldli ins FSig.Map.empty idToSig
 		end
-	(* mark the entries, which are those nodes that have at least one predecessor with
-	 * a different signature.
+	(* mark the entries, which are those nodes that have at least one
+	 * predecessor with a different signature.
 	 *)
 	  val isEntry = Array.array(nFuncs, false)
 	  val visited = Array.array(nFuncs, false)
@@ -352,8 +362,8 @@ val _ = say "### compute sigMap\n"
 	  fun walk predSig id = let
 		val idSig = Array.sub(idToSig, id)
 		in
-		(* if the signature changes, then we mark the node as an entry, since there
-		 * is another path from an entry to it.
+		(* if the signature changes, then we mark the node as an entry,
+		 * since there is another path from an entry to it.
 		 *)
 		  if FSig.same(predSig, idSig) orelse Array.sub(isEntry, id)
 		    then ()
