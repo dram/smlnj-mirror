@@ -31,10 +31,18 @@ structure CodeObj :> CODE_OBJ =
     local
       structure CI = Unsafe.CInterface
     in
+  (* interface to the LLVM code generator *)
+    val codegen : string * W8V.vector -> W8A.array * int = CI.c_function "CodeGen" "generate"
     val allocCode : int -> W8A.array = CI.c_function "SMLNJ-RunT" "allocCode"
     val mkLiterals : W8V.vector -> object = CI.c_function "SMLNJ-RunT" "mkLiterals"
     val mkExec : W8A.array * int -> executable = CI.c_function "SMLNJ-RunT" "mkExec"
     end (* local *)
+
+    fun generate (src, pkl) = let
+	  val (code, offset) = codegen (src, pkl)
+	  in
+	    C{entrypoint = ref offset, obj = code}
+	  end
 
   (* Allocate an uninitialized code object. *)
     fun alloc n = (
