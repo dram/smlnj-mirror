@@ -240,7 +240,7 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 		      end
 		  | FIX _ => error ["unexpected FIX"]
 		  | SWITCH(v, _, cases) =>
-		      C.SWITCH(genV v, List.map genE cases)
+		      C.SWITCH(untagSigned v, List.map genE cases)
 		  | BRANCH(test, vs, _, k1, k2) =>
 		      genBranch (test, vs, genE k1, genE k2)
 		  | SETTER(oper, vs, k) =>
