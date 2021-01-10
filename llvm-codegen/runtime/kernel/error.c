@@ -14,7 +14,7 @@ extern FILE	*DebugF;
 /* Say:
  * Print a message to the standard output.
  */
-void Say (char *fmt, ...)
+void Say (const char *fmt, ...)
 {
     va_list	ap;
 
@@ -28,7 +28,7 @@ void Say (char *fmt, ...)
 /* SayDebug:
  * Print a message to the debug output stream.
  */
-void SayDebug (char *fmt, ...)
+void SayDebug (const char *fmt, ...)
 {
     va_list	ap;
 
@@ -42,7 +42,7 @@ void SayDebug (char *fmt, ...)
 /* Error:
  * Print an error message.
  */
-void Error (char *fmt, ...)
+void Error (const char *fmt, ...)
 {
     va_list	ap;
 
@@ -57,7 +57,7 @@ void Error (char *fmt, ...)
 /* Die:
  * Print an error message and then exit.
  */
-void Die (char *fmt, ...)
+void Die (const char *fmt, ...)
 {
     va_list	ap;
 

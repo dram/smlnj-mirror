@@ -113,22 +113,28 @@ ml_val_t llvm_codegen (ml_state_t *msp, const char *src, const char *pkl, size_t
     cu->codegen (CodeBuf);
     double genT = genTimer.msec();
 
+#ifdef VERIFY_LLVM
     Timer verifyTimer = Timer::start();
     if (CodeBuf->verify ()) {
 	llvm::report_fatal_error ("LLVM verification error", true);
     }
     double verifyT = verifyTimer.msec();
+#else
+    double verifyT = 0.0;
+#endif
 
   // optimize the LLVM code
     Timer optTimer = Timer::start();
     CodeBuf->optimize ();
     double optT = optTimer.msec();
 
+#ifdef VERIFY_LLVM
     verifyTimer.restart();
     if (CodeBuf->verify ()) {
 	llvm::report_fatal_error ("LLVM verification error after optimization", true);
     }
     verifyT += optTimer.msec();
+#endif
 
   // generate the in-memory object file
     Timer objGenTimer = Timer::start();

@@ -173,11 +173,11 @@ typedef struct {	/* a table of system constants. */
 
 
 /* run-time system messages */
-extern void Say (char *fmt, ...);
-extern void SayDebug (char *fmt, ...);
-extern void Error (char *, ...);
+extern void Say (const char *fmt, ...);
+extern void SayDebug (const char *fmt, ...);
+extern void Error (const char *, ...);
 extern void Exit (int code);
-extern void Die (char *, ...);
+extern void Die (const char *, ...);
 
 /* heap_params is an abstract type, whose representation depends on the
  * particular GC being used.

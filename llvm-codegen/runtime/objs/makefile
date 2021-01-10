@@ -20,10 +20,9 @@ CXX_FLAGS =     -g
 # LLVM configuration
 #
 SML_ROOT =      /Users/jhr/Work/smlnj/sml-llvm
-LLVM_DIR =      $(SML_ROOT)/llvm-codegen/llvm-debug
+LLVM_DIR =      $(SML_ROOT)/llvm-codegen/llvm-release
 LLVM_CONFIG =	$(LLVM_DIR)/bin/llvm-config
 
-LLVM_CPP_FLAGS = $(shell $(LLVM_CONFIG) --cppflags)
 LLVM_LD_FLAGS =	$(shell $(LLVM_CONFIG) --ldflags)
 LLVM_LIBS =	$(shell $(LLVM_CONFIG) --libs x86) \
 		$(shell $(LLVM_CONFIG) --system-libs)
@@ -310,8 +309,7 @@ MK_ARGS =		VERSION="$(VERSION)" \
 			CC="$(CC)" CFLAGS="$(CFLAGS)" DEFS="$(DEFS)" \
 			AR="$(AR)" ARFLAGS="$(ARFLAGS)" \
 			RANLIB="$(RANLIB)" \
-			INCLUDES="$(GC_INCLUDES) -I../bytecode" \
-			LLVM_CPP_FLAGS="$(LLVM_CPP_FLAGS)"
+			INCLUDES="$(GC_INCLUDES)"
 
 #
 # memory management library
@@ -455,6 +453,15 @@ $(CLIB_DIR)/dl/libunix-dynload.a: FORCE
 
 $(CLIB_DIR)/smlnj-ccalls/libsmlnj-ccalls.a: FORCE
 	(cd $(CLIB_DIR)/smlnj-ccalls; $(MAKE) $(LIB_MK_ARGS) libsmlnj-ccalls.a)
+
+CODEGEN_MK_ARGS =	VERSION="$(VERSION)" \
+			MAKE="$(MAKE)" \
+			CC="$(CC)" CFLAGS="$(CFLAGS)" DEFS="$(DEFS)" \
+			AR="$(AR)" ARFLAGS="$(ARFLAGS)" \
+			RANLIB="$(RANLIB)" \
+			INCLUDES="$(LIB_INCLUDES) \
+			LLVM_DIR="$(LLVM_DIR)" \
+			LLVM_CPP_FLAGS="$(LLVM_CPP_FLAGS)"
 
 $(CLIB_DIR)/codegen/libcodegen.a: FORCE
 	(cd $(CLIB_DIR)/codegen; $(MAKE) $(LIB_MK_ARGS) libcodegen.a)

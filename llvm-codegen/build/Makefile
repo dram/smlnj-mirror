@@ -5,11 +5,14 @@
 SHELL =		/bin/sh
 
 SML_ROOT =	../..
-LLVM_DIR =	../llvm-debug
+LLVM_DIR =	../llvm-release
+
+LLVM_CONFIG =	$(LLVM_DIR)/bin/llvm-config
+LLVM_CXX_FLAGS = $(shell $(LLVM_CONFIG) --cxxflags)
 
 CXX =		clang++ --std=c++14
-CPP_FLAGS =	-I../include -I$(SML_ROOT)/include -I$(LLVM_DIR)/include/
-CXX_FLAGS =	-g
+CPP_FLAGS =	-I../include -I$(LLVM_DIR)/include/
+CXX_FLAGS =	-g $(LLVM_CXX_FLAGS)
 
 VPATH =		../src
 

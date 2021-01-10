@@ -657,7 +657,7 @@ void code_buffer::dumpObj (std::string const &stem) const
 // dump the current module to stderr
 void code_buffer::dump () const
 {
-#ifndef RELEASE_BUILD
+#if !defined(NDEBUG) || defined(LLVM_ENABLE_DUMP)
     this->_module->dump();
 #endif
 }

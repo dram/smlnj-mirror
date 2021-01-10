@@ -18,6 +18,11 @@
 #include <istream>
 #include <ostream>
 
+extern "C" {
+// failure function from SML/NJ runtime
+[[ noreturn ]] extern void Die (const char *, ...);
+}
+
 namespace asdl {
 
   //! ASDL output stream
@@ -113,16 +118,27 @@ namespace asdl {
 	    }
 	}
 
-	char getc () {
+	char getc ()
+	{
 	    if (this->_is->good())
 		return this->_is->get();
+/* LLVM uses the -fno-exceptions flag, so this code doesn't compile */
+#ifdef XXX
 	    throw std::ios_base::failure("decode error");
+#else
+	    Die ("ASDL decode error");
+#endif
 	}
 	unsigned char getb ()
 	{
 	    if (this->_is->good())
 		return static_cast<unsigned char>(this->_is->get());
+/* LLVM uses the -fno-exceptions flag, so this code doesn't compile */
+#ifdef XXX
 	    throw std::ios_base::failure("decode error");
+#else
+	    Die ("ASDL decode error");
+#endif
 	}
 
       protected:

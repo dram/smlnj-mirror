@@ -1234,6 +1234,7 @@ namespace CFG {
         // pickler method suppressed
         static exp * read (asdl::instream & is);
         virtual Value *codegen (code_buffer *buf) = 0;
+	bool isLABEL () { return (this->_tag == _con_LABEL); }
 
       protected:
         enum _tag_t {

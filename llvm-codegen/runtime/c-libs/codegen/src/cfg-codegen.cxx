@@ -182,7 +182,7 @@ namespace CFG {
 	frag_kind fk = frag_kind::STD_FUN;
 	llvm::FunctionType *fnTy;
 	Value *fn;
-	LABEL *lab = dynamic_cast<LABEL *>(this->_v0);
+	LABEL *lab = (this->_v0->isLABEL() ? reinterpret_cast<LABEL *>(this->_v0) : nullptr);
 	if (lab == nullptr) {
 	    fnTy = buf->createFnTy (fk, genTypes (buf, this->_v2));
 	    fn = buf->build().CreateBitCast(
@@ -211,7 +211,7 @@ namespace CFG {
     {
 	llvm::FunctionType *fnTy;
 	Value *fn;
-	LABEL *lab = dynamic_cast<LABEL *>(this->_v0);
+	LABEL *lab = (this->_v0->isLABEL() ? reinterpret_cast<LABEL *>(this->_v0) : nullptr);
 	if (lab == nullptr) {
 	    fnTy = buf->createFnTy (frag_kind::STD_CONT, genTypes (buf, this->_v2));
 	    fn = buf->build().CreateBitCast(

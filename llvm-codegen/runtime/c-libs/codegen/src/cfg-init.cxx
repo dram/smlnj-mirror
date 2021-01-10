@@ -11,6 +11,11 @@
 
 #include "cfg.hxx"
 
+/* control the adding of symbolic names to some values for easier debugging */
+#ifdef NDEBUG
+#  define NO_NAMES
+#endif
+
 namespace CFG {
 
   /***** initialization for the `stm` type *****/
