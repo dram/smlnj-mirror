@@ -343,6 +343,7 @@ view Cxx {
 -- exp
     { CFG.exp } <= public_code %%
         virtual Value *codegen (code_buffer *buf) = 0;
+	bool isLABEL () { return (this->_tag == _con_LABEL); }
 %%
     { CFG.exp.* } <= public_code %%
         Value *codegen (code_buffer *buf);

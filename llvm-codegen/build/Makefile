@@ -5,7 +5,7 @@
 SHELL =		/bin/sh
 
 SML_ROOT =	../..
-LLVM_DIR =	../llvm-release
+LLVM_DIR =	../llvm-debug
 
 LLVM_CONFIG =	$(LLVM_DIR)/bin/llvm-config
 LLVM_CXX_FLAGS = $(shell $(LLVM_CONFIG) --cxxflags)
@@ -18,11 +18,9 @@ VPATH =		../src
 
 INCLS =		$(wildcard *hxx) $(wildcard ../include/*hxx) $(wildcard ../../include/asdl/*hxx)
 
-SRCS =		cfg.cxx lambda-var.cxx \
-		codegen.cxx code-buffer.cxx mc-gen.cxx sml-registers.cxx target-info.cxx \
-		cfg-init.cxx cfg-codegen.cxx cfg-prim-codegen.cxx
+SRCS =		$(wildcard ../src/*.cxx)
 
-OBJS =		$(SRCS:%.cxx=%.o)
+OBJS =		$(notdir $(SRCS:%.cxx=%.o))
 
 llvm-codegen:	$(OBJS)
 

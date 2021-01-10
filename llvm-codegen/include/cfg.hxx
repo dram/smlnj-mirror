@@ -179,7 +179,7 @@ namespace CTypes {
     class c_proto {
       public:
         c_proto (calling_convention p_conv, c_type * p_retTy, std::vector<c_type *> p_paramTys)
-        
+
             : _v_conv(p_conv), _v_retTy(p_retTy), _v_paramTys(p_paramTys)
         { }
         ~c_proto ();
@@ -1151,7 +1151,7 @@ namespace CFG {
 	bool isNUMt () { return this->_tag == _con_NUMt; }
 	bool isFLTt () { return this->_tag == _con_FLTt; }
 
-    
+
       protected:
         enum _tag_t {_con_LABt = 1, _con_PTRt, _con_TAGt, _con_NUMt, _con_FLTt};
         ty (_tag_t tag)
@@ -1480,7 +1480,7 @@ namespace CFG {
         virtual void codegen (code_buffer *buf) = 0;
         llvm::BasicBlock *bb () { return this->_bb; }
 
-    
+
       protected:
         enum _tag_t {
             _con_LET = 1,
@@ -1537,7 +1537,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-    
+
       private:
         exp * _v0;
         param * _v1;
@@ -1585,7 +1585,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-    
+
       private:
         CFG_Prim::alloc * _v0;
         std::vector<exp *> _v1;
@@ -1626,7 +1626,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-    
+
       private:
         exp * _v0;
         std::vector<exp *> _v1;
@@ -1666,7 +1666,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-    
+
       private:
         exp * _v0;
         std::vector<exp *> _v1;
@@ -1698,7 +1698,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-    
+
       private:
         LambdaVar::lvar _v0;
         std::vector<exp *> _v1;
@@ -1729,7 +1729,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-    
+
       private:
         exp * _v0;
         std::vector<stm *> _v1;
@@ -1737,7 +1737,7 @@ namespace CFG {
     class BRANCH : public stm {
       public:
         BRANCH (CFG_Prim::branch * p0, std::vector<exp *> p1, probability p2, stm * p3, stm * p4)
-        
+
             : stm(stm::_con_BRANCH), _v0(p0), _v1(p1), _v2(p2), _v3(p3), _v4(p4)
         { }
         ~BRANCH ();
@@ -1785,7 +1785,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-    
+
       private:
         CFG_Prim::branch * _v0;
         std::vector<exp *> _v1;
@@ -1835,7 +1835,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-    
+
       private:
         CFG_Prim::arith * _v0;
         std::vector<exp *> _v1;
@@ -1876,7 +1876,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-    
+
       private:
         CFG_Prim::setter * _v0;
         std::vector<exp *> _v1;
@@ -1916,7 +1916,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-    
+
       private:
         std::vector<exp *> _v0;
         std::vector<LambdaVar::lvar> _v1;
@@ -1925,7 +1925,7 @@ namespace CFG {
     class RCC : public stm {
       public:
         RCC (bool p_reentrant, std::string p_linkage, CTypes::c_proto * p_proto, std::vector<exp *> p_args, std::vector<param *> p_results, std::vector<param *> p_live, stm * p_k)
-        
+
             : stm(stm::_con_RCC), _v_reentrant(p_reentrant), _v_linkage(p_linkage),
             _v_proto(p_proto), _v_args(p_args), _v_results(p_results), _v_live(p_live),
             _v_k(p_k)
@@ -1991,7 +1991,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-    
+
       private:
         bool _v_reentrant;
         std::string _v_linkage;
@@ -2009,7 +2009,7 @@ namespace CFG {
     class frag {
       public:
         frag (frag_kind p_kind, LambdaVar::lvar p_lab, std::vector<param *> p_params, stm * p_body)
-        
+
             : _v_kind(p_kind), _v_lab(p_lab), _v_params(p_params), _v_body(p_body)
         { }
         ~frag ();
@@ -2056,7 +2056,7 @@ namespace CFG {
 	    this->_phiNodes[i]->addIncoming(v, bblk);
 	}
 
-    
+
       private:
         frag_kind _v_kind;
         LambdaVar::lvar _v_lab;
@@ -2143,7 +2143,7 @@ namespace CFG {
 	llvm::Function *fn () const { return this->_fn; }
 	frag *entry () const { return this->_v_frags[0]; }
 
-    
+
       private:
         attrs * _v_attrs;
         std::vector<frag *> _v_frags;
@@ -2155,7 +2155,7 @@ namespace CFG {
     class comp_unit {
       public:
         comp_unit (std::string p_srcFile, cluster * p_entry, std::vector<cluster *> p_fns)
-        
+
             : _v_srcFile(p_srcFile), _v_entry(p_entry), _v_fns(p_fns)
         { }
         ~comp_unit ();

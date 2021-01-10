@@ -120,8 +120,10 @@ namespace asdl {
 /* LLVM uses the -fno-exceptions flag, so this code doesn't compile */
 #ifdef XXX
 	    throw std::ios_base::failure("decode error");
-#else
+#elif defined(NDEBUG)
 	    abort();
+#else
+	    assert(0 && "ASDL decode error");
 #endif
 	}
 	unsigned char getb ()
@@ -130,8 +132,10 @@ namespace asdl {
 		return static_cast<unsigned char>(this->_is->get());
 #ifdef XXX
 	    throw std::ios_base::failure("decode error");
-#else
+#elif defined(NDEBUG)
 	    abort();
+#else
+	    assert(0 && "ASDL decode error");
 #endif
 	}
 
