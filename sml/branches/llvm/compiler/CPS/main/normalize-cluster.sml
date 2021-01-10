@@ -47,14 +47,14 @@ structure NormalizeCluster : sig
 
     type cluster = C.function list
 
-(*DEBUG*)
+(*+DEBUG*
 val say = Control.Print.say
 fun prCluster (fn1::fns) = (
       say "***** CLUSTER START *****\n";
       PPCps.printcps0 fn1;
       List.app (fn f => (say "***** FRAG *****\n"; PPCps.printcps0 f)) fns;
       say "***** CLUSTER END *****\n")
-(*DEBUG*)
+*-DEBUG*)
 
   (***** bit-vector sets *****)
     structure BVSet :> sig
@@ -63,6 +63,7 @@ fun prCluster (fn1::fns) = (
 	val fromInt : int -> elem
 	val toInt : elem -> int
 	val empty : t
+	val singleton : elem -> t
 	val add : t * elem -> t
 	val member : t * elem -> bool
 	val union : t * t -> t
@@ -77,6 +78,13 @@ fun prCluster (fn1::fns) = (
 	val toInt = Word.toIntX
 	val bitsPerWord = Word.fromInt Word.wordSize
 	val empty = S[]
+	fun singleton id = let
+	      fun lp id = if (id < bitsPerWord)
+		    then [Word.<<(0w1, id)]
+		    else 0w0 :: lp (id - bitsPerWord)
+	      in
+		S (lp id)
+	      end
 	fun add (S bits, id) = let
 	      fun lp ([], id) = if (id < bitsPerWord)
 		    then [Word.<<(0w1, id)]
@@ -166,10 +174,10 @@ fun prCluster (fn1::fns) = (
        * and applies the function `f` to each reachable node as it is visited.
        *)
 	val dfsApp : t -> (int -> unit) -> int -> unit
-(*DEBUG*)
+(*+DEBUG*
 	val idToString : t -> int -> string
 	val dump : t -> unit
-(* DEBUG*)
+*-DEBUG*)
       end = struct
 
       (* a node in the graph is represented with adjacency lists *)
@@ -297,7 +305,7 @@ fun prCluster (fn1::fns) = (
 		dfs rootId
 	      end
 
-(*DEBUG*)
+(*+DEBUG*
 	fun idToString ({nEntries, idToFunc, ...} : t) id = let
 	      val (_, f, _, _, _) = Array.sub(idToFunc, id)
 	      in
@@ -318,7 +326,7 @@ fun prCluster (fn1::fns) = (
 		Array.appi sayNd (#callGraph info);
 		say "###\n"
 	      end
-(* DEBUG*)
+*-DEBUG*)
 
       end (* structure Info *)
 
@@ -333,15 +341,13 @@ fun prCluster (fn1::fns) = (
    * i in [0..nEntries-1].
    *)
     structure FSig : sig
-	type t
-      (* the empty signature *)
-	val empty : t
+	type t = BVSet.t
+      (* singleton signature *)
+	val singleton : int -> t
       (* does a signature include the given entry? *)
 	val canReach : int -> t -> bool
       (* add a bit to a signature, where we assume that the bit was not previously set *)
 	val add : int -> t -> t
-      (* are two signatures the same? *)
-	val same : t * t -> bool
       (* map a function over the fragment IDs in a signature *)
 	val map : (int -> 'a) -> t -> 'a list
       (* apply a function to the fragment IDs in a signature *)
@@ -350,17 +356,15 @@ fun prCluster (fn1::fns) = (
 	structure Map : ORD_MAP where type Key.ord_key = t
       end = struct
         type t = BVSet.t
-	val empty = BVSet.empty
+	fun singleton id = BVSet.singleton(BVSet.fromInt id)
 	fun canReach id s = BVSet.member(s, BVSet.fromInt id)
 	fun add id s = BVSet.add (s, BVSet.fromInt id)
-	val same = BVSet.same
-	val compareSig = BVSet.compare
 	fun map f = BVSet.map (fn elem => f (BVSet.toInt elem))
 	fun app f = BVSet.app (fn elem => f (BVSet.toInt elem))
 	structure Map = RedBlackMapFn (
 	  struct
 	    type ord_key = t
-	    val compare = compareSig
+	    val compare = BVSet.compare
 	  end)
       end (* structure FSig *)
 
@@ -388,11 +392,12 @@ fun prCluster (fn1::fns) = (
 		  | C.FIX _ => error "unexpected FIX"
 		(* end case *))
 	  in
-	    if hasBackEdge body orelse List.exists (fn (_, _, _, _, e) => hasBackEdge e) frags
+	    if hasBackEdge body
+            orelse List.exists (fn (_, _, _, _, e) => hasBackEdge e) frags
 	      then let
 		val hdrLab = LV.mkLvar()
 		val params' = List.map (fn _ => LV.mkLvar()) params
-	      (* the new entry function *)
+	      (* the new entry function just jumps to the loop header *)
 		val entry' =
 		     (fk, entryLab, params', tys, C.APP(C.LABEL hdrLab, List.map C.VAR params'))
 	      (* rewrite jumps to `entryLab` with jumps to `hdrLab` *)
@@ -405,19 +410,23 @@ fun prCluster (fn1::fns) = (
 			| C.SELECT(i, v, lv, ty, e) => C.SELECT(i, v, lv, ty, rewrite e)
 			| C.OFFSET(i, v, lv, e) => C.OFFSET(i, v, lv, rewrite e)
 			| C.SWITCH(v, id, es) => C.SWITCH(v, id, List.map rewrite es)
-			| C.BRANCH(p, vs, id, e1, e2) => C.BRANCH(p, vs, id, rewrite e1, rewrite e2)
+			| C.BRANCH(p, vs, id, e1, e2) =>
+			    C.BRANCH(p, vs, id, rewrite e1, rewrite e2)
 			| C.SETTER(p, vs, e) => C.SETTER(p, vs, rewrite e)
 			| C.LOOKER(p, vs, lv, ty, e) => C.LOOKER(p, vs, lv, ty, rewrite e)
 			| C.ARITH(p, vs, lv, ty, e) => C.ARITH(p, vs, lv, ty, rewrite e)
 			| C.PURE(p, vs, lv, ty, e) => C.PURE(p, vs, lv, ty, rewrite e)
-			| C.RCC(b, cc, proto, vs, lvs, e) => C.RCC(b, cc, proto, vs, lvs, rewrite e)
+			| C.RCC(b, cc, proto, vs, lvs, e) =>
+			    C.RCC(b, cc, proto, vs, lvs, rewrite e)
 			| C.FIX _ => error "unexpected FIX"
 		      (* end case *))
+		val frags' = List.map
+		      (fn (fk, lab, xs, tys, e) => (fk, lab, xs, tys, rewrite e))
+			frags
 		in
-		  entry' :: (C.KNOWN, hdrLab, params, tys, rewrite body)
-		    :: List.map (fn (fk, lab, xs, tys, e) => (fk, lab, xs, tys, rewrite e)) frags
+		  entry' :: (C.KNOWN, hdrLab, params, tys, rewrite body) :: frags'
 		end
-	      else entry::frags
+	      else entry :: frags
 	  end
 
   (* given a cluster with multiple entry points, split it into a list of clusters, where
@@ -426,15 +435,24 @@ fun prCluster (fn1::fns) = (
    *)
     fun splitCluster info = let
 	  val nFuncs = Info.nFuncs info
+	  val predsOf = Info.preds info
 	  val succsOf = Info.succs info
 	(* list to record the internal fragments that are going to become entry nodes *)
 	  val newEntries = ref ISet.empty
-	  fun addEntry id = newEntries := ISet.add(!newEntries, id)
 	  fun isEntry id = ISet.member(!newEntries, id)
+	(* mark a node as a new entry node and remove all incoming edges *)
+	  fun newEntry id = (
+		newEntries := ISet.add(!newEntries, id);
+		List.app (fn id' => Info.removeEdge (info, id', id)) (predsOf id))
 	(* split the cluster; calls itself recursively until everything is normalized *)
 	  fun split (entryIds, fragIds) = let
+(*+DEBUG*
+val _ = say(concat[
+"### split: entries = {", String.concatWithMap "," (Info.idToString info) entryIds,
+"}, frags = {", String.concatWithMap "," (Info.idToString info) fragIds, "}\n"])
+*-DEBUG*)
 	      (* a mapping from fragments to their signatures *)
-		val idToSig = Array.array(nFuncs, FSig.empty)
+		val idToSig = Array.array(nFuncs, BVSet.empty)
 	      (* starting with the given entry function, do a DFS traversal to identify those
 	       * fragments that are reachable from the entry and update their signatures.
 	       *)
@@ -455,27 +473,40 @@ fun prCluster (fn1::fns) = (
 	       * edge from `f` to `g` from the graph.
 	       *)
 		fun newCluster entryId = let
-		      val entrySig = Array.sub(idToSig, entryId)
-		      val visited = ref(BVSet.add(BVSet.empty, BVSet.fromInt entryId))
-		      fun walk predId (id, frags) = if BVSet.member(!visited, BVSet.fromInt id)
-			    then frags (* alread visited *)
-			    else let
-			      val idSig = Array.sub(idToSig, id)
-			      in
-				visited := BVSet.add(!visited, BVSet.fromInt id);
-				if FSig.same(entrySig, idSig)
-				  then List.foldl (walk id) (id::frags) (succsOf id)
-				  else (
-				  (* remove the edge from predId to id *)
-				    Info.removeEdge (info, predId, id);
-				  (* record `id` as a new entry node *)
-				    addEntry id;
-				    frags)
-			      end
-		      val frags = List.rev (List.foldl (walk entryId) [] (succsOf entryId))
+		      val entrySig = FSig.singleton entryId
 		      in
-			unassignedFrags := ISet.subtractList (!unassignedFrags, frags);
-			(entryId, frags)
+			if BVSet.same(entrySig, Array.sub(idToSig, entryId))
+			  then let
+			    val visited = ref entrySig
+			    fun walk predId (id, frags) =
+				  if BVSet.member(!visited, BVSet.fromInt id)
+				    then frags (* alread visited *)
+				    else let
+				      val idSig = Array.sub(idToSig, id)
+				      in
+					visited := BVSet.add(!visited, BVSet.fromInt id);
+					if BVSet.same(entrySig, idSig)
+					  then List.foldl (walk id) (id::frags) (succsOf id)
+					  else (
+					  (* record `id` as a new entry node *)
+					    newEntry id;
+					    frags)
+				      end
+			    val frags = List.foldl (walk entryId) [] (succsOf entryId)
+			    in
+			      unassignedFrags :=
+				ISet.subtractList (!unassignedFrags, frags);
+			      (entryId, List.rev frags)
+			    end
+			(* this entry fragment is reachable from other entries, so
+			 * we must make it a stand-alone function.
+			 *)
+			  else (
+			  (* for each successor of this node, mark it as a new entry
+			   * and remove the edge to it.
+			   *)
+			    List.app newEntry (succsOf entryId);
+			    (entryId, []))
 		      end
 		val newClusters = List.map newCluster entryIds
 		in
@@ -499,15 +530,21 @@ fun prCluster (fn1::fns) = (
 	  end (* splitCluster *)
 
     fun normalize (entries, frags) = let
-val _ = say "## NormalizeCluster.normalize\n"
+(*+DEBUG*
+val _ = (
+      say "## NormalizeCluster.normalize\n";
+      prCluster (entries @ frags))
+*-DEBUG*)
 	  val info = Info.mk (entries, frags)
 	  val nEntries = Info.nEntries info
 	  val nFuncs = Info.nFuncs info
+(*+DEBUG*
 val _ = Info.dump info
+*-DEBUG*)
 	  val (newEntries, clusters) = splitCluster info
 	(* rewrite the new entries as necessary *)
 	  fun doCluster (cluster as entry::frags) = let
-		val (fk, f, params, paramTys, body) = entry
+		val (_, f, _, _, _) = entry
 		val entryId = Info.idOf info f
 		in
 		  if ISet.member(newEntries, entryId)
@@ -518,15 +555,15 @@ val _ = Info.dump info
 	    List.map doCluster clusters
 	  end
 
-(*DEBUG*)
+(*+DEBUG*
 val normalize = fn arg => let val clusters = normalize arg
 in
   say "## NormalizeCluster.normalize result:\n";
   List.app prCluster clusters;
-  say "## done\n";
+  say "## NormalizeCluster.normalize done\n";
   clusters
 end
-(*DEBUG*)
+*-DEBUG*)
 
   (***** Main function *****)
 
