@@ -210,7 +210,7 @@ functor CPSCCalls (
        fun partition([], tagged, untagged) = (tagged, untagged)
          | partition(v::vl, tagged, untagged) =
            let val t       = typmap v
-               val sz      = CPSUtil.sizeOf t
+               val sz      = CPSUtil.sizeOfTy t
                val tag     = CPSUtil.isTagged t
                val isFloat = CPSUtil.isFloat t
                val store   = store(v,sz,isFloat)

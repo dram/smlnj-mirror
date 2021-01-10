@@ -11,9 +11,11 @@ structure CPSUtil : sig
 
     val combinepaths : CPS.accesspath * CPS.accesspath -> CPS.accesspath
     val lenp : CPS.accesspath -> int
-    val ctyToString : CPS.cty -> string
+
     val hasRCC : CPS.cexp -> bool
-    val sizeOf : CPS.cty -> int   (* size of its representation in bits *)
+
+    val ctyToString : CPS.cty -> string
+    val sizeOfTy : CPS.cty -> int   (* size of its representation in bits *)
     val isFloat : CPS.cty -> bool (* is it a floating point type? *)
     val isTagged : CPS.cty -> bool
 
@@ -21,6 +23,14 @@ structure CPSUtil : sig
 
     val ctyc  : LtyDef.tyc -> CPS.cty
     val ctype : LtyDef.lty -> CPS.cty
+
+(**** not needed yet *****
+  (* return the size of a CPS function *)
+    val sizeOfFun : CPS.function -> int
+
+  (* create a copy of a function with fresh LVars for the bound variables *)
+    val copyFun : CPS.function -> CPS.function
+****)
 
   end = struct
 
@@ -79,10 +89,10 @@ structure CPSUtil : sig
 	    | CPS.PURE(_, _, _, _, e) => hasRCC e
 	  (* end case *))
 
-    fun sizeOf (CPS.FLTt sz) = sz
-      | sizeOf (CPS.NUMt{tag=false, sz}) = sz
-      | sizeOf (CPS.NUMt _) = Target.mlValueSz
-      | sizeOf (CPS.PTRt _ | CPS.FUNt | CPS.CNTt) = Target.mlValueSz
+    fun sizeOfTy (CPS.FLTt sz) = sz
+      | sizeOfTy (CPS.NUMt{tag=false, sz}) = sz
+      | sizeOfTy (CPS.NUMt _) = Target.mlValueSz
+      | sizeOfTy (CPS.PTRt _ | CPS.FUNt | CPS.CNTt) = Target.mlValueSz
 
     fun isFloat (CPS.FLTt _) = true
       | isFloat _ = false
@@ -161,5 +171,66 @@ structure CPSUtil : sig
 			     else if LT.ltp_cont lt then CPS.CNTt
 				  else BOGt))
     end (* local *)
+
+(**** not needed yet *****
+  (* return the "size" of a CPS function *)
+    val sizeOfFun (_, _, _, body) = let
+	  fun cntArgs ([], n) = n
+	    | cntArgs (_::r, n) = cntArgs(r, n+1)
+	  fun sz (cexp, n) = (case cexp
+		 of CPS.RECORD(_, vl, _, e) => sz (e, cntArgs(vl, n))
+		  | CPS.SELECT(_, _, _, _, e) => sz(e, n+1)
+		  | CPS.OFFSET(_, _, _, e) => sz(e, n+1)
+		  | CPS.APP _ => n+1
+		  | CPS.FIX(fl, e) => List.foldl (fn (f, n) => sizeOfFun f + n) (sz (e, n)) fl
+		  | CPS.SWITCH(_, _, ce) => List.foldl (fn (e, n) => sz(e, n+1)) (n+1) ce
+		  | CPS.BRANCH(_, _, _, c1, c2) => sz (c2, sz (c1, n+1))
+		  | CPS.SETTER(_, _, e) => sz (e, n+1)
+		  | CPS.LOOKER(_, _, _, _, e) => sz (e, n+1)
+		  | CPS.ARITH(_, _, _, _, e) => sz (e, n+1)
+		  | CPS.PURE(_, _, _, _, e) => sz (e, n+1)
+		  | CPS.RCC(_, _, _, vl, _, e) => sz (e, cntArgs(vl, n))
+		(* end case *))
+	  in
+	    sz (body, 1)
+	  end
+
+    structure LVMap = LambdaVar.Map
+
+  (* create a copy of a function with fresh LVars for the bound variables *)
+    fun copyFun (fk, f, xs, tys, e) = let
+	  fun bind (env, x, k) = let
+		val x' = LambdaVar.dupLvar x
+		in
+		  k (LVMap.insert(env, x, x'), x')
+		end
+	  fun renameVar env x = (case LVMap.find (env, x)
+		 of NONE => x
+		  | SOME x' => x'
+		(* end case *))
+	  fun rename env (CPS.VAR x) = CPS.VAR(renameVar env x)
+	    | rename env (CPS.LABEL lv) = CPS.LABEL(renameVar env lv)
+	    | rename _ v = v
+	  fun copyExp (env, cexp) = (case cexp
+		 of CPS.RECORD(rk, vl, x, e) => bind (env, x, fn (env', x') =>
+		      CPS.RECORD(rk, List.map (fn (v, p) => (rename env v, p)) vl, x',
+			copyExp(env', e))
+		  | CPS.SELECT(i, v, x, ty, e) => bind (env, x, fn (env', x') =>
+		      CPS.SELECT(i, rename env v, x', ty, copyExp(env', e)))
+		  | CPS.OFFSET(i, v, x, e) =>  bind (env, x, fn (env', x') =>
+		      CPS.OFFSET(i, rename env v, x', copyExp(env', e)))
+		  | CPS.APP(f, vl) => CPS.APP(rename env f, List.map (rename env) vl)
+		  | CPS.FIX(fl, e) =>
+		  | CPS.SWITCH(v, id, ce) => List.foldl (fn (e, n) => sz(e, n+1)) (n+1) ce
+		  | CPS.BRANCH(tst, vl, id, c1, c2) => sz (c2, sz (c1, n+1))
+		  | CPS.SETTER(oper, vl, e) => sz (e, n+1)
+		  | CPS.LOOKER(oper, vl, x, ty, e) => sz (e, n+1)
+		  | CPS.ARITH(oper, vl, x, ty, e) => sz (e, n+1)
+		  | CPS.PURE(oper, vl, x, ty, e) => sz (e, n+1)
+		  | CPS.RCC(_, _, _, vl, _, e) => sz (e, cntArgs(vl, n))
+		(* end case *))
+	  in
+	  end
+*****)
 
   end
