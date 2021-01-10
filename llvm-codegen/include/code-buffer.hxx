@@ -332,9 +332,9 @@ class code_buffer {
     }
 
   // create a fresh basic block in the current function
-    llvm::BasicBlock *newBB ()
+    llvm::BasicBlock *newBB (const llvm::Twine &name="")
     {
-	return llvm::BasicBlock::Create (this->_context, "", this->_curFn);
+	return llvm::BasicBlock::Create (this->_context, name, this->_curFn);
     }
 
   // return the block address for a basic block in the current function

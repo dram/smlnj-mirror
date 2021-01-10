@@ -134,6 +134,9 @@ namespace CFG {
 
       // initialize the fragment's body */
 	this->_v_body->init (buf, true);
+#ifndef NO_NAMES
+	this->_v_body->bb()->setName ("L_" + std::to_string(this->_v_lab));
+#endif
 
       // add a phi node for each parameter of the fragment
 	if (this->_v_kind == frag_kind::INTERNAL) {

@@ -76,6 +76,10 @@ void codegen (std::string const & src, bool emitLLVM, bool dumpBits, output out)
     cu->codegen (CodeBuf);
     std::cout << " " << genTimer.msec() << "ms\n" << std::flush;
 
+    if (emitLLVM) {
+	CodeBuf->dump ();
+    }
+
     if (! CodeBuf->verify ()) {
 	std::cerr << "Module verified\n";
     }
@@ -85,9 +89,9 @@ void codegen (std::string const & src, bool emitLLVM, bool dumpBits, output out)
     CodeBuf->optimize ();
     std::cout << " " << optTimer.msec() << "ms\n" << std::flush;
 
-    if (emitLLVM) {
-	CodeBuf->dump ();
-    }
+//    if (emitLLVM) {
+//	CodeBuf->dump ();
+//    }
 
     if (! CodeBuf->verify ()) {
 	std::cerr << "Module verified after optimization\n";

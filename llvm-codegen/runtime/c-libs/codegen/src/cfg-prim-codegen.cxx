@@ -178,7 +178,7 @@ namespace CFG_Prim {
 
 	Value *res = buf->createExtractValue(pair, 0);
 	Value *obit = buf->createExtractValue(pair, 1);
-	llvm::BasicBlock *next = buf->newBB ();
+	llvm::BasicBlock *next = buf->newBB ("ok");
 	buf->build().CreateCondBr(obit, buf->getOverflowBB(), next, buf->overflowWeights());
       // switch to the new block for the continuation
 	buf->setInsertPoint (next);

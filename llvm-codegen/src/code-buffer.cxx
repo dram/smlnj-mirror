@@ -565,7 +565,7 @@ llvm::BasicBlock *code_buffer::getOverflowBB ()
 {
     if (this->_overflowBB == nullptr) {
 	auto saveBB = this->_builder.GetInsertBlock ();
-	this->_overflowBB = this->newBB ();
+	this->_overflowBB = this->newBB ("trap");
 	this->_builder.SetInsertPoint (this->_overflowBB);
 	auto fnTy = llvm::FunctionType::get (this->voidTy, false);	// void trap()
 	llvm::InlineAsm *trap =
