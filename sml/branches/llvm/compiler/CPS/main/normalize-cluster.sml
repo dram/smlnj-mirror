@@ -543,10 +543,5 @@ end
 	    | ([entry], frags) => (entry::frags) :: clusters
 	    | (ents, frags) => normalize (ents, frags) @ clusters
 	  (* end case *))
-(*DEBUG*)
-val transform = fn (frags, clusters) => (
-say "## NormalizeCluster.transform:\n"; prCluster frags;
-transform (frags, clusters))
-(*DEBUG*)
 
   end (* NormalizeCluster *)
