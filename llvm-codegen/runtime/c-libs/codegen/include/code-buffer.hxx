@@ -285,7 +285,7 @@ class code_buffer {
     }
 
   // create an alias for the expression `f1 - f2`, where `f1` and `f2` are
-  // then labels of the two functions.
+  // the labels of the two functions.
     llvm::Constant *labelDiff (llvm::Function *f1, llvm::Function *f2);
 
   // create an alias for the expression `lab - entry`, where `lab` is the
