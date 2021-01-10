@@ -24,7 +24,7 @@ RANLIB =	ranlib
 LLVM_CONFIG =	$(LLVM_DIR)/bin/llvm-config
 
 LLVM_CXX_FLAGS = $(shell $(LLVM_CONFIG) --cxxflags)
-LLVM_CPP_FLAGS = -DNDEBUG -DNO_NAMES -Iinclude $(INCLUDES)
+LLVM_CPP_FLAGS = -DNDEBUG -Iinclude $(INCLUDES)
 
 CXX =           clang++ $(LLVM_CXX_FLAGS)
 
