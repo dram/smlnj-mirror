@@ -22,7 +22,7 @@
 #
 
 FORCE=no
-LLVM_SRC=llvm-11.0.0.src
+LLVM_SRC=llvm-10.0.1.src
 BUILD_TYPE=Debug
 NPROCS=4
 
