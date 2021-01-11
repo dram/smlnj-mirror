@@ -222,12 +222,12 @@ structure PrintPkl : sig
 		      say "throw "; sayExp f; sayArgs (args, tys); say "\n")
 		  | C.GOTO(lab, args) => (
 		      sayApp ("goto L_" ^ LV.toString lab, args); say "\n")
-		  | C.SWITCH(arg, cases) =>  let
+		  | C.SWITCH(arg, cases) => let
 		      fun sayCase (i, e) = (
-			    space n; say "case "; say(i2s i);
-			    say ":\n"; prStm (n+2) e)
+			    space (n+2); say "case "; say(i2s i);
+			    say ":\n"; prStm (n+4) e)
 		      in
-			space n; say "switch ("; say(expToString arg); say ") {\n";
+			say "switch ("; say(expToString arg); say ") {\n";
 			List.appi sayCase cases;
 			space n; say "}\n"
 		      end
