@@ -199,7 +199,7 @@ class code_buffer {
 	}
     }
 
-  // ensure that a value has the `mlValue` type
+  // ensure that a value has the pointer to `mlValue` type
     Value *asObjPtr (Value *v)
     {
 	if (! v->getType()->isPointerTy()) {
@@ -595,7 +595,7 @@ class code_buffer {
     {
 	this->_builder.CreateAlignedStore (
 	    this->asMLValue(v),
-	    adr,
+	    this->asObjPtr(adr),
 	    llvm::MaybeAlign(this->_wordSzB));
     }
     void createStore (Value *v, Value *adr, unsigned align)
