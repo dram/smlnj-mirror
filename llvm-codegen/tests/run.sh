@@ -37,7 +37,7 @@ while [ "$#" != "0" ]; do
     -o) TARGET="$arg" ;;
     -S) TARGET="$arg" ;;
     -c) TARGET="$arg" ;;
-    -emit-llvm) FLAGS="$FLAGS $arg" ;;
+    --emit-llvm) FLAGS="$FLAGS $arg" ;;
     -*) echo "$0: unrecognized flag $arg"
         exit 1 ;;
     *) FILES="$FILES $arg" ;;
