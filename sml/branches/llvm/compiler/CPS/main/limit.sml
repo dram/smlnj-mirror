@@ -58,7 +58,6 @@ structure Limit : sig
   (* extra alignment for 64-bit data *)
     val raw64Pad = if Target.is64 then 0 else 1
 
-
   (* path now counts instructions as well as allocations, for polling *)
     fun path kindOf clusters = let
 	  exception LimitExn

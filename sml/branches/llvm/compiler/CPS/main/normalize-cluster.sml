@@ -37,12 +37,6 @@ structure NormalizeCluster : sig
 
     fun error msg = ErrorMsg.impossible ("NormalizeCluster: " ^ msg)
 
-    fun for (start, stop) f = let
-	  fun lp i = if (i < stop) then (f i; lp (i+1)) else ()
-	  in
-	    lp start
-	  end
-
     fun updateBy f (arr, i) = Array.update(arr, i, f (Array.sub(arr, i)))
 
     type cluster = C.function list
@@ -195,6 +189,7 @@ fun prCluster (fn1::fns) = (
 	      val nEntries = List.length entries
 	      val nOther = List.length frags
 	      val numFuncs = nEntries + nOther
+	      fun isEntry id = (id < nEntries)
 	    (* mapping of function names to a dense integer range *)
 	      val funcToIdTbl : int LTbl.hash_table = LTbl.mkTable(numFuncs, Fail "func->id")
 	      val funcToID = LTbl.lookup funcToIdTbl
@@ -216,9 +211,10 @@ fun prCluster (fn1::fns) = (
 			  frags;
 		      tbl
 		    end
-	    (* create a call graph for the functions, represented as an array `g` of
-	     * integer IDs, where `Array.sub(g, id)` is the list of function IDs that
-	     * the function with ID `id` calls.
+	    (* create a call graph of potentially local control transfers for the functions,
+	     * represented as an array `g` of `nd` valus, where `Array.sub(g, id)` is
+	     * the predecessor/successor lists for the function with ID `id`.  We do not
+	     * include any incoming edges that target entry nodes.
 	     *)
 	      val graph = Array.array(numFuncs, {preds=[], succs=[]})
 	      fun addEdges (gId, (_, g, _, _, body)) = let
@@ -239,7 +235,10 @@ fun prCluster (fn1::fns) = (
 				then add(r, id'::ids)
 				else succs
 			  in
-			    add (succs, [])
+			  (* do not add the edge if `f` is an entry node *)
+			    if isEntry id
+			      then succs
+			      else add (succs, [])
 			  end
 		    fun calls (e, succs) = (case e
 			   of C.APP(C.LABEL l, _) => addEdge (l, succs)

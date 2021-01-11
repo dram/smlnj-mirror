@@ -17,7 +17,7 @@ structure Cluster : sig
    * clusters to guarantee that each cluster has exactly one entry, where an
    * entry is defined as a function that has kind `ESCAPE` or `CONT`.
    *)
-    val cluster : bool -> CPS.function list -> cluster list
+    val cluster : bool * CPS.function list -> cluster list
 
   (* utility functions on clusters *)
     val map : (CPS.function -> CPS.function) -> cluster list -> cluster list
@@ -44,7 +44,7 @@ structure Cluster : sig
 
     val normalizeCluster = NormalizeCluster.transform
 
-(*+DEBUG*)
+(*+DEBUG*
   (* returns true if there is an error *)
     fun checkCluster [] = raise Empty
       | checkCluster (entry::frags) = let
@@ -52,12 +52,12 @@ structure Cluster : sig
 	    | isEntry (CPS.ESCAPE, _, _, _, _) = true
 	    | isEntry _ = false
 	  in
-	    not (isEntry entry) orelse List.exists isEntry frags
+	    List.exists isEntry frags
 	  end
-(*-DEBUG*)
+*-DEBUG*)
 
-    fun cluster singleEntry [] = raise List.Empty
-      | cluster singleEntry funcs = let
+    fun cluster (_, []) = raise List.Empty
+      | cluster (singleEntry, funcs) = let
 	(* We guarantee that the first function in `funcs` is the first
 	 * function in the first cluster by ensuring that the first
 	 * function is mapped to the smallest id in a dense enumeration.
@@ -123,14 +123,19 @@ structure Cluster : sig
 	 *)
 	  fun extract () = let
 		val clusters = Array.array(numOfFuncs, [])
-		fun collect n = let
-		      val root = ascend n
-		      val func = Array.sub(idToFuncTbl, n)
-		      val cluster = Array.sub(clusters, root)
-		      in
-			Array.update(clusters, root, func::cluster);
-			collect (n-1)
-		      end
+	      (* group functions into clusters *)
+		fun collect n = if (0 <= n)
+		      then let
+			val root = ascend n
+			val func = Array.sub(idToFuncTbl, n)
+			val cluster = Array.sub(clusters, root)
+			in
+			  Array.update(clusters, root, func::cluster);
+			  collect (n-1)
+			end
+		      else ()
+		val _ = collect (numOfFuncs-1)
+	      (* collect the clusters *)
 		fun finish (~1, acc) = acc
 		  | finish (n, acc) = (case Array.sub(clusters, n)
 		       of [] => finish (n-1, acc)
@@ -143,13 +148,11 @@ structure Cluster : sig
 			    end
 		      (* end case *))
 		in
-		  collect (numOfFuncs-1) handle _ => ();
 		  finish (numOfFuncs-1, [])
 		end
-(*+DEBUG*)
+(*+DEBUG*
 	  val extract = fn () => if singleEntry
-		then extract ()
-		else let
+		then let (* check the results of normalization *)
 		  val clusters = extract ()
 		  val say = Control.Print.say
 		  in
@@ -165,7 +168,8 @@ structure Cluster : sig
 		      | NONE => clusters
 		    (* end case *)
 		  end
-(*-DEBUG*)
+		else extract ()
+*-DEBUG*)
 	  in
 	    build funcs;
 	    if !Control.CG.printClusters
