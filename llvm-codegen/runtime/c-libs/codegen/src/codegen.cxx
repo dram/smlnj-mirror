@@ -66,17 +66,20 @@ static llvm::ExitOnError exitOnErr;
 static void resolve_relocs (llvm::object::SectionRef &sect, unsigned char *code, size_t szb)
 {
     for (auto reloc : sect.relocations()) {
-      // the address to be patched
-	auto offset = reloc.getOffset();
-	auto symb = *(reloc.getSymbol());
+      // the patch value; we ignore the relocation record if the symbol is not defined
+	auto symb = reloc.getSymbol();
+	if (sect.getObject()->symbols().end() != symb) {
+          // the address to be patched (relative to the beginning of the file)
+	    auto offset = reloc.getOffset();
 /* FIXME: for LLVM 11.0+, the getValue() method returns a Expected<uint64_t> value */
-      // the patch value; we compute the offset relative to the address of
-      // byte following the patched location.
-	int32_t value = (int32_t)symb.getValue() - ((int32_t)offset + 4);
+	  // the patch value; we compute the offset relative to the address of
+	  // byte following the patched location.
+	    int32_t value = (int32_t)symb->getValue() - ((int32_t)offset + 4);
 /* FIXME: we are assuming 32-bit patches and a little-endian target here */
-	for (int i = 0;  i < 4;  i++) {
-	    code[offset++] = value & 0xff;
-	    value >>= 8;
+	    for (int i = 0;  i < 4;  i++) {
+		code[offset++] = value & 0xff;
+		value >>= 8;
+	    }
 	}
     }
 
