@@ -453,28 +453,28 @@ class code_buffer {
     llvm::Function *fabs32 () const
     {
 	if (this->_fabs32 == nullptr) {
-	    this->_fabs32 = _getIntrinsic (llvm::Intrinsic::fabs, this->i32Ty);
+	    this->_fabs32 = _getIntrinsic (llvm::Intrinsic::fabs, this->f32Ty);
 	}
 	return this->_fabs32;
     }
     llvm::Function *fabs64 () const
     {
 	if (this->_fabs64 == nullptr) {
-	    this->_fabs64 = _getIntrinsic (llvm::Intrinsic::fabs, this->i64Ty);
+	    this->_fabs64 = _getIntrinsic (llvm::Intrinsic::fabs, this->f64Ty);
 	}
 	return this->_fabs64;
     }
     llvm::Function *sqrt32 () const
     {
 	if (this->_sqrt32 == nullptr) {
-	    this->_sqrt32 = _getIntrinsic (llvm::Intrinsic::sqrt, this->i32Ty);
+	    this->_sqrt32 = _getIntrinsic (llvm::Intrinsic::sqrt, this->f32Ty);
 	}
 	return this->_sqrt32;
     }
     llvm::Function *sqrt64 () const
     {
 	if (this->_sqrt64 == nullptr) {
-	    this->_sqrt64 = _getIntrinsic (llvm::Intrinsic::sqrt, this->i64Ty);
+	    this->_sqrt64 = _getIntrinsic (llvm::Intrinsic::sqrt, this->f64Ty);
 	}
 	return this->_sqrt64;
     }
