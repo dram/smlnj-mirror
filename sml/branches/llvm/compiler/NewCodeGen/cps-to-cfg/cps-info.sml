@@ -149,9 +149,19 @@ structure CPSInfo : sig
 		      useVal v; List.app init ks)
 		  | BRANCH(_, vs, _, k1, k2) => (useVals vs; init k1; init k2)
 		  | SETTER(_, vs, k) => (useArgs vs; init k)
-		  | LOOKER(_, vs, x, ty, k) => (recordTy (x, ty); useVals vs; init k)
+		  | LOOKER(_, vs, x, ty, k) => (
+		    (* we mark `x` as `BOUND` so that its definition is not moved
+		     * across `SETTERs`.
+		     *)
+		      bindVar x;
+		      recordTy (x, ty);
+		      useVals vs;
+		      init k)
 		  | ARITH(_, vs, x, ty, k) => (
 		      hasTrapArith := true;
+		    (* we mark `x` as `BOUND` so that its definition is not moved
+		     * across `SETTERs`.
+		     *)
 		      bindVar x;
 		      recordTy (x, ty); useVals vs; init k)
 		  | PURE(rator, vs, x, ty, k) => (
