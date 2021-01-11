@@ -200,7 +200,7 @@ fun prCluster (fn1::fns) = (
 	      val funcToID = LTbl.lookup funcToIdTbl
 	    (* compute the mapping of ids to functions *)
 	      val idToFuncTbl = let
-		    val tbl = Array.array(numFuncs, hd frags)
+		    val tbl = Array.array(numFuncs, hd entries)
 		    val add = LTbl.insert funcToIdTbl
 		    in
 		      List.appi
