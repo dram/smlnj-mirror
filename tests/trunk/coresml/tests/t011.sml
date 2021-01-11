@@ -1,7 +1,7 @@
 (* t011.sml *)
 (* Evaluation order *)
 
-exception Io of {function: string, name: string, cause: exn}
+exception Io of {function: string, name: string, cause: exn};
 
 (let val nil = [1,2] and _ =
      raise Io{function = "WRONG",  name = "WRONG", cause = Fail "WRONG"}
