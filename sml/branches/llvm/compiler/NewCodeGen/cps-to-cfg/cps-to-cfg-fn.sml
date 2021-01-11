@@ -520,6 +520,7 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 		       of (P.ADD, args) => pureOp (TP.FADD, sz, args)
 			| (P.SUB, args) => pureOp (TP.FSUB, sz, args)
 			| (P.MUL, args) => pureOp (TP.FMUL, sz, args)
+			| (P.NEG, args) => pureOp (TP.FNEG, sz, args)
 			| (P.FDIV, args) => pureOp (TP.FDIV, sz, args)
 			| (P.FABS, args) => pureOp (TP.FABS, sz, args)
 			| (P.FSQRT, args) => pureOp (TP.FSQRT, sz, args)
