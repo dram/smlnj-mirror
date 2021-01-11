@@ -44,7 +44,8 @@ structure Cluster : sig
 
     val normalizeCluster = NormalizeCluster.transform
 
-    fun cluster singleEntry funcs = let
+    fun cluster singleEntry [] = raise List.Empty
+      | cluster singleEntry funcs = let
 	(* We guarantee that the first function in `funcs` is the first
 	 * function in the first cluster by ensuring that the first
 	 * function is mapped to the smallest id in a dense enumeration.
