@@ -211,6 +211,10 @@ or raise exceptions.
       floating-point values.  This operation works directly on the array's data
       object and does not do bounds checking.
 
+    * `RAW_SELECT{kind, sz, offset}` -- selects raw numeric values from raw
+      records.  The `offset` is in bytes and should be a multiple of the
+      value size.
+
 * `SELECT{idx, arg}` extracts the `idx`th element from the record specified by
   `arg` (0-based).  The selected value should a valid SML value; *i.e.*,
   either a pointer or a tagged integer.
