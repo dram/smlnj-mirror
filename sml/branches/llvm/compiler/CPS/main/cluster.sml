@@ -44,6 +44,18 @@ structure Cluster : sig
 
     val normalizeCluster = NormalizeCluster.transform
 
+(*+DEBUG*)
+  (* returns true if there is an error *)
+    fun checkCluster [] = raise Empty
+      | checkCluster (entry::frags) = let
+	  fun isEntry (CPS.CONT, _, _, _, _) = true
+	    | isEntry (CPS.ESCAPE, _, _, _, _) = true
+	    | isEntry _ = false
+	  in
+	    not (isEntry entry) orelse List.exists isEntry frags
+	  end
+(*-DEBUG*)
+
     fun cluster singleEntry [] = raise List.Empty
       | cluster singleEntry funcs = let
 	(* We guarantee that the first function in `funcs` is the first
@@ -109,7 +121,7 @@ structure Cluster : sig
 	 * The first func in the funcs list must be the first function
 	 * in the first cluster.
 	 *)
-	  fun extract() = let
+	  fun extract () = let
 		val clusters = Array.array(numOfFuncs, [])
 		fun collect n = let
 		      val root = ascend n
@@ -134,6 +146,26 @@ structure Cluster : sig
 		  collect (numOfFuncs-1) handle _ => ();
 		  finish (numOfFuncs-1, [])
 		end
+(*+DEBUG*)
+	  val extract = fn () => if singleEntry
+		then extract ()
+		else let
+		  val clusters = extract ()
+		  val say = Control.Print.say
+		  in
+		    case List.find checkCluster clusters
+		     of SOME cluster => (
+			  say "********** BOGUS CLUSTERS AFTER NORMALIZE **********\n";
+			  say "*** INITIAL FUNCS ***\n";
+			    List.app PPCps.printcps0 funcs;
+			  say "*** BAD CLUSTER ***\n";
+			    List.app PPCps.printcps0 cluster;
+			  say "**********\n";
+			  error "bogus cluster")
+		      | NONE => clusters
+		    (* end case *)
+		  end
+(*-DEBUG*)
 	  in
 	    build funcs;
 	    if !Control.CG.printClusters
