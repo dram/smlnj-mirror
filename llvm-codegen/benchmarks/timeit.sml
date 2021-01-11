@@ -64,27 +64,30 @@ structure Timing : sig
 	  end
 
   (* Time one run of the benchmark *)
-    fun timeIt (outstrm, doit) = let
+    fun timeOne (outstrm, doit) = let
 	  val t0 = start()
 	  in
 	    doit();
 	    TextIO.output1 (outstrm, #"\t");
-	    output (outstrm, stop t0);
-	    TextIO.flushOut outstrm
+	    output (outstrm, stop t0)
 	  end
+
+    fun timeIt (outstrm, doit) = (
+	  timeOne (outstrm, doit);
+	  TextIO.output1 (outstrm, #"\n"))
 
   (* Time n runs of the benchmark *)
     fun time (n, outstrm, doit) = let
 	  fun loop 0 = ()
 	    | loop 1 = timeIt(outstrm, doit)
 	    | loop i = (
-		timeIt(outstrm, doit);
+		timeOne(outstrm, doit);
 		TextIO.output(outstrm, ",\n");
 		loop(i-1))
 	  in
 	    TextIO.output (outstrm, "    Runs=[\n");
 	    loop n;
-	    TextIO.output (outstrm, "      ]")
+	    TextIO.output (outstrm, "      ]\n")
 	  end
 
   end
