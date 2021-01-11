@@ -732,6 +732,10 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 	  (* end case *))
       | reallyNeedsGC _ = true
 
+  (* convert a CPS function to a CFG fragment.  The flag `isEntry` will be true
+   * for the entry function of a cluster and false otherwise.  The list `frags`
+   * is an accumulator for the coverted fragments.
+   *)
     fun doFun (maxAlloc : LV.lvar -> int, init) isEntry (func, frags) = let
 	  val (fk, f, params, paramTys, body) = func
 	  val info = init func
