@@ -138,6 +138,7 @@ structure GenericInstall : sig
   (* parse the action file and return the actions map and set of modules *)
     fun parseActions actionfile = let
 	  val s = TextIO.openIn actionfile
+	(* optional heap directory specifier *)
 	  fun opthd "-" = NONE
 	    | opthd h = SOME h
 	(* process arguments for a "prog" or "dprog" action *)
@@ -426,11 +427,14 @@ structure GenericInstall : sig
 	       *   The source tree for the target, relative to smlnjroot.
 	       *)
 		val heapname = concat [target, ".", heap_suffix]
+	      (* where we expect the resulting heap image to be placed *)
 		val targetheaploc = (case optheapdir
 		       of NONE => heapname
 			| SOME hd => P.concat (native hd, heapname)
 		      (* end case *))
+	      (* directory that has the build script *)
 		val treedir = P.concat (smlnjroot, native dir)
+	      (* path to the final heap image *)
 		val finalheaploc = P.concat (heapdir, heapname)
 		val alreadyExists = U.fexists finalheaploc
 		in
