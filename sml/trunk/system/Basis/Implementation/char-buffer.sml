@@ -96,6 +96,8 @@ structure CharBuffer :> MONO_BUFFER
             then content := A.create initLen
             else ())
 
+  (* lower bound on growth *)
+    val minGrowAmount = 4096
   (* limit on extra growth *)
     val extraGrowthLimit = 256 * 1024
 
@@ -107,12 +109,20 @@ structure CharBuffer :> MONO_BUFFER
           in
             if (capacity < len ++ amt)
               then let
+	      (* compute the amount to increase the capacity of the buffer.  We grow
+	       * the buffer by 1.5 subject to certain limits.
+	       *  - we grow by at least `amt` elements
+	       *  - we grow by at least `minGrowAmount` elements
+	       *  - we grow by no more than `amt+extraGrowthLimit` elements.
+	       *)
 		val growAmt = let
-		      val half = Int.rshift(capacity, 0w1)
+		      val half = Int.rshift(capacity, 0w1) (* 50% of current capacity *)
 		      in
-			if (amt >= half) then amt
-			else if (half -- amt < extraGrowthLimit) then extraGrowthLimit
-			else half -- amt
+			if (amt >= half)
+			  then Int.max(amt, minGrowAmount)
+			else if (extraGrowthLimit <= half -- amt)
+			  then amt ++ extraGrowthLimit
+			  else half
 		      end
 		val newSz = Int.min (maxLen, capacity ++ growAmt)
                 val newArr = A.create newSz
