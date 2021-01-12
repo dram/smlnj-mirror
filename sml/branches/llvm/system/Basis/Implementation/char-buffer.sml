@@ -1,6 +1,6 @@
 (* char-buffer.sml
  *
- * COPYRIGHT (c) 2018 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2021 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *)
 
@@ -15,11 +15,12 @@ structure CharBuffer :> MONO_BUFFER
     structure A = InlineT.CharArray
     structure V = InlineT.CharVector
     structure Word = InlineT.Word
+    structure Int = InlineT.Int
 
   (* fast add/subtract avoiding the overflow test *)
     infix 6 -- ++
-    fun x -- y = InlineT.Int.fast_sub(x, y)
-    fun x ++ y = InlineT.Int.fast_add(x, y)
+    fun x -- y = Int.fast_sub(x, y)
+    fun x ++ y = Int.fast_add(x, y)
 
     type elem = char
 
@@ -95,15 +96,26 @@ structure CharBuffer :> MONO_BUFFER
             then content := A.create initLen
             else ())
 
-  (* ensure that the content array has space for amt elements.  We assume that
-   * the resulting length will *not* exceed `maxLen`
+  (* limit on extra growth *)
+    val extraGrowthLimit = 4096
+
+  (* ensure that the content array has space for at least amt additional
+   * elements.  We assume that the resulting length will *not* exceed `maxLen`
    *)
     fun ensureCapacity (content as ref arr, len, amt) = let
-          val capacity = len ++ amt
+	  val capacity = A.length arr
           in
-            if (A.length arr < capacity)
+            if (capacity < len ++ amt)
               then let
-                val newArr = A.create capacity
+		val growAmt = let
+		      val half = Int.rshift(capacity, 0w1)
+		      in
+			if (amt >= half) then amt
+			else if (half -- amt < extraGrowthLimit) then extraGrowthLimit
+			else half -- amt
+		      end
+		val newSz = Int.min (maxLen, capacity ++ growAmt)
+                val newArr = A.create newSz
 		fun cpy i = if (i < len)
 		      then (A.update(newArr, i, A.sub(arr, i)); cpy (i ++ 1))
 		      else ()
@@ -117,13 +129,12 @@ structure CharBuffer :> MONO_BUFFER
     fun reserve (_, 0) = ()
       | reserve (BUF{content, len=ref len, ...}, n) =
           if (n < 0) then raise Size
-          else if (maxLen -- len > n) then ensureCapacity (content, len, maxLen -- len)
-	  else ensureCapacity (content, len, n)
+          else ensureCapacity (content, len, n)
 
     fun add1 (BUF{content, len as ref n, ...}, elem) =
 	  if (n < maxLen)
 	    then (
-	      ensureCapacity(content, n, 1);
+	      ensureCapacity (content, n, 1);
 	      A.update(!content, n, elem);
 	      len := n ++ 1)
 	    else raise Subscript
