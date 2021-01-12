@@ -93,7 +93,18 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //////////////////////////////////////////////////////////////////////
 
 //====================================================================
-//== Recent updates
+== Recent updates
+
+//--------------------------------------------------------------------
+[2021/01/12]::
++
+Fixed a serious performance bug in the implementation of the `CharBuffer`
+and `MonoBuffer` structures.  Essentially, if one did not reserve sufficient
+space for the contents, it could take quadratic time to fill the buffer.
+We now grow the buffer by a factor of 1.5 of its current size, with an
+upper bound of 256K.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
 
 //====================================================================
 == Version 110.99; 2020/12/24
