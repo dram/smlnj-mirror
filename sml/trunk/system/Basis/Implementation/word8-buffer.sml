@@ -97,7 +97,7 @@ structure Word8Buffer :> MONO_BUFFER
             else ())
 
   (* limit on extra growth *)
-    val extraGrowthLimit = 4096
+    val extraGrowthLimit = 256 * 1024
 
   (* ensure that the content array has space for at least amt additional
    * elements.  We assume that the resulting length will *not* exceed `maxLen`
