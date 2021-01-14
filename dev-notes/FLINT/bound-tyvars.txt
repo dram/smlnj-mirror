@@ -1,0 +1,110 @@
+Management of polymorphically bound type variables in declarations and expressions
+
+Defn: tmv = type metavariable (Types.tyvar of kind OPEN(META))
+
+newmc = Dev/newmc -- the compiler using the new match compiler (Elaborator/matchcomp).
+oldmc = Dev/110.99 -- the compiler with the old match compiler (FLINT/trans).
+
+At a (let-) declaration, polymorphic types are introduced by generalizing the types
+of bound expression variables, replacing generalized tmvs (type metavariables, or
+unification variables; ref(OPEN(META))) with IBOUND deBruijn indexes within the body
+of the type to produce TYFUNs that are then wrapped in POLY. These poly types may contain
+residual tmvs that were not generalized (will presumably be generalized at an outer
+declaration. But that later generalization does not replace the embedded tmv within an
+earlier polytype. Tmvs embedded in expression type annotations (e.g. typ field in VARs)
+are also not altered by polymorphic generalization to connect them with their (virtual)
+binding point elsewhere in the expression.
+
+For a variable binding (Absyn.VB), the generalized tmvs are recorded in the btvs field
+(by updating the ref after polymorphic generalization).  These generalized tmvs may still
+occur in the definiens expression for the variable, including in the bodies of embedded polytypes.
+These residual tmvs still represent occurrences of _bound_ type variables. They will be modified
+(temporarily and reversably) during translation to PLambda.lexp (see setBoundTyvars in translate-new.sml
+and mkPE in the old translate.sml). This modification assigns them LBOUND tvkind to support their
+translation to DTV type variables (DeBruijn-style FLINT type variables).
+
+* (Possibly) Redundant specifications of bound tmvs.
+
+Lists of "bound" tmvs are associated both with (bound) expr variables (VALvar) in the btvs
+field (defined by assignment during type checking) and with variable declarations (VB) in
+the boundtvs field (defined by translation during type checking?).  If a declaration defines
+a single simple variable, as in
+
+  val x = e
+
+then the btvs field of x should be the same as the boundtvs field of the declaration.  But if the
+pattern of a _val_ declaration is compound and contains several variables, the boundtvs list will
+contain the union of the generalized tmvs (btvs's) of the several variables appearing in the pattern.
+For example
+
+  val (x,y) = (nil,nil)   ==> x : (A 'a) 'a list, y : (A 'b) 'b list
+
+x.btvs will contain one tmv, tmv1, associated with (generalized to) 'a, and y.btvs will contain another
+tmvs, tmv2, generalized to 'b, and the declaration will have boundtvs = [tmv1, tvm2] (in some order).
+Note that
+
+  !x.btvs \sub boundtvs and !y.btvs \sub boundtvs
+  boundtvs = !x.btvs \union !y.btvs
+
+Occurrences of tmvs in expressions and (poly-) types will be replaced by references (DTVs) to
+properly bound (TFN-bound) type variables during translation -- see below.
+
+Front End
+---------
+
+From newmv ElabData/syntax/absyn.sml:
+
+    (*
+     * Each value binding vb only binds one variable identifier [FLINT "normalization"].
+     * That is, pat is always a simple VARpat (with type constraints) or it simply
+     * does not contain any variable patterns; boundtvs gives the list of
+     * type variables that are being generalized at this binding, as determined
+     * during type checking.
+     *)
+    and vb = VB of
+             {pat: pat, exp: exp,
+	      typ: T.ty,                 (* the common type of the pat and exp *) 
+	      boundtvs: T.tyvar list,    (* "generalized" metatyvars of whole pattern *)
+	      tyvars: T.tyvar list ref}  (* used for tracking "explicit" tyvars *)
+
+    (*
+     * As for value bindings, vb, boundtvs gives a list of type variables
+     * being generalized at this binding. However, the mutually recursive
+     * list of RVBs could share type variables, that is, the boundtvs sets
+     * used in these RVBs could contain overlapping sets of type variables.
+     * The resultty (if SOME ty) is the full type of var, the bound function
+     * variable, not just the result type of the function.
+     *)
+    and rvb = RVB of
+              {var: VarCon.var,          (* the recursive function name *)
+	       exp: exp,                 (* definition exp (RHS) *)
+	       resultty: T.ty option,    (* return type of recursive function, if available *)
+	       tyvars: T.tyvar list ref} (* tyvar list for computing scope of UBOUND tyvars *)
+
+Translation
+-----------
+
+Two flavors of bound type variables:
+
+  1. DeBruijn type variables (DTV), and
+  2. "Named" type variables (NTV)
+
+PLambda.lexp and FLINT.lexp
+
+* Basic Problem for translating bound tmvs:
+
+(1) identify the bound tmvs associated with a definition (declaration, let-binding, fix-binding)
+(2) appropriately place the TFN abstraction to bind the tmvs
+(3) translate the (occurrences) of tmvs into DTVs, both in expressions (e.g. TAPP args) and within
+    polymorphic types embedded in the resulting lexp.
+
+In oldmc (110.99), both VB and RVB bindings contain boundtvs fields. In newmc, RVB no longer contains
+a boundtvs field, and bound tmvs are determined from bound variable btvs fields. This should work
+in a singleton val rec (one defining a single function), but what about multiple function val recs?
+
+For a multiple function FIX (val rec), the type variable abstractions are lifted outside the FIX,
+defining a polymorphic function tuple. The individual functions are then selected from the tuple
+and rebound with their own TFN abstractions (according to their individual btvs bound tmvs)
+[transRVBs(rvbs,d) case of transRVBs in translate-new.sml].  The "communal" tmvs of the mutual val rec
+functions are determined by taking the union of the btvs of the function variables (jointBtvs). This
+takes the place of the boundtvs field of the individual RVBs of oldmc.

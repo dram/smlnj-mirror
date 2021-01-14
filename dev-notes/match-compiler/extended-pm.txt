@@ -1,0 +1,94 @@
+(extended-pm.txt)
+
+Extended Pattern Matching
+-------------------------
+
+Reference pseudo-code implementations
+
+Metavariable C ranges over constants and data constructors.
+
+In p | q, we assume p and q are disjoint; no value matches both p and q.
+In !p, we assume p contains no variables (disregading wildcard _)
+
+1a. Simple pattern matching (ignoring variable bindings; no environment)
+
+   match (p, v). Assume p and v are of the same type.
+
+   match : (pattern, value) -> bool
+
+   match (_, v) = true
+   match (x, v) = true
+   match (C, C) = true    (constant)
+   match (C, C') = false  (C <> C')
+   match (C p, C v) = match (p, v) 
+   match (C p, C' v) = false  (C <> C')
+   match ((p1,..,pn), (v1,..,vn)) = (All k: 1<=k<=n) match(pk, vk)
+
+1b. Extended simple matching
+
+   match ((p1 | p2), v) = match (p1, v) xor match (p2, v)   (xor => disjointness)
+
+   match ((p1 ; p2), v) = match (p1, v) orelse match (p2, v)
+
+   match (!p, v) = not (match (p, v))
+
+
+2a. Simple pattern matching producing environments 
+
+   type venv = (variable * value) list
+
+   matchv (p, v). Assume any variable has at most one occurrence in p.
+
+   matchv : pattern * value -> venv option
+
+   matchv (x, v) = SOME [(x,v)]
+   matchv (C, C) = SOME []    (constant)
+   matchv (C, C') = NONE  (where C <> C')
+   matchv (C p, C v) = matchv (p, v) 
+   matchv (C p, C' v) = NONE  (where C <> C')
+   matchv ((p1,..,pn), (v1,..,vn)) =
+     foldl2 f (SOME []) [(p1,v1), ..., (pn,vn)]
+     where
+       f ((p,v), NONE) = NONE
+       f ((p,v), SOME env) =
+         case matchv (p,v)
+	   of NONE => NONE
+	    | SOME env' => SOME (env @ env')  (* dom(env). dom(env') disjoint *)
+   
+   Note: in (p1,..,pn), vars(pi) disjoint vars(pj) when i <> j.
+
+2b. Extended simple matching producing environments
+
+   matchv ((p1 | p2), v) =
+     case (matchv (p1,v), matchv (p2,v))
+       of (NONE, NONE) => NONE
+        | (SOME env, NONE) => SOME env
+	| (NONE, SOME env) => SOME env
+	| (SOME env, SOME env') => NONE  (p1, p2 not disjoint)
+
+   Note: p1 and p2 not disjoint is a static property that should be statically checked,
+    and if it holds, (p1 | p2) should be considered illegal.
+
+
+   matchv ((p1 ; p2), v) =
+     case (matchv (p1,v))
+       of NONE => matchv (p2,v)
+        | SOME env => SOME env
+
+   matchv (!p, v) =
+     if match (p,v) then NONE else SOME []
+    
+     (assuming p contains no variables)
+
+3. Disjointness of patterns
+
+   disjoint : pattern * pattern -> bool
+
+   disjoint (p, q).  Assume p and q have same type.
+
+   disjoint (x, p2) = false
+   disjoint (p1, x) = false
+   disjoint (C1 p1?, C2 p2?) = true  (C1 <> C2 constants; ? indicates optional arg pattern)
+   disjoint (C, C) = false
+   disjoint (C p1, C p2) = disjoint (p1,p2)
+   disjoint ((p1,..,pn), (q1,..,qn)) = (Exists k: 1<=k<=n) disjoint (pk, qk)

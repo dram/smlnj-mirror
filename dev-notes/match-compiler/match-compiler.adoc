@@ -32,6 +32,20 @@ SML/NJ 110.98. This document replaces the Alex Aiken compiler note.
    match.sml    -- top-level matchComp function
    transmc.sml  -- translating typed Absyn into Absyn with compiled matches
  
+== [4] Final Files
+   mctypes.sml  -- match compiler types (replaces trans/mccommon.sml)
+                   defines types key, path, andor, dec-tree, and mcexp
+   rules.{sig,sml}
+                -- ruleno sets (sets of rule numbers)
+   andor.sml    -- construction or the andor tree from pattern list
+   decisiontree.sml
+                -- constructing a decision tree from andor tree,
+   		   decision trees involve only OR nodes
+   matchcomp.sml -- match compilation during absyn to absyn translation
+   svarenv.sml   -- ??
+   varenvmc.sml  -- environment used for match compilation
+   varenvac.sml  -- environment used for alpha-conversion
+
 == [4] Terminology anb basic types
 
 The types used in the match compiler are defined 
@@ -382,7 +396,6 @@ in the children of the node.
 live(node) = {rule: Live(rule,node)}
 
 live [] = allrules
-
 
 
 ================================================================================
@@ -2429,7 +2442,7 @@ Claim 2: Any "in scope" variable occurrence (v, p) will have the maximal length 
 with the branch.
 -----------------------
 
-This attempt didn't work (or wasn't chosen). Instead, instriment decision trees
+This attempt didn't work (or wasn't chosen). Instead, instrument decision trees
 with "traces", which are lists of paths, where the path designates the choice
 points (including the choice) along a maximal branch of the decision tree, i.e.
 a branch terminating in DMATCH or DLEAF.  At a DLEAF terminal node where we
@@ -2437,6 +2450,213 @@ dispatch to a RHS, the trace to that node is used to determine which source
 variables (vars) are "consistent" with the choices in the trace, and only
 consistent variables are "bound" for that RHS.  See MCUtil.consistentPath for
 definition of "consistency" used.
+
+
+= [35.1] Legal OR-pattern requirements
+
+OR-patterns like (v | v) or ((v,_) | (_,v)) are a problem because there is no
+_discrimination_ involved. A possible general principle for excluding such cases
+is:
+
+  OR-Principle:  p1 | p2 is legal if there are values that match one but not the other,
+  i.e. diff([[p1]], [[p2]]) and diff([[p2]], [[p1]]) are both nonempty, where [[p]] is
+  the set of values matching p.  We can use the notation p1 # p2 for this situation,
+  i.e.,
+
+  Defn: p1 # p2 iff not ([[p1]] \sub [[p2]]) and not ([[p1]] \sub [[p2]]).
+
+  p1 # p2 => there must be some common pattern point where p1 and p2 are incompatible,
+  i.e. Exists path. p1[path] # p2[path] where
+  p[path] # q[path] if key(p[path]) <> key(q[path]).
+  [This formulation is not quite right since the key is the last element in the path?
+   Correct this defn.]
+  [Try this: Exists path1 in p1 and path2 in p2 s.t. path1 # path2 (they clash at some
+   OR key (not a projection key).]
+
+So [[p1]] == [[p2]] is not allowed, nor [[p1]] \sub [[p2]] (or visa versa). There have
+to be values that match p1 and not p2, and visa versa.
+
+Note that
+
+  p1 | p2 => ...
+
+is not going to be equivalent to either
+
+  p1 => ...
+  p2 => ...
+
+or
+
+  p2 => ...
+  p1 => ...
+
+--------------------------
+** Reppy/Successor ML**
+In p1 | p2, p1 has "priority" -- it matches first.
+Under this rule,
+
+      (v,_) | (_,v)  -->  (v,_)
+
+because the first pattern, "(v,_)" has _priority_.  The ambiguity is resolved on the
+basis of "left to right" matching.
+An objection is that it was not necessary to use the OR pattern in this case, and using
+it presumably indicates some misconception or confusion on the part of the programmer.
+Another objection is that it injects a left-to-right ordering or priority into the
+process of matching a single pattern, which is antithetical to the freedom used by a
+match compiler.
+--------------------------
+
+It is still possible for OR-patterns to have common "top-level" structure (i.e.
+discrimination points may be embedded below), as in
+
+  ([],v) | (v,[])
+
+Here some values, e.g. ([],[]) match both patterns (in which case the first
+pattern has "priority" -- or does it matter?), but there are values that are
+discriminated: ([],[1]) matches p1 but not p2, and ([1],[]) matches p2 but not p1.
+
+If [[p2]] \sub [[p1]] (p2 is subsumed by p1), for instance, then p2 is redundant
+and p1 | p2 could be simplified to p1.
+
+If [[p1]] == [[p2]], then p1 | p2 is redundant and could be replaced by either
+p1 or p2.
+
+What about the situation where [[p1]] \inter [[p2]] is non-empty?
+
+Defn: p1 < p2 if [[p1]] \sub [[p2]], i.e. every value matching p1 also matches
+p2. A slight variation on a naive pattern matching algorithm can compute this
+relation, which is a partial order.  Clearly:
+
+Prop. p1 < p2 ==> (p1 | p2) == p2.
+
+So p1 | p2 could be reduced to p2.
+
+Prop. not (p1 < p2) and not (p2 < p1)  =>  symetric difference of p1 and p2 <> emptyset.
+
+I.e. Exists x \in p1 - p2 & Exists y \in p2 - p1.
+[[p1]] - [[p2]] <> \empty & [[p2]] - [[p1]] <> \empty.
+
+But [[p1]] .sd. [[p2]] = {} does not imply that p1 and p2 are _independent_.
+
+Prop: For any pattern p, [[p]] <> {}. I.e. any pattern is (self) _consistent_.
+
+Prop: [[p1]] \inter [[p2]] = {} => p1 and p2 are independent.
+
+Defn: p1 and p2 are inconsistent if [[p1]] \inter [[p2]] = {}, i.e. not value
+matches both patterns.  E.g. p1 = true, p2 = false; p1 = nil, p2 = r::s.
+
+Prop: p1 and p2 inconsistent => p1 and p2 independent.
+
+Prop: p1 and p2 independent Exist paths r1 in p1 and r2 in p2 s.t. r1 # r2.
+
+Defn: For paths r1, r2, r1 # r2 if there are initial segments q.k1 of r1 and q.k2 or r2
+where k1 = k2 and k1 and k2 are not R keys (product projections).
+
+Algorithms for testing
+
+(1) Inclusion: p1 < p2  (All v) match(v,p1) => match(v,p2)
+    View p1 as a pseudo-value and match it with p2.
+
+(2) Independence: p1 # p2 if not(p1 < p2) and not(p2 < p1).
+    This defines independence in terms of inclusion, but there is probably a
+    more direct (and efficient) algorithm.
+
+Rule: (p1 | p2) is legal iff p1 # p2.
+
+Prop: If p1 and p2 are independent, then [[p1 | p2]] = [[p1]] \union [[p2]].
+
+----------------------------------------------------------------------
+Theory II
+---------
+
+Proposed principle: The | (OR) operator on patterns should be commutative (and
+associative).
+
+If the semantics of OR is expressed solely in terms of the matching set of values,
+then this would be obvious and natural:
+
+   [[p1]] | [[p2]]  =  [[p1]] \union [[p2]] = [[p2]] \union [[p1]] = [[p2]] | [[p1]]
+
+But matching patterns also produces variable bindings (sets of variable, value pairs).
+Thus a pattern like
+
+     (x,_) | (_,x)
+
+is ambiguous in terns of the variable binding produced:
+
+    ((x,_) | (_,x)) $$ (2,3)
+
+could produce either x->2 or x->3, depending on the order of the matching.
+A sufficient condition for p1 | p2 to be unambiguous in terms of variable matching
+is that [[p1]] and [[p2]] be disjoint (no values match both p1 and p2).  If neither p1
+nor p2 contain variables, then p1 | p2 is unambiguous even if they are not disjoint,
+e.g.  ((_,_),_) | (_,(_,_)), but these, (at first glance), do not appear to be useful,
+so it is not clear whether it is worth supporting this exception to disjointness.
+
+Implementation Note: Does disjointness need to be tested before pattern analysis
+(e.g. construction of an And-Or tree), or can the disjointness test be integrated
+into the normal analysis?
+
+For p1 | p2 to be legal, p1 and p2 must be disjoint (unambigous) and env(p1) = env(p2):
+i.e., p1 and p2 must bind the same variables at the same types.
+
+If p1 and p2 are both variable free, the env(p1) = env(p2) = \empty, and p1 | p2
+would be well-defined even if p1 and p2 are not disjoint.
+
+Additional pattern operators:
+
+1. sequential matching
+
+   p1 ; p2
+
+Matching this compound pattern matches p1 first, and if successful returns its
+corresponding environment. If p1 $$ v fails, then it attemps to do p2 $$ v.  p1 and
+p2 must bind the same variables at the same type: env(p1) = env(p2).
+
+2. pattern negation
+
+   !p
+
+A value matches !p if it fails to match p.  No environment is returned, and p should
+not contain variables (other than wildcard): VF(p).
+
+How to implement p1;p2 and !p needs to be investigated.
+
+Either of these could be used to express Andreas's example
+
+   (C x, _) | (_, x)
+
+as
+
+(1)  (C x, _) ; (_, x)
+
+or
+
+(2)  (C x, _) | (!(C _), x)
+
+Defn: vars: pattern -> variable set
+      vars(p) = set of (free) variables occurring in p, disregaring "_" (wildcard)
+
+Defn: tenv : pattern -> (variable f-> type)  (f-> == finite mapping)
+      tenv(p) = mapping from free variables in p to their types
+      	        as determined by type checking
+
+Defn: Venv = finite maps from vars to values
+      venv : patterns * values -> Venv
+      venv(p,v) = finite mapping from vars(p) to their matching values, assuming v \in [[p]].
+
+Defn: VF(p) is true if p contains no variables (not counting wildcards).
+
+Defn: type(p) = the type of p (as determined by type checking)
+
+Defn: Full(p) iff [[p]] = [[type(p)]] (p matches every value of its type).
+
+Note: [[p1]] \sub [[p2]] does not imply that (All v) venv(p1,v) = venv(p2,v).
+
+Reductions: 
+
+Examples:
+
 
 
 ================================================================================

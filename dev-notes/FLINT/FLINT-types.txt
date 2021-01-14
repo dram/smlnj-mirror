@@ -37,18 +37,18 @@ Lty:
       TK_SEQ -- sequence (product?) of tycons
       TK_FUN -- tycon function (n-ary)
       -- What is the relation between TK_MONO and TK_BOX?
-         Is TK_BOX a subset of TK_MONO?
+         Is TK_BOX a subset of TK_MONO? Yes, and TK_MONO is a subset of TK_BOX!?
       -- TK_FUN taking a TK_SEQ vs TK_FUN taking multiple args?
 
     tyc: type "constructors" (tycons)
-    tycI: raw form datatype (hashcons to tyc)
+    tycI: raw form datatype (tyc is the hashconsed version of tycI)
 
     lty: "types"
       tyc "included" in lty (?)
       --What is in lty that isn't in tyc?
       --What is the fundamental distinction between tyc and lty, and why
         is it needed?
-    ltyI: raw form datatype (hashcons to lty)
+    ltyI: raw form datatype (lty is the hashconsed version of ltyI)
 
 
 
