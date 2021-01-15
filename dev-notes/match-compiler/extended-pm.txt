@@ -7,8 +7,22 @@ Reference pseudo-code implementations
 
 Metavariable C ranges over constants and data constructors.
 
-In p | q, we assume p and q are disjoint; no value matches both p and q.
-In !p, we assume p contains no variables (disregading wildcard _)
+We consider three operations for composing patterns. These
+constitute "extended" pattern matching.
+
+1. p | q.
+  This should be thought of as p xor q. p and q should be
+  _disjoint, so p | q and q | p should have the same effect.
+  I.e. the "|" operator is commutative (and associative).
+
+2. p ; q
+  This should be thought of as analagous to a "computational"
+  or operator like "orelse".  Match p and if that fails match q.
+
+3. !p
+  This is a pattern negation operator. Match !p iff match p fails.
+  This should not bind variables, so p should be variable free
+  (but it may contain wildcard patterns).
 
 1a. Simple pattern matching (ignoring variable bindings; no environment)
 
@@ -92,3 +106,74 @@ In !p, we assume p contains no variables (disregading wildcard _)
    disjoint (C, C) = false
    disjoint (C p1, C p2) = disjoint (p1,p2)
    disjoint ((p1,..,pn), (q1,..,qn)) = (Exists k: 1<=k<=n) disjoint (pk, qk)
+
+
+
+================================================================================
+Examples:
+
+1. p1 = [_,_,x,_,_,_,true] : bool list
+   p2 = [_,_,_,_,x,_,false] : bool list
+
+p1 and p2 are disjoint, and they bind x at different points in the list.
+Is there any (algorithmic) difference between p1 | p2 and p1 ; p2?
+
+2. p1 = [_,_,x,_,_,_,_] : bool list
+   p2 = [_,_,_,_,x,_,_] : bool list
+
+p1 and p2 are not disjoint, and they bind x at different points in the list.
+
+Observations: In either of these examples, we don't want to have to examine
+elements of the list more than once.
+
+In 1, we won't know where x is bound until we examine the 7th element of the
+list, which distinguishes p1 from p2.
+
+3. p1 = [_,_,x,_,_,_,_] : bool list
+   p2 = [false,_,_,_,x,_,_] : bool list
+
+not(disjoint(p1, p2)
+
+Assume the pattern is p1 | p2.  Here we can "discard" or "disqualify"
+p2 if the value is a list whose 1st element is true, in which case we
+do not need to record that x might be bound at to the 5th element
+(rather than the 3rd, for p1).  So should we treat this as p2 ; p1?
+ 
+4. p1 = [false,_,x,_,true]
+   p2 = [_,x,_,_,false]
+
+disjoint(p1, p2)
+
+For p1 | p2: here if the first element of the value list is true, we
+should "abandon" the matching of p1 and procede with matching p2.  The
+same is true for p1; p2 -- we should fail over to matching p2 if the
+first element is true.
+
+In general, if there is some (a lot of) overlap between p1 and p2, we
+want to match that overlap just once, but "commit" to the "still live"
+pattern when there is a conflict that is resolved during a match.
+
+* Distinction between p | q and p ; q
+Are there examples that make a clear case for treating p | q
+differently from p ; q?
+
+* Provisional variable binding
+In a case like Example 1, we don't distinguish until we get to the 7th
+element of the list.  In the meantime, we have two potential binding
+sites for x (the 3rd element for p1 and the 5th element for p2). These
+have to be recorded and the right one selected (when generating match
+code) based on the later choice point at element 7.
+
+Note that this is essentially the same as for rule ordering
+
+  (1) p1 => e1[x]
+  (2) p2 => e2[x]
+
+so the mechanism for managing "provisional" variable bindings should
+be related to how they are already handled when merging patterns for
+sequential rules.
+
+* The problem of duplicated decision trees
+
+While we are at it, would it be possible to address the old problem of
+duplicating decision subtrees.  (shared decision tree "continuations?)
