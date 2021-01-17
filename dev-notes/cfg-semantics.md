@@ -45,9 +45,15 @@ The **CFG** IR has two main types:
 
 * `SETTER(p, args, k)`
 
-    * `UNBOXED_UPDATE`
+    * `UNBOXED_UPDATE` -- update an element of a polymorphic array, where the
+      value to be stored is statically known to be a tagged value.  This
+      operation takes as arguments the array's data object, the index, and the
+      value to store.
 
-    * `UPDATE`
+    * `UPDATE` -- update an element of a polymorphic array, where the value
+      to be stored may be a pointer.  This operation takes as arguments
+      the array's data object, the index, and the value to store.  The operation
+      will allocate a store-list entry, in addition to doing the update.
 
     * `UNBOXED_ASSIGN`
 
@@ -104,9 +110,9 @@ The **CFG** IR has two main types:
 CFG expressions are *pure* in that they do not allocate or modify memory,
 or raise exceptions.
 
-* `VAR{name}` evaluates the the value bound to `name`
+* `VAR{name}` evaluates the value bound to `name`
 
-* `LABEL{name}` evaluates the the address of the label `name`
+* `LABEL{name}` evaluates the address of the label `name`
 
 * `NUM{iv, sz}` evaluates to an integer of `sz` bits.
 
@@ -120,12 +126,14 @@ or raise exceptions.
 
     * `RAW_SUBSCRIPT{kind, sz}` -- packed numeric-array subscript, where `sz` is the
       size of the values and `kind` specifies either integer or floating-point
-      values.  This operation works directly on the array's data object and does
-      not do bounds checking.
+      values.  The operator takes as arguments the array's data object and an index,
+      which is scaled to compute the address.  There is no bounds checking of
+      the index.
 
-    * `RAW_SUBSCRIPT(FLT, sz)` -- packed floating-point-array subscript, where `sz`
-      is thesize of the integer values; this operation works directly on the
-      array's data object and does not do bounds checking.
+    * `RAW_LOAD{kind, sz}` -- load a numeric value, where `sz` is the size of
+      the value and `kind` specifies either integer or floating-point
+      values.  This operator takes as arguments the base address of a heap
+      object and a offset in bytes*.
 
     * `GET_HDLR` -- reads the exception-handler register, which contains a function
       closure that represents the current exception handler.
