@@ -41,9 +41,20 @@ The **CFG** IR has two main types:
       bytes.  The descriptor is optional (and is not counted in the object's length).
       The `align` value is the alignment requirement for the object in bytes.
 
-* `ARITH(p, args, (x, ty), k)`
+* `ARITH(p, args, (x, ty), stm)` performs integer arithmetic with overflow detection.
 
-* `SETTER(p, args, k)`
+    * `IADD`
+
+    * `ISUB`
+
+    * `IMUL`
+
+    * `IDIV`
+
+    * `IREM`
+
+* `SETTER(p, args, k)` updates memory as specified by the primop `p`.  The setter
+  primops are
 
     * `UNBOXED_UPDATE` -- update an element of a polymorphic array, where the
       value to be stored is statically known to be a tagged value.  This
@@ -52,12 +63,14 @@ The **CFG** IR has two main types:
 
     * `UPDATE` -- update an element of a polymorphic array, where the value
       to be stored may be a pointer.  This operation takes as arguments
-      the array's data object, the index, and the value to store.  The operation
-      will allocate a store-list entry, in addition to doing the update.
+      the array's data object, the index, and the value to store.  This
+      operation allocates a store-list entry, in addition to doing the update.
 
-    * `UNBOXED_ASSIGN`
+    * `UNBOXED_ASSIGN` -- reference assignment, where the value being stored
+      is statically known to be a tagged value.
 
-    * `ASSIGN`
+    * `ASSIGN` -- reference assignment.  This operation allocates a
+      store-list entry, in addition to doing the assignment.
 
     * `RAW_UPDATE (numkind kind, int sz)`
 
