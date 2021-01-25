@@ -3,6 +3,8 @@
 (* environments mapping vars to vars. 
  * Used for repacement of source variables by svars (administrative
  * match compiler variables) in right-hand-sides of matches.
+ * I.e. alpha-conversion of pattern variables into "special" variables,
+ * or into fresh variables.
  *)
 
 structure VarEnvAC =
@@ -16,7 +18,7 @@ local
   open MCTypes
 in
 
-(* varenvAC is an alist with key V.var *)
+(* varenvAC is an alist with key V.var -- could use the lvar of the var *)
 type varenvAC = (V.var * V.var) list
 
 val empty : varenvAC = nil
@@ -27,6 +29,7 @@ fun bind (var, svar, venv: varenvAC) =
     else (var,svar) :: venv
 
 (* look : varenvAC * V.var -> V.var option *)
+(* look is based on using the lvar of the var as the key *)
 fun look (varenvAC, var) =
     (case var
       of V.VALvar{access = A.LVAR lvar, ...} =>
@@ -39,15 +42,18 @@ fun look (varenvAC, var) =
        | _ => NONE)
 
 (* append : varenvAC * varenvAC -> varenvAC *)
-(* "domains" of the two environments will be disjoint *)
+(* REQUIRES: "domains" of the two environments are disjoint *)
 fun append (venv1: varenvAC, venv2: varenvAC) = venv1 @ venv2
 
 (* range : varenvAC -> V.var list *)
 fun range (venv: varenvAC) = map #2 venv
 
+(* alphaEnv : V.var list -> varenvAC *)
+(* alphaEnv is used only in MatchComp..makeRHSfun *)
 fun alphaEnv (vars: V.var list) : varenvAC =
     map (fn var => (var, #1 (V.replaceLvar var))) vars
 	
+(* printVarEnvAC : varenvAC -> unit *)
 fun printVarEnvAC venv =
     let fun printBinding (var1, var2) =
 	    print (concat [V.toString var1, "->", V.toString var2])

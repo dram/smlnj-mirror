@@ -18,15 +18,20 @@ local
   open Absyn MCTypes
   (* also used: IntInf, Target, Char, String *)
 
+  val say = Control_Print.say
+  fun newline () = say "\n"
   fun bug msg = ErrorMsg.impossible msg
 
   fun ppType ty =
-      ElabDebug.withInternals
-	(fn () => PP.with_default_pp
-	            (fn ppstrm => PPType.ppType StaticEnv.empty ppstrm ty))
+	PP.with_default_pp
+	  (fn ppstrm => PPType.ppType StaticEnv.empty ppstrm ty)
+
+  fun ppTypes tys =
+        PP.with_default_pp
+	  (fn ppstrm => PPUtil.ppBracketedSequence ("[", "]", PPType.ppType StaticEnv.empty) ppstrm tys)
 
   fun ppPat pat =
-      PP.with_default_pp(fn ppstrm => PPAbsyn.ppPat StaticEnv.empty ppstrm (pat, 20))
+       PP.with_default_pp(fn ppstrm => PPAbsyn.ppPat StaticEnv.empty ppstrm (pat, 20))
 
 in
 
@@ -173,10 +178,11 @@ let
 	end
       | mergeAndor (WILDpat, ty, rule, rpath, INITIAL) =
           (* wildcard pat treated as a particular variable pattern *)
-	  let val path = reverseRPath rpath
-	  in VARS{info = {id = newId(), typ = ty, path = path, asvars = nil,
-			  vars = [(V.wildVar,rule)]},
-		  defaults = R.empty}
+	  let (* val _ = (say "mergeAndor:WILDpat\n") *)
+	      val path = reverseRPath rpath
+	   in VARS{info = {id = newId(), typ = ty, path = path, asvars = nil,
+			   vars = [(V.wildVar,rule)]},
+		   defaults = R.empty}
 	  end
       | mergeAndor (LAYEREDpat(VARpat(var),basepat), ty, rule, rpath, INITIAL) =
 	  (* ignoring type constraint option *)
@@ -221,13 +227,17 @@ let
       | mergeAndor (pat as RECORDpat{fields,...}, ty, rule, rpath, INITIAL) =
 	  let val path = reverseRPath rpath
 	      val ty = TU.headReduceType ty
-	      (* val _ = (print "mergeAndor:RECORDpat(INITIAL):ty: "; ppType ty)
-	         val _ = (print "mergeAndor:RECORDpat(INITIAL):pat: "; ppPat pat) *)
+(*
+	      val _ = (say "mergeAndor:RECORDpat(INITIAL):ty: "; ppType ty; newline())
+	      val _ = (say "mergeAndor:RECORDpat(INITIAL):pat: "; ppPat pat; newline())
+*)
 	      val elemTys = TU.destructRecordTy ty
 			    handle e => (ppPat pat; ppType ty; raise e)
+(*	      val _ = (say "mergeAndor:RECORD: field types: "; ppTypes elemTys; newline()) *)
 	      val children = initAnd(map #2 fields, elemTys, rule, rpath)
-	      (* val _ = print ("mergeAndor:RECORDpat:|children| = " ^ 
-                                Int.toString(length children) ^ "\n") *)
+(*	      val _ = say ("mergeAndor:RECORDpat:|children| = " ^ 
+                             Int.toString(length children) ^ "\n")
+*)
 	   in AND{info = {id = newId(), typ = ty, path = path, asvars = nil, vars = nil},
 	          direct = R.singleton rule, defaults = R.empty,
 	          children = children,
@@ -273,11 +283,12 @@ let
            * same svar, which is bound to the vector value. The vector OR node and
 	   * the AND(VECTOR) node for its elements have the same vector type.
            * ASSERT: vecty = elemty vector *)
-	  let val vlen = length pats  (* vector length *)
+  	  let (* val _ = (say "mergeAndor[VECTORpat(INITIAL)]: vecty = "; ppType vecty;
+		         say "; elemty = "; ppType elemty; newline()) *)
+	      val vlen = length pats  (* vector length *)
 	      val path = reverseRPath rpath  (* path for vector node *)
 	      val newRPath = extendRPath(rpath, V(vlen))
 	      val newPath = reverseRPath newRPath
-	      (* val svar = SV.newSvar(pathToString path, vecty) -- shared svar? *)
 	      val elemTys = TU.replicateTy(elemty, vlen)  (* list of replicated elemty *)
 	      val variantNode =  (* FIX: how to ensure that OR and AND have same svar? *)
 		  AND{info = {id = newId(), typ = vecty, path = newPath, asvars = nil, vars = nil},

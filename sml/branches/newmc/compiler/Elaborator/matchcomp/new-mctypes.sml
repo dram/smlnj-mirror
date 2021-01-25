@@ -1,8 +1,9 @@
-(* mctypes-new.sml *)
+(* new-mctypes-new.sml *)
 (* types for the match compiler
  * replaces older versions of the file named mccommon.sml *)
 
 (* new version where andor nodes do not have svars *)
+(* new new version introducing "layers" *)
 
 structure MCTypes =
 struct
@@ -26,7 +27,44 @@ type ruleno = R.ruleno    (* == int, the index number of a rule in the match, ze
 type ruleset = R.ruleset  (* == IntBinarySet.set *)
    (* a set of rule numbers (no duplicates) *)
 
-type binding = V.var * ruleno
+(* layers -- refinement of (rule) layering *)
+
+(* type layer -- a generalization of ruleno that accounts for OR-pattern
+ * the integers in the int list will be 0 or 1, designating left or right,
+ * thus the int list is a bit string representing left or right branches of
+ * nested "OR patterns". Layers are ordered, with the ruleno dominating the
+ * bitstring.
+ * INVARIANT: a pattern variable can "occur" only once along any orpath
+ * INVARIANT: a pattern variable can occur multiple times on "incomparable"
+ *   orpaths
+ *)
+type layer = ruleno * int list  (* (rule, orpath) *)
+
+fun layerEq ((r1,s1): layer, (r2,s2)) =
+    r1 = r2 andalso ListPair.allEq (op =) (s1, s2)
+
+(* two occurrences of a variable in a pattern must be separated by an OR, so
+ * their layer paths must _differ_ at some point *)
+fun layerPathLess (nil, nil) = false
+  | layerPathLess (nil, _) = false
+  | layerPathLess (_, nil) = false
+  | layerPathLess (b1::rest1, b2::rest2) =
+    b1 < b2 orelse b1 = b2 andalse layerPathLess (rest1,rest2)
+
+(* WRONG
+fun layerLE ((r1,s1): layer, (r2,s2)) =
+    r1 <= r2 orelse
+    r1 = r2 andalso layerPathLess (s1,s2)
+*)
+
+fun layerLT ((r1,s1): layer, (r2,s2)) =
+    r1 < r2 orelse
+    r1 = r2 andalso layerPathLess (s1,s2)
+
+fun layerLeft (r,s) = (r, s@[0])
+fun layerRight (r,s) = (r, s@[1])
+
+type binding = V.var * layer
    (* a variable bound at some point in the given rule, either as a
     * basic var pattern (VARpat) or through an "as" pattern (LAYEREDpat) *)
 type varBindings = binding list  (* variables bound by VARpat *)

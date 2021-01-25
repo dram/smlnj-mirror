@@ -114,11 +114,11 @@ fun Switch (svar: SV.svar, cases, defaultOp) =
 	    let fun docase (MT.V n, _, rhsexp) =
 		      RULE (NUMpat("", MU.intToIntLiteral n), rhsexp)
 		  | docase _ = bug "Switch:vector case: key not V"
-	     in AS.VSWITCHexp(SV.svarToVar svar, map docase cases, Option.valOf defaultOp)
+	     in AS.VSWITCHexp (SV.svarToVar svar, map docase cases, Option.valOf defaultOp)
 	    end
 	|  _ =>  (* the general case, dispatching on the key *)
 	    let fun docase (key, svarOp, rhsexp) = RULE(keyToPat(key,svarOp), rhsexp)
-	     in AS.SWITCHexp(SV.svarToVar svar, map docase cases, defaultOp)
+	     in AS.SWITCHexp (SV.svarToVar svar, map docase cases, defaultOp)
 	    end)
 
 (* Sfun : V.var list * mcexp -> mcexp *)
