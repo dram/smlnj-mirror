@@ -153,6 +153,17 @@ In general, if there is some (a lot of) overlap between p1 and p2, we
 want to match that overlap just once, but "commit" to the "still live"
 pattern when there is a conflict that is resolved during a match.
 
+5. p1 = (true,_)
+   p2 = (_, false)
+
+not disjoint: (true, false) matches both.
+No variables.
+
+5a. p1 = (true, x)
+    p2 = (x, false)
+
+Not disjoint, variables {x}
+
 * Distinction between p | q and p ; q
 Are there examples that make a clear case for treating p | q
 differently from p ; q?
@@ -173,7 +184,71 @@ so the mechanism for managing "provisional" variable bindings should
 be related to how they are already handled when merging patterns for
 sequential rules.
 
-* The problem of duplicated decision trees
+* The problem of duplicated decision trees: pattern continuations
 
 While we are at it, would it be possible to address the old problem of
 duplicating decision subtrees.  (shared decision tree "continuations?)
+
+
+================================================================================
+Changes needed in MatchComp
+================================================================================
+
+* In existing MatchComp, rulenos are used for the following purposes:
+
+  1. controlling the mapping from pattern variables to svars (when
+     translating the vars, asvars fields of AndOr nodes).
+     [in MatchComp, bindSVars, called in genRHS]
+
+  2. computing priorities of OR nodes when constructing decision trees?
+     [Defn of priority fn in or-queues.sml uses only number of
+     defaults and number of variants, not the rule relevance property.
+     But ORQueues.selectBestRelevant checks whether an OR-node is relevant to
+     the "leastLive" rule. selectBestRelevant is called by
+     DecisionTree.decisionTree..makeDecisionTree.]
+
+  3. determining when a rule RHS has multiple uses and has to be
+     abstracted as a function
+     [DecisionTree.decisionTree returns a vector of rule use-counts
+     which is used in MatchComp..matchComp where it is passed as
+     a parameter to MatchComp..genMatch.]
+     
+  4. defaults for AndOrs, currently a ruleset. Controls defaulting
+     behaviour (shadowing) of the vertical stack of rule patterns.
+     Note pushDefaults post-pass after AndOr tree construction where
+     a primary variable at a path becomes a default for the whole
+     andor subtree rooted at that path.
+
+  5. direct field of AndOrs, currently a ruleset. rules for which
+     a pattern element at this path is explicitly matched (e.g. a
+     constant or constructor) by a value. Such elements can
+     discriminate between rules (i.e. fail to match a
+     constant/constructor) for some rule, thereby excluding that
+     rule from contention.
+
+* ruleCounts produced by DecisionTree.decisionTree (use 3) need to take into
+  account multiple _layers_ as well as multiple _rules_ using the same RHS.
+  E.g.
+
+     (true | false) => RHS
+
+  [Note: what exactly is the phenomenon causing duplicate use of a
+  RHS? Is it the duplication of a decision subtree by the decisionTree
+  function? Check!]
+
+* varenvMC may need to map to (layer, path, svar) rather than (ruleno,
+  path, svar) -- could also verify that path is redundant?
+
+* Use layer relevance rather than rule relevance in selectBestRelevant
+  function for choosing next OR node.
+  
+
+Question: Can we just replace rulesets (defaults, direct fields) in
+the defn of andor with layersets?  If so, how should we implement
+layersets?  (need a compare operation to use one of the library set
+functors).
+
+Some layers are not comparable: e.g. 0.0 and 0.0.1. But such
+incomparable layers should never occur in a layerset for a node?
+
+Perhaps the "defaults" field should remain rulesets?

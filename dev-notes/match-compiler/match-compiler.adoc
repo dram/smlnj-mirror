@@ -2697,6 +2697,9 @@ current varenvMC (and the corresponding path is consistent with the trace).
 [37] OR pattern validation/normalization
 ================================================================================
 
+[Terminology Note: OR patterns are no longer analagous to OR nodes in the AndOr
+tree. They should probably be called something like "layered patterns".]
+
 Here are some examples of "funny" OR patterns:
 
 (1)   OR(x, x)     "x | x"
@@ -2787,7 +2790,402 @@ matching p2 also matches p1.  A variable is a maximal pattern by that ordering.
 Question: Find two patterns p1 and p2 such that p1 and p2 are not disjoint, but
 neither p1 < p2 nor p2 < p1 holds.
 
-Do patterns form a lattice under <?  NO.
+Do patterns form a lattice under <?  NO. (not with variable bindings considered?)
+
+Defn: Univ (p) if [[p]] = [[type(p)]]; matches all values of its type.
+
+Defn: Null (p) if [[p]] = {}; matches no values (of its type).
+
+Pattern Variables
+-----------------
+Two simple patterns are _variable-congruent_ if they have the same variables bound
+at the same pattern paths.
+
+It is not clear what the corresponding notion is for OR (cor or por) patterns is.
+
+Semantics of a pattern (2nd version)
+-------------------------------------
+[[p]] : values -> (vars f-> values)
+
+where vars is the set of variables in the pattern.  The domain of this map is the
+set of values matching p.  For each value v in the domain, ([[p]] v) is the map
+from variables (in p) to the value component that matches at that variable's path.
+(unique since each variable has a unique occurrence in the pattern). Thus ([[p]] v)
+is a value environment.
+
+With this definition of semantics, we can rephrase the definition of variable congruence
+as
+
+Defn: p and q are variable congruent if [[p]] = [[q]].
+
+Thus [[p]] and [[q]] have the same domain and for every matching v, ([[p]] v) = ([[q]] v)
+as environments. [this is with respect to semantic equality, not computational equality.]
+
+This definition could work for OR patterns as well, since the semantics of OR patterns
+can be expressed in the same way: for a pattern p and a value v that matches p, the
+match produces a unique value environment.
+
+Conditions for commutative OR patterns:
+
+Possible conditions for p | q == q | p when p and q are simple:
+1. p and q are disjoint: {p} /\ {q} = {}
+2. (All x ini vars p), path(p,x) = path(q,x).  (note:  vars(p) = vars(q))
+
+What changes if p and q contain or are OR patterns?
+
+OR Pattern simplification reductions:
+
+1a. x | p => x   (but not p | x => p, based in l2r priority)
+
+1b. _ | p => _   (vars(p) = {})
+1c. p | _ => _   (vars(p) = {})
+
+2. (p1,p2) | (q1,q2) => (p1 | q1, p2 | q2)  (OR distributes over AND), if ... (vars)?)
+
+3. C p | C q => C (p | q)  (distributes through data constructors)
+
+4. (p1 | p2) | p3 => p1 | (p2 | p3)  (associativity "to right")
+
+5. (p1 | (p2 | p3)) => (OR(p1,p2,p3))  (associativity, flattenin to n-ary OR)
+
+6a. (x as p) | (x as q) => x as (p | q)  (same variable x)
+6b. (x as p) | q => x as (p | q) ?
+
+E.g.
+
+   (true, _) | (_, false) => ((true | _), (_ | false)) => _ | _ => _
+
+   ((x, y) | (y, x)) => (x|y, y|x) => (x,y)
+
+Counter example to 2:
+
+   (x, y, z) | (z, y, x)  !=> ((x | z), (y | y), (z | x))
+
+   because (x | z) and (z | x) are ill-formed OR patterns -- the two
+   patterns don't contain the same variables.
+
+Is there some variant of reduction rule 2 that is valid?
+
+7. Horizontal vs vertical overlays:
+  Horizontal:
+
+     true | _     (r, s.0) vs (r, s.1)
+
+  vs vertical:
+
+     true => e    (0)
+     _    => e    (1)
+     p    => e'   (2)
+
+In the vertical case, true has priority over _ because it is assoicated
+with rule 0, verses _ associated with rule 1.  The same should be the case
+for the horizontal overlay. The _ at rule 1 will "shadow" (default) patterns
+for any subsequent rules.
+
+8.  true | _  =>  (0, .0) vs (0, .1)
+    false     =>  (1)
+
+Here the _ in rule 0 (0, .1) shadows the false in rule 1.  So a false value will
+match at rule 0.
+
+9. datatype d = A of int | B of int | C of int
+
+   (a) A x | (B x | C x) => RHS(r)   (ruleno r)
+
+   (b) y as (A x | (B x | C x)) => RHS(r)
+
+   (c) (y as A x) | ((y as B x) | (y as C x)) => RHS(r)
+
+   (d) (y as A x) | ((y as B x) | y) => RHS(r)
+
+   (e) A x  => RHS(0)
+       B x | C x => RHS(1)
+
+Suppose the layer at the path where these patterns occur is (r.s) (r a ruleno, s
+an orpath (i.e. bitstring).
+
+  (a) OR (d) [@ r.s]
+        A :
+	  VAR [vars: x @ r.s.0]
+	B :
+	  VAR [vars: x @ r.s.1.0]
+	C :
+	  VAR [vars: x @ r.s.1.1]
+
+  (b) OR (d) [@ r.s] (asvars: y @ r.s)
+        A :
+	  VAR [vars: x @ r.s.0]
+	B :
+	  VAR [vars: x @ r.s.1.0]
+	C :
+	  VAR [vars: x @ r.s.1.1]
+
+  (c) OR (d) [@ r.s]
+        A :
+	  VAR [vars: x @ r.s.0; asvars: y @ r.s.0]
+	B :
+	  VAR [vars: x @ r.s.1.0; asvars: y @ r.s.1.0]
+	C :
+	  VAR [vars: x @ r.s.1.1; asvars: y @ r.s.1.1]
+
+  (d) Not legal, since Vars(y as B x) = {x,y} while Vars(y) = {y}.
+      Should fail the check for equal sets of pattern varialbes (having same types).
+
+  (e) OR (d) [@ 0, 1]
+        A:
+	  VAR [vars: x @ 0]  => RHS(0)
+	B:
+	  VAR [vars: x @ 1.0] => RHS(1)
+	C:
+	  VAR [vars: x @ 1.1] => RHS(1)
+
+      Note: RHS(1) has a multiplicty of 2, so needs to be abstracted.
+
+
+Note on variable consistency
+----------------------------
+
+    true | _
+
+is ok, Vars = {} on both sides.
+
+    true | x
+
+is illegal, since Vars{true} = {} and Vars(x) = {x}, not equal.
+
+    (x as true) | x
+
+is ok again: Vars(x as true) = {x} = Vars(x).
+
+This is symmetric, as
+
+    _ | true
+
+and
+
+    x | (x as true)
+
+are legal, but degnerate:
+
+  [[_ | true]] = [[_]] = \v: bool.empty-env.
+  [[x | x as true]] = [[x]] = \v: bool.{(x,v)}
+  
+
+Note on top-level variables in OR patterns
+------------------------------------------
+
+Ex.1
+
+  (1)  x | (_::x)
+  (2)  (_::x) | x
+
+These are two legal OR patterns of type t list (for some type t).
+They both unambiguously bind the variable x : t list.
+For (1), the left pattern x will match any value, so by left-to-right
+priority, the right pattern (_::x) will never be matched. Thus the
+relative path of the match for x will always be <>.  Thus
+
+	 x | (_::x)  -->  x   ("simplifies or reduces to")
+
+And in general we have the simplification pattern rewrite rule:
+
+         x | p  --> x
+
+for any legal pattern p. I.e. p will never match.
+
+For (2), the only value that will match with the right pattern (x) is nil,
+which does not match the left pattern (_::x).
+
+  (0)    (_::x) | x => ...
+  (1)    nil => ...
+
+Here rule (1) will be redundant, since any value will match the pattern for
+rule (0). So the right pattern x in (0) shadows, or defaults, rule (1).
+How is this implemented when we do pushDefaults?  Do we use default rule numbers,
+(0) in this case, or do we need default layers, (0.1) in this case?
+
+Andor tree for (1): [assuming 1 rule (0)]
+
+   OR (t list, <>, Vars [x @ 0.0])
+     nil
+       LEAF (direct = {}, default = {0.0 ?})
+     ::
+       AND
+         0 WILD
+	 1 VAR [x @ 0.1]
+
+Here the "default" "ruleset" for nil is either {0} (a ruleset) or {0.0} (a layer set).
+Is the extra information in the layer set relevant?
+
+Decision tree for (1):
+
+   DLEAF (0, ...)
+
+
+Ex. 2
+
+  (0)  (true, (_::x) | x) => rhs0(x)
+  (1)  (false, nil) => rhs1
+
+AndOr tree:
+
+   <> AND (bool * t list)
+      <0> OR (bool) (no Vars, AsVars)
+          true
+	    <0,true> LEAF
+	  false
+	    <0,false> LEAF
+      <1> OR (t list) vars=[x @ 0.1]
+          nil
+	    <1,nil> LEAF(direct={}, default={0.1})
+	  cons
+	    <1,cons> AND(direct={0}, default={0.1})
+	       <1,cons,0> WILD
+	       <1,cons,1> VAR [x @ 0.0]
+
+Decision tree:
+
+   CHOICE <0>
+      true =>
+        CHOICE <1>
+	  cons => DLEAF 0  (bind x at <1,cons,1>)
+	  _ => SOME(DLEAF 0) (x default, bind x at <1>)
+      false => 
+        CHOICE <1>
+	  nil  => DLEAF 1  (no x binding)
+	  cons => DMATCH
+
+Note: can't "unify" the two CHOICE <1> subtrees, both derived from the <1> OR node.
+
+Ex. 3
+
+  p = ((_::y) | y, (_::x) | x)
+
+Matches any value of type (t1 list * t2 list).
+
+  p # (nil, nil)  -->  {(y,nil), (x,nil)}
+  p # ([a], [b])  -->  {(y,nil), (x,nil)}
+  p # ([a1,a2], [b])  -->  {(y,[a2]), (x,nil)}
+  p # ([a1,a2], [b1,b2,b3])  -->  {(y,[a2]), (x,[b2,b3])}
+  
+------------
+orpat/o5.sml
+----------------
+fun f u =
+    case u
+     of (((_::x) | x), ((_::y) | y)) => (x,y);
+----------------
+
+AndOr tree:
+
+  AND <>;
+    0 OR <0>; vars = [x @ 0.1]; dir = {0.0}; dft = {0.1}
+      cons: {0.0}  (=> not defaulted by x @ 0.1)
+	AND <0,cons>; dir = {0.0}; dft = {}
+	  0 WILD <0,cons,0>; dft = {0.0}
+	  1 VAR <0,cons,1>; vars = [x @ 0.0]; dft = {0.0}
+    1 OR <1>; vars = [y @ 0.1]; dir = {0.0}; dft = {0.1} 
+      cons: {0.0}  (=> not defaulted by y @ 0.1)
+	AND <1,cons>; dir = {0.0}, dft = {}
+	  0 WILD <1,cons,0>; dft = {0.0}
+	  1 VAR <1,cons,1>; vars = [y @ 0.0]; dft = {0.0}
+
+   Note: For x @ 0.0 and y @ 0.0, the orpaths are relative to two different
+   	 OR patterns at paths <0> and <1> respectively.  Does this matter?
+	 They can be differentiated by using both the path and orpath?
+
+Decision tree:
+
+  There are two "parallel" OR nodes at paths <0> and <1>.
+  variants# <0> = 2 = variants# <1>
+  defaults# <0> = 1 = defaults# <1>
+  => <0> and <1> have the same priority.  Assume <0> chosen.
+
+  CHOICE <0>
+    cons: (relevant to layer <0>{0.0}, but not to <0>{0.1})
+      CHOICE <1>  (bind x @ <0.cons.1>)
+      	cons: DLEAF{0.0} (bind y @ <1.cons.1>)
+	      (relevant to layer <1>{0.0}, but not to <1>{0.1}) 
+	_ : SOME(DLEAF{0.1})  (bind y @ <1>)
+    _ : SOME(DLEAF {0.1})  (bind x @ <0>)
+
+Absyn:
+
+  fn v0 =>
+   let (v1,v2) = rdest(2) v0
+    in SWITCH v1
+         of cons v3 =>
+	      let (v4,v5) = rdest(2) v3
+	       in SWITCH v2
+	            of cons v6 =>
+		         let (v7,v8) = rdest(2) v6
+			  in (v5, v8)
+		     | _ (v5, v2)
+          | _ =>
+	     SWITCH v2
+	       of cons v9 =>
+	       	    let (v10,v11) = rdest(2) v9
+		     in (v1, v11)
+		| => (v1, v2)
+
+where
+   let (x,y) = rdest(2) z
+    in ..
+
+is short for
+
+   let x = SELECT(0,z)
+       y = SELECT(1,z)
+    in ...
+
+or
+
+   let x = SELECT(0,z)
+    in let y = SELECT(1,z)
+        in ...
+
+
+
+Pattern _overlays_ or _layers_ with priorities
+----------------------------------------------
+Without OR patterns, each _rule_ overlays previous patterns with rule numbers
+as priorities.
+
+   p | q
+
+analyze p at this point, then overlay q, at the _same_ point (path). For a
+pattern like x as (p | q), secondary variable x is assigned to the common
+path/node occupied by p and q (and any other previous or subsequent layers).
+
+With OR patterns, the priorities are expressed as (ruleno * branch list), where
+
+     datatype branch = Left | Right
+     (or type branch = int (* using only 0 or 1, representing bits *))
+
+branches are left or right branches at "Split" nodes (i.e. "OR patterns"). The
+ordering of priorities is
+
+     (rule1, branches1) < (rule2, branches2)
+     iff rule1 < rule2 or rule1 = rule2 and brances1 < branches 2
+
+where the ordering on branches (= branch list) is 
+
+     Left < Right
+     branches ordered lexiocographically
+
+
+Preliminary Implementation Ideas
+--------------------------------
+
+1. View a pattern containing OR patterns as a tree where the nodes are the OR (or ;)
+patterns.  Create "addresses" for the elements of OR patterns in the form of a list
+of numbers, with the first element being the rule no, and the successive numbers being
+the number within each nesting of ORs.
+
+Extend the priority scheme for OR nodes to use these lists (i.e. OR tree addresses).
+
+2. pattern continuations (at decision-tree and code level) for reuse instead of
+duplication of decision tree subtrees.
 
 
 ================================================================================
