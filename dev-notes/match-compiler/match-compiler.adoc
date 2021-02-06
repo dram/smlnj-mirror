@@ -3073,7 +3073,7 @@ orpat/o5.sml
 ----------------
 fun f u =
     case u
-     of (((_::x) | x), ((_::y) | y)) => (x,y);
+     of (((_::x) | x), ((_::y) | y)) => length x + length y;
 ----------------
 
 AndOr tree:
@@ -3102,15 +3102,22 @@ Decision tree:
   => <0> and <1> have the same priority.  Assume <0> chosen.
 
   CHOICE <0>
-    cons: (relevant to layer <0>{0.0}, but not to <0>{0.1})
+    cons: (relevant : <0>{0.0} -- but not to <0>{0.1})
       CHOICE <1>  (bind x @ <0.cons.1>)
-      	cons: DLEAF{0.0} (bind y @ <1.cons.1>)
-	      (relevant to layer <1>{0.0}, but not to <1>{0.1}) 
-	_ : SOME(DLEAF{0.1})  (bind y @ <1>)
-    _ : SOME(DLEAF {0.1})  (bind x @ <0>)
+      	cons: DLEAF 0.0 (bind y @ <1.cons.1>)
+	      (relevant : <1>{0.0} -- but not to <1>{0.1}) 
+	_ : SOME(DLEAF 0.1)  (bind y @ <1>)
+    _ : SOME(DLEAF 0.1)  (bind x @ <0>)
+
+   Layer uses (DLEAF):
+     0.0 : 1
+     0.1 : 2
+   both layers belong to rule 0, so use the same rhs, which therefore
+   has 3 DLEAF uses.
 
 Absyn:
 
+  let rhsf0 = fn (x,y) => length x + length y in
   fn v0 =>
    let (v1,v2) = rdest(2) v0
     in SWITCH v1
@@ -3119,14 +3126,14 @@ Absyn:
 	       in SWITCH v2
 	            of cons v6 =>
 		         let (v7,v8) = rdest(2) v6
-			  in (v5, v8)
-		     | _ (v5, v2)
+			  in rhsf0 (v5, v8)
+		     | _ => rhsf0 (v5, v2)
           | _ =>
 	     SWITCH v2
 	       of cons v9 =>
 	       	    let (v10,v11) = rdest(2) v9
-		     in (v1, v11)
-		| => (v1, v2)
+		     in rhsf0 (v1, v11)
+		| => rhsf0 (v1, v2)
 
 where
    let (x,y) = rdest(2) z
@@ -3144,6 +3151,140 @@ or
     in let y = SELECT(1,z)
         in ...
 
+-------------------------------------------------------
+Ex 3a
+
+  fun f u =
+      case u
+        of (_::x, _::y) => x + y    (* rule (0) *)
+	 | (x,y) => x * y           (* rule (1) *)
+
+AndOr:
+
+  AND <>; int list * int list, dir = {0,1}, dft = {}, vars = {}
+    0: OR <0>, int list, dir = {0}, dft = {1}, vars = {x @ 1}
+         cons:
+	   AND <0,cons>; int * int list, dir = {0}, dft = {1}, vars = {}
+	     0: WILD <0,cons,0>; int; dft = {1}, vars = {}
+	     1: VAR(x) <0,cons,1>; int list; dft = {1}, vars = {x @ 0}
+    1: OR <1>, int list, dir = {0}, dft = {1}, vars = {y @ 1}
+         cons:
+	   AND <1,cons>; int * int list, dir = {0}, dft = {1}, vars = {}
+	     0: WILD <1,cons,0>
+	     1: VAR(y) <1,cons,1>; int list; dft = {1}, vars = {y @ 0}
+
+Decision Tree:
+  The two OR nodes are symmetric, so have the same priority. So choose <0>
+  first.
+
+  CHOICE <0>
+    cons: (relevant to rule 0, but not to rule 1)
+      CHOICE <1>  (bind x @ <0.cons.1>)
+      	cons: DLEAF 0 (bind y @ <1.cons.1>)
+	      (relevant to rule 0, but not to rule 1)
+	_ : SOME(DLEAF 1)  (bind y @ <1>)
+    _ : SOME(DLEAF 1)  (bind x @ <0>)
+
+    Rule uses:
+      rule 0: 1
+      rule 1: 2
+    rule 0 has a single DLEAF use, and does not need to be abstracted
+    rule 1 has 2 DLEAF uses, so have to define abstracted rhs rhs1
+
+Absyn:
+
+let rhs1 = fn (x,y) => x * y  -- rule 1 rhs; used twice)
+ in  
+  fn v0 =>   -- u
+   let (v1,v2) = rdest.2 v0    -- v1 = #1 v0; v2 = #2 v0
+    in SWITCH v1
+         of cons v3 =>
+	      let (v4,v5) = rdest.2 v3    -- v5 = tl v1
+	       in SWITCH v2
+	            of cons v6 =>    -- rule 0
+		         let (v7,v8) = rdest.2 v6  -- v8 = tl v2
+			  in v5 + v8     -- rule 0 rhs, used once, inlined
+		     | _ rhs1 (v5, v2)   -- rule 1 rhs
+          | _ => rhs1 (v1, v2)           -- rule 1 rhs
+
+------------------------------
+4a.  x | true  (not legal, no x in 2nd arg)
+4b.  x | x as true => not x  [should reduce to x]
+4c.  fn x => not x     (0)
+      | true => false  (1)
+
+     x in (0) pattern shadows true in (1) pattern
+     => rule (1) is redundant
+
+AndOr (4c):
+  OR <>; bool; vars={x @ 0}; dft = {0}
+    true:
+      LEAF; dir={1}, dft={0}}
+
+Decision Tree (4c): ?
+
+  DLEAF 0 (bind x @ <>)
+
+Absyn (4c): (?)  [Rule (1) should be flagged as redundant]
+
+  fn v0 =>
+     let v1 = v0
+      in not v1
+
+BUG[newmc]. No "match redundant" error message is produced.
+
+BUG[newmc]. No "match nonexhaustive" warning message is produced by:
+
+  - fn true => 3;
+
+------------------------------
+5. datatype d = A of int | B of int | C of int
+5a.  A x | (B x | C x) => x + 1
+5b.  A x | B x => x + 1  (0)
+     C x => x + 2        (1)
+
+AndOr (5a):
+
+  OR d; <>; vars={}; dir={0}; dft={}
+    A: VAR(x) int; <A>; vars={x @ 0.0}
+    B: VAR(x) int; <B>; vars={x @ 0.1.0}
+    C: VAR(x) int; <B>; vars={x @ 0.1.1}
+
+Decision Tree (5a):
+
+  CHOICE <>
+    A: DLEAF 0  (bind x @ <A>)
+    B: DLEAF 0  (bind x @ <B>)
+    C: DLEAF 0  (bind x @ <C>)
+
+  venvMC = {(x, 0.0, <A>, v1), (x, 0.1.0, <B>, v2), (x, 0.1.1, <C>, v3)}
+  (bindSVars)
+
+Absyn (5a):    
+  let rhs0 = fn u => u+1
+   in fn v0 =>
+         SWITCH v0
+	   of A v1 => rhs0 v1
+	    | B v2 => rhs0 v2
+	    | A v3 => rhs0 v3
+
+----------
+AndOr(5b):
+
+  OR d; <>; vars={}; dir={0}; dft={}
+    A: VAR(x) int; <A>; vars={x @ 0.0}
+    B: VAR(x) int; <B>; vars={x @ 0.1}
+    C: VAR(x) int; <B>; vars={x @ 1}
+
+
+
+
+------------------------------
+6. List OR patterns
+6a.  x::y | x::_::y
+6b.  [x,y] | [x,_,y]
+6c.  [x,y] | [y,_,x]
+6d.  [_,x] | [_,_,x]
 
 
 Pattern _overlays_ or _layers_ with priorities
@@ -3174,7 +3315,7 @@ where the ordering on branches (= branch list) is
      branches ordered lexiocographically
 
 
-Preliminary Implementation Ideas
+Preliminary Implementation Ideas for OR ("layered") patterns
 --------------------------------
 
 1. View a pattern containing OR patterns as a tree where the nodes are the OR (or ;)
