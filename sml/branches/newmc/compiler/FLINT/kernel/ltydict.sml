@@ -6,17 +6,17 @@ sig
   type tyc = Lty.tyc
   type lty = Lty.lty
 
-  val tmemo_gen : {tcf: (tyc -> 'a) -> (tyc -> 'a),
-                   ltf: ((tyc -> 'a) * (lty -> 'b)) -> (lty -> 'b)} 
-                  -> {tc_map: tyc -> 'a, lt_map: lty -> 'b}
+  val tmemo_gen : {tcf: (tyc -> tyc) -> (tyc -> tyc),
+                   ltf: ((tyc -> tyc) * (lty -> lty)) -> (lty -> lty)} 
+	       -> {tc_map: tyc -> tyc,
+		   lt_map: lty -> lty}
 
-  val wmemo_gen : {tc_wmap : ((tyc -> 'a) * (tyc -> 'a)) -> (tyc -> 'a),
-                   tc_umap : ((tyc -> 'a) * (tyc -> 'a)) -> (tyc -> 'a),
-                   lt_umap : ((tyc -> 'a) * (lty -> 'b)) -> (lty -> 'b)}
-                  -> {tc_wmap : tyc -> 'a,
-                      tc_umap : tyc -> 'a, 
-                      lt_umap : lty -> 'b,
-                      cleanup : unit -> unit}
+  val wmemo_gen : {tc_wmap : ((tyc -> tyc) * (tyc -> tyc)) -> (tyc -> tyc),
+                   tc_umap : ((tyc -> tyc) * (tyc -> tyc)) -> (tyc -> tyc),
+                   lt_umap : ((tyc -> tyc) * (lty -> lty)) -> (lty -> lty)}
+               -> {tc_wmap : tyc -> tyc,
+                   tc_umap : tyc -> tyc, 
+                   lt_umap : lty -> lty}
 
 end (* signature LTYDICT *)
 
@@ -36,64 +36,71 @@ structure LtDict = RedBlackMapFn(struct
 				   val compare = Lty.lt_cmp
 			         end)
 
-fun tmemo_gen {tcf, ltf} =
-  let val m1 = ref (TcDict.empty)
-      val m2 = ref (LtDict.empty)
+(* tmemo_gen called once in function tnarrow_gen in LtyExtern.
+ * tnarrow_gen is called once in FLINT/reps/reify.sml *)
+fun tmemo_gen {tcf : (tyc -> tyc) -> (tyc -> tyc),
+	       ltf : ((tyc -> tyc) * (lty -> lty)) -> (lty -> lty)} =
+  let val tycDictR = ref (TcDict.empty)
+      val ltyDictR = ref (LtDict.empty)
 
-      fun tc_look t = 
-        (case TcDict.find(!m1, t)
-          of SOME t' => t'
-           | NONE => 
-               let val x = (tcf tc_look) t
-                   val _ = (m1 := TcDict.insert(!m1, t, x))
-                in x
-               end)
+      fun tc_look tyc = 
+          (case TcDict.find(!tycDictR, tyc)
+             of SOME x => x
+              | NONE => 
+                let val x = (tcf tc_look) tyc
+                 in tycDictR := TcDict.insert(!tycDictR, tyc, x);
+		    x
+                end)
 
-      and lt_look t = 
-        (case LtDict.find(!m2, t)
-          of SOME t' => t'
-           | NONE => 
-               let val x = ltf (tc_look, lt_look) t
-                   val _ = (m2 := LtDict.insert(!m2, t, x))
-                in x
-               end)
+      and lt_look lty = 
+          (case LtDict.find(!ltyDictR, lty)
+             of SOME x => x
+              | NONE => 
+                let val x = ltf (tc_look, lt_look) lty
+		 in ltyDictR := LtDict.insert(!ltyDictR, lty, x);
+		    x
+                end)
+
    in {tc_map=tc_look, lt_map=lt_look}
   end (* tmemo_gen *)
 
-fun wmemo_gen {tc_wmap, tc_umap, lt_umap} = 
-  let val m1 = ref (TcDict.empty)
-      val m2 = ref (TcDict.empty)
-      val m3 = ref (LtDict.empty)
 
-      fun tcw_look t = 
-        (case TcDict.find(!m1, t)
-          of SOME t' => t'
-           | NONE => 
-               let val x = (tc_wmap (tcw_look, tcu_look)) t
-                   val _ = (m1 := TcDict.insert(!m1, t, x))
-                in x
-               end)
+(* Obsolete: folded into definition of typeWrapGen in LtyExtern
+(* wmemo_gen called once in function twrap_gen in LtyExtern; 
+ * twrap_gen is called once in FLINT/reps/wrapping.sml *)
+fun wmemo_gen {tyc_wmap : (tyc -> tyc) * (tyc -> tyc) -> (tyc -> tyc),
+               tyc_umap : (tyc -> tyc) * (tyc -> tyc) -> (tyc -> tyc),
+               lty_umap : (tyc -> tyc) * (lty -> lty) -> (lty -> lty)} = 
+  let 
 
-      and tcu_look t = 
-        (case TcDict.find(!m2, t)
-          of SOME t' => t'
-           | NONE => 
-               let val x = (tc_umap (tcu_look, tcw_look)) t
-                   val _ = (m2 := TcDict.insert(!m2, t, x))
-                in x
-               end)
+      fun tcw_look (tyc: tyc) : tyc = 
+	  (case TcDict.find(!tycWrapMap, tyc)
+	     of SOME x => x
+	      | NONE => 
+		let val x = tyc_wmap (tcw_look, tcu_look) tyc
+		 in tycWrapMap := TcDict.insert(!tycWrapMap, tyc, x);
+		    x
+		end)
+ 
+      and tcu_look tyc = 
+	  (case TcDict.find(!tycUnwrapMap, tyc)
+	    of SOME x => x
+	     | NONE => 
+		 let val x = tyc_umap (tcw_look, tcu_look) tyc
+		  in tycUnwrapMap := TcDict.insert(!tycUnwrapMap, tyc, x);
+		     x
+		 end)
 
-      and ltu_look t = 
-        (case LtDict.find(!m3, t)
-          of SOME t' => t'
-           | NONE => 
-               let val x = lt_umap (tcu_look, ltu_look) t
-                   val _ = (m3 := LtDict.insert(!m3, t, x))
-                in x
-               end)
+      and ltu_look lty = 
+	  (case LtDict.find(!ltyUnwrapMap, lty)
+	    of SOME x => x
+	     | NONE => 
+		 let val x = lty_umap (tcu_look, ltu_look) lty
+		  in ltyUnwrapMap := LtDict.insert(!ltyUnwrapMap, lty, x);
+		     x
+		 end)
 
-      fun cleanup () = ()
-   in {tc_wmap=tcw_look, tc_umap=tcu_look, lt_umap=ltu_look, cleanup=cleanup}
+   in {tc_wmap=tcw_look, tc_umap=tcu_look, lt_umap=ltu_look}
   end (* wmemo_gen *)
-
+*)
 end (* structure LtyDict *)

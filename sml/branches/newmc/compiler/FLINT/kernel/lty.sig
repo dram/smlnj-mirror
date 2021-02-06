@@ -12,6 +12,7 @@ datatype tkindI
   | TK_SEQ of tkind list                      (* sequence of tycons *)
   | TK_FUN of tkind list * tkind              (* tycon function *)
 
+(* enc_tvar: encoded type variables = deBruijn indexes * binde-arity indexes *)
 type enc_tvar
 val tvEncode : int * int -> enc_tvar
 val tvDecode : enc_tvar -> int * int

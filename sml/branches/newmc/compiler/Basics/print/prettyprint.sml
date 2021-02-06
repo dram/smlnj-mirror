@@ -80,7 +80,6 @@ struct
   fun with_pp device (f: PP.stream -> unit) =
       let val ppstrm = PP.openStream device
        in f ppstrm;
-	  PP.newline ppstrm;
           PP.closeStream ppstrm
       end
 
@@ -93,7 +92,6 @@ struct
   fun with_default_pp (f: PP.stream -> unit) =
       let val ppstrm = PP.openStream(defaultDevice)
        in f ppstrm;
-          PP.newline ppstrm;
           PP.closeStream ppstrm
       end
 

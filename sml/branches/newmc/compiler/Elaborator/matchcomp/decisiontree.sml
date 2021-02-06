@@ -14,7 +14,7 @@ structure DecisionTree =
 struct
 
 local
-    structure R = Rules
+    structure R = Rules  (* sets of rule numbers *)
     structure T = Types
     structure TU = TypesUtil
     structure Q = ORQueues

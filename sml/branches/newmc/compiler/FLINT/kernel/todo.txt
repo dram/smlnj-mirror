@@ -1,0 +1,3 @@
+lty.sml
+
+TC_VAR --> TC_DVAR

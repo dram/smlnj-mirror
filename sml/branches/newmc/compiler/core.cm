@@ -139,7 +139,7 @@ Group
 	structure LtyDef
 	structure LtyExtern
 	structure PrimTyc
-	structure PPFlint
+	structure PrintFlint
 	structure LContract
 	structure Specialize
 	structure LambdaVar
@@ -196,8 +196,10 @@ FLINT/flint/chkflint.sml
 FLINT/flint/flint.sig
 FLINT/flint/flint.sml
 FLINT/flint/flintutil.sml
-FLINT/flint/ppflint.sig
-FLINT/flint/ppflint.sml
+FLINT/flint/printflint.sig
+FLINT/flint/printflint.sml
+(* FLINT/flint/ppflint.sig
+   FLINT/flint/ppflint.sml *)
 FLINT/flint/tvarcvt.sml
 FLINT/kernel/primtyc.sig
 FLINT/kernel/primtyc.sml
@@ -205,7 +207,7 @@ FLINT/kernel/ltybasic.sig
 FLINT/kernel/ltybasic.sml
 FLINT/kernel/ltydef.sig
 FLINT/kernel/ltydef.sml
-FLINT/kernel/ltydict.sml
+(* FLINT/kernel/ltydict.sml -- memo-ization folded into LtyExtern *)
 FLINT/kernel/ltyextern.sig
 FLINT/kernel/ltyextern.sml
 FLINT/kernel/ltykernel.sig

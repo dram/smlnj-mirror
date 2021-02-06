@@ -22,7 +22,7 @@ local
     structure S = IntRedBlackSet
     structure F = FLINT
     structure PO = Primop
-    structure PP = PPFlint
+    structure PF = PrintFlint
     structure LT = LtyExtern
     structure CTRL = FLINT_Control
 
@@ -30,7 +30,7 @@ in
 fun bug msg = ErrorMsg.impossible ("ABCOpt: "^msg)
 
 val mklv = LV.mkLvar
-val lvname = !PP.LVarString
+val lvname = !PF.LVarString
 
 val pDebug = ref false
 
@@ -46,7 +46,7 @@ fun debug s =
      *  else ()) *) ()
 
 fun printVals nil = say "\n"
-  | printVals (x::xs) = (PP.printSval x; say ", "; printVals xs)
+  | printVals (x::xs) = (PF.printSval x; say ", "; printVals xs)
 
 fun abcOpt (pgm as (progkind, progname, progargs, progbody)) = let
 
@@ -533,16 +533,16 @@ in
      * 	(say "\nhello! This is ABCOpt!\n";
      *
      * 	 (say "[Before ABCOpt...]\n\n";
-     * 	  PP.printProg pgm);
+     * 	  PF.printProg pgm);
      *
      * 	 (say "\n[After Hoisting...]\n\n";
-     * 	  PP.printProg (progkind, progname, progargs, hoisted));
+     * 	  PF.printProg (progkind, progname, progargs, hoisted));
      *
      * 	 (say "\n[After CSE...]\n\n";
-     * 	  PP.printProg (progkind, progname, progargs, csed));
+     * 	  PF.printProg (progkind, progname, progargs, csed));
      *
      * 	 (say "\n[After Elim...]\n\n";
-     * 	  PP.printProg (progkind, progname, progargs, elimed));
+     * 	  PF.printProg (progkind, progname, progargs, elimed));
      *
      * 	 say "\nbyebye! i'm done!\n\n")
      * else (); *)

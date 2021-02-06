@@ -833,8 +833,9 @@ end (* tyc equivalence utilities *)
  * being matched against t1 *)
 fun tc_match(ks: tkind list, ltys: lty list, argtyc: tyc) = true
 
-(** lt_eqv_generator, invariant: t1 and t2 are in the wh-normal form *)
-(** The LT_TCY/LT_POLY case is asymmetric, reflecting the fact that
+(** lt_eqv_gen : lty * lty -> bool
+ ** lt_eqv_generator, invariant: t1 and t2 are in the wh-normal form1
+ ** The LT_TCY/LT_POLY case is asymmetric, reflecting the fact that
  ** a polytype in a functor argument (t2) can match a monotype in the
  ** functor parameter signature (t1) **)
 fun lt_eqv_gen (t1 : lty, t2: lty) =

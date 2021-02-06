@@ -35,7 +35,8 @@ val debugging = FLINT_Control.nmdebugging
 
 fun debugmsg (msg : string) =
     if !debugging then (say msg; say "\n") else ()
-val pd = 15  (* debugging print depth *)
+
+val pd = 20  (* debugging print depth *)
 
 fun ppTycEnv (tenv: Lty.tycEnv) =
     PP.with_default_pp
@@ -585,7 +586,6 @@ and tolvar (venv,d,lvar,lexp,cont) =
 						   arg_vals, lvar, c_lexp))))
             end
 
-
       (*  | L.TFN ([], body) => bug "TFN[]" *)
       | L.TFN (tks, body) =>
             let val (body', body_lty) =
@@ -659,10 +659,10 @@ and tolvar (venv,d,lvar,lexp,cont) =
       | L.SELECT (n,lexp) =>
 	    tovalue(venv, d, lexp,
 		    fn (v, lty) =>
-		    let val lty = (LT.lt_select(lty, n))
-			val (c_lexp, c_lty) = cont(lty)
-		    in (F.SELECT(v, n, lvar, c_lexp), c_lty)
-		    end)
+		       let val lty = LT.lt_select (lty, n, "flintnm.sml#661")
+			   val (c_lexp, c_lty) = cont(lty)
+		        in (F.SELECT(v, n, lvar, c_lexp), c_lty)
+		       end)
 
       | L.PACK (lty,otycs,ntycs,lexp) =>
             bug "PACK is not currently supported"
@@ -691,7 +691,7 @@ fun norm (lexp as L.FN(arg_lv,arg_lty,e)) =
     let val r =
 	    (#1(tofundec(LT.initLtyEnv, DI.top, mkv(), arg_lv, arg_lty, e, false))
 	     handle x => raise x)
-    in (debugmsg "<<norm" (*; PPFlint.printFundec r *); r)
+    in (debugmsg "<<norm" (*; PrintFlint.printFundec r *); r)
     end
   | norm _ = bug "unexpected toplevel lexp"
 

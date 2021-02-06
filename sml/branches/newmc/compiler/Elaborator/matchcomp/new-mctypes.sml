@@ -45,24 +45,24 @@ fun layerEq ((r1,s1): layer, (r2,s2)) =
 
 (* two occurrences of a variable in a pattern must be separated by an OR, so
  * their layer paths must _differ_ at some point *)
-fun layerPathLess (nil, nil) = false
-  | layerPathLess (nil, _) = false
-  | layerPathLess (_, nil) = false
-  | layerPathLess (b1::rest1, b2::rest2) =
-    b1 < b2 orelse b1 = b2 andalse layerPathLess (rest1,rest2)
+fun orpathLT (nil, nil) = false
+  | orpathLT (nil, _) = false
+  | orpathLT (_, nil) = false
+  | orpathLT (b1::rest1, b2::rest2) =
+    b1 < b2 orelse (b1 = b2 andalso orpathLT (rest1,rest2))
 
 (* WRONG
 fun layerLE ((r1,s1): layer, (r2,s2)) =
     r1 <= r2 orelse
-    r1 = r2 andalso layerPathLess (s1,s2)
+    r1 = r2 andalso orpathLT (s1,s2)
 *)
 
 fun layerLT ((r1,s1): layer, (r2,s2)) =
     r1 < r2 orelse
-    r1 = r2 andalso layerPathLess (s1,s2)
+    r1 = r2 andalso orpathLT (s1,s2)
 
-fun layerLeft (r,s) = (r, s@[0])
-fun layerRight (r,s) = (r, s@[1])
+fun newLayerLeft (r,s) = (r, s@[0])
+fun newLayerRight (r,s) = (r, s@[1])
 
 type binding = V.var * layer
    (* a variable bound at some point in the given rule, either as a
@@ -117,7 +117,7 @@ fun keyToString (D (dcon,_)) = Symbol.name(TU.dataconName dcon)
    paths locate points in the "pattern space" determined by a sequence of patterns
       (a finite subtree of the complete pattern tree determined by the common type of
       the patterns). Points in the pattern space correspond to andor nodes, which
-      therefore have a unique identifying path.
+      have a unique identifying path.
 *)
 
 (* a path is well formed only if its links are well formed *)
@@ -195,18 +195,18 @@ datatype andKind
   | VECTOR
 
 type AOinfo =
-     {id : int,              (* unique identity of node, for efficient maps on nodes *)
-      typ : T.ty,            (* type of node value *)
-      path : path,           (* path to this node; serves as node name, secondary unique identifier *)
-      vars : varBindings,    (* primary variable bindings at node *)
-      asvars : varBindings}  (* secondary (as) variable bindings at node *)
+     {id : int,              (* unique identity of the node, for efficient maps on nodes *)
+      typ : T.ty,            (* type of a value matching at the node *)
+      path : path,           (* path to this node; serves as the node name & secondary unique identifier *)
+      vars : varBindings,    (* primary variable bindings at the node *)
+      asvars : asBindings}   (* secondary (as) variable bindings at the node *)
 
 datatype andor
   = AND of   (* product patterns and contents of vectors *)
     {info : AOinfo,
-     andKind : andKind,        (* a record/tuple, or a vector; could split AND constr instead *)
+     andKind : andKind,        (* a record/tuple, or a vector [could split AND constr instead] *)
      direct : ruleset,         (* direct rules: rules with product pats at this pattern point; needed? *)
-     defaults : ruleset,       (* rules matching here because of (primary) variables along the path *)
+     defaults : ruleset,       (* rules matching here because of (primary) variables above here on the path *)
      children : andor list}    (* tuple components as children -- AND node *)
 
   | OR of (* datatype, vector, or constant pattern/type *)

@@ -42,8 +42,8 @@ signature COMPILE0 =
 	    symenv: SymbolicEnv.env,
 	    compInfo: Absyn.dec CompInfo.compInfo,
 	    guid: guid,
-	    checkErr: string -> unit,
-	    splitting: int option
+	    checkErr: string -> unit
+(*	    splitting: int option *)
 	  } -> {
 	    csegments: CodeObj.csegments,
 	    newstatenv: StaticEnv.staticEnv,
@@ -52,7 +52,7 @@ signature COMPILE0 =
 	    exportLvars: Access.lvar list,
 	    staticPid: hash,
 	    pickle: pickle,
-	    inlineExp: FLINT.prog option,
+(*	    inlineExp: FLINT.prog option, *)
 	    imports: ImportTree.import list
 	  }
 

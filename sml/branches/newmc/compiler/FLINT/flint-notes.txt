@@ -64,3 +64,57 @@ datatype tycI (the raw tyc representation defined in Lty); 50 occurrences,
 in kernel and reps directories.
 
 This is a minor cleanup.
+
+--------------------------------------------------------------------------------
+Type error after wrap (manifested by vis/t28i.sml)
+
+Debugging strategy:
+
+1. strengthen PrintFlint to maximise completeness of printing of FLINT
+expressions.
+
+2. In reps/wrapping.sml, add tracing print statements:
+  a. Print line number for each created lvar.
+  b. Print entry and exit to functions and cases.
+  c. for both newmc and oldmc (110.98.1).
+
+
+------------
+Zhong, 12/25/2020
+
+Hi Dave,
+
+I studied through your various files. The problem in the newmc
+compiler is that it did not insert a coercion surrounding the function
+v78.  This is the coercion wrapper v148 in the old compiler, which
+converts the (lapp [int*int]) function from type (int*int->unit) ->
+(int*int) list -> unit into one of type ([int, int] -> unit) ->
+(int*int) list -> unit.
+
+This wrapper should be inserted in case for TAPP in the "loop"
+function inside the "FLINT/reps/wrapping.sml" file.
+
+               | TAPP (v, ts) =>
+                   let val olt = getlty v
+                       val nts = map tcWrap ts
+                       val nlts = LT.lt_inst(ltf olt, nts)
+                       val olts = map ltf (LT.lt_inst(olt, ts))
+                       val hdr = CO.unwrapOp (wenv, nlts, olts, d)
+                    in case hdr
+                        of NONE => TAPP(v, nts)
+                         | SOME hhh =>
+                             let val nvs = map mkv nlts
+                              in LET(nvs, TAPP(v, nts), hhh(map VAR nvs))
+                             end
+                   end
+
+You would have to instructment this code to find out what "nlts" and
+"oldts" both in the newmc compiler and also in the old compiler.
+
+Apparently they produce different results since in the old compiler,
+the generated coercion is not NONE while the newmc compiler did not
+produce any coercion.
+
+Best, 
+
+-Zhong

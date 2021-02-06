@@ -396,9 +396,6 @@ fun looknmap nmap nvar =
      (*  bug "unexpected case in looknmap") *)
 (***** end of the substitution intmapf hack *********************)
 
-fun phase x = Stats.doPhase (Stats.makePhase x)
-val recover = (* phase "Compiler 053 recover" *) Recover.recover
-
 fun specialize fdec =
 let
 
@@ -409,7 +406,7 @@ val (click, num_click) = mk_click ()
  * that the main pass traverse the code in different order.
  * There must be a simpler way, but I didn't find one yet (ZHONG).
  *)
-val {getLty=getlty, cleanUp, ...} = recover(fdec, false)
+val getlty = Recover.recover (fdec, false)
 
 (* transform: infoEnv * DI.depth * lty cvt * tyc cvt
               * smap * bool -> (lexp -> lexp)
@@ -671,10 +668,10 @@ in
           val _ = app (fn (x,_) => entDtable(ienv, x, (d, ESCAPE))) vts
           val ne = transform (ienv, d, initnmap, initsmap, false) e
           val hdr = chkOutEscs (ienv, map #1 vts)
-          val nfdec = (fk, f, vts, hdr ne) before (cleanUp())
-       in if (num_click()) > 0 then (*  LContract.lcontract *) nfdec
+          val nfdec = (fk, f, vts, hdr ne)
+       in (* if (num_click()) > 0 then (*  LContract.lcontract *) nfdec
           (* if we did specialize, we run a round of lcontract on the result *)
-          else nfdec
+          else *) nfdec
       end
    | _ => bug "non functor program in specialize")
 end (* function specialize *)

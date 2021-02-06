@@ -8,14 +8,14 @@ structure PLambda : PLAMBDA =
   struct
 
     structure A  = Access
-    structure LK = PLambdaType  (* = LtyExtern *)
+    structure LE = LtyExtern  (* = PLambdaType *)
     structure LV = LambdaVar
     structure PO = Primop
     structure S  = Symbol
 
-    type tkind = LK.tkind
-    type tyc = LK.tyc
-    type lty = LK.lty
+    type tkind = LE.tkind
+    type tyc = LE.tyc
+    type lty = LE.lty
 
     type lvar = LV.lvar
 

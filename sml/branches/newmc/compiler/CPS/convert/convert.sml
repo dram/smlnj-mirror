@@ -265,7 +265,7 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
    *                   convert : F.prog -> CPS.function                      *
    ***************************************************************************)
     fun convert fdec =
-     let val {getLty=getlty, cleanUp, ...} = Recover.recover (fdec, true)
+     let val (* {getLty= *) getlty (* , cleanUp, ...} *) = Recover.recover (fdec, true)
 	 val ctypes = map CU.ctype
 	 fun res_ctys f =
 	   let val lt = getlty (F.VAR f)
@@ -737,7 +737,7 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 
 	val vl = k::(map #1 vts)
 	val cl = CNTt::(map (CU.ctype o #2) vts)
-     in (ESCAPE, f, vl, cl, bogus_header body) before cleanUp()
+     in (ESCAPE, f, vl, cl, bogus_header body)
     end (* function convert *)
 
   end (* functor Convert *)

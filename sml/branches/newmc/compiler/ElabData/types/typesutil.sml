@@ -1232,7 +1232,7 @@ in
 	(case (headReduceType ty)
            of CONty(tycon,[argTy]) =>
 	      if equalTycon(tycon, BT.vectorTycon) then argTy
-	      else bug "vectorElemTy 1"
+	      else bug "vectorElemTy: CONty, not vector"
 	    | VARty _ => bug "vectorElemTy: VARty"
 	    | IBOUND _ => bug "vectorElemTy: IBOUND"
 	    | POLYty _ => bug "vectorElemTy: POLYty"
@@ -1241,10 +1241,11 @@ in
 	    | MARKty _ => bug "vectorElemTy: MARKty"
 	    | CONty(tycon,args) =>
 	      (if equalTycon(tycon, BT.vectorTycon)
-	       then print "###vectorTycon -- ok\n"
-	       else print ("###vectoTycon: " ^ Symbol.name (tycName tycon) ^ "\n");
-	       bug ("vectorElemTy: CONty: |args| = " ^ Int.toString(length args))))
-(*	    | ty' => bug "vectorElemTy: ????") *)
+	       then print "TypesUtil.vectorTycon: vectorTycon -- ok\n"
+	       else print ("TypesUtil.vectoTycon: bad tycon: "
+			   ^ Symbol.name (tycName tycon) ^ "\n");
+	       (* bug ("vectorElemTy: CONty: |args| = " ^ Int.toString(length args)) *)
+	       raise Fail "vectorElemTy"))
 
     (* replicateTy : ty * int -> ty list *)
     fun replicateTy (ty,len) =

@@ -223,8 +223,10 @@ and toTyc d t =
 	     (* ASSERT: depth < d *)
 	    let val dbindex = d - depth  (* ASSERT: dbindex > 0 *)
 	    in if dbindex < 1
-	       then bug (concat["toTyc:trMTyvarKind/LBOUND -- dbindex = ", Int.toString dbindex,
-				" < 1\n   d = ", Int.toString d, "; depth = ", Int.toString depth])
+	       then (say (concat["toTyc:trMTyvarKind/LBOUND -- dbindex = ", Int.toString dbindex,
+				 " < 1\n   d = ", Int.toString d, "; depth = ", Int.toString depth,
+				 "\n"]);
+		     raise Fail "trMTyvarKind: dbindex < 1")
 	       else ();
                LT.tcc_var (dbindex, index)
 	    end
@@ -237,7 +239,7 @@ and toTyc d t =
 	       generalized.  E.g. val x = ([],1); -- the metatyvar
                introduced by the generic instantiation of the type of [] is
                neither instantiated nor generalized (unless at toplevel). *)
-        | trMTyvarKind _ = bug "toTyc:h" (* OVLD should have been resolved *)
+        | trMTyvarKind _ = bug "toTyc:trMTyvarKind" (* OVLD should have been resolved *)
 
       and trTy (VARty tv) = lookTv tv
         | trTy (CONty(RECORDtyc _, [])) = LT.tcc_unit

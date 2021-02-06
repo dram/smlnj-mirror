@@ -352,20 +352,25 @@ val ltc_prim   : primtyc -> lty = ltc_tyc o tcc_prim
 val ltc_tuple  : lty list -> lty =
     ltc_tyc o
     (tcc_tuple o (map (fn x => ltd_tyc x handle DeconExn => bug "ltc_tuple")))
-val ltc_arrow  : fflag * lty list * lty list -> lty = fn (r, t1, t2) =>
-  let val ts1 = map ltd_tyc t1
-      val ts2 = map ltd_tyc t2
-   in ltc_tyc (tcc_arrow(r, ts1, ts2))
-  end handle DeconExn => bug "ltc_arrow"
+val ltc_arrow  : fflag * lty list * lty list -> lty =
+    fn (r, t1, t2) =>
+       let val ts1 = map ltd_tyc t1
+	   val ts2 = map ltd_tyc t2
+	in ltc_tyc (tcc_arrow(r, ts1, ts2))
+       end handle DeconExn => bug "ltc_arrow"
 
 (** tyc-lty deconstructors *)
-val ltd_var    : lty -> index * int = tcd_var o (fn x => ltd_tyc x handle DeconExn => bug "ltd_var")
-val ltd_prim   : lty -> primtyc = tcd_prim o (fn x => ltd_tyc x handle DeconExn => bug "ltd_prim")
-val ltd_tuple  : lty -> lty list = (map ltc_tyc) o (tcd_tuple o (fn x => ltd_tyc x handle DeconExn => bug "ltd_tuple"))
-val ltd_arrow  : lty -> fflag * lty list * lty list = fn t =>
-  let val (r, ts1, ts2) = tcd_arrow (ltd_tyc t)
-   in (r, map ltc_tyc ts1, map ltc_tyc ts2)
-  end (* handle DeconExn => bug "ltd_arrow" *)
+val ltd_var    : lty -> index * int =
+    tcd_var o (fn x => ltd_tyc x handle DeconExn => bug "ltd_var")
+val ltd_prim   : lty -> primtyc =
+    tcd_prim o (fn x => ltd_tyc x handle DeconExn => bug "ltd_prim")
+val ltd_tuple  : lty -> lty list =
+    (map ltc_tyc) o (tcd_tuple o (fn x => ltd_tyc x handle DeconExn => bug "ltd_tuple"))
+val ltd_arrow  : lty -> fflag * lty list * lty list =
+    fn t =>
+       let val (r, ts1, ts2) = tcd_arrow (ltd_tyc t)
+	in (r, map ltc_tyc ts1, map ltc_tyc ts2)
+       end (* handle DeconExn => bug "ltd_arrow" *)
 
 (** tyc-lty predicates *)
 val ltp_var    : lty -> bool = fn t =>

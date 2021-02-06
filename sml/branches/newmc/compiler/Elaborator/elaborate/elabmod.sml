@@ -90,8 +90,19 @@ fun showFct(msg,fct,env) =
 fun showDec (msg, dec, env) =
     let fun ppDec ppstrm d =
 	    PPAbsyn.ppDec (env, NONE) ppstrm (d, !Control_Print.printDepth)
-    in
-	ElabDebug.debugPrint ElabControl.printAbsyn (msg, ppDec, dec)
+     in ElabDebug.debugPrint ElabControl.printAbsyn (msg, ppDec, dec)
+    end
+
+fun showStrexp (msg, strexp: A.strexp, env) =
+    let fun ppStrexp ppstrm sexp =
+	    PPAbsyn.ppStrexp (env, NONE) ppstrm (sexp, !Control_Print.printDepth)
+     in ElabDebug.debugPrint ElabControl.printAbsyn (msg, ppStrexp, strexp)
+    end
+
+fun showStrExpAst (msg, strexp: Ast.strexp, env) =
+    let fun ppStrexp ppstrm sexp =
+	    PPAst.ppStrExp NONE ppstrm (sexp, !Control_Print.printDepth)
+     in ElabDebug.debugPrint ElabControl.printAbsyn (msg, ppStrexp, strexp)
     end
 
 (*
@@ -662,8 +673,9 @@ val sname =  case name of SOME n => S.name n
 val depth = (case context of EU.INFCT{depth=d,...} => d
                            | _ => DI.top)
 
-val _ = debugmsg (">>elabStr: " ^ sname)
-
+val _ = debugmsg (">>>elabStr: " ^ sname)
+val _ = showStrExpAst ("--elabStr: strexp = ", strexp, env)
+		   
 (* subsidiary function for elaborating strexps:
  * elab: Ast.strexp * staticEnv * entityEnv * region
  *        -> A.dec * M.Structure * M.strExp * EE.entityEnv
@@ -747,11 +759,19 @@ fun elab (BaseStr decl, env, entEnv, region) =
 		      SOME entv, IP.IPATH[], region, compInfo)
 
           val _ = debugmsg "--elab[AppStr-one]: elab arg done"
-          val _ = showStr("--elab[AppStr-one]: arg str: ",argStr,env)
+          val _ = showStr ("--elab[AppStr-one]: arg str: ", argStr, env)
 
        in case (fct,argStr)
-	    of ((M.ERRORfct,_) | (_,M.ERRORstr)) =>
-		(debugmsg "<<elab[AppStr-one]: error fct or arg";
+(*
+	    of ((M.ERRORfct, _) | (_, M.ERRORstr)) =>
+		(debugmsg "<<<elab[AppStr-one]: ERRORfct OR ERRORstr";
+		 (A.SEQdec[], M.ERRORstr, M.CONSTstr(M.bogusStrEntity), EE.empty))
+*)
+	    of (M.ERRORfct, _) =>
+		(debugmsg "<<<elab[AppStr-one]: error functor";
+		 (A.SEQdec[], M.ERRORstr, M.CONSTstr(M.bogusStrEntity), EE.empty))
+	    | (_, M.ERRORstr) =>
+		(debugmsg "<<<elab[AppStr-one]: error arg structure";
 		 (A.SEQdec[], M.ERRORstr, M.CONSTstr(M.bogusStrEntity), EE.empty))
 	     | (M.FCT { rlzn = fctEnt, ... }, M.STR { rlzn = argEnt, ... }) =>
 	       let val resDee =
@@ -789,9 +809,9 @@ fun elab (BaseStr decl, env, entEnv, region) =
   | elab (v as VarStr path, env, entEnv, region) =
       let val _ = debugmsg ">>elab[VarStr]"
           val str = LU.lookStr(env,SP.SPATH path,error region)
-(*
+
           val _ = showStr("--elab[VarStr]: str: ",str,env)
-*)
+
           val strRlzn =
 		case str
 		  of STR { rlzn, ... } => rlzn
@@ -805,7 +825,7 @@ fun elab (BaseStr decl, env, entEnv, region) =
 			  | SOME ep => M.VARstr ep)
 		   | _ => M.CONSTstr M.bogusStrEntity (* error recovery *)
 
-       in debugmsg "<<elab[VarStr]"; (* GK: Used to be commented out *)
+       in debugmsg "<<<elab[VarStr]";
 	  (A.SEQdec [], str, resExp, EE.empty)
       end
 
@@ -833,7 +853,7 @@ fun elab (BaseStr decl, env, entEnv, region) =
 
           val resDec = A.SEQdec [localDecAbsyn, bodyDecAbsyn]
           val resExp = M.LETstr (localEntDecl, bodyExp)
-          val _ = debugmsg "<<elab[LetStr]: elab body str done"
+          val _ = debugmsg "<<<elab[LetStr]: elab body str done"
 
        in (resDec, bodyStr, resExp, EE.mark(mkStamp,EE.atopSp(bodyDee,entEnv')))
       end
@@ -902,7 +922,7 @@ fun elab (BaseStr decl, env, entEnv, region) =
       end
 
 val (resDec, resStr, resExp, resDee) = elab(strexp, env, entEnv, region)
-val _ = debugmsg "<<elabStr"
+val _ = showStr ("<<<elabStr: resStr = ", resStr, env)
 
 in (resDec, resStr, resExp, resDee)
 end (* end of function elabStr *)
@@ -1245,6 +1265,8 @@ fun loop([], decls, entDecls, env, entEnv) =
           val (strDecAbsyn, str, exp, deltaEntEnv) =
               elabStr(def, SOME name, env0, entEnv0, context, tdepth, epContext,
                       SOME strbEntVar, IP.extend(rpath,name), region', compInfo)
+
+          val _ = showStr ("--elabStrbs: elabStr returns str =", str, env)
 
 	  (* check for partially applied curried functor *)
           (* [DBM,2020.4.24]. This check is buggy (bug 246), because the structure
@@ -1703,7 +1725,8 @@ and elabDecl0
             (* note that transform is applied to decl before type checking *)
             val decl0 = Typecheck.decType(SE.atop(env',env0), transform decl,
                                           top, error, chkError, region)
-	    val decl1 = MatchComp.transMatchDec decl0
+	    val decl1 = if !anyErrors then decl0
+			else MatchComp.transMatchDec decl0
             val (entEnv, entDec) =
                 bindNewTycs(context, epContext, mkStamp, abstycs, withtycs,
 			    rpath, error region)
@@ -1740,7 +1763,8 @@ and elabDecl0
                                           top, error, chkError, region)
                          handle EE.Unbound => (debugmsg("$decType");
                                                raise EE.Unbound)
-	    val decl3 = MatchComp.transMatchDec decl2
+	    val decl3 = if !anyErrors then decl2
+			else MatchComp.transMatchDec decl2
             val _ = debugmsg ">>elabDecl0.dec[after decType]"
          in (decl3, M.EMPTYdec, env', EE.empty)
         end handle EE.Unbound =>

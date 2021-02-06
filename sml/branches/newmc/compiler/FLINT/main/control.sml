@@ -12,87 +12,110 @@ struct
        val prefix = "flint"
 
        val registry = ControlRegistry.new
-			  { help = "optimizer (FLINT) settings" }
+			  { help = "FLINT optimizer settings" }
 
        val _ = BasicControl.nest (prefix, registry, priority)
 
        val flag_cvt = ControlUtil.Cvt.bool
        val int_cvt = ControlUtil.Cvt.int
+       val string_cvt = ControlUtil.Cvt.string
        val sl_cvt = ControlUtil.Cvt.stringList
 
        val nextpri = ref 0
 
-       fun new (c, n, h, d) = let
-	   val r = ref d
-	   val p = !nextpri
-	   val ctl = Controls.control { name = n,
-					pri = [p],
-					obscurity = obscurity,
-					help = h,
-					ctl = r }
-       in
-	   nextpri := p + 1;
-	   ControlRegistry.register
-	       registry
-	       { ctl = Controls.stringControl c ctl,
-		 envName = SOME (ControlUtil.EnvName.toUpper "FLINT_" n) };
-	   r
-       end
+       fun new (cvt_fn, name: string, help: string, default) =
+	   let val r = ref default
+	       val p = !nextpri
+	       val ctl = Controls.control { name = name,
+					    pri = [p],
+					    obscurity = obscurity,
+					    help = help,
+					    ctl = r }
+	   in nextpri := p + 1;
+	      ControlRegistry.register registry
+	       { ctl = Controls.stringControl cvt_fn ctl,
+		 envName = SOME (ControlUtil.EnvName.toUpper "FLINT_" name) };
+	      r
+	   end
    in
 
-    val print	        = new (flag_cvt, "print", "show IR", false)
-    val printPhases	= new (flag_cvt, "print-phases", "show phases", false)
-    val printFctTypes   = new (flag_cvt, "print-fct-types",
-			       "show function types", false)
-    val plchk           = new (flag_cvt, "plchk", "typecheck plambda", false)
-    val nmdebugging     = new (flag_cvt, "nmdebugging",
-			       "PLambda normalization debugging", false)
-    val redebugging     = new (flag_cvt, "redebugging",
-			       "reify phase debugging", false)
-    val rtdebugging     = new (flag_cvt, "rtdebugging",
-			       "runtime types(?) debugging", false)
-    (* `split' should probably be called just after `fixfix' since
+    val print	      = new (flag_cvt, "print", "show IR", false)
+    val printPhases   = new (flag_cvt, "print-phases", "show phases", false)
+    val printFctTypes = new (flag_cvt, "print-fct-types",
+			     "show function types", false)
+    val printDepth    = new (int_cvt, "printDepth", "FLINT PP print depth", 200)
+    val lineWidth     = new (int_cvt, "lineWidth", "FLINT PP line width", 200)
+
+    val tmdebugging   = new (flag_cvt, "tmdebugging", "TransTypes debugging", false)
+    val trdebugging   = new (flag_cvt, "trdebugging", "Translate debugging", false)
+
+    val nmdebugging   = new (flag_cvt, "nmdebugging",
+			     "PLambda normalization debugging", false)
+    val fcdebugging   = new (flag_cvt, "fcdebugging",
+			     "fcontract phase debugging", false)
+    val wrdebugging   = new (flag_cvt, "wrdebugging",
+			     "wrap phase debugging", false)
+    val redebugging   = new (flag_cvt, "redebugging",
+			     "reify phase debugging", false)
+    val rtdebugging   = new (flag_cvt, "rtdebugging",
+			     "runtime types(?) debugging", false)
+
+    (* OBS[split eliminated]:
+     * `split' should probably be called just after `fixfix' since
      * fcontract might eliminate some uncurry wrappers which are
      * locally unused but could be cross-module inlined. *)
     val phases =
-	new (sl_cvt, "phases", "FLINT phases",
-	     ["lcontract", (* Cruder but quicker than fcontract *)
-	      "fixfix", "fcontract",
-	      "specialize",
-	      "loopify", "fixfix", "split", "fcontract",
-	      "wrap", "fcontract", "reify",
-	      (*"abcopt",*) "fcontract", "fixfix", "fcontract+eta"])
+	new (sl_cvt, "phases", "FLINT optimizer phases",
+	     ["deb2names",       (* 0 *)
+	      "lcontract",       (* 1 *) (* Cruder but quicker than fcontract *)
+	      "fixfix",          (* 2 *)
+	      "fcontract",       (* 3 *)
+	      "specialize",      (* 4 *)
+	      "loopify",         (* 5 *)
+	      "fixfix",          (* 6 *)
+	      "fcontract",       (* 7 *)
+	      "wrap",            (* 8 *)
+	      "fcontract",       (* 9 *)
+	      "reify",           (* 10 *)
+	      "fcontract",       (* 11 *)
+	      "fixfix",          (* 12 *)
+	      "fcontract+eta"])  (* 13 *)
 
-    val tmdebugging = new (flag_cvt, "tmdebugging", "TransTypes debugging", false)
-    val trdebugging = new (flag_cvt, "trdebugging", "Translate debugging", false)
+    val currentPhase = new (string_cvt, "currentPhase", "current FlintOpt phase", "nophase")
 
-    val inlineThreshold = new (int_cvt, "inline-theshold",
-			       "inline threshold", 16)
+    fun insertPhase (phaseName: string, pos: int) : unit = 
+	let val phases0 = !phases
+            fun insert (0, prefix, rest) = List.revAppend (prefix, phaseName :: rest)
+	      | insert (n, prefix, nil) = raise Subscript
+	      | insert (n, prefix, p::ps) = insert(n-1, p::prefix, ps)
+	in phases := insert(pos, nil, phases0)
+	end
+	    
+    val inlineThreshold = new (int_cvt, "inline-theshold", "inline threshold", 16)
     (* val splitThreshold  = ref 0 *)
-    val unrollThreshold = new (int_cvt, "unroll-threshold",
-			       "unroll threshold", 20)
+    val unrollThreshold = new (int_cvt, "unroll-threshold", "unroll threshold", 20)
     val maxargs = new (int_cvt, "maxargs", "max number of arguments", 6)
     val dropinvariant = new (flag_cvt, "dropinvariant", "dropinvariant", true)
 
-    val specialize = new (flag_cvt, "specialize",
-			  "whether to specialize", true)
-    val spdebugging = new (flag_cvt, "spdebugging",
-			  "Specialize debugging", false)
+    val specialize = new (flag_cvt, "specialize", "whether to specialize", true)
+    val spdebugging = new (flag_cvt, "spdebugging", "Specialize debugging", false)
 
     (* val liftLiterals	= ref false *)
-    val sharewrap = new (flag_cvt, "sharewrap",
-			 "whether to share wrappers", true)
-    val saytappinfo = new (flag_cvt, "saytappinfo",
-			   "whether to show typelifting stats", false)
+    val sharewrap = new (flag_cvt, "sharewrap", "whether to share wrappers", true)
+    val saytappinfo = new (flag_cvt, "saytappinfo", "whether to show typelifting stats", false)
 
     (* only for temporary debugging *)
     val misc = ref 0
 
+    (* ======== TYPE CHECKING IR ========= *)
+
+    (* PLambda.lexp type checking *)
+    val checkPLambda    = new (flag_cvt, "checkPLambda", "typecheck plambda", false)
+
     (* FLINT internal type-checking controls *)
     val check = new (flag_cvt, "check", "whether to typecheck the IR", false)
         (* fails on MLRISC/*/*RegAlloc.sml *)
-    val checkDatatypes = new (flag_cvt, "check-datatypes",
-			      "typecheck datatypes", false)
+    val checkDatatypes = new (flag_cvt, "check-datatypes", "typecheck datatypes", false)
 	(* loops on the new cm.sml *)
     val checkKinds = new (flag_cvt, "check-kinds",
 			  "check kinding information", true)

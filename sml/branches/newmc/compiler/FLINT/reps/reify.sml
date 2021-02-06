@@ -93,14 +93,14 @@ fun mcast (oldts, newts) =
  ****************************************************************************)
 (* reify : fundec -> fundec *)
 fun reify fdec =
-let val {getLty=getlty, cleanUp, ...} =  Recover.recover (fdec, false)
-    val (tcf, ltf, clear) = LT.tnarrow_gen ()
+let val getlty =  Recover.recover (fdec, false)
+    val (tycNarrow, ltyNarrow) = LT.typeNarrowGen ()
 
     fun dcf ((name,rep,lt),ts) = (name,rep,lt_vfn)
     fun dargtyc ((name,rep,lt), ts) =
       let val skt = LT.lt_pinst(lt, map (fn _ => LT.tcc_void) ts)
           val (tc, _) = LT.tcd_parrow (LT.ltd_tyc skt) handle LT.DeconExn => bug "reify in dargtyc"
-          val nt = ltf (LT.lt_pinst(lt, ts))
+          val nt = ltyNarrow (LT.lt_pinst(lt, ts))
           val (rt, _) = LT.tcd_parrow (LT.ltd_tyc nt) handle LT.DeconExn => bug "reify in dargtyc 2"
        in (tc, rt, (name,rep,lt_vfn))
       end
@@ -112,10 +112,10 @@ let val {getLty=getlty, cleanUp, ...} =  Recover.recover (fdec, false)
            let val nfk =
                  case fk
                   of {isrec=SOME (lts,lk), cconv, known, inline} =>
-                       {isrec=SOME(map ltf lts, lk), cconv=cconv,
+                       {isrec=SOME(map ltyNarrow lts, lk), cconv=cconv,
 			known=known, inline=inline}
                    | _ => fk
-               val nvts = map (fn (v,t) => (v, ltf t)) vts
+               val nvts = map (fn (v,t) => (v, ltyNarrow t)) vts
             in (nfk, f, nvts, loop e)
            end
 
@@ -126,7 +126,7 @@ let val {getLty=getlty, cleanUp, ...} =  Recover.recover (fdec, false)
                    val (ax,_) = LT.tcd_parrow (LT.ltd_tyc nt)
 		       handle LT.DeconExn => bug "transform"
                    val lt_exr =
-                     LT.tcc_tuple [LT.tcc_void, tcf ax, LT.tcc_int]
+                     LT.tcc_tuple [LT.tcc_void, tycNarrow ax, LT.tcc_int]
                 in (DATAcon(ndc, [], z),
                     fn le => UNWRAP(lt_exr, [VAR z], w,
                                SELECT(VAR w, 1, v, le)))
@@ -176,20 +176,20 @@ let val {getLty=getlty, cleanUp, ...} =  Recover.recover (fdec, false)
                   end
               | TAPP(v, ts) =>
                   let val _ = debugmsg ">>loop TAPP"
-		      val _ = if !debugging then PPFlint.printLexp le
+		      val _ = if !debugging then PrintFlint.printLexp le
 			      else ()
 		      val args = LP.tsLexp(kenv, ts)
 		      val _ = debugmsg "--loop TAPP tsLexp args:"
-		      val _ = if !debugging then PPFlint.printLexp args
+		      val _ = if !debugging then PrintFlint.printLexp args
 			      else ()
 		      val (u, hdr) = lpev(args)
 		      val _ = debugmsg "--loop TAPP lpev: "
-		      val _ = if !debugging then PPFlint.printLexp (hdr(RET [v]))
+		      val _ = if !debugging then PrintFlint.printLexp (hdr(RET [v]))
 			      else ()
                       (* a temporary hack that fixes type mismatches *)
                       val lt = getlty v
-                      val oldts = map ltf (#2 (LT.ltd_poly lt))
-                      val newts = map ltf (LT.lt_inst(lt, ts))
+                      val oldts = map ltyNarrow (#2 (LT.ltd_poly lt))
+                      val newts = map ltyNarrow (LT.lt_inst(lt, ts))
                       val nhdr = mcast(oldts, newts)
 
 		      val _ = debugmsg "<<loop TAPP"
@@ -197,7 +197,7 @@ let val {getLty=getlty, cleanUp, ...} =  Recover.recover (fdec, false)
                   end
 
               | RECORD(RK_VECTOR tc, vs, v, e) =>
-                  RECORD(RK_VECTOR (tcf tc), vs, v, loop e)
+                  RECORD(RK_VECTOR (tycNarrow tc), vs, v, loop e)
               | RECORD(rk, vs, v, e) => RECORD(rk, vs, v, loop e)
               | SELECT(u, i, v, e) => SELECT(u, i, v, loop e)
 
@@ -209,7 +209,7 @@ let val {getLty=getlty, cleanUp, ...} =  Recover.recover (fdec, false)
                       val (ax,_) = LT.tcd_parrow (LT.ltd_tyc nt)
 			  handle LT.DeconExn => bug "transform loop"
                       val lt_exr =
-                        LT.tcc_tuple [LT.tcc_void, tcf ax, LT.tcc_int]
+                        LT.tcc_tuple [LT.tcc_void, tycNarrow ax, LT.tcc_int]
                    in RECORD(FU.rk_tuple, [VAR x, u, tagInt 0], z,
                              WRAP(lt_exr, [VAR z], v, loop e))
                   end
@@ -234,27 +234,27 @@ let val {getLty=getlty, cleanUp, ...} =  Recover.recover (fdec, false)
                    in SWITCH(v, csig, map g cases, Option.map loop opp)
                   end
 
-              | RAISE (u, ts) => RAISE(u, map ltf ts)
+              | RAISE (u, ts) => RAISE(u, map ltyNarrow ts)
               | HANDLE(e, v) => HANDLE(loop e, v)
 
               | BRANCH(xp as (NONE, po, lt, []), vs, e1, e2) =>
-                  BRANCH((NONE, po, ltf lt, []), vs, loop e1, loop e2)
+                  BRANCH((NONE, po, ltyNarrow lt, []), vs, loop e1, loop e2)
               | BRANCH(_, vs, e1, e2) =>
                   bug "type-directed branch primops are not supported"
 
               | PRIMOP(xp as (_, PO.WRAP, _, _), u, v, e) =>
                   let val tc = FU.getWrapTyc xp
-                      val hdr = LP.mkwrp(tc, kenv, true, tcf tc)
+                      val hdr = LP.mkwrp(tc, kenv, true, tycNarrow tc)
                    in LET([v], hdr(RET u), loop e)
                   end
               | PRIMOP(xp as (_, PO.UNWRAP, _, _), u, v, e) =>
                   let val tc = FU.getUnWrapTyc xp
-                      val hdr = LP.mkuwp(tc, kenv, true, tcf tc)
+                      val hdr = LP.mkuwp(tc, kenv, true, tycNarrow tc)
                    in LET([v], hdr(RET u), loop e)
                   end
 	      | PRIMOP((_, PO.INLMKARRAY, _, _), _, _, _) => bug "unexpected INLMKARRAY"
               | PRIMOP(xp as (NONE, po, lt, ts), vs, v, e) =>
-                  PRIMOP((NONE, po, ltf lt, ts), vs, v, loop e)
+                  PRIMOP((NONE, po, ltyNarrow lt, ts), vs, v, loop e)
               | PRIMOP((_,po,_,_), vs, v, e) =>
                   (say(concat["\n####", PrimopUtil.toString po, "####\n"]);
                    bug "unexpected PRIMOP in loop")
@@ -263,9 +263,9 @@ let val {getLty=getlty, cleanUp, ...} =  Recover.recover (fdec, false)
      end (* function transform *)
 
      val (fk, f, vts, e) = fdec
- in (fk, f, map (fn (v,t) => (v, ltf t)) vts,
-     transform (LP.initKE) e) before (cleanUp(); clear())
-end (* function reify *)
+
+  in (fk, f, map (fn (v,t) => (v, ltyNarrow t)) vts, transform (LP.initKE) e)
+ end (* function reify *)
 
 end (* toplevel local *)
 end (* structure Reify *)

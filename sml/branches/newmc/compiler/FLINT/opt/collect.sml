@@ -53,7 +53,7 @@ sig
     (* function to copy (and collect info) a lexp *)
     val copylexp : FLINT.lvar LambdaVar.Map.map  -> FLINT.lexp -> FLINT.lexp
 
-    (* mostly useful for PPFlint *)
+    (* mostly useful for PrintFlint *)
     val LVarString : FLINT.lvar -> string
 end
 
@@ -92,14 +92,14 @@ local
     structure M  = LambdaVar.Tbl
     structure FU = FlintUtil
     structure LV = LambdaVar
-    structure PP = PPFlint
+    structure PF = PrintFlint
     structure PO = Primop
 in
 
 val say = Control_Print.say
 fun bug msg = ErrorMsg.impossible ("Collect: "^msg)
-fun buglexp (msg,le) = (say "\n"; PP.printLexp le; say " "; bug msg)
-fun bugval (msg,v) = (say "\n"; PP.printSval v; say " "; bug msg)
+fun buglexp (msg,le) = (say "\n"; PF.printLexp le; say " "; bug msg)
+fun bugval (msg,v) = (say "\n"; PF.printSval v; say " "; bug msg)
 
 datatype info
   (* we keep track of calls and escaping uses *)
@@ -410,7 +410,7 @@ fun copylexp alpha le =
 fun collect (fdec as (_,f,_,_)) =
     ((*  say "Entering Collect...\n"; *)
      M.clear m;				(* start from a fresh state *)
-     PP.LVarString := LVarString;
+     PF.lvarToStringRef := LVarString;
      uselexp (F.FIX([fdec], F.RET[F.VAR f]));
      (*  say "...Collect Done.\n"; *)
      fdec)

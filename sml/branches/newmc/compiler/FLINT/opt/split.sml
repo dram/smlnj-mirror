@@ -24,7 +24,7 @@ local
     structure FU = FlintUtil
     structure LT = LtyExtern
     structure PO = Primop
-    structure PP = PPFlint
+    structure PF = PrintFlint
     structure CTRL = FLINT_Control
 in
 
@@ -304,7 +304,7 @@ in case (bodyI, bodyRet)
        end
 
      | _ => (fdec, NONE)		(* sorry, can't do that *)
-     (* (PPFlint.printLexp bodyRet; bug "couldn't find the returned record") *)
+     (* (PrintFlint.printLexp bodyRet; bug "couldn't find the returned record") *)
 
 end
 

@@ -1,7 +1,7 @@
 (* COPYRIGHT (c) 1997 YALE FLINT PROJECT *)
 (* ppflint.sig -- Pretty printer for Flint IL. *)
 
-signature PPFLINT =
+signature PRINT_FLINT =
 sig
     val printFKind : FLINT.fkind -> unit
     val printRKind : FLINT.rkind -> unit
@@ -11,9 +11,14 @@ sig
     val printFundec: FLINT.fundec -> unit
     val printProg  : FLINT.prog -> unit
 
+    val printTyc : LtyExtern.tyc -> unit
+    val printLty : LtyExtern.lty -> unit
+    val printTycList : LtyExtern.tyc list -> unit
+    val printLtyList : LtyExtern.lty list -> unit
+
     (* defaults to LV.lvarName *)
-    val LVarString  : (FLINT.lvar -> string) ref
+    val lvarToStringRef  : (FLINT.lvar -> string) ref
 
-    val toStringValue : FLINT.value -> string
+    val valueToString : FLINT.value -> string
 
-end (* signature PPFLINT *)
+end (* signature PRINT_FLINT *)

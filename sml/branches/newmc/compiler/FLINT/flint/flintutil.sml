@@ -93,13 +93,15 @@ fun getEtagTyc (_, _, lt, [tc]) = tc
       end
   | getEtagTyc _ = bug "unexpected case 2 in getEtagTyc"
 
-fun getWrapTyc (_, _, lt, []) = (LT.ltd_tyc(#1(LT.ltd_parrow lt))
-				handle LT.DeconExn => bug "getWrapTyc")
-  | getWrapTyc _ = bug "unexpected case in getWrapTyc"
+fun getWrapTyc (_, _, lt, []) =
+    (LT.ltd_tyc(#1(LT.ltd_parrow lt))
+     handle LT.DeconExn => bug "getWrapTyc: bad lt")
+  | getWrapTyc _ = bug "getWrapTyc: non-null tycs"
 
-fun getUnWrapTyc (_, _, lt, []) = (LT.ltd_tyc(#2(LT.ltd_parrow lt))
-				  handle LT.DeconExn => bug "getUnWrapTyc")
-  | getUnWrapTyc _ = bug "unexpected case in getUnWrapTyc"
+fun getUnWrapTyc (_, _, lt, []) =
+    (LT.ltd_tyc(#2(LT.ltd_parrow lt))
+     handle LT.DeconExn => bug "getUnWrapTyc: bad lt")
+  | getUnWrapTyc _ = bug "getUnWrapTyc: non-null tycs component"
 
 fun dcon_eq ((s1,c1,t1):FLINT.dcon,(s2,c2,t2)) =
     Symbol.eq (s1,s2) andalso (c1 = c2) andalso LtyBasic.lt_eqv(t1, t2)

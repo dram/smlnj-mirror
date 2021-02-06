@@ -12,16 +12,14 @@ functor CompileF (
 
   ) : COMPILE0 = struct
 
-    fun mkCompInfo { source, transform } = CompInfo.mkCompInfo {
-	    source = source,
-	    transform = transform,
-	    mkStampGenerator = CC.mkMkStamp
-	  }
-
     type pickle     = CC.pickle		(* pickled format *)
     type hash       = CC.hash		(* environment hash id *)
     type pid        = CC.pid
     type guid       = CC.guid
+
+    fun mkCompInfo { source, transform } =
+	CompInfo.mkCompInfo
+	  {source = source, transform = transform, mkStampGenerator = CC.mkMkStamp}
 
     (*************************************************************************
      *                             ELABORATION                               *
@@ -118,22 +116,19 @@ functor CompileF (
       val inline = LSplitInline.inline
       val addCode = Stats.addStat (Stats.makeStat "Code Size")
     in
-    fun codegen { flint, imports, symenv, splitting, compInfo } = let
-	(* hooks for cross-module inlining and specialization *)
-	  val (flint, revisedImports) = inline (flint, imports, symenv)
-	(* optimized FLINT code *)
-	  val (flint, inlineExp) = FLINTOpt.optimize (flint, compInfo, splitting)
-	(* from optimized FLINT code, generate the machine code.  *)
-	  val csegs = M.compile {
-		  prog = flint,
-		  source = #sourceName compInfo
-		}
-	(* Obey the nosplit directive used during bootstrapping.  *)
-	(* val inlineExp = if isSome splitting then inlineExp else NONE *)
-	  val codeSz = (CodeObj.size(#code csegs) + Word8Vector.length(#data csegs))
+    fun codegen { flint, imports, symenv, (* splitting, *) sourceName } =
+	let val (flint, revisedImports) = inline (flint, imports, symenv)
+	      (* hooks for cross-module inlining and specialization *)
+	    val (flint (* , inlineExp *)) = FLINTOpt.optimize (flint, sourceName (*, splitting *))	   
+	      (* optimized FLINT code *)
+	    val csegs = M.compile {prog = flint, source = sourceName}
+	      (* from optimized FLINT code, generate the machine code. *)
+	    (* Obey the nosplit directive used during bootstrapping. *)
+	    (* val inlineExp = if isSome splitting then inlineExp else NONE *)
+	    val codeSz = (CodeObj.size(#code csegs) + Word8Vector.length(#data csegs))
 	  in
 	    addCode codeSz;
-	    { csegments=csegs, inlineExp=inlineExp, imports = revisedImports }
+	    { csegments=csegs, (* inlineExp=inlineExp, *) imports = revisedImports }
 	  end
     end (* local codegen *)
 
@@ -149,7 +144,7 @@ functor CompileF (
      *************************************************************************)
     (** compiling the ast into the binary code = elab + translate + codegen *)
     fun compile {source, ast, statenv, symenv, compInfo=cinfo, checkErr=check,
-		 splitting, guid} =
+		 (* splitting,  *) guid} =
 	let
 	  val {absyn, newstatenv, exportLvars, exportPid, staticPid, pickle } =
 		elaborate {ast=ast, statenv=statenv, compInfo=cinfo, guid = guid}
@@ -164,10 +159,10 @@ functor CompileF (
 		    compInfo=cinfo
 		  }
 		before check "translate"
-	  val {csegments, inlineExp, imports = revisedImports} =
+	  val {csegments, (* inlineExp, *) imports = revisedImports} =
 		codegen {
 		    flint = flint, imports = imports, symenv = symenv,
-		    splitting = splitting, compInfo = cinfo
+		    (* splitting = splitting, *) sourceName = #sourceName cinfo
 		  }
 		before (check "codegen")
 	(*
@@ -184,7 +179,7 @@ functor CompileF (
 	    exportLvars = exportLvars,
 	    staticPid = staticPid,
 	    pickle = pickle,
-	    inlineExp = inlineExp,
+(*	    inlineExp = inlineExp, *)
 	    imports = revisedImports
 	}
 	end (* function compile *)

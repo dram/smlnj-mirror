@@ -50,7 +50,8 @@ local
       PP.with_default_pp
 	  (fn ppstrm =>
 	      (PP.string ppstrm "andor:\n";
-	       MCPrint.ppAndor ppstrm andor))
+	       MCPrint.ppAndor ppstrm andor;
+	       PP.newline ppstrm))
 
   fun ppDecisionTree dectree =
       PP.with_default_pp
@@ -195,12 +196,13 @@ let val rules = map (fn AS.RULE r => r) rules
 	List.all (MU.consistentPath varpath) dtrace
 
     (* bindSVars : var list * ruleno * varenvMC * trace -> VarEnvAC.varenvAC *)
-    (* pvars will be the bound pattern variables for the rule (ruleno). bindSVars will
+    (* pvars will be the source pattern variables for the rule (ruleno). bindSVars will
      * determine the right svar (match administrative variable) to bind each pattern variable
      * to, producing an varenvAC environment. The varenvAC is computed from the varenvMC
      * based on the rule and (possibly) consistency with the decision tree trace. This
      * is because a pattern variable that is duplicated in OR patterns may be associated
-     * with multiple svars. *)
+     * with multiple svars. We choose the right one based on the ruleno parameter, (possibly)
+     * checking for consistency of rhsTrace with the path in the varenvMC bindings for the var.  *)
     fun bindSVars (pvars, ruleno, varenvMC, rhsTrace) =
 	let val _ = dbsay ">>>bindSVars\n";
 	    fun findSvar (var: V.var) =
@@ -215,14 +217,14 @@ let val rules = map (fn AS.RULE r => r) rules
 				    else (print "@@@@ bindSVars: inconsistent path\n"; NONE)
 			       else NONE
 		        in case List.mapPartial scan bindings
-			     of nil => bug "bindSVars: no binding"
-			      | _::_::_ => bug "bindSVars: multiple bindings"
-			      | [b] => b  (* should be a unique svar for this var, rule, path *)
+			     of nil => bug "bindSVars: no binding for svar"
+			      | _::_::_ => bug "bindSVars: multiple consistent bindings for svar"
+			      | [b] => b  (* there should be a unique svar for this var, rule, path *)
 		       end
 		   | NONE => bug ("bindSVars: unbound pattern var: " ^ S.name(V.varName var)))
 	    val venv = map findSvar pvars
 	 in if !debugging
-            then (VarEnvAC.printVarEnvAC venv;
+            then (say "bindSvars: venv = "; VarEnvAC.printVarEnvAC venv;
 		  say "\n<<<bindSvar\n")
 	    else ();
 	    venv
@@ -249,6 +251,9 @@ let val rules = map (fn AS.RULE r => r) rules
     fun saveTrace dtrace = (savedTraces := dtrace :: !savedTraces)
 
     (* bindPatVars: svar * info * varenvMC -> varenvMC *)
+    (* add bindings var |-> (rule,path,svar) to the argument varenvMC for all vars bound at
+     * an andor node (represented by info and svar). First the vars, then the svars are bound.
+     * [Note: could use one foldl after appending vars to asvars.] *)
     fun bindPatVars (svar, {id,path,vars,asvars,...} : AOinfo, varenvMC) =
 	foldl (fn ((v,r), env) => VarEnvMC.bindVar(v, (r, path, svar), env))
 	   (foldl (fn ((v,r),env) => VarEnvMC.bindVar(v, (r, path, svar), env)) varenvMC vars)

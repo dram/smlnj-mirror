@@ -21,7 +21,8 @@ local (* hashconsing *)
   val BVAL = MVAL * 2  (* bound on encoded tvars of innermost binder *)
 in
 
-(* enc_tvar: encoded type variables = deBruijn indexes * binder arity indexes *)
+(* enc_tvar: encoded type variables = deBruijn indexes * binder arity indexes,
+ * encoded as a single int *)
 (* Type lambda bindings (TC_FN) bind several variables at a time,
  * i.e. they are n-ary for some n, with each type variable given a kind.
  * A type variable is represented by a pair (d,k), where d is a
@@ -47,15 +48,17 @@ fun exitLevel (xs: enc_tvar list) : enc_tvar list =
     in h(xs, [])
     end
 
-(* tvar : "named"(?) tyc variables.
-   For now(?), these share the same "namespace" with lvars. *)
-(* [KM ???] Are these used at all? Yes, they are used after
- * translation into the flint language(?). Are these the
- * "run-time" type parameters? *)
+(* tvar : "named" type variables.
+ *  For now, these share the lvar "namespace". But they could be given
+ *  their own "namespace" (i.e. variable generator), say tvar.
+ *  These are used as args of TC_NVAR, and are introduced by deb2names
+ *  Are these used at all? Yes, they are used after
+ *  translation into the flint language(?). Are these the
+ *  "run-time" type parameters? *)
 type tvar = LambdaVar.lvar (* = int, coincidentally = enc_tvar *)
 val mkTvar = LambdaVar.mkLvar
 
-(* aus_info: auxiliary information maintained in hash_cells.
+(* aux_info: auxiliary information maintained in hash_cells.
  * bool records whether the contents is fully normalized,
  * enc_tvar list and tvar list contain free type variables (both sorted) *)
 
@@ -74,19 +77,19 @@ datatype aux_info
             * tvar list      (* free named type vars, sorted? *)
   | AX_NO                    (* no aux_info available *)
 
-(* Functions for merging lists of env_tvars and tvars. *)
+(* Functions for merging lists of enc_tvars and tvars. *)
 local
-  fun mergeLists cmp = let
-	fun merge (l, []) = l
-	  | merge ([], l) = l
-	  | merge (xs as (x :: xr), ys as (y :: yr)) = (case cmp (x, y)
-	       of LESS => x :: merge (xr, ys)
-		| EQUAL => x :: merge (xr, yr)
-		| GREATER => y :: merge (xs, yr)
-	      (* end case *))
-	in
-	  merge
-	end
+  fun mergeLists cmp =
+      let fun merge (l, []) = l
+	    | merge ([], l) = l
+	    | merge (xs as (x :: xr), ys as (y :: yr)) =
+	        (case cmp (x, y)
+		   of LESS => x :: merge (xr, ys)
+		    | EQUAL => x :: merge (xr, yr)
+		    | GREATER => y :: merge (xs, yr)
+		(* end case *))
+       in merge
+      end
 in
 val mergeTvs = mergeLists LambdaVar.compare	(* regular type variables *)
 val mergeEncTvs = mergeLists Int.compare	(* deBruijn encoded type variables *)
@@ -108,7 +111,9 @@ end (* local of hashconsing implementation basics *)
  ***************************************************************************)
 
 (** definition of kinds for all the lambda tycs *)
-(* [KM???] TK_BOX does not appear to be used *)
+(* [KM???] TK_BOX does not appear to be used. TK_BOX and TK_MONO are "subkinds"
+ * of one another, according to tkSubkind, defined below. Does this mean that 
+ * any tyc of kind TK_BOX is also of kind TK_MONO, and vice versa? *)
 datatype tkindI
   = TK_MONO                                    (* ground mono tycon *)
   | TK_BOX                                     (* boxed/tagged tycon *)
@@ -124,10 +129,10 @@ datatype fflag                                 (* calling conventions *)
   = FF_VAR of bool * bool                      (* known represetnations for arg, result? *)
   | FF_FIXED                                   (* used after rep. analysis *)
 
-(** definitions of concrete plambda type constructors *)
+(** definitions of concrete plambda type "constructors" *)
 datatype tycI
-  = TC_VAR of DebIndex.index * int             (* tyc variables [why not enc_tvar?] *)
-  | TC_NVAR of tvar                            (* "named" tyc variables *)
+  = TC_VAR of DebIndex.index * int             (* deBruijn tyc variables [why not enc_tvar?] *)
+  | TC_NVAR of tvar                            (* "named" tyc variables; tvar = lvar = int *)
   | TC_PRIM of PrimTyc.primtyc                 (* primitive tyc *)
 
   | TC_FN of tkind list * tyc                  (* tyc abstraction, n-ary *)
@@ -143,10 +148,10 @@ datatype tycI
        gen : tyc,                              (* common generator fn *)
        params: tyc list},                      (* parameters for generator *)
       index : int}                             (* index of this dt in family *)
-     (* TC_FIX are built in trans/transtypes.sml*)
+     (* TC_FIX are built in FLINT/trans/transtypes.sml *)
 
-  | TC_TUPLE of tyc list                       (* std record tyc *)
-  | TC_ARROW of fflag * tyc list * tyc list    (* std function tyc *)
+  | TC_TUPLE of tyc list                       (* standard record tyc *)
+  | TC_ARROW of fflag * tyc list * tyc list    (* standard function tyc *)
   | TC_PARROW of tyc * tyc                     (* special fun tyc [not used] *)
 
   | TC_BOX of tyc                              (* boxed tyc *)

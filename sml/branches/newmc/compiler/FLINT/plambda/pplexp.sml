@@ -11,8 +11,6 @@ sig
 
   val conToString : PLambda.con -> string
   val ppLexp : int -> PrettyPrint.stream -> PLambda.lexp -> unit
-  val ppMatch : StaticEnv.staticEnv ->
-                  (Absyn.pat * PLambda.lexp) list -> unit
   val ppFun : PrettyPrint.stream -> PLambda.lexp -> LambdaVar.lvar -> unit
 
   val stringTag : PLambda.lexp -> string
@@ -50,7 +48,10 @@ fun conToString (DATAcon((sym, _, _), _, v)) = ((S.name sym) ^ "." ^ (lvarName v
   | conToString (STRINGcon s) = PrintUtil.formatString s
   | conToString (VLENcon n) = Int.toString n
 
-(** use of complex in ppLexp may lead to stupid n^2 behavior. *)
+(* complex : lexp -> bool *)
+(* An lexp is "complex" if it contains a subexpression of form
+ * FIX, LET, TAPP, GENOP, SWITCH, CON, or HANDLE.
+ * Use of complex in ppLexp may lead to stupid n^2 behavior. *)
 fun complex (le: lexp) : bool =
     case le
      of FN(_, _, b) => complex b
@@ -355,23 +356,6 @@ fun ppLexp (pd:int) ppstrm (l: lexp): unit =
 
    in ppl pd l; newline(); newline()
   end
-
-(* ppMatch : StaticEnv.statenv * (Absyn.pat * lexp) list -> unit *)
-fun ppMatch env (rules: (Absyn.pat * lexp) list) =
-    let val pd = !Control.Print.printDepth
-        fun ppMatch' ppstrm ((p,r)::more) =
-                 (PP.openHVBox ppstrm (PP.Rel 0);
-                   PP.openHOVBox ppstrm (PP.Rel 2);
-                    PPAbsyn.ppPat env ppstrm (p,pd);
-                    PP.string ppstrm " =>"; PP.break ppstrm {nsp=1,offset=2};
-                    ppLexp pd ppstrm r;
-                   PP.closeBox ppstrm;
-                   PP.newline ppstrm;
-                   ppMatch' ppstrm more;
-                  PP.closeBox ppstrm)
-               | ppMatch' _ [] = ()
-    in PP.with_default_pp (fn ppstrm => ppMatch' ppstrm rules)
-    end
 
 fun ppFun ppstrm l v =
   let fun last (DA.LVAR x) = x

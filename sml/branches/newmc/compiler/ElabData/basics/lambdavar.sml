@@ -67,15 +67,17 @@ structure LambdaVar :> LAMBDA_VAR =
 	    nv
           end
 
-    fun lvarSym (lv : lvar) : S.symbol option = (case findName lv
+    fun lvarSym (lv : lvar) : S.symbol option =
+	(case findName lv
 	   of SOME x => SOME(S.varSymbol x)
 	    | NONE => NONE
-	  (* end case *))
+	(* end case *))
 
-    fun lvarName (lv : lvar) : string = (case findName lv
+    fun lvarName (lv : lvar) : string =
+	(case findName lv
 	   of SOME x => x ^ Int.toString lv
 	    | NONE => "v" ^ Int.toString lv
-	  (* end case *))
+	(* end case *))
 
     val toId = Fn.id
     val fromId = Fn.id

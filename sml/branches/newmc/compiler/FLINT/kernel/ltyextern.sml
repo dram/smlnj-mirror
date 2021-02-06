@@ -7,34 +7,36 @@
 structure LtyExtern : LTYEXTERN =
 struct
 
-local structure PT = PrimTyc
-      structure DI = DebIndex
-      structure LT = Lty
-      structure LKC = LtyKindChk
-      structure LK = LtyKernel
-      structure PO = Primop     (* really should not refer to this *)
-      structure FL = FLINT
+local
+  structure PT = PrimTyc
+  structure DI = DebIndex
+  structure LT = Lty
+  structure LKC = LtyKindChk
+  structure LK = LtyKernel
+  structure PO = Primop     (* really should not refer to this *)
+  structure FL = FLINT
 
-      fun bug msg = ErrorMsg.impossible("LtyExtern: "^msg)
-      val say = Control.Print.say
+  val say = Control.Print.say
+  fun bug msg = ErrorMsg.impossible("LtyExtern: "^msg)
+  val wrdebugging = FLINT_Control.wrdebugging
+  fun dbsay msg = if !wrdebugging then say msg else ()
 
-      (** common utility functions *)
-      val tk_inj = LK.tk_inj
-      val tk_out = LK.tk_out
+  (** common utility functions *)
+  val tk_inj = LK.tk_inj
+  val tk_out = LK.tk_out
 
-      val tc_inj = LK.tc_inj
-      val tc_out = LK.tc_out
+  val tc_inj = LK.tc_inj
+  val tc_out = LK.tc_out
 
-      val lt_inj = LK.lt_inj
-      val lt_out = LK.lt_out
+  val lt_inj = LK.lt_inj
+  val lt_out = LK.lt_out
 
-      val tcc_env = LK.tcc_env
-      val ltc_env = LK.ltc_env
-      val tc_whnm = LK.tc_whnm
-      val lt_whnm = LK.lt_whnm
-      val tc_norm = LK.tc_norm
-      val lt_norm = LK.lt_norm
-
+  val tcc_env = LK.tcc_env
+  val ltc_env = LK.ltc_env
+  val tc_whnm = LK.tc_whnm
+  val lt_whnm = LK.lt_whnm
+  val tc_norm = LK.tc_norm
+  val lt_norm = LK.lt_norm
 in
 
 structure PP = PrettyPrint
@@ -70,17 +72,8 @@ val tkw_fun = Lty.tkw_fun
 val tkc_int = Lty.tkc_int
 val tkc_arg = Lty.tkc_arg
 
-fun tc_bug tc msg =
-    (with_pp (fn ppstm =>
-      (PU.pps ppstm msg; PP.newline ppstm;
-       PPLty.ppTyc 20 ppstm tc; PP.newline ppstm));
-     bug "LtyExtern.tc_bug")
-
-fun lt_bug lt msg =
-    (with_pp (fn ppstm =>
-      (PU.pps ppstm msg; PP.newline ppstm;
-       PPLty.ppLty 20 ppstm lt; PP.newline ppstm));
-     bug "LtyExtern.lt_bug")
+fun ppTyc tyc =
+    with_pp (fn ppstm => (PPLty.ppTyc 20 ppstm tyc))
 
 val ltKindChk = LtyKindChk.ltKindCheckGen ()
 val (tcKindChk,tcKindVer,teKindChk) = LtyKindChk.tcteKindCheckGen ()
@@ -229,22 +222,30 @@ fun ltw_iscont (lt, f, g, h) =
          | _ => h lt)
 
 (** other misc utility functions *)
-fun tc_select(tc, i) =
-  (case tc_out tc
-    of LT.TC_TUPLE zs =>
-         (List.nth (zs, i)
-	  handle Subscript => bug ("wrong TC_TUPLE in tc_select: i="^Int.toString i^
-				  ", |zs| = "^Int.toString(length zs)))
-     | _ => tc_bug tc "wrong TCs in tc_select")
 
-fun lt_select(t, i) =
-  (case lt_out t
-    of LT.LT_STR ts =>
-         (List.nth (ts, i)
-          handle Subscript => bug "incorrect LT_STR in lt_select")
-     | LT.LT_TYC tc => ltc_tyc(tc_select(tc, i))
-     | _ => bug "incorrect lambda types in lt_select")
-
+fun lt_select(lty: lty, i: int, whereCalled) =
+    let fun tc_select(tyc, i) =
+	    (case tc_out tyc
+	      of LT.TC_TUPLE tycs =>
+		 (List.nth (tycs, i)
+		  handle Subscript =>
+			 bug (concat ["tc_select: bad index into TC_TUPLE: i=",
+				      Int.toString i, ", |tycs| = ",
+				      Int.toString(length tycs), " [", whereCalled, "]"]))
+	       | _ => (with_pp
+			 (fn ppstm =>
+			     (PU.pps ppstm "LtyExtern.tc_select: expected TC_TC_TUPLE; tyc = ";
+			      PPLty.ppTyc 20 ppstm tyc; PP.newline ppstm));
+		       bug ("tc_select: bad tyc [" ^ whereCalled ^ "]")))
+    in 
+      (case lt_out lty
+	of LT.LT_STR ltys =>
+	     (List.nth (ltys, i)
+	      handle Subscript => bug "lt_select: LT_STR: bad index")
+	 | LT.LT_TYC tyc => ltc_tyc(tc_select(tyc, i))
+	 | _ => bug ("lt_select: bad lty [" ^ whereCalled ^ "}"))
+    end
+    
 fun tc_swap t =
   (case (tc_out t)
     of LT.TC_ARROW (LT.FF_VAR (r1,r2), [s1], [s2]) =>
@@ -275,11 +276,12 @@ fun ltc_rkind (FL.RK_TUPLE, lts) = ltc_tuple lts
   | ltc_rkind (FL.RK_STRUCT, lts) = ltc_str lts
   | ltc_rkind (FL.RK_VECTOR t, _) = ltc_vector (ltc_tyc t)
 
-fun ltd_rkind (lt, i) = lt_select (lt, i)
+fun ltd_rkind (lt, i) = lt_select (lt, i, "ltyextern.sml#279")
 
 (****************************************************************************
  *             UTILITY FUNCTIONS USED BY POST-REPRESENTATION ANALYSIS       *
  ****************************************************************************)
+(* tc_upd_prim : LT.tyc -> PO.primop *)
 (** find out what is the appropriate primop given a tyc *)
 fun tc_upd_prim tc =
   let fun h(LT.TC_PRIM pt) = if PT.ubxupd pt then PO.UNBOXEDUPDATE else PO.UPDATE
@@ -310,116 +312,167 @@ fun tk_lty tk =
          ltc_arrow(ffc_fixed, [ltc_tuple(map tk_lty ks)], [tk_lty k]))
 
 
-(* tnarrow_gen : unit -> ((tyc -> tyc) * (lty -> lty) * (unit->unit)) *)
-fun tnarrow_gen () =
-  let fun tcNarrow tcf t =
-        (case (tc_out t)
-          of LT.TC_PRIM pt =>
-               if PT.isvoid pt then tcc_void else t
-           | LT.TC_TUPLE tcs => tcc_tuple (map tcf tcs)
-           | LT.TC_ARROW (r, ts1, ts2) =>
-               tcc_arrow(ffc_fixed, map tcf ts1, map tcf ts2)
-           | _ => tcc_void)
+(* memo-ized type translation functions for Reify (typeNarrowGen) and Wrapping (typeWrapGen) *)
 
-      fun ltNarrow (tcf, ltf) t =
-        (case lt_out t
-          of LT.LT_TYC tc => ltc_tyc (tcf tc)
-           | LT.LT_STR ts => ltc_str (map ltf ts)
-           | LT.LT_FCT (ts1, ts2) => ltc_fct(map ltf ts1, map ltf ts2)
-           | LT.LT_POLY (ks, xs) =>
-               ltc_fct([ltc_str (map tk_lty ks)], map ltf xs)
-           | LT.LT_CONT _ => bug "unexpected CNTs in ltNarrow"
-           | LT.LT_IND _ => bug "unexpected INDs in ltNarrow"
-           | LT.LT_ENV _ => bug "unexpected ENVs in ltNarrow")
+structure TcDict = RedBlackMapFn(struct
+                                   type ord_key = tyc
+				   val compare = Lty.tc_cmp
+			         end)
 
-      val {tc_map, lt_map} = LtyDict.tmemo_gen {tcf=tcNarrow, ltf=ltNarrow}
-   in (tc_map o tc_norm, lt_map o lt_norm, fn ()=>())
-  end (* function tnarrow_gen *)
+structure LtDict = RedBlackMapFn(struct
+                                   type ord_key = lty
+				   val compare = Lty.lt_cmp
+			         end)
 
-(* twrap_gen   : bool -> ((tyc -> tyc) * (lty -> lty) *
- *                        (tyc -> tyc) * (lty -> lty) * (unit -> unit))
- *)
-fun twrap_gen bbb =
-  let fun tc_wmap (w, u) t =
-        (case (tc_out t)
-          of (LT.TC_VAR _ | LT.TC_NVAR _) => t
-           | LT.TC_PRIM pt => if PT.unboxed pt then tcc_wrap t else t
-           | LT.TC_FN (ks, tc) => tcc_fn(ks, w tc) (* impossible case *)
-           | LT.TC_APP (tc, tcs) => tcc_app(w tc, map w tcs)
-           | LT.TC_SEQ tcs => tcc_seq(map w tcs)
-           | LT.TC_PROJ (tc, i) => tcc_proj(w tc, i)
-           | LT.TC_SUM tcs => tcc_sum (map w tcs)
-           | LT.TC_FIX{family={size=n,names,gen=tc,params=ts},index=i} =>
-               tcc_fix((n, names, tc_norm (u tc), map w ts), i)
+(* typeNarrowGen : unit -> (tyc -> tyc) * (lty -> lty) *)
+(* Called once in FLINT/reps/reify.sml *)
+fun typeNarrowGen () =
+  let val tycDictR = ref (TcDict.empty)
+      val ltyDictR = ref (LtDict.empty)
 
-           | LT.TC_TUPLE ts => tcc_wrap (tcc_tuple (map w ts)) (* ? *)
-           | LT.TC_ARROW (LT.FF_VAR(b1,b2), ts1, ts2) =>
-               let val nts1 =    (* too specific ! *)
-                     (case ts1 of [t11,t12] => [w t11, w t12]
-                                | _ => [w (LK.tc_autotuple ts1)])
-                   val nts2 = [w (LK.tc_autotuple ts2)]
-                   val nt = tcc_arrow(ffc_fixed, nts1, nts2)
-                in if b1 then nt else tcc_wrap nt
-               end
-           | LT.TC_ARROW (LT.FF_FIXED, _, _) =>
-                bug "unexpected TC_FIXED_ARROW in tc_umap"
-           | LT.TC_TOKEN (k, t) => bug "unexpected token tyc in tc_wmap"
-           | LT.TC_BOX _ => bug "unexpected TC_BOX in tc_wmap"
-           | LT.TC_ABS _ => bug "unexpected TC_ABS in tc_wmap"
-           | _ => bug "unexpected other tycs in tc_wmap")
+      fun tycNarrow tyc =
+          (case TcDict.find(!tycDictR, tyc)
+             of SOME tyc' => tyc'
+              | NONE => 
+                let val newtyc =
+		    (case (tc_out tyc)
+		       of LT.TC_PRIM pt =>
+			    if PT.isvoid pt then tcc_void else tyc
+			| LT.TC_TUPLE tcs => tcc_tuple (map tycNarrow tcs)
+			| LT.TC_ARROW (r, ts1, ts2) =>
+			    tcc_arrow(ffc_fixed, map tycNarrow ts1, map tycNarrow ts2)
+			| _ => tcc_void)
+                 in tycDictR := TcDict.insert(!tycDictR, tyc, newtyc);
+		    newtyc
+                end)
 
-      fun tc_umap (u, w) t =
-        (case (tc_out t)
-          of (LT.TC_VAR _ | LT.TC_NVAR _ | LT.TC_PRIM _) => t
-           | LT.TC_FN (ks, tc) => tcc_fn(ks, u tc) (* impossible case *)
-           | LT.TC_APP (tc, tcs) => tcc_app(u tc, map w tcs)
-           | LT.TC_SEQ tcs => tcc_seq(map u tcs)
-           | LT.TC_PROJ (tc, i) => tcc_proj(u tc, i)
-           | LT.TC_SUM tcs => tcc_sum (map u tcs)
-           | LT.TC_FIX{family={size=n,names,gen=tc,params=ts},index=i} =>
-               tcc_fix((n, names, tc_norm (u tc), map w ts), i)
+      fun ltyNarrow lty =
+          (case LtDict.find(!ltyDictR, lty)
+             of SOME lty' => lty'
+              | NONE => 
+                let val newlty =
+		    (case lt_out lty
+		       of LT.LT_TYC tc => ltc_tyc (tycNarrow tc)
+			| LT.LT_STR ts => ltc_str (map ltyNarrow ts)
+			| LT.LT_FCT (ts1, ts2) => ltc_fct(map ltyNarrow ts1, map ltyNarrow ts2)
+			| LT.LT_POLY (ks, xs) =>
+			    ltc_fct([ltc_str (map tk_lty ks)], map ltyNarrow xs)
+			| LT.LT_CONT _ => bug "ltyNarrow: LT_CONT"
+			| LT.LT_IND _ => bug "ltyNarrow: LT_IND"
+			| LT.LT_ENV _ => bug "ltyNarrow LT_ENV")
+		 in ltyDictR := LtDict.insert(!ltyDictR, lty, newlty);
+		    newlty
+                end)
 
-           | LT.TC_TUPLE tcs => tcc_tuple (map u tcs)
-           | LT.TC_ARROW (LT.FF_VAR(b1,b2), ts1, ts2) =>
-               tcc_arrow(ffc_fixed, map u ts1, map u ts2)
-           | LT.TC_ARROW (LT.FF_FIXED, _, _) =>
-               bug "unexpected TC_FIXED_ARROW in tc_umap"
-           | LT.TC_PARROW _ => bug "unexpected TC_PARROW in tc_umap"
+   in (tycNarrow o tc_norm, ltyNarrow o lt_norm)
+  end (* function typeNarrowGen *)
 
-           | LT.TC_BOX _ => bug "unexpected TC_BOX in tc_umap"
-           | LT.TC_ABS _ => bug "unexpected TC_ABS in tc_umap"
-           | LT.TC_TOKEN (k, t) =>
-               if LK.token_eq(k, LK.wrap_token) then
-                 bug "unexpected TC_WRAP in tc_umap"
-               else tc_inj (LT.TC_TOKEN (k, u t))
+(* typeWrapGen   : unit -> (tyc -> tyc) * (lty -> lty) * (tyc -> tyc) * (lty -> lty)
+ * Called once in FLINT/reps/wrapping.sml.
+ * result is four wrap functions for tyc and lty, unwrap functions for tyc and lty *)
+fun typeWrapGen () =
+  let val tycWrapMap = ref (TcDict.empty)
+      val tycUnwrapMap = ref (TcDict.empty)
+      val ltyUnwrapMap  = ref (LtDict.empty)
 
-           | _ => bug "unexpected other tycs in tc_umap")
+      (* tycWrap : tyc -> tyc *)
+      fun tycWrap (tyc: tyc) =
+	  (case TcDict.find(!tycWrapMap, tyc)
+	     of SOME tyc' => tyc'
+	      | NONE =>
+		let val newtyc =
+		    (case (tc_out tyc)
+		       of (LT.TC_VAR _ | LT.TC_NVAR _) => tyc
+			| LT.TC_PRIM pt => if PT.unboxed pt then tcc_wrap tyc else tyc
+			| LT.TC_FN (ks, tyc') => tcc_fn (ks, tycWrap tyc') (* impossible case *)
+			| LT.TC_APP (tyc', tycs) => tcc_app (tycWrap tyc', map tycWrap tycs)
+			| LT.TC_SEQ tycs => tcc_seq (map tycWrap tycs)
+			| LT.TC_PROJ (tc, i) => tcc_proj (tycWrap tc, i)
+			| LT.TC_SUM tcs => tcc_sum (map tycWrap tcs)
+			| LT.TC_FIX{family={size,names,gen,params},index=i} =>
+			    tcc_fix ((size, names, tc_norm (tycUnwrap gen), map tycWrap params), i)
+			| LT.TC_TUPLE tycs => tcc_wrap (tcc_tuple (map tycWrap tycs)) (* ? *)
+			| LT.TC_ARROW (LT.FF_VAR(b1,b2), domain, range) =>
+			    let val wdomain =    (* too specific ! *)
+				    (case domain
+				       of [tyc1,tyc2] => [tycWrap tyc1, tycWrap tyc2]
+					| _ => [tycWrap (LK.tc_autotuple domain)])
+				val wrange = [tycWrap (LK.tc_autotuple range)]
+				val newtyc = tcc_arrow(ffc_fixed, wdomain, wrange)
+			     in if b1 then newtyc else tcc_wrap newtyc
+			    end
+			| LT.TC_ARROW (LT.FF_FIXED, _, _) => bug "tycWrap: TC_ARROW(FF_FIXED)"
+			| LT.TC_TOKEN _ => bug "tycWrap: TC_TOKEN"
+			| LT.TC_BOX _ => bug "tycWrap: TC_BOX"
+			| LT.TC_ABS _ => bug "tycWrap: TC_ABS"
+			| _ => bug "tycWrap: bad tyc")
+		in tycWrapMap := TcDict.insert(!tycWrapMap, tyc, newtyc);
+		   newtyc
+		end)
 
-      fun lt_umap (tcf, ltf) t =
-        (case (lt_out t)
-          of LT.LT_TYC tc => ltc_tyc (tcf tc)
-           | LT.LT_STR ts => ltc_str (map ltf ts)
-           | LT.LT_FCT (ts1, ts2) => ltc_fct(map ltf ts1, map ltf ts2)
-           | LT.LT_POLY (ks, xs) => ltc_poly(ks, map ltf xs)
-           | LT.LT_CONT _ => bug "unexpected CNTs in lt_umap"
-           | LT.LT_IND _ => bug "unexpected INDs in lt_umap"
-           | LT.LT_ENV _ => bug "unexpected ENVs in lt_umap")
+      (* tycUnwrap : tyc -> tyc *)
+      and tycUnwrap (tyc: tyc) =
+	  (case TcDict.find(!tycUnwrapMap, tyc)
+	    of SOME tyc' => tyc'
+	     | NONE => 
+	       let val newtyc = 
+		   (case (tc_out tyc)
+		      of (LT.TC_VAR _ | LT.TC_NVAR _ | LT.TC_PRIM _) => tyc
+		       | LT.TC_FN (ks, tyc') => tcc_fn(ks, tycUnwrap tyc') (* impossible case *)
+		       | LT.TC_APP (tyc', tycs) => tcc_app(tycUnwrap tyc', map tycWrap tycs)
+		       | LT.TC_SEQ tycs => tcc_seq(map tycUnwrap tycs)
+		       | LT.TC_PROJ (tyc', i) => tcc_proj(tycUnwrap tyc', i)
+		       | LT.TC_SUM tycs => tcc_sum (map tycUnwrap tycs)
+		       | LT.TC_FIX{family={size,names,gen,params},index=i} =>
+			   tcc_fix((size, names, tc_norm (tycUnwrap gen), map tycWrap params), i)
+		       | LT.TC_TUPLE tycs => tcc_tuple (map tycUnwrap tycs)
+		       | LT.TC_ARROW (LT.FF_VAR(b1,b2), ts1, ts2) =>
+			   tcc_arrow(ffc_fixed, map tycUnwrap ts1, map tycUnwrap ts2)
+		       | LT.TC_TOKEN (k, t) =>
+			   if LK.token_eq(k, LK.wrap_token) then
+			     bug "unexpected TC_WRAP in tycUnwrap"
+			   else tc_inj (LT.TC_TOKEN (k, tycUnwrap t))
+		       | LT.TC_ARROW (LT.FF_FIXED, _, _) =>
+			   bug "tycUnwrap: TC_ARROW(FF_FIXED"
+		       | LT.TC_PARROW _ => bug "unexpected TC_PARROW in tycUnwrap"
+		       | LT.TC_BOX _ => bug "unexpected TC_BOX in tycUnwrap"
+		       | LT.TC_ABS _ => bug "unexpected TC_ABS in tycUnwrap"
+		       | _ => bug "unexpected other tycs in tycUnwrap")
+	        in tycUnwrapMap := TcDict.insert(!tycUnwrapMap, tyc, newtyc);
+		   newtyc
+	       end)
 
-      val {tc_wmap=tcWrap, tc_umap=tcMap, lt_umap=ltMap, cleanup} =
-        LtyDict.wmemo_gen{tc_wmap=tc_wmap, tc_umap=tc_umap, lt_umap=lt_umap}
+      (* ltyUnwrap : lty -> lty *)
+      fun ltyUnwrap (lty: lty) =
+	  (case LtDict.find(!ltyUnwrapMap, lty)
+	    of SOME lty' => lty'
+	     | NONE => 
+	       let val newlty =
+		   (case (lt_out lty)
+		      of LT.LT_TYC tyc => ltc_tyc (tycUnwrap tyc)
+		       | LT.LT_STR ltys => ltc_str (map ltyUnwrap ltys)
+		       | LT.LT_FCT (ltys1, ltys2) =>
+			   ltc_fct(map ltyUnwrap ltys1, map ltyUnwrap ltys2)
+		       | LT.LT_POLY (ks, ltys) => ltc_poly(ks, map ltyUnwrap ltys)
+		       | LT.LT_CONT _ => bug "ltyUnwrap: LT_CONT"
+		       | LT.LT_IND _ => bug "ltyUnwrap: LT_IND"
+		       | LT.LT_ENV _ => bug "ltyUnwrap: LT_ENV")
+	        in ltyUnwrapMap := LtDict.insert(!ltyUnwrapMap, lty, newlty);
+		   newlty
+	       end)
 
-      fun ltWrap x =
-        ltw_tyc (x, (fn tc => ltc_tyc (tcWrap tc)),
-                     fn _ => bug "unexpected case in ltWrap")
+      fun ltyWrap x =
+          ltw_tyc (x, (fn tc => ltc_tyc (tycWrap tc)),
+                      (fn _ => bug "unexpected case in ltWrap"))
 
-   in (tcWrap o tc_norm, ltWrap o lt_norm,
-       tcMap o tc_norm, ltMap o lt_norm, cleanup)
+   in (tycWrap o tc_norm, ltyWrap o lt_norm, tycUnwrap o tc_norm, ltyUnwrap o lt_norm)
   end
 
 
 (************************************************************************
  *            SUBSTITION OF NAMED VARS IN A TYC/LTY                     *
  ************************************************************************)
+(* already defined above, using Red-Black trees
 structure TcDict = BinaryMapFn
                      (struct
                         type ord_key = tyc
@@ -431,113 +484,120 @@ structure LtDict = BinaryMapFn
                            type ord_key = lty
                            val compare = Lty.lt_cmp
                        end)
+*)
+      
+fun tc_nvar_elim_gen () =
+    let val dict = ref (TcDict.empty)
 
-fun tc_nvar_elim_gen() = let
-    val dict = ref (TcDict.empty)
-
-    fun tc_nvar_elim s d tyc =
-        case LK.tc_nvars tyc of
-            [] => tyc                   (* nothing to elim *)
-          | _ =>
-    let
-        (* encode the tyc and the depth for memoization
-         * using tcc_proj *)
-        val tycdepth = tcc_proj (tyc, d)
-    in
-        case TcDict.find(!dict, tycdepth) of
-            SOME t => t                 (* hit! *)
-          | NONE => let                 (* must recompute *)
-                val r = tc_nvar_elim s d (* default recursive invoc. *)
-                val rs = map r          (* recursive invocation on list *)
-                val t =
-                    case tc_out tyc of
-                        LT.TC_NVAR tvar =>
-                            (case s (tvar, d) of
-                                 SOME t => t
-                               | NONE => tyc)
-                      | LT.TC_VAR _ => tyc
+    fun tc_nvar_elim find depth tyc =
+        case LK.tc_nvars tyc
+          of [] => tyc                   (* nothing to elim *)
+           | _ =>
+    let val tycdepth = tcc_proj (tyc, depth)
+	(* encode the tyc and the depth for memoization using tcc_proj *)
+     in case TcDict.find(!dict, tycdepth)
+          of SOME newtyc => newtyc     (* hit! *)
+           | NONE =>                   (* must recompute *)
+             let val elim = tc_nvar_elim find depth (* default recursive invoc. *)
+                 val elimList = map elim          (* recursive invocation on list *)
+                 val newtyc =
+                    case tc_out tyc
+                      of LT.TC_NVAR tvar =>
+                         let val _ = dbsay ("tc_nvar_elim: TC_NVAR: "^LambdaVar.lvarName  tvar^"\n")
+			     val newtyc =
+			     (case find (tvar, depth)
+                               of SOME tyc' => (dbsay "tc_nvar_elim: TC_NVAR: found!\n"; tyc')
+				| NONE => (dbsay "tc_nvar_elim: TC_NVAR: not found!\n"; tyc))
+			 in if !wrdebugging
+			    then (say "tc_nvar_elim(TC_NVAR):\n  old = "; ppTyc tyc;
+				  say "  new = "; ppTyc newtyc)
+			    else ();
+			    newtyc
+			 end
+                      | LT.TC_VAR _ => tyc   (* deBruijn type variable *)
                       | LT.TC_PRIM _ => tyc
-                      | LT.TC_FN (tks, t) =>
-                            tcc_fn (tks, tc_nvar_elim s (DI.next d) t)
+                      | LT.TC_FN (tks, tyc') =>
+                            tcc_fn (tks, tc_nvar_elim find (depth+1) tyc')
                       | LT.TC_APP (t, ts) =>
-                            tcc_app (r t, rs ts)
+                            tcc_app (elim t, elimList ts)
                       | LT.TC_SEQ ts =>
-                            tcc_seq (rs ts)
+                            tcc_seq (elimList ts)
                       | LT.TC_PROJ (t, i) =>
-                            tcc_proj (r t, i)
+                            tcc_proj (elim t, i)
                       | LT.TC_SUM ts =>
-                            tcc_sum (rs ts)
+                            tcc_sum (elimList ts)
                       | LT.TC_FIX {family={size,names,gen,params},index} =>
-                            tcc_fix ((size,names,r gen,rs params),index)
+                            tcc_fix ((size,names,elim gen,elimList params),index)
                       | LT.TC_TUPLE ts =>
-                            tcc_tuple ts
-                      | LT.TC_ARROW (ff, ts, ts') =>
-                            tcc_arrow (ff, rs ts, rs ts')
+                            tcc_tuple (elimList ts)
+                      | LT.TC_ARROW (ff, domainTycs, rangeTycs) =>
+                            tcc_arrow (ff, elimList domainTycs, elimList rangeTycs)
                       | LT.TC_PARROW (t, t') =>
-                            tcc_parrow (r t, r t')
+                            tcc_parrow (elim t, elim t')
                       | LT.TC_BOX t =>
-                            tcc_box (r t)
+                            tcc_box (elim t)
                       | LT.TC_ABS t =>
-                            tcc_abs (r t)
+                            tcc_abs (elim t)
                       | LT.TC_TOKEN (tok, t) =>
-                            tc_inj (LT.TC_TOKEN (tok, r t))
+                            tc_inj (LT.TC_TOKEN (tok, elim t))
                       | LT.TC_CONT ts =>
-                            tcc_cont (rs ts)
+                            tcc_cont (elimList ts)
                       | LT.TC_IND _ =>
                             bug "unexpected TC_IND in tc_nvar_elim"
                       | LT.TC_ENV _ =>
                             bug "unexpected TC_ENV in tc_nvar_elim"
-            in
-                dict := TcDict.insert(!dict, tycdepth, t);
-                t
+
+             in dict := TcDict.insert(!dict, tycdepth, newtyc);
+                newtyc
             end
     end (* tc_nvar_elim *)
 in
     tc_nvar_elim
 end
 
-fun lt_nvar_elim_gen() = let
-    val dict = ref (LtDict.empty)
+(* lt_nvar_elim_gen : unit
+                      -> (tvar * DebIndex.depth -> tyc option)   (* find *)
+                      -> DebIndex.depth                          (* depth *)
+		      -> lty -> lty *)                           (* conversion *)
+fun lt_nvar_elim_gen () =
+let val dict = ref (LtDict.empty)
     val tc_nvar_elim = tc_nvar_elim_gen()
 
-    fun lt_nvar_elim s d lty =
+    fun lt_nvar_elim find depth lty =
         case LK.lt_nvars lty
-          of [] => lty                   (* nothing to elim *)
+          of [] => lty         (* nothing to elim *)
            | _ =>
-    let
-        (* encode the lty and depth info using LT_ENV
-         * (only first 2 args are useful) *)
-        val ltydepth = lt_inj (LT.LT_ENV (lty, d, 0, LT.teEmpty))
-    in
-        case LtDict.find(!dict, ltydepth) of
-            SOME t => t                 (* hit! *)
-          | NONE => let                 (* must recompute *)
-                val r = lt_nvar_elim s d (* default recursive invoc. *)
-                val rs = map r          (* recursive invocation on list *)
-                val t =
-                    case lt_out lty of
-                        LT.LT_TYC t =>
-                            ltc_tyc (tc_nvar_elim s d t)
-                      | LT.LT_STR ts =>
-                            ltc_str (rs ts)
-                      | LT.LT_FCT (ts, ts') =>
-                            ltc_fct (rs ts, rs ts')
-                      | LT.LT_POLY (tks, ts) =>
-                            ltc_poly (tks,
-                                      map (lt_nvar_elim s (DI.next d)) ts)
-                      | LT.LT_CONT ts =>
-                            ltc_cont (rs ts)
-                      | LT.LT_IND _ =>
-                            bug "unexpected LT_IND in lt_nvar_elim"
-                      | LT.LT_ENV _ =>
-                            bug "unexpected LT_ENV in lt_nvar_elim"
-            in
-                dict := LtDict.insert(!dict, ltydepth, t);
-                t
-            end
-    end (* lt_nvar_elim *)
-in
-    lt_nvar_elim
+	     let val ltydepth = lt_inj (LT.LT_ENV (lty, depth, 0, LT.teEmpty))
+		 (* encode the lty and depth info using LT_ENV
+		  * (only first 2 args are useful) *)
+	      in case LtDict.find(!dict, ltydepth)
+		   of SOME newLty => newLty       (* hit! *)
+		    | NONE =>                     (* must recompute *)
+		      let val elim = lt_nvar_elim find depth (* default recursive invoc. *)
+			  val elimList = map elim            (* recursive invocation on list *)
+			  val newLty =
+			     case lt_out lty
+			       of LT.LT_TYC tyc =>
+				     ltc_tyc (tc_nvar_elim find depth tyc)
+			       | LT.LT_STR ts =>
+				     ltc_str (elimList ts)
+			       | LT.LT_FCT (ltys, ltys') =>
+				     ltc_fct (elimList ltys, elimList ltys')
+			       | LT.LT_POLY (tks, ltys) =>
+				     ltc_poly (tks,
+					       map (lt_nvar_elim find (depth+1)) ltys)
+			       | LT.LT_CONT ltys =>
+				     ltc_cont (elimList ltys)
+			       | LT.LT_IND _ =>
+				     bug "unexpected LT_IND in lt_nvar_elim"
+			       | LT.LT_ENV _ =>
+				     bug "unexpected LT_ENV in lt_nvar_elim"
+		       in dict := LtDict.insert(!dict, ltydepth, newLty);
+			  newLty
+		      end
+	     end (* lt_nvar_elim *)
+
+ in lt_nvar_elim
 end (* lt_nvar_elim_gen *)
 
 (************************************************************)
@@ -563,7 +623,7 @@ fun searchSubst (tv:tvar, s) =
     in h s
     end
 
-fun tc_nvar_subst_gen() = let
+fun tc_nvar_subst_gen () = let
     val dict = ref (TcDict.empty)
 
     fun tc_nvar_subst subst = let
@@ -627,7 +687,7 @@ fun tc_nvar_subst_gen() = let
 in tc_nvar_subst
 end (* tc_nvar_subst_gen *)
 
-fun lt_nvar_subst_gen() = let
+fun lt_nvar_subst_gen () = let
     val dict = ref (LtDict.empty)
     val tc_nvar_subst' = tc_nvar_subst_gen()
 
@@ -693,75 +753,67 @@ fun intersect(nil, _:tvar list) = nil
 (* val s_tvoffs = Stats.makeStat "Cvt tvoffs length" *)
 (* val s_nvars = Stats.makeStat "Cvt free nvars length" *)
 
-fun tc_nvar_cvt_gen() = let
-    val dict = ref (TcDict.empty)
+fun tc_nvar_cvt_gen () =
+let val dict = ref (TcDict.empty)
 
     fun tc_nvar_cvt (tvoffs:tvoffs) d tyc =
         ((* Stats.addStat s_iter 1; *)
          (* Stats.addStat s_tvoffs (length tvoffs); *)
          (* Stats.addStat s_nvars (length (LK.tc_nvars tyc)); *)
-        (* check if substitution overlaps with free vars list *)
-        case intersect(tvoffs, LK.tc_nvars tyc) of
-            [] => ((* Stats.addStat s_cuts 1; *)
-                   tyc           (* nothing to cvt *)
-                   )
-          | tvoffs =>
-    let
-        (* encode the tyc and the depth for memoization
-         * using tcc_proj *)
-        val tycdepth = tcc_proj (tyc, d)
-    in
-        case TcDict.find(!dict, tycdepth) of
-            SOME t => ((* Stats.addStat s_hits 1; *)
-                       t                 (* hit! *)
-                       )
-          | NONE => let                 (* must recompute *)
-                val r = tc_nvar_cvt tvoffs d (* default recursive invoc. *)
-                val rs = map r          (* recursive invocation on list *)
-                val t =
-                    case tc_out tyc of
-                        LT.TC_NVAR tvar =>
-                            (case searchSubst(tvar,tvoffs) of
-                                 SOME i => tcc_var (d, i)
-                               | NONE => tyc)
-                      | LT.TC_VAR _ => tyc
-                      | LT.TC_PRIM _ => tyc
-                      | LT.TC_FN (tks, t) =>
-                            tcc_fn (tks, tc_nvar_cvt tvoffs (DI.next d) t)
-                      | LT.TC_APP (t, ts) =>
-                            tcc_app (r t, rs ts)
-                      | LT.TC_SEQ ts =>
-                            tcc_seq (rs ts)
-                      | LT.TC_PROJ (t, i) =>
-                            tcc_proj (r t, i)
-                      | LT.TC_SUM ts =>
-                            tcc_sum (rs ts)
-                      | LT.TC_FIX{family={size,names,gen,params},index} =>
-                            tcc_fix ((size, names, r gen, rs params), index)
-                      | LT.TC_TUPLE ts =>
-                            tcc_tuple ts
-                      | LT.TC_ARROW (ff, ts, ts') =>
-                            tcc_arrow (ff, rs ts, rs ts')
-                      | LT.TC_PARROW (t, t') =>
-                            tcc_parrow (r t, r t')
-                      | LT.TC_BOX t =>
-                            tcc_box (r t)
-                      | LT.TC_ABS t =>
-                            tcc_abs (r t)
-                      | LT.TC_TOKEN (tok, t) =>
-                            tc_inj (LT.TC_TOKEN (tok, r t))
-                      | LT.TC_CONT ts =>
-                            tcc_cont (rs ts)
-                      | LT.TC_IND _ =>
-                            bug "unexpected TC_IND in tc_nvar_cvt"
-                      | LT.TC_ENV _ =>
-                            bug "unexpected TC_ENV in tc_nvar_cvt"
-            in
-                dict := TcDict.insert(!dict, tycdepth, t);
-                t
-            end
-    end (* tc_nvar_cvt *)
-        )
+
+         (* check if substitution overlaps with free vars list *)
+         case intersect(tvoffs, LK.tc_nvars tyc)
+           of [] => tyc   (* (Stats.addStat s_cuts 1; tyc) *)
+            | tvoffs =>
+		let val tycdepth = tcc_proj (tyc, d)
+		    (* encode the tyc and the depth for memoization using tcc_proj *)
+		 in case TcDict.find(!dict, tycdepth)
+		      of SOME t => t  (* hit! *)  (* (Stats.addStat s_hits 1; t) *)
+		       | NONE =>      (* must recompute *)
+			   let val r = tc_nvar_cvt tvoffs d (* default recursive invoc. *)
+			       val rs = map r          (* recursive invocation on list *)
+			       val t =
+				case tc_out tyc
+				  of LT.TC_NVAR tvar =>
+					(case searchSubst(tvar,tvoffs) of
+					     SOME i => tcc_var (d, i)
+					   | NONE => tyc)
+				   | LT.TC_VAR _ => tyc
+				   | LT.TC_PRIM _ => tyc
+				   | LT.TC_FN (tks, t) =>
+				       tcc_fn (tks, tc_nvar_cvt tvoffs (DI.next d) t)
+				   | LT.TC_APP (t, ts) =>
+				       tcc_app (r t, rs ts)
+				   | LT.TC_SEQ ts =>
+				       tcc_seq (rs ts)
+				   | LT.TC_PROJ (t, i) =>
+				       tcc_proj (r t, i)
+				   | LT.TC_SUM ts =>
+				       tcc_sum (rs ts)
+				   | LT.TC_FIX{family={size,names,gen,params},index} =>
+				       tcc_fix ((size, names, r gen, rs params), index)
+				   | LT.TC_TUPLE ts =>
+				       tcc_tuple (rs ts)
+				   | LT.TC_ARROW (ff, ts, ts') =>
+				       tcc_arrow (ff, rs ts, rs ts')
+				   | LT.TC_PARROW (t, t') =>
+				       tcc_parrow (r t, r t')
+				   | LT.TC_BOX t =>
+				       tcc_box (r t)
+				   | LT.TC_ABS t =>
+				       tcc_abs (r t)
+				   | LT.TC_TOKEN (tok, t) =>
+				       tc_inj (LT.TC_TOKEN (tok, r t))
+				   | LT.TC_CONT ts =>
+				       tcc_cont (rs ts)
+				   | LT.TC_IND _ =>
+				       bug "unexpected TC_IND in tc_nvar_cvt"
+				   | LT.TC_ENV _ =>
+				       bug "unexpected TC_ENV in tc_nvar_cvt"
+			    in dict := TcDict.insert(!dict, tycdepth, t);
+			       t
+			   end
+		end (* tc_nvar_cvt *))
 in
     tc_nvar_cvt
 end (* tc_nvar_cvt_gen *)
@@ -825,7 +877,7 @@ fun lt_nvpoly(tvks, lt) =
 	val tvoffs = ListMergeSort.sort gt tvoffs
 
 	(* temporarily gen() *)
-	val ltSubst = lt_nvar_cvt_gen() tvoffs (DI.next DI.top)
+	val ltSubst = lt_nvar_cvt_gen() tvoffs (DI.next DI.top) (* = 1 *)
     in ltc_poly(ks, map ltSubst lt)
     end
 

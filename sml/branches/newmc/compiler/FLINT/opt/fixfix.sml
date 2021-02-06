@@ -29,7 +29,7 @@ local
     structure F  = FLINT
     structure S = LambdaVar.Set
     structure M = LambdaVar.Map
-    structure PP = PPFlint
+    structure PF = PrintFlint
     structure LT = LtyExtern
     structure LK = LtyKernel
     structure OU = OptUtils
@@ -38,8 +38,8 @@ in
 
 val say = Control_Print.say
 fun bug msg = ErrorMsg.impossible ("FixFix: "^msg)
-fun buglexp (msg,le) = (say "\n"; PP.printLexp le; say " "; bug msg)
-fun bugval (msg,v) = (say "\n"; PP.printSval v; say " "; bug msg)
+fun buglexp (msg,le) = (say "\n"; PF.printLexp le; say " "; bug msg)
+fun bugval (msg,v) = (say "\n"; PF.printSval v; say " "; bug msg)
 fun assert p = if p then () else bug ("assertion failed")
 fun bugsay s = say ("!*!*! Fixfix: "^s^" !*!*!\n")
 
@@ -418,7 +418,7 @@ fun fixfix ((fk,f,args,body):F.prog) =
     let val (s,fv,nbody) = fexp M.empty 0 body
 	val fv = S.difference(fv, S.addList(S.empty, map #1 args))
     in
-	(*  PPFlint.printLexp(F.RET(map F.VAR (S.members fv))); *)
+	(*  PrintFlint.printLexp(F.RET(map F.VAR (S.members fv))); *)
 	assert(S.isEmpty(fv));
 	(fk, f, args, nbody)
     end

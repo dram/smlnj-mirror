@@ -114,15 +114,14 @@ functor EvalLoopF (Compile: TOP_COMPILE) : EVALLOOP =
 			      in debugPrint Control.printAst ("AST::", ppAstDec, ast)
 			      end
 
-		      val splitting = Control.LambdaSplitting.get ()
 		      val {csegments, newstatenv, absyn, exportPid, exportLvars,
-			   imports, inlineExp, ...} =
+			   imports, (* inlineExp, *) ...} =
 			  C.compile {source=source, ast=ast,
 				     statenv=statenv,
 				     symenv=symenv,
 				     compInfo=cinfo,
 				     checkErr=checkErrors,
-				     splitting=splitting,
+				     (* splitting=splitting, *)
 				     guid = () }
 		      (** returning absyn and exportLvars here is a bad idea,
 			  they hold on things unnecessarily; this must be
@@ -144,7 +143,7 @@ functor EvalLoopF (Compile: TOP_COMPILE) : EVALLOOP =
 		      val newenv =
 			  E.mkenv { static = newstatenv,
 				    dynamic = newdynenv,
-				    symbolic = SymbolicEnv.mk (exportPid,inlineExp) }
+				    symbolic = SymbolicEnv.empty (* mk (exportPid,inlineExp) *)}
 		      val newLocalEnv = E.concatEnv (newenv, #get loc ())
 			  (* refetch loc because execution may
 			     have changed its contents *)
@@ -189,9 +188,8 @@ functor EvalLoopF (Compile: TOP_COMPILE) : EVALLOOP =
 		      end
 		  (* end case *))
 
-	  fun loop() = (oneUnit(); loop())
-	  in
-	    interruptable loop ()
+	      fun loop() = (oneUnit(); loop())
+	   in interruptable loop ()
 	  end (* function evalLoop *)
 
   (* return the message for an exception *)

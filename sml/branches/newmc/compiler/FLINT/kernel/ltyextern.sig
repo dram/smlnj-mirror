@@ -39,7 +39,6 @@ sig
  *)
 include LTYBASIC        (* see ltydef.sig and ltybasic.sig for details *)
 
-
 (** tkind constructors *)
 val tkc_mono   : tkind
 val tkc_box    : tkind
@@ -115,7 +114,7 @@ val lt_iscont   : lty -> bool
 val ltw_iscont  : lty * (lty list -> 'a) * (tyc list -> 'a) * (lty -> 'a) -> 'a
 
 (** other utility functions --- requires clean up!*)
-val lt_select : lty * int -> lty
+val lt_select : lty * int * string -> lty
 val lt_swap : lty -> lty
 
 (** functions that manipulate the FLINT function and record types *)
@@ -131,11 +130,10 @@ val tc_upd_prim : tyc -> Primop.primop
 (** translating the tkind into the corresponding type *)
 val tk_lty      : tkind -> lty
 
-(** twrap type translation generator, used by Wrapping.wrapping *)
-val twrap_gen   : bool -> ((tyc -> tyc) * (lty -> lty) *
-                           (tyc -> tyc) * (lty -> lty) * (unit -> unit))
+(** type wrapping translation generator, used once in Wrapping.wrapping *)
+val typeWrapGen : unit -> (tyc -> tyc) * (lty -> lty) * (tyc -> tyc) * (lty -> lty)
 
-(** tnarrow type translation generator, used by Reify.reify *)
-val tnarrow_gen : unit -> ((tyc -> tyc) * (lty -> lty) * (unit -> unit))
+(** type narrowing translation generator, used once in Reify.reify *)
+val typeNarrowGen : unit -> (tyc -> tyc) * (lty -> lty)
 
 end (* signature LTYEXTERN *)

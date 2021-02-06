@@ -250,6 +250,8 @@ structure Control : CONTROL =
     val saveCPSopt : bool ref = saveit
     val saveClosure : bool ref = saveit
 
+    (* LambdaSplitting: controls the "splitting" phase of FLINT optimization
+     * (FLINTOpt.optimize).  Default value of the control (returned by get) is NONE. *)
     structure LambdaSplitting = struct
 	datatype globalsetting = Off | Default of int option
 	type localsetting = int option option

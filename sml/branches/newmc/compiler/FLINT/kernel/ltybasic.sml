@@ -172,8 +172,7 @@ fun tc_print (x : tyc) =
      | LT.TC_FIX {family={gen=tc,params=ts,...}, index=i} =>
          if tc_eqv(x,tcc_bool) then "B"
          else if tc_eqv(x,tcc_list) then "LST"
-         else (let (* val ntc = case ts of [] => tc
-                                                 | _ => tcc_app(tc, ts) *)
+         else (let (* val ntc = case ts of [] => tc | _ => tcc_app(tc, ts) *)
                    val _ = 1
                in ("DT{" ^ "DATA"  ^ (* "[" ^ (tc_print tc)
                    ^ "] &&" ^ (plist(tc_print, ts))
@@ -290,7 +289,8 @@ fun ltLookup (venv, lv, nd) =
 	    else SOME (ltc_env (lty, 0, nd - d, LT.teEmpty))
     (*end case*))
 
-fun ltInsert (venv, lv, lt, d) = LambdaVar.Map.insert(venv, lv, (lt, d))
+fun ltInsert (venv, lvar, lty, depth) =
+    LambdaVar.Map.insert(venv, lvar, (lty, depth))
 
 end (* top-level local *)
 end (* structure LtyBasic *)

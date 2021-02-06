@@ -79,11 +79,11 @@ fun split(RET [v]) = (v, ident)
 
 fun SELECTg(i, e) =
   let val _ = debugmsg ">>SELECTg"
-      val _ = if !debugging then PPFlint.printLexp e else ()
+      val _ = if !debugging then PrintFlint.printLexp e else ()
       val (v, hdr) = split e
       val x = mkv()
       val res = hdr(SELECT(v, i, x, RET [VAR x]))
-      val _ = if !debugging then PPFlint.printLexp res else ()
+      val _ = if !debugging then PrintFlint.printLexp res else ()
       val _ = debugmsg "<<SELECTg"
    in res
   end
@@ -124,7 +124,7 @@ fun SRECORDg es =
                end
         | f (e::r, vs, hdr) =
               let val _ = debugmsg "--SRECORD g"
-		  val _ = if !debugging then PPFlint.printLexp e else ()
+		  val _ = if !debugging then PrintFlint.printLexp e else ()
 		  val (v, h) = split e
                in f(r, v::vs, hdr o h)
               end

@@ -175,7 +175,7 @@ Basics/
       facilities for defining timed phases
       defs: STATS, Stats
 
-  Basics/main/  (* rename: name -> control *)
+  Basics/control/
     basiccontrol.sml
       printWarning control flag, topregistry
       uses: ControlRegistry, Controls
@@ -194,7 +194,7 @@ Basic datastructures used in elaboration (including type checking)
     access.sig/sml
       dynamic access paths
       defs: ACCESS, Access : ACCESS
-    debindex.sig/sml [FLINT, moved from Elaborator/basics]
+    debindex.sig/sml [FLINT; for deBruijn type variables]
       FLINT book-keeping (move back to FLINT)
       defs: DEB_INDEX, DebIndex : DEB_INDEX
     env.sig/sml

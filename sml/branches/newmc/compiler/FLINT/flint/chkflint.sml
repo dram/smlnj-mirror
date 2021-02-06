@@ -26,7 +26,7 @@ local structure LT = LtyExtern
       structure LV = LambdaVar
       structure DA = Access
       structure DI = DebIndex
-      structure PP = PPFlint
+      structure PF = PrintFlint
       structure PO = Primop
       structure S  = LV.Set
       open FLINT
@@ -72,8 +72,8 @@ fun simplify (le,0) = RET [STRING "<...>"]
 val tkPrint = say o LT.tk_print
 val tcPrint = say o LT.tc_print
 val ltPrint = say o LT.lt_print
-fun lePrint le = PP.printLexp (simplify (le, 3))
-val svPrint = PP.printSval
+fun lePrint le = PF.printLexp (simplify (le, 3))
+val svPrint = PF.printSval
 
 (* error : lexp * (unit -> 'a) -> 'a *)
 fun error (le, errfn) =
@@ -266,6 +266,7 @@ fun check phase envs lexp = let
 
       fun matchAndTypeWith (s,v,lt,lt',lv,e) =
 	(ltMatch (le,s) (typeofVal v, lt); typeWith (lv, lt') e)
+
       in case le
        of RET vs => map typeofVal vs
 	| LET (lvs,e,e') =>
@@ -389,7 +390,7 @@ fun check phase envs lexp = let
 	    end
 	| SELECT (v,n,lv,e) => let
 	    val lt = catchExn
-		(fn () => LT.lt_select (typeofVal v, n))
+		(fn () => LT.lt_select (typeofVal v, n, "chkflint.sml#393"))
 		(le,
 		 fn () =>
 		    (say "SELECT from wrong type or out of range"; LT.ltc_void))
@@ -467,9 +468,8 @@ in (* loplevel local *)
 (****************************************************************************
  *  MAIN FUNCTION --- val checkTop : FLINT.fundec * typsys -> bool          *
  ****************************************************************************)
-fun checkTop ((fkind, v, args, lexp) : fundec, phase) = let
-  val ve =
-    foldl (fn ((v,t), ve) => LT.ltInsert (ve,v,t,DI.top)) LT.initLtyEnv args
+fun checkTop ((fkind, v, args, lexp) : fundec, phase: typsys) = let
+  val ve = foldl (fn ((v,t), ve) => LT.ltInsert (ve,v,t,DI.top)) LT.initLtyEnv args
   val err = check phase (LT.initTkEnv, ve, DI.top) lexp
   val err = case fkind
      of {cconv=CC_FCT,...} => err

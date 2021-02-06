@@ -7,7 +7,7 @@
 structure FLINT : FLINT =
   struct
 
-    structure A  = Access   (* should go away soon *)
+    structure A  = Access   (* should go away soon ??? A.conrep, A.consig used *)
     structure LD = LtyDef
     structure LV = LambdaVar
 
@@ -15,7 +15,7 @@ structure FLINT : FLINT =
     type tyc = LD.tyc
     type lty = LD.lty
 
-    type tvar = LD.tvar
+    type tvar = LD.tvar  (* = Lty.tvar = LV.lvar = int; "named" tyvars *)
     type lvar = LV.lvar
 
     type fflag = LD.fflag

@@ -1,10 +1,10 @@
 (* varenvac.sml *)
 
 (* environments mapping vars to vars. 
- * Used for repacement of source variables by svars (administrative
- * match compiler variables) in right-hand-sides of matches.
- * I.e. alpha-conversion of pattern variables into "special" variables,
- * or into fresh variables.
+ * Used for repacement of source variables by svars (local, administrative
+ * MC variables) in right-hand-sides of matches.
+ * I.e. alpha-conversion of pattern variables into "special" variables (svars),
+ * or into fresh variables (V.var), as produced by alphaEnv.
  *)
 
 structure VarEnvAC =

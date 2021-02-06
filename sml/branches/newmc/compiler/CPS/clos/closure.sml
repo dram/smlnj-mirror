@@ -725,8 +725,15 @@ fun offset ((z, CR(n,{functions,values,closures,...})), i, u, x, env) =
                       | _ => bug "unexpected case in offset 2"
       val lab = (LABEL l, OFFp0)
       val vl =
+(* work around for OR pattern bug with newmc
         case (closures, values)
          of (([(v,_)], []) | ([], [v])) => [lab, (VAR v, OFFp0)]
+          | ([], []) => [lab]
+          | _ => bug "unexpected case in offset 3"
+*)
+        case (closures, values)
+         of ([(v,_)], []) => [lab, (VAR v, OFFp0)]
+	  | ([], [v]) => [lab, (VAR v, OFFp0)]
           | ([], []) => [lab]
           | _ => bug "unexpected case in offset 3"
       val (hdr, env) = recordEl(RK_ESCAPE, vl, x, env)

@@ -7,10 +7,7 @@
 (* recover the type information of a closed FLINT program *)
 signature RECOVER =
 sig
-  val recover : (FLINT.prog * bool) ->
-                  {getLty: FLINT.value -> FLINT.lty,
-                   cleanUp: unit -> unit,
-		   addLty: (FLINT.lvar * FLINT.lty) -> unit}
+  val recover : (FLINT.prog * bool) -> (FLINT.value -> FLINT.lty)
 end (* signature RECOVER *)
 
 structure Recover : RECOVER =
@@ -42,7 +39,8 @@ fun reslty (lt, ts) =
   end
 
 exception RecoverLty
-fun recover (fdec, postRep) =
+
+fun recover (fdec: prog, postRep : bool) =
   let val ltyTable : lty LambdaVar.Tbl.hash_table =
 	  LambdaVar.Tbl.mkTable(32, RecoverLty)
       fun get v = LambdaVar.Tbl.lookup ltyTable v
@@ -66,6 +64,7 @@ fun recover (fdec, postRep) =
 
             fun lpd (fk, f, vts, e) =
               (addvs vts; addv (f, LT.ltc_fkfun(fk, map #2 vts, lpe e)))
+
             and lpds (fds as ((fk as {isrec=SOME _, ...},_,_,_)::_)) =
                   let fun h ((fk as {isrec=SOME (rts,_), ...},
                              f, vts, _) : fundec) =
@@ -90,7 +89,7 @@ fun recover (fdec, postRep) =
 		  in (#2(LT.ltd_fkfun u')
 		      handle LT.DeconExn =>
 		       (print "\nError Application:\n";
-			PPFlint.printLexp (APP(u, vs));
+			PrintFlint.printLexp (APP(u, vs));
 			raise LT.DeconExn))
 		  end
               | lpe (TFN((tfk, v, tvks, e1), e2)) =
@@ -115,25 +114,25 @@ fun recover (fdec, postRep) =
                    in lpe e2
                   end
               | lpe (PRIMOP((_,Primop.WCAST, lt, []), _, v, e)) =
-                  if postRep then
-                     (case LT.ltd_fct lt
-                       of ([_],[r]) => (addv(v, r); lpe e)
-                        | _ => bug "unexpected case for WCAST")
+                  if postRep
+                  then (case LT.ltd_fct lt
+                          of ([_],[r]) => (addv(v, r); lpe e)
+                           | _ => bug "unexpected case for WCAST")
                   else bug "unexpected primop WCAST in recover"
               | lpe (PRIMOP((_,_,lt,ts), _, v, e)) =
                   (addv (v, reslty (lt, ts)); lpe e)
 
          in lpe e handle LT.DeconExn => (print "\nWhole Expr:\n";
-					 PPFlint.printLexp e; bug "ltd decon")
+					 PrintFlint.printLexp e; bug "ltd decon")
         end (* function transform *)
 
       val (fkind, f, vts, e) = fdec
       val _ = addvs vts
       val atys = map #2 vts
-      (* val _ = PPFlint.printLexp e *)
+      (* val _ = PrintFlint.printLexp e *)
       val rtys = loop e
       val _ = addv (f, LT.ltc_fkfun(fkind, atys, rtys))
-  in {getLty=getlty, cleanUp=fn () => LambdaVar.Tbl.clear ltyTable, addLty=addv}
+  in getlty  (* {getLty = getlty, cleanUp = fn () => LambdaVar.Tbl.clear ltyTable}  *)
  end (* function recover *)
 
 end (* local *)

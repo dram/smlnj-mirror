@@ -952,15 +952,7 @@ structure FContract :> FCONTRACT =
 					F.SWITCH(nv,ac,[(F.DATAcon(ndc,tycs,lv),nle)],NONE)
 				    else (unuseval m nv; nle)
 				end
-(* OR-pattern bug workaround
 			      | (([(_,le)],NONE) | ([],SOME le)) =>
-				(* This should never happen, but we can optimize it away *)
-				(unuseval m (sval2val sv); loop m le cont)
-*)
-			      | ([(_,le)],NONE) => 
-				(* This should never happen, but we can optimize it away *)
-				(unuseval m (sval2val sv); loop m le cont)
-			      | ([],SOME le) =>
 				(* This should never happen, but we can optimize it away *)
 				(unuseval m (sval2val sv); loop m le cont)
 			      | _ =>

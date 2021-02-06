@@ -124,7 +124,7 @@ fun ltVector t = if laterPhase(phase) then LT.ltc_void
 (** lazily selecting a field from a record/structure type *)
 exception LtySelect
 fun ltSel (lt, i) =
-  (LT.lt_select(lt, i)) handle _ => raise LtySelect
+  (LT.lt_select(lt, i, "chkplexp#127")) handle _ => raise LtySelect
 
 (** build a function or functor type from a pair of arbitrary ltys *)
 fun ltFun (x, y) =
@@ -222,7 +222,7 @@ fun ltSelect le s (lt, i) =
      handle zz =>
        (clickerror ();
         say (s ^ "  **** Select from a wrong-type lexp  =====> \n    ");
-        case zz of LtySelect => say "exception LtyArrow raised. \n"
+        case zz of LtyArrow => say "exception LtyArrow raised. \n"
                  | LT.TeUnbound => say "exception TeUnbound raised. \n"
                  | _ => say "other weird exceptions raised\n";
         say "\n \n";  lePrint le; say "\n \n";
