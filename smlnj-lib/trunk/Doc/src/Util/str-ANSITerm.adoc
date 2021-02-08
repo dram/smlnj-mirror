@@ -105,12 +105,13 @@ val setStyle : TextIO.outstream * style list -> unit
 
 `[.kw]#val# toString : style list \-> string`::
   `toString styles` returns a command string that will cause the terminal
-  to switch to the specified styles.
+  to switch to the specified styles.  Specifying the empty list is
+  equivalent to `[RESET]`.
 
-  (* output commands to set the given styles; the empty list is "normal" *)
 `[.kw]#val# setStyle : TextIO.outstream * style list \-> unit`::
   `setStyle (outS, styles)` sets the styles for the terminal connected
-  to the output stream `outS`.
+  to the output stream `outS`.  Specifying the empty list is
+  equivalent to `[RESET]`.
 
 == See Also
 

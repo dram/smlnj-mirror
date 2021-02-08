@@ -89,7 +89,7 @@ structure ANSITerm : sig
 	    concat ("\027[" :: Int.toString cmd :: List.foldr f ["m"] r)
 	  end
 
-    fun toString [] = cmdStr[0, 30]
+    fun toString [] = cmdStr[0]
       | toString stys = cmdStr(List.map styleToCmd stys)
 
     fun setStyle (outStrm, stys) = TextIO.output(outStrm, toString stys)
