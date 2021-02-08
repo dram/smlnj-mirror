@@ -3257,27 +3257,45 @@ Decision Tree (5a):
     B: DLEAF 0  (bind x @ <B>)
     C: DLEAF 0  (bind x @ <C>)
 
-  venvMC = {(x, 0.0, <A>, v1), (x, 0.1.0, <B>, v2), (x, 0.1.1, <C>, v3)}
-  (bindSVars)
+  varenvMC = {(x, 0.0, <A>, v1), (x, 0.1.0, <B>, v2), (x, 0.1.1, <C>, v3)}
+  (from bindSVars)
 
 Absyn (5a):    
+
   let rhs0 = fn u => u+1
    in fn v0 =>
          SWITCH v0
 	   of A v1 => rhs0 v1
 	    | B v2 => rhs0 v2
-	    | A v3 => rhs0 v3
+	    | C v3 => rhs0 v3
+  rhs0 used three times (on each leaf of the orpath tree)
 
-----------
-AndOr(5b):
+-----------
+AndOr (5b):
 
   OR d; <>; vars={}; dir={0}; dft={}
     A: VAR(x) int; <A>; vars={x @ 0.0}
     B: VAR(x) int; <B>; vars={x @ 0.1}
     C: VAR(x) int; <B>; vars={x @ 1}
 
+Decision Tree (5b):
 
+  CHOICE <>
+    A: DLEAF 0  (bind x @ <A>)
+    B: DLEAF 0  (bind x @ <B>)
+    C: DLEAF 1  (bind x @ <C>)
 
+  varenvMC = {(x, 0.0, <A>, v1), (x, 0.1, <B>, v2), (x, 1, <C>, v3)}
+  (from bindSVars)
+
+Absyn (5b):
+
+  let rhs0 = fn u => u+1
+   in fn v0 =>
+         SWITCH v0
+	   of A v1 => rhs0 v1
+	    | B v2 => rhs0 v2
+	    | C v3 => v3 + 2  -- rhs1 (x+2) used once
 
 ------------------------------
 6. List OR patterns
@@ -3285,6 +3303,14 @@ AndOr(5b):
 6b.  [x,y] | [x,_,y]
 6c.  [x,y] | [y,_,x]
 6d.  [_,x] | [_,_,x]
+
+------------------------------
+7. redundant non-variable patterns
+   (x,y) | (x,y)
+
+Should this be pre-analyzed as a redundant OR pattern and reduced to (x,y)?
+Or should the match be compiled in such a way that the redundancy is
+detected during compilation and eliminated (possibly with warnings)?
 
 
 Pattern _overlays_ or _layers_ with priorities
