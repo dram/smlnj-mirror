@@ -166,8 +166,8 @@ namespace asdl {
 	}
 	else if (this->_digits.size() == 1) {
 	    n = this->_sign
-		? static_cast<int64_t>(this->_digits[0])
-		: - static_cast<int64_t>(this->_digits[0]);
+		? - static_cast<int64_t>(this->_digits[0])
+		: static_cast<int64_t>(this->_digits[0]);
 	    return false;
 	}
 	else if (this->_digits.size() == 2) {

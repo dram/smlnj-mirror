@@ -27,7 +27,7 @@ namespace asdl {
 #if defined(ASDL_USE_GNU_MP)
 	integer () { mpz_init(this->_rep); }
 #else
-	integer () : _sign(false), _digits{0} { }
+	integer () : _sign(false), _digits{} { }
 #endif
 	integer (int32_t a);
 	integer (uint32_t a);
