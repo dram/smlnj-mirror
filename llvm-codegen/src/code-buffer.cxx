@@ -82,8 +82,16 @@ code_buffer::code_buffer (target_info const *target)
 	for (int i = 0;  i < n;  ++i) {
 	    gcTys.push_back (this->mlValueTy);
 	}
-	this->gcRetTy = llvm::StructType::create(gcTys, "gc_ret_ty");
-	this->gcFnTy = llvm::FunctionType::get(this->gcRetTy, gcTys, false);
+	auto gcRetTy = llvm::StructType::create(gcTys, "gc_ret_ty");
+	this->_gcFnTy = llvm::FunctionType::get(gcRetTy, gcTys, false);
+    }
+
+  // overflow block/function
+    {
+	std::vector<Type *> tys = this->createParamTys (frag_kind::KNOWN_FUN, 0);
+	this->_overflowFnTy = llvm::FunctionType::get(this->voidTy, tys, false);
+	this->_overflowBB = nullptr;
+	this->_overflowFn = nullptr;
     }
 
 } // constructor
@@ -112,7 +120,15 @@ void code_buffer::beginModule (std::string const & src, int nClusters)
     this->_readReg = nullptr;
     this->_spRegMD = nullptr;
 
+  // clear the overflow function pointer
+    this->_overflowFn = nullptr;
+
 } // code_buffer::beginModule
+
+void code_buffer::completeModule ()
+{
+    this->_createOverflowFn();
+}
 
 void code_buffer::optimize ()
 {
@@ -131,6 +147,7 @@ void code_buffer::beginCluster (CFG::cluster *cluster, llvm::Function *fn)
     assert ((fn != nullptr) && "undefined function");
 
     this->_overflowBB = nullptr;
+    this->_overflowPhiNodes.clear();
     this->_fragMap.clear();
     this->_curFn = fn;
     this->_curCluster = cluster;
@@ -139,8 +156,6 @@ void code_buffer::beginCluster (CFG::cluster *cluster, llvm::Function *fn)
 
 void code_buffer::endCluster ()
 {
-/* TODO: emit common GC code? */
-
 } // code_buffer::endCluster
 
 void code_buffer::beginFrag ()
@@ -152,11 +167,11 @@ void code_buffer::beginFrag ()
 llvm::Function *code_buffer::newFunction (
     llvm::FunctionType *fnTy,
     std::string const &name,
-    bool isFirst)
+    bool isPublic)
 {
     llvm::Function *fn = llvm::Function::Create (
 	    fnTy,
-	    isFirst ? llvm::GlobalValue::ExternalLinkage : llvm::GlobalValue::PrivateLinkage,
+	    isPublic ? llvm::GlobalValue::ExternalLinkage : llvm::GlobalValue::PrivateLinkage,
 	    name,
 	    this->_module);
 
@@ -527,7 +542,7 @@ void code_buffer::callGC (
     Args_t const & roots,
     std::vector<LambdaVar::lvar> const & newRoots)
 {
-    assert ((this->gcFnTy->getNumParams() == roots.size())
+    assert ((this->_gcFnTy->getNumParams() == roots.size())
 	&& "arity mismatch in GC call");
 
   // get the address of the "call-gc" entry
@@ -536,8 +551,8 @@ void code_buffer::callGC (
   // call the garbage collector.  The return type of the GC is a struct
   // that contains the post-GC values of the argument registers
     auto call = this->_builder.CreateCall (
-	this->gcFnTy,
-	this->createBitCast(callGCFn, this->gcFnTy->getPointerTo()),
+	this->_gcFnTy,
+	this->createBitCast(callGCFn, this->_gcFnTy->getPointerTo()),
 	roots);
     call->setCallingConv (llvm::CallingConv::JWA);
     call->setTailCallKind (llvm::CallInst::TCK_NoTail);
@@ -561,28 +576,104 @@ void code_buffer::callGC (
 } // code_buffer::callGC
 
 // return the basic-block that contains the Overflow trap generator
+// We also update the PHI nodes for the overflow basic block.
+//
 llvm::BasicBlock *code_buffer::getOverflowBB ()
 {
+    auto srcBB = this->_builder.GetInsertBlock ();
+    arg_info info = this->_getArgInfo(frag_kind::INTERNAL);
+    int nArgs = info.nExtra;
+
     if (this->_overflowBB == nullptr) {
-	auto saveBB = this->_builder.GetInsertBlock ();
+      // if this is the first overflow BB for the module, then we need to define
+      // the overflow function name
+	if (this->_overflowFn == nullptr) {
+	    this->_overflowFn = newFunction(this->_overflowFnTy, "raiseOverflow", false);
+	}
+
 	this->_overflowBB = this->newBB ("trap");
 	this->_builder.SetInsertPoint (this->_overflowBB);
-	auto fnTy = llvm::FunctionType::get (this->voidTy, false);	// void trap()
-	llvm::InlineAsm *trap =
-	    llvm::InlineAsm::get (
-		fnTy,
-		"int $$4",
-		"",
-		true);
-	this->_builder.CreateCall (fnTy, trap);
+      // allocate PHI nodes for the SML special registers.  This is necessary
+      // to ensure that any changes to the ML state (e.g., allocation) that
+      // happened before the arithmetic operation are correctly recorded
+        this->_overflowPhiNodes.reserve (nArgs);
+    	Args_t args;
+	args.reserve (nArgs);
+	for (int i = 0;  i < nArgs;  ++i) {
+	    llvm::Type *ty;
+	    if (this->_regInfo.machineReg(i)->id() <= sml_reg_id::STORE_PTR) {
+		ty = this->objPtrTy;
+	    } else {
+		ty = this->mlValueTy;
+	    }
+	    auto phi = this->_builder.CreatePHI(ty, 0);
+	    this->_overflowPhiNodes.push_back(phi);
+	    args.push_back(phi);
+	}
+      // create a call to the per-module overflow function
+	this->createJWACall(this->_overflowFnTy, this->_overflowFn, args);
 	this->_builder.CreateRetVoid ();
+
       // restore current basic block
-	this->_builder.SetInsertPoint (saveBB);
+	this->_builder.SetInsertPoint (srcBB);
+    }
+
+  // add PHI-node dependencies
+    for (int i = 0;  i < info.nExtra;  ++i) {
+	reg_info const *rInfo = this->_regInfo.machineReg(i);
+	this->_overflowPhiNodes[i]->addIncoming(this->_regState.get (rInfo->id()), srcBB);
     }
 
     return this->_overflowBB;
 
 } // code_buffer::getOverflowBB
+
+// create the per-module overflow function (if necessary).  This function has
+// just the special registers as arguments.
+//
+void code_buffer::_createOverflowFn ()
+{
+    if (this->_overflowFn == nullptr) {
+      // the module does not need an overflow function
+	return;
+    }
+
+    this->_curFn = this->_overflowFn;
+
+    auto bb = this->newBB ();
+    this->_builder.SetInsertPoint (bb);
+
+    std::vector<Type *> tys;
+    Args_t args;
+    tys.reserve (this->_regInfo.numMachineRegs());
+    args.reserve (this->_regInfo.numMachineRegs());
+
+  // initialize the arguments, which are the hardware CMachine registers
+    for (int i = 0, hwIx = 0;  i < reg_info::NUM_REGS;  ++i) {
+	reg_info const *info = this->_regInfo.info(static_cast<sml_reg_id>(i));
+	if (info->isMachineReg()) {
+	    llvm::Argument *arg = this->_curFn->getArg(hwIx++);
+	    tys.push_back(arg->getType());
+	    args.push_back(arg);
+#ifndef NO_NAMES
+	    arg->setName (info->name());
+#endif
+	}
+    }
+
+  // initialize the constraint string for the inline assembly
+    std::string cs = "r";
+    for (int i = 1;  i < args.size();  ++i) {
+	cs = cs + ",r";
+    }
+
+  // create the trap instruction; we give it the special registers as arguments
+    auto fnTy = llvm::FunctionType::get (this->voidTy, tys, false);
+    llvm::InlineAsm *trap = llvm::InlineAsm::get (fnTy, "int $$4", cs, true);
+    this->_builder.CreateCall (fnTy, trap, args);
+    this->_builder.CreateRetVoid ();
+
+}
 
 // return branch-weight meta data, where `prob` represents the probability of
 // the true branch and is in the range 1..999.

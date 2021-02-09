@@ -211,9 +211,7 @@ llvm::dbgs() << "\n";
       // evaluate the arguments
 	Args_t args = SetupStdArgs (buf, fnTy, fk, this->_v1);
 
-	llvm::CallInst *call = buf->build().CreateCall(fnTy, fn, args);
-	call->setCallingConv (llvm::CallingConv::JWA);
-	call->setTailCallKind (llvm::CallInst::TCK_Tail);
+	buf->createJWACall(fnTy, fn, args);
 
 	buf->build().CreateRetVoid();
 
@@ -239,9 +237,7 @@ llvm::dbgs() << "\n";
       // evaluate the arguments
 	Args_t args = SetupStdArgs (buf, fnTy, frag_kind::STD_CONT, this->_v1);
 
-	llvm::CallInst *call = buf->build().CreateCall(fnTy, fn, args);
-	call->setCallingConv (llvm::CallingConv::JWA);
-	call->setTailCallKind (llvm::CallInst::TCK_Tail);
+	buf->createJWACall(fnTy, fn, args);
 
 	buf->build().CreateRetVoid();
 
@@ -508,6 +504,8 @@ llvm::dbgs() << "\n";
 	for (auto f : this->_v_fns) {
 	    f->codegen (buf, false);
 	}
+
+        buf->completeModule ();
 
     } // comp_unit::codegen
 
