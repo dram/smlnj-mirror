@@ -4,7 +4,7 @@
 /// All rights reserved.
 ///
 /// \brief This file defines the `reg_state` class, which encapsulates the
-///        state of the "SML" registers (e.g., allocation pointer, limit pointer, ...).
+///        state of the CMachine (e.g., allocation pointer, limit pointer, ...).
 ///
 /// \author John Reppy
 ///
@@ -18,7 +18,7 @@
 #include <string>
 #include <vector>
 
-// the SML Machine special "registers".  These are registers that need to be
+// the CMachine special "registers".  These are registers that need to be
 // threaded through the environment and through function calls as extra
 // parameters.  On some targets, some of these may be allocated in the stack.
 //
@@ -74,7 +74,7 @@ class reg_info {
 
 };
 
-// information about the special "SML" registers for a given target
+// collective information about the special CMachine for a given target
 //
 class sml_registers {
   public:
@@ -105,7 +105,7 @@ class sml_registers {
 						// passed as arguments in the JWA convention.
 };
 
-/// The reg_state tracks a mapping from SML registers to LLVM values.
+/// The reg_state tracks a mapping from CMachine registers to LLVM values.
 ///
 class reg_state {
   public:
@@ -114,14 +114,14 @@ class reg_state {
     explicit reg_state (sml_registers const & info);
     ~reg_state () { }
 
-  // get the LLVM value that represents the specified SML register
+  // get the LLVM value that represents the specified CMachine register
     llvm::Value *get (sml_reg_id r) const
     {
 	return this->_val[static_cast<int>(r)];
     }
     llvm::Value *get (reg_info const *info) const { return this->get(info->id()); }
 
-  // assign a value to an SML register
+  // assign a value to a CMachine register
     void set (sml_reg_id r, llvm::Value *v)
     {
 	this->_val[static_cast<int>(r)] = v;
