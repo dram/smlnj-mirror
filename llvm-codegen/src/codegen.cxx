@@ -181,12 +181,21 @@ void codegen (std::string const & src, bool emitLLVM, bool dumpBits, output out)
 		llvm::dbgs () << "RELOCATION INFO\n";
 		for (auto reloc : textSect.relocations()) {
 		    auto offset = reloc.getOffset();
-		    auto symb = *(reloc.getSymbol());
-		    llvm::dbgs () << "  " << exitOnErr(symb.getName())
-			<< ": addr = " << llvm::format_hex(exitOnErr(symb.getAddress()), 10)
-			<< "; value = "  << llvm::format_hex(symb.getValue(), 10)
-			<< "; offset = " << llvm::format_hex(offset, 10)
-			<< "; type = " << reloc.getType() << "\n";
+		    if (reloc.getSymbol() != obj->symbols().end()) {
+			auto symb = *(reloc.getSymbol());
+			auto name = symb.getName();
+			if (! name.takeError()) {
+			    llvm::dbgs () << "  " << *name
+				<< ": addr = " << llvm::format_hex(exitOnErr(symb.getAddress()), 10)
+				<< "; value = "  << llvm::format_hex(symb.getValue(), 10)
+				<< "; offset = " << llvm::format_hex(offset, 10)
+				<< "; type = " << reloc.getType() << "\n";
+			} else {
+			    llvm::dbgs () << "  <unknown>: offset = "
+				<< llvm::format_hex(offset, 10)
+				<< "; type = " << reloc.getType() << "\n";
+			}
+		    }
 		}
 	    }
 
