@@ -472,7 +472,7 @@ namespace CFG_Prim {
     Value *CMP::codegen (code_buffer * buf, Args_t const &args)
     {
 	int idx = 2 * (static_cast<int>(this->_v_oper) - 1);
-	if (this->_v_signed) {
+	if (! this->_v_signed) {
 	    idx += 1;
 	}
 
