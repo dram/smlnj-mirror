@@ -5,7 +5,6 @@
 SHELL =		/bin/sh
 
 SML_ROOT =      /Users/jhr/Work/smlnj/sml-llvm
-LLVM_DIR =      $(SML_ROOT)/llvm-codegen/llvm-release
 RUNTIME_ROOT =	$(SML_ROOT)/llvm-codegen/runtime
 CLIB_DIR =	$(RUNTIME_ROOT)/c-libs
 INC_DIR =	$(RUNTIME_ROOT)/include
@@ -24,9 +23,10 @@ RANLIB =	ranlib
 LLVM_CONFIG =	$(LLVM_DIR)/bin/llvm-config
 
 LLVM_CXX_FLAGS = $(shell $(LLVM_CONFIG) --cxxflags)
-LLVM_CPP_FLAGS = -DNDEBUG -Iinclude $(INCLUDES)
+LLVM_CPP_FLAGS = -Iinclude $(INCLUDES)
+#LLVM_CPP_FLAGS = -DNDEBUG -Iinclude $(INCLUDES)
 
-CXX =           clang++ $(LLVM_CXX_FLAGS)
+CXX =           clang++ -g -O2 $(LLVM_CXX_FLAGS) 
 
 LIBRARY =	libcodegen.a
 
@@ -54,7 +54,7 @@ $(VERSION) :
 	$(CC) $(CFLAGS) $(DEFS) $(INCLUDES) -Iinclude -c $<
 
 %.o: src/%.cxx $(INCLS)
-	$(CXX) -c $(LLVM_CPP_FLAGS) $(DEFS) $<
+	$(CXX) -c $(CXX_FLAGS) $(LLVM_CPP_FLAGS) $(DEFS) $<
 
 clean :
 	rm -f v-* *.o $(LIBRARY)

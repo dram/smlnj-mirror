@@ -71,10 +71,13 @@ static void resolve_relocs (llvm::object::SectionRef &sect, unsigned char *code,
 	if (sect.getObject()->symbols().end() != symb) {
           // the address to be patched (relative to the beginning of the file)
 	    auto offset = reloc.getOffset();
-/* FIXME: for LLVM 11.0+, the getValue() method returns a Expected<uint64_t> value */
 	  // the patch value; we compute the offset relative to the address of
 	  // byte following the patched location.
+#if (LLVM_VERSION_MAJOR > 10) /* getValue returns an Expected<> value as of LLVM 11.x */
+	    int32_t value = (int32_t)exitOnErr(symb->getValue()) - ((int32_t)offset + 4);
+#else
 	    int32_t value = (int32_t)symb->getValue() - ((int32_t)offset + 4);
+#endif
 /* FIXME: we are assuming 32-bit patches and a little-endian target here */
 	    for (int i = 0;  i < 4;  i++) {
 		code[offset++] = value & 0xff;
@@ -85,9 +88,26 @@ static void resolve_relocs (llvm::object::SectionRef &sect, unsigned char *code,
 
 }
 
+// should the contents of a section be included in the output object?
+//
+static bool includeSection (llvm::object::SectionRef sect)
+{
+    if (sect.isText()) return true;
+    if (sect.isData()) {
+	auto name = sect.getName();
+/* FIXME: the following is both architecture and object-file-format dependent */
+      // the "__literal16" section has literals referenced by the code for
+      // floating-point negation and absolute value
+	if (name && name->equals("__literal16")) return true;
+    }
+    return false;
+}
 
 ml_val_t llvm_codegen (ml_state_t *msp, const char *src, const char *pkl, size_t pklSzb)
 {
+    Timer totalTimer = Timer::start();
+
+    Timer initTimer = Timer::start();
     if (CodeBuf == nullptr) {
 #ifdef ALL_TARGETS
 	llvm::InitializeAllTargetInfos ();
@@ -103,6 +123,7 @@ ml_val_t llvm_codegen (ml_state_t *msp, const char *src, const char *pkl, size_t
 
 	CodeBuf = code_buffer::create ("amd64");
     }
+    double initT = initTimer.msec();
 
   // unpickle the CFG
     Timer unpklTimer = Timer::start();
@@ -144,40 +165,58 @@ ml_val_t llvm_codegen (ml_state_t *msp, const char *src, const char *pkl, size_t
     auto obj = exitOnErr (CodeBuf->compile ());
     double objGenT = objGenTimer.msec();
 
-  // identify the text section
+  // collect the sections to include
     Timer relocTimer = Timer::start();
+    std::vector<llvm::object::SectionRef> sects;
     for (auto sect : obj->sections()) {
-	if (sect.isText()) {
-	    auto contents = exitOnErr (sect.getContents());
-	    auto szb = contents.size();
-	    if (szb > 0) {
-		auto code = contents.data();
-	      /* allocate the code object in the heap */
-		auto codeObj = ML_AllocCode (msp, szb);
-	      /* copy the code into the object */
-		memcpy (PTR_MLtoC(void, codeObj), code, szb);
-	      /* resolve relocations */
-		resolve_relocs (sect, PTR_MLtoC(unsigned char, codeObj), szb);
-    		double relocT = relocTimer.msec();
-	      /* report stats */
-llvm::dbgs() << "\"" << src << "\"," << pklSzb << "," << szb << ","
-    << unpklT << "," << genT << "," << optT << "," << verifyT << "," << relocT
-    << "," << (unpklT + genT + optT + verifyT + relocT) << "\n";
-	      /* create a pair of the code object and entry-point offset */
-		ml_val_t arr, res;
-/* FIXME: it appears (from experimentation) that the entry-point offset is always
-* zero, but we should probably be a bit more careful in the final version.
-*/
-		SEQHDR_ALLOC(msp, arr, DESC_word8arr, codeObj, szb);
-		REC_ALLOC2(msp, res, arr, 0);
-		return res;
-	    }
+	if (includeSection (sect)) {
+	    sects.push_back (sect);
 	}
     }
 
-    llvm::report_fatal_error ("unable to get code object", true);
+  // check that we actual got something
+    if (sects.size() == 0) {
+/* TOD: we should map this back an SML exception */
+	llvm::report_fatal_error ("unable to get code object", true);
+    }
 
-  /* if we get here, then something is wrong, since there was no text segment */
-    return ML_unit;
+  // calculate the size of the combined code object
+    uint64_t codeSzb = 0;
+    for (auto sect : sects) {
+	uint64_t addr = sect.getAddress();
+	uint64_t szb = sect.getSize();
+	assert (codeSzb <= addr && "overlapping sections");
+	codeSzb = addr + szb;
+    }
+
+  // copy the sections to a heap-allocated code object
+    auto codeObj = ML_AllocCode (msp, codeSzb);
+    for (auto sect : sects) {
+	auto contents = exitOnErr (sect.getContents());
+	auto szb = contents.size();
+	assert (sect.getSize() == contents.size() && "inconsistent sizes");
+      /* copy the code into the object */
+	Byte_t *base = PTR_MLtoC(unsigned char, codeObj) + sect.getAddress();
+	memcpy (base, contents.data(), szb);
+      /* if the section is a text section, then resolve relocations */
+	resolve_relocs (sect, base, szb);
+    }
+
+#ifdef NDEBUG
+  /* report stats */
+    double relocT = relocTimer.msec();
+llvm::dbgs() << "\"" << src << "\"," << pklSzb << "," << szb << ","
+    << initT << "," << unpklT << "," << genT << "," << optT << "," << verifyT << "," << relocT
+    << "," << totalTimer.msec() << "\n";
+#endif
+
+  /* create a pair of the code object and entry-point offset */
+    ml_val_t arr, res;
+/* FIXME: it appears (from experimentation) that the entry-point offset is always
+ * zero, but we should probably be a bit more careful in the final version.
+ */
+    SEQHDR_ALLOC(msp, arr, DESC_word8arr, codeObj, codeSzb);
+    REC_ALLOC2(msp, res, arr, 0);
+    return res;
 
 }

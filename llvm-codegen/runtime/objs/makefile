@@ -14,13 +14,14 @@ ARFLAGS =	rcv
 RANLIB =	ranlib
 
 CXX =           clang++ --std=c++14
-CXX_FLAGS =     -g
+CXX_FLAGS =     -g -O2
 
 #
 # LLVM configuration
 #
 SML_ROOT =      /Users/jhr/Work/smlnj/sml-llvm
-LLVM_DIR =      $(SML_ROOT)/llvm-codegen/llvm-release
+#LLVM_DIR =      $(SML_ROOT)/llvm-codegen/llvm-release
+LLVM_DIR =      $(SML_ROOT)/llvm-codegen/llvm-debug
 LLVM_CONFIG =	$(LLVM_DIR)/bin/llvm-config
 
 LLVM_LD_FLAGS =	$(shell $(LLVM_CONFIG) --ldflags)
@@ -459,9 +460,8 @@ CODEGEN_MK_ARGS =	VERSION="$(VERSION)" \
 			CC="$(CC)" CFLAGS="$(CFLAGS)" DEFS="$(DEFS)" \
 			AR="$(AR)" ARFLAGS="$(ARFLAGS)" \
 			RANLIB="$(RANLIB)" \
-			INCLUDES="$(LIB_INCLUDES) \
-			LLVM_DIR="$(LLVM_DIR)" \
-			LLVM_CPP_FLAGS="$(LLVM_CPP_FLAGS)"
+			INCLUDES="$(LIB_INCLUDES)" \
+			LLVM_DIR="$(LLVM_DIR)"
 
 $(CLIB_DIR)/codegen/libcodegen.a: FORCE
-	(cd $(CLIB_DIR)/codegen; $(MAKE) $(LIB_MK_ARGS) libcodegen.a)
+	(cd $(CLIB_DIR)/codegen; $(MAKE) $(CODEGEN_MK_ARGS) libcodegen.a)

@@ -72,6 +72,11 @@ class code_buffer {
 
   // initialize the code buffer for a new module
     void beginModule (std::string const & src, int nClusters);
+
+  // finish up LLVM code generation for the module
+    void completeModule ();
+
+  // delete the module after code generation
     void endModule ();
 
   // set the current cluster (during preperation for code generation)
@@ -170,8 +175,6 @@ class code_buffer {
     Type *objPtrTy;		// pointer into the heap (i.e., a pointer to an ML value)
     Type *bytePtrTy;		// "char *" type
     Type *voidTy;		// "void"
-    llvm::StructType *gcRetTy;	// return struct type for GC calls
-    llvm::FunctionType *gcFnTy; // type of call-gc function
 
     llvm::IntegerType *iType (int sz) const
     {
@@ -202,14 +205,31 @@ class code_buffer {
   // ensure that a value has the pointer to `mlValue` type
     Value *asObjPtr (Value *v)
     {
-	if (! v->getType()->isPointerTy()) {
+	auto ty = v->getType();
+	if (! ty->isPointerTy()) {
 	    return this->_builder.CreateIntToPtr(v, this->objPtrTy);
-	} else {
+	} else if (ty != this->objPtrTy) {
 	    return this->_builder.CreateBitCast(v, this->objPtrTy);
+	} else {
+	    return v;
 	}
     }
 
-  // ensure that a value is a machine-sized int type (assume that it is either intTy or mlValueTy
+  // ensure that a value has the LLVM type `i8*`
+    Value *asBytePtr (Value *v)
+    {
+	auto ty = v->getType();
+	if (! ty->isPointerTy()) {
+	    return this->_builder.CreateIntToPtr(v, this->bytePtrTy);
+	} else if (ty != this->bytePtrTy) {
+	    return this->_builder.CreateBitCast(v, this->bytePtrTy);
+	} else {
+	    return v;
+	}
+    }
+
+  // ensure that a value is a machine-sized int type (assume that it is
+  // either a intTy or mlValueTy value)
     Value *asInt (Value *v)
     {
 	if (v->getType()->isPointerTy()) {
@@ -625,6 +645,16 @@ class code_buffer {
     }
 
   /***** shorthand for other instructions *****/
+
+  // create a tail JWA function call
+    llvm::CallInst *createJWACall (llvm::FunctionType *fnTy, Value *fn, Args_t const &args)
+    {
+	llvm::CallInst *call = this->_builder.CreateCall(fnTy, fn, args);
+	call->setCallingConv (llvm::CallingConv::JWA);
+	call->setTailCallKind (llvm::CallInst::TCK_Tail);
+	return call;
+    }
+
     Value *createExtractValue (Value *v, int i)
     {
 	return this->_builder.CreateExtractValue (v, i);
@@ -694,8 +724,14 @@ class code_buffer {
     lvar_map_t<CFG::frag>	_fragMap;	// pre-cluster map from labels to fragments
     lvar_map_t<Value>		_vMap;		// per-fragment map from lvars to values
 
+  // more cached types (these are internal to the code_buffer class)
+    llvm::FunctionType *_gcFnTy; 		// type of call-gc function
+    llvm::FunctionType *_overflowFnTy;		// type of overflow function
+
   // a basic block for the current cluster that will force an Overflow trap
     llvm::BasicBlock		*_overflowBB;
+    std::vector<llvm::PHINode *> _overflowPhiNodes;
+    llvm::Function		*_overflowFn;	// per-module overflow function
 
   // tracking the state of the SML registers
     sml_registers		_regInfo;	// target-specific register info
@@ -746,6 +782,9 @@ class code_buffer {
 
   // get information about JWA arguments for a fragment in the current cluster
     arg_info _getArgInfo (frag_kind kind) const;
+
+  // create the overflow function for the module (if required)
+    void _createOverflowFn ();
 
   // constructor
     code_buffer (struct target_info const *target);

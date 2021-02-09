@@ -292,10 +292,11 @@ namespace CFG_Prim {
     {
 	Type *elemTy = numType (buf, this->_v_kind, this->_v_sz);
 
+/* QUESTION: should we specialize the case where the offset is 0? */
 	Value *adr = buf->createBitCast (
 	    buf->createGEP (
 		buf->bytePtrTy,
-		buf->createBitCast(args[0], buf->bytePtrTy),
+		buf->asBytePtr (args[0]),
 		buf->uConst (this->_v_offset)),
 	    elemTy->getPointerTo());
 
@@ -471,7 +472,7 @@ namespace CFG_Prim {
     Value *CMP::codegen (code_buffer * buf, Args_t const &args)
     {
 	int idx = 2 * (static_cast<int>(this->_v_oper) - 1);
-	if (this->_v_signed) {
+	if (! this->_v_signed) {
 	    idx += 1;
 	}
 
