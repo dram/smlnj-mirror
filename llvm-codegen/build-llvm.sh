@@ -35,7 +35,7 @@ case `uname -s` in
 esac
 
 usage() {
-  echo "usage: build-llvm.sh [--force] [-np <n>] [--llvm-src <path>] [--release_build]"
+  echo "usage: build-llvm.sh [--force] [--np <n>] [--llvm-src <path>] [--release_build]"
   echo ""
   echo "    --help              Generate help message"
   echo ""
