@@ -14,7 +14,11 @@
 #			   information about the code
 #
 
-ROOT=/Users/jhr/Work/smlnj/sml-llvm/
+if [ -d /Users/jhr ] ; then
+  ROOT=/Users/jhr/Work/smlnj/sml-llvm/
+else
+  ROOT=/home/jhr/Work/smlnj/sml-llvm/
+fi
 
 SML=$ROOT/bin/sml
 CODEGEN=$ROOT/llvm-codegen/codegen/codegen
