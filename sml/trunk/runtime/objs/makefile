@@ -1,6 +1,8 @@
-# COPYRIGHT(c) 1994 AT&T Bell Laboratories.
+# makefile
 #
-# this is the main makefile for the SML/NJ runtime system
+# COPYRIGHT (c) 2019 The SML/NJ Fellowship
+#
+# this is the main makefile for the SML/NJ runtime system on Unix systems
 #
 
 SHELL =		/bin/sh
