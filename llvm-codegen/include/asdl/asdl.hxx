@@ -16,6 +16,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <cassert>
 
 #include "asdl-stream.hxx"
 #include "asdl-integer.hxx"
