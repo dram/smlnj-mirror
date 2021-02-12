@@ -95,6 +95,20 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 == Recent updates
 
+//====================================================================
+//== Version 1021.1; 2021/??/??
+
+//--------------------------------------------------------------------
+[2021/02/12]::
++
+Fix for bug bugref:280[] (110.99 `config/install.sh -64` fails on macOS 10.15.7).
+I was unable to reproduce this problem, but after some investigation, it
+appears that the problem was inconsistent build tools being picked up from
+the user's path.  To protect against this issue, I made the paths to the
+*ar* and *ranlib* tools absolute.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
 //--------------------------------------------------------------------
 [2021/01/12]::
 +
