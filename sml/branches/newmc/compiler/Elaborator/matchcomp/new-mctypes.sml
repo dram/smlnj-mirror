@@ -27,48 +27,12 @@ type ruleno = R.ruleno    (* == int, the index number of a rule in the match, ze
 type ruleset = R.ruleset  (* == IntBinarySet.set *)
    (* a set of rule numbers (no duplicates) *)
 
-(* layers -- refinement of (rule) layering *)
-
-(* type layer -- a generalization of ruleno that accounts for OR-pattern
- * the integers in the int list will be 0 or 1, designating left or right,
- * thus the int list is a bit string representing left or right branches of
- * nested "OR patterns". Layers are ordered, with the ruleno dominating the
- * bitstring.
- * INVARIANT: a pattern variable can "occur" only once along any orpath
- * INVARIANT: a pattern variable can occur multiple times on "incomparable"
- *   orpaths
- *)
-type layer = ruleno * int list  (* (rule, orpath) *)
-
-fun layerEq ((r1,s1): layer, (r2,s2)) =
-    r1 = r2 andalso ListPair.allEq (op =) (s1, s2)
-
-(* two occurrences of a variable in a pattern must be separated by an OR, so
- * their layer paths must _differ_ at some point *)
-fun orpathLT (nil, nil) = false
-  | orpathLT (nil, _) = false
-  | orpathLT (_, nil) = false
-  | orpathLT (b1::rest1, b2::rest2) =
-    b1 < b2 orelse (b1 = b2 andalso orpathLT (rest1,rest2))
-
-(* WRONG
-fun layerLE ((r1,s1): layer, (r2,s2)) =
-    r1 <= r2 orelse
-    r1 = r2 andalso orpathLT (s1,s2)
-*)
-
-fun layerLT ((r1,s1): layer, (r2,s2)) =
-    r1 < r2 orelse
-    r1 = r2 andalso orpathLT (s1,s2)
-
-fun newLayerLeft (r,s) = (r, s@[0])
-fun newLayerRight (r,s) = (r, s@[1])
 
 type binding = V.var * layer
    (* a variable bound at some point in the given rule, either as a
     * basic var pattern (VARpat) or through an "as" pattern (LAYEREDpat) *)
-type varBindings = binding list  (* variables bound by VARpat *)
-type asBindings = binding list   (* variables bound by LAYEREDpat, i.e. an "as" pattern *)
+type varBindings = binding list
+   (* variables bound by VARpat or LAYEREDpat *)
 
 (* keys: most keys (D,V,I,W,C,S) are used to discriminate choices in the "variants"
  *   field of OR nodes and the decVariants of decision trees. These key values
@@ -149,8 +113,8 @@ fun pathToString path =
 type trace = path list
 
 (* potentially useful functions on paths:
-  pathPrefix: path * path -> bool  (* prefix ordering *)
-  pathAppend: path * path -> path
+     pathPrefix: path * path -> bool  (* prefix ordering *)
+     pathAppend: path * path -> path
  *)
 
 (* INVARIANT: In any variant (key, andor), getPath(andor) ends with that key. *)
@@ -168,7 +132,7 @@ as a phantom argument for nullary dcons. (?) *)
  * How would we use such types?
  *   Could also maintain a mapping from paths to types of the nodes designated
  * by those paths.
- *   Do we need defaults fields for VARS and LEAF nodes?  Yes (probably).
+ *   Do we need live fields for VARS and LEAF nodes?  Yes (probably?).
  * LEAF nodes appear only in variants with constant keys (including constant dcons).
  *   Any var or as-var bindings at their position will be associated with the parent
  *   OR node. This is clearly right for vars occurring at the position, but what
@@ -198,47 +162,51 @@ type AOinfo =
      {id : int,              (* unique identity of the node, for efficient maps on nodes *)
       typ : T.ty,            (* type of a value matching at the node *)
       path : path,           (* path to this node; serves as the node name & secondary unique identifier *)
-      vars : varBindings,    (* primary variable bindings at the node *)
-      asvars : asBindings}   (* secondary (as) variable bindings at the node *)
+      vars : varBindings,    (* primary variable bindings at the node, cause rule defaultings *)
+      asvars : varBindings}  (* secondary (as) variable bindings at the node, no defaulting *)
 
 datatype andor
   = AND of   (* product patterns and contents of vectors *)
     {info : AOinfo,
-     andKind : andKind,        (* a record/tuple, or a vector [could split AND constr instead] *)
-     direct : ruleset,         (* direct rules: rules with product pats at this pattern point; needed? *)
-     defaults : ruleset,       (* rules matching here because of (primary) variables above here on the path *)
-     children : andor list}    (* tuple components as children -- AND node *)
+     andKind : andKind,      (* a record/tuple, or a vector [could split AND constr instead] *)
+     live : layerset,        (* live rules: rules with product pats or variagbles at this pattern
+				point. Should contain all layers, so does not seem necessary.
+				Drop live field for AND? *)
+     children : andor list}  (* tuple components as children -- AND node *)
 
   | OR of (* datatype, vector, or constant pattern/type *)
     {info : AOinfo,
-     direct : ruleset,         (* rules matching one of the variant keys at this point *)
-     defaults: ruleset,        (* ditto *)
-     variants: variant list}   (* the branches/choices of the OR node; always non-null *)
+     live : layerset,        (* layers matching explicitly or because of variable defaulting *)
+     variants: variants} (* the branches/choices of the OR node; always non-null *)
 
   | SINGLE of  (* singular datacon (const or applied); a kind of no-op for pattern matching,
 		* but it needs to be destructed if not constant *)
     {info : AOinfo,
-     variant: variant}         (* key (the dcon) and its arg andor, LEAF if constant *)
+     variant: variant}   (* key (the dcon) and its arg andor, LEAF if constant *)
 
   | VARS of  (* a node occupied only by variables;
-              * VIRTUAL field : direct = map #2 vars = rules having _a_ variable at this point *)
+              * VIRTUAL field : live = map #2 vars = rules having _a_ variable at this point *)
     {info : AOinfo,
-     defaults: ruleset}        (* rules matching here by default *)
+     live: layerset}     (* layers matching here by default; needed ??? *)
 
-  | LEAF of   (* used as the andor of variants with constant keys, with direct and default rules
-               * but no svar, since the svar is bound at the parent OR node. A LEAF
-	       * node also does not have an independent type; its type is determined
-	       * by the parent OR node (through its svar). *)
-    {path: path,               (* path is parent path extended by key *)
-     direct: ruleset,          (* rules having _this_ key (= last of path) at this pattern point *)
-     defaults: ruleset}
+  | LEAF of   (* used as the andor of variants with constant keys, with live layers
+               * A LEAF node does not have an independent type; its type is determined
+	       * by the parent OR node's AOinfo. *)
+    {path: path,         (* path is the parent path extended by key *)
+     live: layerset}     (* layers having _this_ key (= last of path) at this pattern point *)
 
   | INITIAL   (* initial empty andor into which initial pattern is merged
                * to begin the construction of an AND-OR tree *)
 
 withtype variant = key * andor
+and variants = andor variantMap
 (* this pushes the discrimination of the OR-kind into the keys of the variants. *)
 
+(* type variants: generalization of Red-Black finite maps (different versions for different
+ kinds of keys:
+ variantFind
+ variantInsert
+ variantMap
 
 (* potentially useful functions:
 
@@ -276,29 +244,13 @@ fun getPath (LEAF{path,...}) = path
   | getPath INITIAL = bug "getPath:INITIAL"
   | getPath andor = #path (getInfo andor)  (* otherwise, andor has info *)
 
-(* getDirect : andor -> ruleset *)
-fun getDirect(AND{direct,...}) = direct
-  | getDirect(OR{direct,...}) = direct
-  | getDirect(SINGLE{variant,...}) = getDirect (#2 variant)
-  | getDirect(VARS{info, ...}) = R.fromList(map #2 (#vars info))
-  | getDirect(LEAF{direct,...}) = direct
-  | getDirect INITIAL = bug "getDirect(INITIAL)"
-
-(* getDefaults : andor -> ruleset *)
-fun getDefaults(AND{defaults,...}) = defaults
-  | getDefaults(OR{defaults,...}) = defaults
-  | getDefaults(SINGLE{variant,...}) = getDefaults (#2 variant)
-  | getDefaults(VARS{defaults,...}) = defaults
-  | getDefaults(LEAF{defaults,...}) = defaults
-  | getDefaults INITIAL = bug "getDefaults(INITIAL)"
-
-(* getLive : andor -> ruleset
-   live rules is union of direct and defaults *)
-fun getLive(AND{direct,defaults,...}) = R.union(direct,defaults)
-  | getLive(OR{direct,defaults,...}) = R.union(direct,defaults)
+(* getLive : andor -> layerset
+   live layers *)
+fun getLive(AND{live,...}) = live
+  | getLive(OR{live,...}) = live
   | getLive(SINGLE{variant,...}) = getLive (#2 variant)
-  | getLive(VARS{defaults,...}) = defaults  (* direct subset defaults *)
-  | getLive(LEAF{direct,defaults,...}) = R.union(direct,defaults)
+  | getLive(VARS{live,...}) = live
+  | getLive(LEAF{live,...}) = live
   | getLive INITIAL = bug "getLive(INITIAL)"
 
 
@@ -329,6 +281,7 @@ fun getNode(andor, _, 0) = andor
        | _ => bug "getNode arg")
 
 (* parentNode: andor * andor -> andor *)
+(* never called? *)
 fun parent (andor, rootAndor) =
     let val path = getPath(andor)
         val d = length(path) - 1

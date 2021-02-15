@@ -252,7 +252,8 @@ let val rules = map (fn AS.RULE r => r) rules
 
     (* bindPatVars: svar * info * varenvMC -> varenvMC *)
     (* add bindings var |-> (rule,path,svar) to the argument varenvMC for all vars bound at
-     * an andor node (represented by info and svar). First the vars, then the svars are bound.
+     * an andor node (represented by info and svar). First the (primary) vars, and then the
+     * (secondary) asvars are bound.
      * [Note: could use one foldl after appending vars to asvars.] *)
     fun bindPatVars (svar, {id,path,vars,asvars,...} : AOinfo, varenvMC) =
 	foldl (fn ((v,r), env) => VarEnvMC.bindVar(v, (r, path, svar), env))

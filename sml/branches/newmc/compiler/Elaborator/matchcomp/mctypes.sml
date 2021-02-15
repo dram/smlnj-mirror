@@ -190,7 +190,8 @@ datatype andor
   | LEAF of   (* used as the andor of variants with constant keys, with direct and default rules
                * but no svar, since the svar is bound at the parent OR node. A LEAF
 	       * node also does not have an independent type; its type is determined
-	       * by the parent OR node (through its svar). *)
+	       * by the parent OR node (through its svar). Similarly, any var bindings are
+	       * associated with the parent OR node. *)
     {path: path,               (* path is parent path extended by key *)
      direct: ruleset,          (* rules having _this_ key (= last of path) at this pattern point *)
      defaults: ruleset}
@@ -239,6 +240,7 @@ fun getPath (LEAF{path,...}) = path
   | getPath andor = #path (getInfo andor)  (* otherwise, andor has info *)
 
 (* getDirect : andor -> ruleset *)
+(* getDirect is never called *)
 fun getDirect(AND{direct,...}) = direct
   | getDirect(OR{direct,...}) = direct
   | getDirect(SINGLE{variant,...}) = getDirect (#2 variant)
@@ -247,6 +249,7 @@ fun getDirect(AND{direct,...}) = direct
   | getDirect INITIAL = bug "getDirect(INITIAL)"
 
 (* getDefaults : andor -> ruleset *)
+(* not called: was called once in DecisionTree.decisionTree, but that call was redundant *)
 fun getDefaults(AND{defaults,...}) = defaults
   | getDefaults(OR{defaults,...}) = defaults
   | getDefaults(SINGLE{variant,...}) = getDefaults (#2 variant)

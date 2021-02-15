@@ -4,7 +4,7 @@
  * Used for repacement of source variables by svars (local, administrative
  * MC variables) in right-hand-sides of matches.
  * I.e. alpha-conversion of pattern variables into "special" variables (svars),
- * or into fresh variables (V.var), as produced by alphaEnv.
+ * or into fresh variables (V.var) produced by alphaEnv.
  *)
 
 structure VarEnvAC =
