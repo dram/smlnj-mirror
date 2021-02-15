@@ -2942,8 +2942,16 @@ an orpath (i.e. bitstring).
       Note: RHS(1) has a multiplicty of 2, so needs to be abstracted.
 
 
-Note on variable consistency
-----------------------------
+Note on pattern/layer subsumption
+---------------------------------
+
+Prop: [[p]] < [[q]] => [[p | q]] == [[p]].
+
+The implimentation must satisfy this proposition. (precise defn of < needed).
+
+
+Note on variable "consistency"
+------------------------------
 
     true | _
 
@@ -2971,10 +2979,240 @@ are legal, but degnerate:
   [[x | x as true]] = [[x]] = \v: bool.{(x,v)}
   
 
-Note on top-level variables in OR patterns
-------------------------------------------
+Note on pattern/path/rule relationship
+--------------------------------------
 
-Ex.1
+Assume a sequence (list) of rules, with the corresponding list
+of patterns, indexed by rule numbers: pats = [p0, ..., pn] = #1 rules.
+
+Defn: If r is a ruleno, then pat(r) is the pattern (LHS) of the
+rule numbered r. These patterns are also the verticle layers of the match.
+
+Defn: Let PS(m) be the pattern space of a match m (a list of rules).
+If path p \in PS(m), then for a given rule number r, pat(r)@p is
+the (possibly "virtual") pattern element at path p for par(r).
+Or more generally, pat@p is the pattern element at path p in the
+pattern pat.
+
+Alternatively, pat@p could be the (sub) _pattern_ at path p.
+
+Top-match: v $ pat
+For value v and pattern pat (of the same type), v$pat is true
+if v matches pat at the top, i.e. the top "construction" of the
+value agrees with the top construction of the pattern.
+
+Defn: v $ x for any value v and variable x
+      C v $ C pat  (for any v and any pat, which may both be null)
+      (v1,..,vn) $ (pat1,...,patn)
+      v $ (pat1 | pat2) if v $ pat1 orelse v $ pat2  ??!
+
+Full-match: v $$ pat   (v and pat have same type)
+
+Defn: $$ : value * pattern -> bool
+      v $$ x =true  (x a variable, any v)
+      C v $$ C pat = v $$ pat
+      (v1,...,vn) $$ (pat1,...,patn) = v_i $$ pat_i (i = 1, ..., n)
+      v $$ pat1 | pat2 <= v $$ pat1 orelse v $$ pat2
+
+Note that $$ cannot be defined in terms of $, because of the OR pattern case.
+
+Full-match can be extended to a partial matching function that returns
+a variable instantiation environment:
+
+Defn: env = finite map from variables to values, variable-value a-list
+
+Defn %% : value * pattern -> env option
+     v %% x = SOME {(x,v)}
+     C v %% C pat = v %% pat
+     vs %% pats = compose* (map2 %% (vs,pats))
+     v %% pat1 | pat2 =
+         case v %% pat1
+	   NONE => v %% pat2
+	   envOp => envOp
+
+where compose* is the obvious composition of env options.
+
+Least matching rule/pattern.
+
+Defn: LMR (v, pats) = the smallest index r (ruleno) such that v $ pats(r)
+
+LMR(v,pats) is the ruleno of the first vlayer matching v.
+
+Pattern at path: pat @ path : pattern
+Defn: @: pattern * path -> pattern + {#}   (# is the "null pattern")
+      pat @ <> = pat
+      pat @ c = # if pat = c (a constant)
+      pat @ n:path = pat_n @ path where pat = (p1, ..., pn)  (n a natural number)
+      pat @ K:path = pat' @ path if pat = K pat' (K a non-constant constructor)
+
+Defn: @@: value * path -> value
+defined similarly to @
+
+Paths do not explicitly represent alternatives in OR patterns, i.e. layers.
+Layers are an independent "dimension".
+
+Conjecture: Layers can be tracked by using layers instead of rule numbers in
+the direct and default fields of AndOr nodes.
+
+Given a path p in the pattern space and a rule r, what
+are the possible relations between p and r.
+
+(1) the pat(r) @ p is "generic" for the type of p
+    For example, pat(r) @ p may be a tuple/record. This structure
+    has to be matched by any v@p where v is of the pattern type.
+    r cannot be contradicted by a value at p. Hence p is not "relevant"
+    to r. But "relevance" is only important at choice (OR) nodes in the
+    AndOr tree anyway.
+
+(2) pat(r) @ p is an OR node constructor/constant (say for a
+    non-singleton datatype). Given multiple choices for this node, r
+    can be "invalidated" at p, meaning that there are values that have
+    other constructors at p: v@p <> pat(r)@p), so p is "relevant" to r.
+    [In this case, is the last element of p the constructor key?  Or could
+    p be the path of the OR node itself?  If the later, then the "choice"
+    at the OR node at p is not represented in p itself, but pat(r)@p would
+    presumably include the constructor/constant key determined by pat(r).]
+    [pat @ path] is a _pattern_, not an andor node, so it can only be
+    a particular constructor subpattern, no the OR-node itself, which
+    represents a choice of several constructors or keys.
+
+(3) pat(r)@p is a variable, so pat(r)@p matches any v@p for v of domain type.
+    pat(r) = x => v %% pat(r) for any v.
+
+(4) pat(r)@p' is a variable for some p' < p (p' a prefix of p). In this case
+    pat(r)@p' is dominated by a variable and so a value v@p will always be
+    consistent with r, and pat(r) @ p is not "relevant".
+
+Example(s):
+
+    pat = (true, false)  (rule 0)
+    pat @ 0 = true
+    pat @ 1 = false
+    pat @ 1:false = #0
+    pat @ 0:true = #0  (the rule matched)
+    pat @ 1:false = #0 (")
+    pat @ 0:false = undefined
+
+What about OR (layered) patterns?
+
+    pat = (true | false, false)  (say rule 0)
+    pat @ 0 = true | false
+    pat @ 1 = false
+    pat @ 1:false = #0
+    pat @ 0:true = #0.0  (the layer matched)
+    pat @ 0:false = #0.1 (")
+
+A value matches a pattern sequence, pats, if there if it matches some pattern
+in the sequence (i.e. LMR(v,pats) is defined).  But we need more information:
+we need to know which _horizontal_ layer (if any) is matched, since this affects
+the resulting variable bindings.
+
+Relevance:
+For the simple (no OR-pattern) case, there is a relation
+
+   relevant(path,ruleno)
+
+between paths (in the overall pattern space, i.e. nodes in the AndOr tree)
+and rules. 
+
+In terms of the current AndOr tree structure,
+
+   relevant(p,r) <=> r \in Node(p).direct & isOR$ (Node(p))
+
+   (where isOR$ n if n is a non-singleon OR node).
+
+and
+
+   r \in Node(p).default => not relevant(p,r)
+
+Question: Do we need direct and default fields for AND nodes?  direct for such
+nodes is "automatic", to be assumed, because any value or rule pattern has to
+match the tuple structure at that node.  But a default (variable) at such a node
+is inherited by any descendent nodes.
+   
+Does this relevance relation extend naturally to layers instead of rules? Lets try.
+
+relevant(p,r) iff the construct at pat(r)@p is refutable, i.e. it is a constant or
+nonsingular constructor. This means that there exist values that do not match
+pat(r) at p, i.e. values that "refute" pat(r) @ p.
+
+When building the decision tree, we select OR nodes (choices) based on the fact that
+they are relevant to the earliest (smallest) r that is still "viable".
+
+Defn: r is _viable_ at a given AndOr node (or potential decisionTree node) if it
+has not been "refuted" by a choice earlier on the path to the node.
+
+Given a path p in the pattern space of a match, and a layer l what are the
+possible relations between p and l
+
+First problem is what is the meaning of pat(l) for a layer l?
+
+(1) pat(l)
+
+We need an simple/naive/abstract matching function that records layers, as
+a specification of the matching problem.  First lets specify just rules,
+or verticle layers, leaving aside OR patterns.
+
+type env = (variable * value) list   (* association list representation of env *)
+
+(* patmatch with no OR patterns *)
+val patmatch : value * pattern -> env option
+fun patmatch (v,x) = SOME [(x,v)]
+  | patmatch (c, c) = SOME nil  (* c a constant: number, string, constant dataconstr *)
+  | patmatch (C v, C pat) = patmatch (v, pat)   (* C a non-constant dataconstr *)
+  | patmatch (Tuple vs, Tuple pats) = compose* (map2 patmatch (vs,pats))
+
+val match : value * pattern list -> (env * ruleno) option
+fun match0 (v, nil, r) = NONE   (* no patterns)
+  | match0 (v, pat::pats, r) =
+      case patmatch (v, pat)
+        of SOME env => SOME (env, r)
+	 | NONE => match0 (pats, v, r+1)
+fun match (v, pats) = match0 (v, pats, 0)
+
+The function match returns NONE if the value does not match any pattern,
+or SOME (env, r) where r is the index of the first pattern that matches,
+and env is the environment generated by the match.  The matching ruleno
+could be used to dispatch the associated (r^th) rhs, instantited by the
+environment.
+
+Prop: If match (v, pats) ==> SOME (env, r) then domain env = vars(nth(pats, r))
+
+Now let's extend this to handle OR patterns.
+
+(* patmatch with OR patterns, sequential *)
+val patmatchOr : value * patternOr -> env option
+fun patmatchOr (v, x) = SOME [(x,v)]
+  | patmatchOr (C v, C pat) = patmatchOr (v, pat)
+  | patmatchOr (Tuple vals, Tuple pats) = compose* (map2 patmatchOr (vals,pats))
+  | patmatchOr (v, pat1 | pat2) =
+      case patmatchOr (v, pat1)
+	of NONE =>  patmatchOr (v, pat2)
+	 | SOME env => SOME env
+
+val matchOr : value * patternOr list -> (env * ruleno) option
+fun matchOr0 (v, nil, r) = NONE   (* no patterns)
+  | matchOr0 (v, pat::pats, r) =
+      case patmatchOr (v, pat)
+        of SOME env => SOME (env, r)
+	 | NONE => matchOr0 (pats, v, r+1)
+fun matchOr (v, pats) = matchOr (v, pats, 0)
+
+Note that the only change introduced by OR patterns is an additional clause in
+matchOr0 to deal with OR patterns.  All the other cases remain the same as in
+the simple pattern case.  In particular, there is no need for "layers", just
+rule numbers.
+
+
+Implementation Problem
+----------------------
+How can pushDefaults push "layers" instead of "rules" down through the AndOr tree?
+
+
+Note & Examples for top-level variables in OR patterns
+------------------------------------------------------
+
+Ex.1 (orpat/o5.sml)
 
   (1)  x | (_::x)
   (2)  (_::x) | x
@@ -3021,6 +3259,14 @@ Decision tree for (1):
 
    DLEAF (0, ...)
 
+Ex. 1a (orpat/o5a.sml)
+
+fun f u =
+    case u
+     of ((_::x), (_::y)) => (x,y)
+      | ((_::x), y) => (x,y)
+      | (x, (_::y)) => (x,y)
+      | (x, y) => (x,y);
 
 Ex. 2
 
@@ -3237,7 +3483,11 @@ BUG[newmc]. No "match nonexhaustive" warning message is produced by:
 
   - fn true => 3;
 
-------------------------------
+
+================================================================================
+More examples
+================================================================================
+
 5. datatype d = A of int | B of int | C of int
 5a.  A x | (B x | C x) => x + 1
 5b.  A x | B x => x + 1  (0)
@@ -3303,7 +3553,16 @@ Absyn (5b):
 6b.  [x,y] | [x,_,y]
 6c.  [x,y] | [y,_,x]
 6d.  [_,x] | [_,_,x]
+6e.  ([_,y] | [_,_,y]) => y;  (orpat/o3.sml)
 
+6a.
+AndOr:
+
+   OR (t list); <>; vars={}, dir = {0}, dft = {}
+     cons:
+       AND (t * t list); <cons>, vars={}
+         0: x
+	 1: y
 ------------------------------
 7. redundant non-variable patterns
    (x,y) | (x,y)
@@ -3311,6 +3570,51 @@ Absyn (5b):
 Should this be pre-analyzed as a redundant OR pattern and reduced to (x,y)?
 Or should the match be compiled in such a way that the redundancy is
 detected during compilation and eliminated (possibly with warnings)?
+
+Another variant:
+
+7a. (x, y) | (y, x)
+
+7b. (orpat/o2.sml)
+
+   (y, _) | (_, y) => y;
+
+
+8. (orpat/t1.sml)
+
+  fun f x =
+    case x
+      of (([(v,_)], []) | ([], [v])) => 1
+      
+8a. (orpat/t3.sml)
+
+  fun f x =
+    case x
+     of ([(v,_)], []) => v
+      | ([], [v]) => v;
+
+9. (orpat/t4.sml, fcontract.sml)
+
+  fun f (([(_,le)],NONE) | ([],SOME le)) = 0;
+
+10. (orpat/t5.sml)
+
+  fun f x =
+    case x
+     of ([false, x, _] | [_, _, x]) => x;
+
+  fun f x =
+    case x
+     of [false, x, _] => x
+      | [_, _, x] => x;
+
+11. (scc/t3.sml, from MLRISC/sparc/mltree/sparc.sml)
+
+datatype t
+ = LI of int
+ | ADD of t * t
+			   
+fun addr (ADD ((ADD (e, LI n) | ADD (LI n, e)), LI n')) = n + n'
 
 
 Pattern _overlays_ or _layers_ with priorities
@@ -3354,6 +3658,199 @@ Extend the priority scheme for OR nodes to use these lists (i.e. OR tree address
 2. pattern continuations (at decision-tree and code level) for reuse instead of
 duplication of decision tree subtrees.
 
+
+Note on AndOr nodes and rules/layers
+------------------------------------
+
+[** Simple Case: no OR patterns **]
+
+At each node of the AndOr tree of a pattern list, there is a set of rules
+(represented by rule numbers, ruleno) whose patterns are "viable" or "live"
+at that node.  A rule/pattern is in this set (say liverules, or live for short)
+if it is not "refuted", "contradicted", "knocked out" by one of the choid keys
+in the path of/to the node.  Or in other words, the pattern is "consistent" with
+the path.
+
+A pattern is consistent with a path if the path is a member of the
+path set (see "pattern space" above) that is the "semantics" of the
+pattern. This will be the case if
+
+(1) at each choice key along the path the key constructor/constant agrees with
+the corresponding constructor in the pattern, or
+
+(2) some prefix of the path agrees with the pattern, an at the corresponding
+point in the pattern there is a variable (/wildcard).
+
+Example:
+
+  (1) cons(x,     nil)
+  (2) cons(true,  cons(y,    nil))
+  (3) cons(false, cons(true, z))
+  (4) u
+
+The AndOr tree is:
+
+  <> OR(list) cons {1,2,3; 4}, vars = (u,4) (partial)
+     <cons> AND {1,2,3}
+                <cons:0> OR(bool) {1,2,3; 1,4},  vars=(x,1)
+		      <cons:0:true> LEAF {2; 1,4}
+		      <cons:0:false> LEAF {3; 1,4}
+		<cons:1> OR(list) {1,2,3; 4}
+                      <cons:1:nil> LEAF {1; 4}
+		      <cons:1:cons> AND {2,3; 4}
+ 		         <cons:1:cons:0> OR(bool) {2,3; 2,4} (vars = (y,2)) (partial)
+			    <cons:1:cons:0:true> # {3; 2,4}
+		         <cons:1:cons:1> OR(list) {2,3; 4} (vars = (z,3) (partial)
+			    <cons:1:cons:1:nil> {2; 34}
+
+Now consider the pattern
+
+  (2) cons(true,  cons(y,    nil))
+
+It is live at path <cons:0:true> because the cons and true keys agree between
+the pattern and the path.  It is dead at <cons:0:false> because the key false
+in the path does not agree with the corresponding constructor true in the pattern.
+
+Pattern (2) is also live at path <cons:1:cons:0:true> because the two keys cons, cons
+agree between the path and the pattern, and the pattern has a variable (y) at the
+position of the true constructor in the path. I.e. (2) @ <cons:1:cons:0> = y, so
+a prefix of the path <cons:1:cons:0:true> designates a variable 
+
+So liveness could be calculated directly from a pattern and path instead of being
+recorded in the AndOr nodes's direct and default fields.  But in any case, it appears
+that we do not need to maintain the separate direct and default rule sets, since
+what we actually need to know is the live set of rules at a path (node).
+
+Currently we need a post-processing pass, pushDefaults, to manage the rules that are
+live because of variable defaulting.  This is necessary because the variable that
+causes defaulting may be added by a late rule after AndOr subtrees have been
+constructed.
+
+While constructing a decision tree (makeDecisionTree), at a leaf node (when there
+are no relevant OR nodes), we assign the least live (survivors) ruleno.  Then in
+MatchComp..genRHS we use that rule number and a varenvMC environment to produce
+a pvar -> svar environment/substitution to be applied to the original rhs expression
+in MatchComp..transExp.
+
+There is some redundancy in the representation of rule defaulting, since a defaulted
+rule (for an AndOr node and its subtree) is represented in the defaults fields (for
+all nodes in the subtree), and also in the vars field of the node where the variable
+occurs.
+
+What we need when we reach a decision tree DLEAF node is the minimal live ruleno
+(R.minItem survivors). Note that survivors is passed as an argument to makeDecisionTree,
+but it is computed for one recursive call based on _getLive_ applied to variant andors,
+and for the other recursive call based of defaults of the current OR node.
+
+Probably we just need to record a single "live" ruleset at AndOr nodes.  This would
+be, for each node, the union of the current direct and default sets.
+
+[** Case with OR patterns and layers **]
+
+With OR patterns, we need to have layers to calculate the pattern variable
+translations (which depend on layers, not just rules). This means that DLEAF
+must provide the minimum layer rather than rule, since the DLEAF ruleno
+was what was passed to genRHS and then to bindSVars to be used together with
+the varenvMC to choose the right svar for each pvar.
+
+Thus we need to compute and/or record the set of "live" layers rather than
+live rulenos for AndOr nodes.
+
+There are two issues relating to comparing/ordering layers.
+
+(1) hlpath prefix relation -- is it relevant, or can we regard lvpath prefixes
+as "equal" for the purpose of layer order?
+
+(2) layers can be "redundant" in a given (rule) pattern. Two "independent" top-level
+OR patterns give rise to parallel and independent sets of layers with the same
+representation. Will these ever get confused?
+
+* Problem 1: details of how the "live" layer set is propagated down through the
+AndOr tree, or even whether it should be included in the AndOr tree or calculated
+on the fly.  We could add either layer(s) or perhaps just hlpaths to AndOr tree
+nodes if that would help.  Note that the notion of "a layer being live at a node"
+has to be defined carefully so that we get the right layers at DLEAF nodes in the
+decision trees. Then we need to insure that this layer will produce the right
+pvar -> svar substitution in MatchComp..bindSVars.
+
+* Problem 2: when adding members to layer sets or testing membership in layer sets,
+need to verify that the "fuzziness" of layer equality (associated with equality
+of hlpaths of different lengths) does not cause problems.  E.g. a layer set contains
+(r, 0:0:1) and we insert a layer (r, 0:0:1:0), which is "equal" to (r, 0:0:1),
+after which the layer set still only contains the (r, 0:0:1) layer.
+Can this matter?  If so, need an example to show what can go wrong, and a fix.
+
+For choosing svars for pvars, we need as long an hlpath as necessary to cover
+the pvar. For example:
+
+      (_::_::x | _::x )  |  x
+
+we have
+
+      x @ (0,1)   (rhs)
+      x @ (0,0.0)
+      x @ (0,0.1)
+
+If the varenvMC just maps x @ (0,1) to s, and (0,0.0) and (0,0.1) are both
+considered "equal" to (0,1), then ... this counterexample doesn't work! The
+"earlier" or "higher" binding for x would have to be at a prefix of both
+0.0 and 0.1, i.e. 0. But it is not possible(?) for a variable to bound at
+multiple points along a single given hlpath!  Two occurences of pvar x _must_
+be associated with "unequal" (diverging) hlpaths. Otherwise the following
+rule would be violated:
+
+RULE: Layer-Binding
+-------------------
+A pattern variable can be bound at most once in an hlayer (but it may be
+bound multiple times in different, related, hlayers). [An hlayer is
+determined by a maximal hlpath.]
+
+It is also the case that if x is bound multiple times, the multiple times
+must be in "related" layers.
+
+Defn: The _root_ of a horizontal layer is the path to the OR-pattern in
+the context of the rule pattern.
+
+Defn: Two horizontal layers are _related_ if they have a common root.
+
+Example:
+
+   ((_::x | x) , (_::x | x))
+
+Here the root of the left OR-pattern is <0> and the root of the right OR-pattern
+is <1>. They have different roots so they are not "related".  Thus the
+pattern is illegal because it has multiple occurrences of x in unrelated
+layers. The following pattern would be legal.
+
+   ((_::x | x) , (_::y | y))
+
+Note: If the Layer-Binding rule is enforced (e.g. by prior checking of the
+patterns), then it will never be the case that a pvar is "bound" in a varenvMC
+to layers with different roots.
+
+Note: This notion of related layers needs to be generalized (recursively),
+since within an OR-pattern, there may be _unrelated_ subsidiary OR-patterns.
+(need "relative roots" of families of layers?)
+
+Conjecture: if a varenvMC maps a pvar x to a given (layer, svar), then that layer
+will be "unequal" to the layer of any other binding of that pvar.  Otherwise
+there would have been two bindings of x in the same layer. Another way of putting
+this is that a pvar x maps to a list of possible (layer,svar) bindings where all
+the layers are unequal (different, divergent).
+
+* Problem 3: need to generate a few carefully designed test cases to illuminate
+these two issues with layer and layer set "functionality".
+
+* Problem 4: need to rethink downward propagation of live layer sets (compared
+with the current downward propagation of default rule sets.  Interaction of
+matching keys (direct) and variable-caused defaulting with layers.
+
+Assert: A layer can be "live" at an AndOr node but not live at a descendent of
+that node. (Example?).
+
+Question: What role do "traces" (path lists) play in this, if any?  Main motivation
+for adding traces was to use them to generate counterexamples at DMATCH nodes in
+decision trees.
 
 ================================================================================
 [38] polymorphism, bound type variables
