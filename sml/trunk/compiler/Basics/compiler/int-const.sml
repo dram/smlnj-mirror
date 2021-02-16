@@ -21,6 +21,9 @@ structure IntConst : sig
   (* do two constants have equal values? *)
     val same : 'ty t * 'ty t -> bool
 
+  (* compare the values of two constants *)
+    val compare : 'ty t * 'ty t -> order
+
   end = struct
 
     type 'ty t = {ival : IntInf.int, ty : 'ty}
@@ -30,5 +33,7 @@ structure IntConst : sig
     fun fmt tyToString {ival, ty} = concat[IntInf.toString ival, ":", tyToString ty]
 
     fun same (a : 'ty t, b : 'ty t) = (#ival a = #ival b)
+
+    fun compare (a : 'ty t, b : 'ty t) = IntInf.compare(#ival a, #ival b)
 
   end
