@@ -33,8 +33,21 @@ fun hlpathLT (nil, nil) = false
 
 fun hlpathCompare (p1, p2) =
     if hlpathLT(p1,p2) then LESS
-    else if hlpath(p2,p1) then GREATER
+    else if hlpathLT(p2,p1) then GREATER
     else EQUAL
+
+datatype hlpOrder = EQUALHL | PREFIX1 | PREFIX2 | LEFT | RIGHT
+
+fun hlpathPrefixCompare (p1,p2) =
+    case (p1,p2)
+     of (nil, nil) => EQUALHL
+      | (x::_, nil) => PREFIX2
+      | (nil, x::_) => PREFIX1
+      | (b1::rest1, b2::rest2) =>
+	(case Int.compare (b1,b2)
+	  of LESS => LEFT
+	   | EQUAL => hlpathComparePrefix (rest1, rest2)
+	   | GREATER => RIGHT)
 
 fun layerLT ((r1,p1): layer, (r2,p2)) =
     r1 < r2 orelse
@@ -51,6 +64,7 @@ fun fromRule r = (r, nil)
 fun extendLeft (r,s) = (r, s@[0])
 fun extendRight (r,s) = (r, s@[1])
 
+(*
 structure OrdKey =
 struct
   type key = layer
@@ -58,6 +72,86 @@ struct
 end
 
 structure Set = RedBlackSetFn (OrdKey)
+ *)
+
+(* "sets" of layers.
+ * In the case where there are no OR-patterns, all layers should be of the
+ * form (r, nil) and should correspond to the simpler case where layer = ruleno
+ * and set = Rules.set
+ *
+ * Layer sets are "fuzzy", in the sense that we equate (r,p) and (r,q) in the
+ * case where one of p and q is a prefix of the other. But we give precedence
+ * to the longer hlpath in that case, discarding the shorter one.  I.e. there
+ * should not be two layers (r,p) and (r,q) in a layer set where p is a prefix
+ * of q. Sets are therefor normalized to prefer the longest hlpath "available"
+ * so far.
+ *)
+
+structure Set =
+struct
+  type set = layer list (* "sorted" *)
+
+  val empty = nil
+
+  (* isEmpty : set -> bool *)
+  fun isEmpty set = null set
+
+  (* member: set * layer -> bool *)
+  fun member (nil, _) = false
+    | member (layer0::rest, layer1) =
+      (case layerCompare (layer0, layer1)
+	of EQUAL => true (* rules are equal, hlpaths are "compatible" *)
+	 | _ => false)
+
+  (* singleton : layer -> set *)
+  fun singleton layer = [layer]  (* == add(empty,layer) *)
+
+  (* add : set * layer -> set *)
+  fun add (nil: set, l: layer) = l::nil
+    | add (set as ((layer1 as (r1,p1))::rest), layer0 as (r0,p0)) =
+      (case Int.compare (r0,r1)
+	of LESS => layer0 :: set
+	 | GREATER => layer1 :: add(rest, layer0)
+	 | EQUAL =>
+	   (case hlpathPrefixCompare (p0,p1)
+	     of EQUALHL => set
+	      | PREFIX1 => set  (* p0 a prefix of p1 *)
+	      | PREFIX2 => layer0 :: rest  (* p1 a prefix of p0 *)
+	      | LEFT => layer0 :: set
+	      | RIGHT => layer1 :: add (rest, layer0)))
+
+  fun add' (layer, set) = add (set, layer)
+
+  (* addList : set * layer list -> set *)
+  fun addList (set, layers) =
+      foldl add' set layers
+
+  (* union : set * set -> set *)
+  fun union (set1, set2) =
+      foldr add set2 set1
+
+  (* intersect : set * set -> set *)
+  fun intersect (set0, set1) =
+      case (set0, set1)
+       of (nil, set2) => nil
+        | (set1, nil) => nil
+	| ((layer0 as (r0,p0))::rest0, ((layer1 as (r1,p1))::rest1)) =>
+	      (case Int.compare(r0,r1)
+		of LESS => intersect (rest0, set1)
+		 | GREATER => intersect (set0, rest1)
+		 | EQUAL =>
+		   (case hlpathPrefixCompare (p0,p1)
+		     of EQUALHL => layer0 :: intersect (rest0, rest1)
+		      | PREFIX1 => layer1 :: intersect (rest0, rest1)
+		      | PREFIX2 => layer0 :: intersect (rest0, rest1)
+		      | LEFT => intersect (rest0, set1)
+		      | RIGHT => intersect (set0, rest1)))
+
+
+  fun minItem nil = NONE
+    | minItem (layer::_) = layer
+
+end (* structure Set *)
 
 end (* structure Layers *)
 
@@ -70,7 +164,7 @@ Terminology: "(horizontally) layered patterns" <== "OR patterns"
     (represented by a bit string (int list) where 0 = left, 1 = right)
 
 
-Defn: two layer patterns are independent if neither is nested in the other, 
+Defn: two layer patterns are independent if neither is nested in the other,
   i.e. they are AND-cousins.
 
   Ex1: ((x as true | x), (y as false | y)).
@@ -79,13 +173,13 @@ Defn: two layer patterns are independent if neither is nested in the other,
 Defn: a "layer" is a pair (ruleno, hlpath), designating a match rule
   and an hlpath within that rule.
 
-Claim [?!]: layers associated with independent horizontal layers within a single  
-  rule pattern will never be "confused", i.e. compared with one another. 
+Claim [?!]: layers associated with independent horizontal layers within a single
+  rule pattern will never be "confused", i.e. compared with one another.
 
 Ex1 (cont.): In the above Ex1, the layer (0,1) ambiguously represents the position
   of both x and y (as primary variables) in the pattern.
 
-Ordering: 
+Ordering:
 
   hllayers l1 < l2 if either at some index i, l1.i < l2.i or l1 is a prefix of l2.
     (i.e. l1 splits from l2 to the left as some point, or (for linearity!), l2 extneds

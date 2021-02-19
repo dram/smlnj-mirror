@@ -16,6 +16,7 @@ local
   structure R = Rules
   structure V = VarCon
   structure SV = SVar
+  structure LS = Layers.set
   open Absyn
   (* also used/mentioned: IntConst, ListPair *)
 in
@@ -127,14 +128,14 @@ datatype andor
   = AND of   (* product patterns and contents of vectors *)
     {info : AOinfo,
      andKind : andKind,      (* a record/tuple, or a vector [could split AND constr instead] *)
-     live : layerset,        (* live rules: rules with product pats or variagbles at this pattern
+     live : LS.set,        (* live rules: rules with product pats or variagbles at this pattern
 				point. Should contain all layers, so does not seem necessary.
 				Drop live field for AND? *)
      children : andor list}  (* tuple components as children -- AND node *)
 
   | OR of (* datatype, vector, or constant pattern/type *)
     {info : AOinfo,
-     live : layerset,        (* layers matching explicitly or because of variable defaulting *)
+     live : LS.set,        (* layers matching explicitly or because of variable defaulting *)
      variants: variants} (* the branches/choices of the OR node; always non-null *)
 
   | SINGLE of  (* singular datacon (const or applied); a kind of no-op for pattern matching,
@@ -145,13 +146,13 @@ datatype andor
   | VARS of  (* a node occupied only by variables;
               * VIRTUAL field : live = map #2 vars = rules having _a_ variable at this point *)
     {info : AOinfo,
-     live: layerset}     (* layers matching here by default; needed ??? *)
+     live: LS.set}     (* layers matching here by default; needed ??? *)
 
   | LEAF of   (* used as the andor of variants with constant keys, with live layers
                * A LEAF node does not have an independent type; its type is determined
 	       * by the parent OR node's AOinfo. *)
     {path: path,         (* path is the parent path extended by key *)
-     live: layerset}     (* layers having _this_ key (= last of path) at this pattern point *)
+     live: LS.set}     (* layers having _this_ key (= last of path) at this pattern point *)
 
   | INITIAL   (* initial empty andor into which initial pattern is merged
                * to begin the construction of an AND-OR tree *)
@@ -196,7 +197,7 @@ fun getPath (LEAF{path,...}) = path
   | getPath INITIAL = bug "getPath:INITIAL"
   | getPath andor = #path (getInfo andor)  (* otherwise, andor has info *)
 
-(* getLive : andor -> layerset
+(* getLive : andor -> LS.set
    live layers at a node *)
 fun getLive(AND{live,...}) = live
   | getLive(OR{live,...}) = live
