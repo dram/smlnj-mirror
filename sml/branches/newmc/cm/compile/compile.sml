@@ -336,17 +336,17 @@ in
 				val guid = SmlInfo.guid i
 				val { csegments, newstatenv, exportPid,
 				      staticPid, imports, pickle = senvP,
-				      inlineExp, ... } =
+				      (* inlineExp, *) ... } =
 				    C.compile { source = source, ast = ast,
 						statenv = stat, symenv = sym,
 						compInfo = cinfo, checkErr = check,
-						splitting = splitting,
+						(* splitting = splitting, *)
 						guid = guid }
 				val { hash = lambdaPid, pickle = lambdaP } =
-				    PickMod.pickleFLINT inlineExp
-				val lambdaP = case inlineExp of
-						  NONE => Byte.stringToBytes ""
-						| SOME _ => lambdaP
+				    PickMod.pickleFLINT NONE (* inlineExp *)
+				val lambdaP = (* case inlineExp of
+						  NONE => *) Byte.stringToBytes ""
+					      (* | SOME _ => lambdaP *)
 				val bfc = BF.create
 					      { imports = imports,
 						exportPid = exportPid,

@@ -386,6 +386,7 @@ structure PrivateTools : PRIVATETOOLS = struct
 			  | SOME [SUBOPTS { name = "post",
 					    opts = [STRING post] }] =>
 			    (NONE, SOME (#name post))
+(* OR-pattern bug -- MatchComp: bindSVars: multiple bindings
 			  | (SOME [SUBOPTS { name = "pre",
 					     opts = [STRING pre] },
 				   SUBOPTS { name = "post",
@@ -395,6 +396,17 @@ structure PrivateTools : PRIVATETOOLS = struct
 				   SUBOPTS { name = "pre",
 					     opts = [STRING pre] }]) =>
 			    (SOME (#name pre), SOME (#name post))
+ -- workaround: split into two rules with same RHS *)
+			  | (SOME [SUBOPTS { name = "pre",
+					     opts = [STRING pre] },
+				   SUBOPTS { name = "post",
+					     opts = [STRING post] }]) =>
+			      (SOME (#name pre), SOME (#name post))
+			  | (SOME [SUBOPTS { name = "post",
+					     opts = [STRING post] },
+				   SUBOPTS { name = "pre",
+					     opts = [STRING pre] }]) =>
+			      (SOME (#name pre), SOME (#name post))
 			  | _ => err "invalid setup spec"
 
 		    val controllers =
