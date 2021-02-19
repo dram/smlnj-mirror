@@ -46,9 +46,10 @@ fun layerCompare ((r1,p1), (r2,p2)) =
       | GREATER => GREATER
       | EQUAL => hlpathCompare (p1, p2)
 
-fun ruleToLayer r = (r, nil)
-fun newLayerLeft (r,s) = (r, s@[0])
-fun newLayerRight (r,s) = (r, s@[1])
+fun toRule (r, _) = r
+fun fromRule r = (r, nil)
+fun extendLeft (r,s) = (r, s@[0])
+fun extendRight (r,s) = (r, s@[1])
 
 structure OrdKey =
 struct

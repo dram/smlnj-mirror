@@ -17,6 +17,7 @@ local
     structure R = Rules  (* sets of rule numbers *)
     structure T = Types
     structure TU = TypesUtil
+    structure LS = Layers.Set
     structure Q = ORQueues
     structure APQ = Q.APQ
     open MCTypes
@@ -33,14 +34,21 @@ in
 
 val numberChars = 256  (* this should be a basic configuration parameter in Target? *)
 
+(* NEED: typeVariants function *)
+
 (* partial : andor -> bool *)
 (* should this check for defaults? i.e. presence of a variable covering the node
  * and providing a default for missing keys? *)
-fun partial (OR{variants as (key,andor)::_,...}) =
-    (case key
+fun partial (OR{info={ty,...}, variants, ...}) =
+    let val numVariants = Variants.numItems variants
+	val numTyVariants = typeVariants ty  (* "width" of the type of the OR node *)
+     in numVariants < nunTyVariants
+    end
+(*    (case key
        of D (dcon,_) => length variants < TU.dataconWidth dcon  (* missing constructor keys *)
         | C _ => length variants < numberChars
         | _ => true)
+*)
   | partial _ =  bug "partial"
 
 (* decistionTree: andor -> decTree * int Vector.vector *)
@@ -49,8 +57,8 @@ fun partial (OR{variants as (key,andor)::_,...}) =
  * If uses(r) = 0, then rule r is redundant, i.e. the match has redundant rules. *)
 fun decisionTree andor =
 let val orNodes = Q.accessible andor
-    val rules = getLive andor
-            (* was R.union(getLive andor, getDefaults andor) -- but getLive includes redundant *)
+    val rules = getLive andor  (* this should be layers, but where do we find ALL layers *)
+            (* was R.union(getLive andor, getDefaults andor) -- but getLive includes defaults *)
 	    (* this should be equal to allRules for the top andor *)
     val ruleCounts = Array.tabulate (R.numItems rules, (fn i => 0))
     fun incrementRuleCount r =
@@ -66,10 +74,10 @@ let val orNodes = Q.accessible andor
      * -- keys all have type choiceKey, making it easier to iterate over variants
      * -- if survivors is empty, returns RAISEMATCH.
      * CLAIM: The orNodes queue argument will always be internally compatible. *)
-    fun makeDecisionTree(orNodes: APQ.queue, survivors: R.ruleset, dtrace) =
-	if R.isEmpty survivors then DMATCH (rev dtrace) else
-	  (case Q.selectBestRelevant(orNodes, R.minItem survivors (*, thisPath *))
-	    of SOME (node as OR{info = {path,...}, defaults, variants, ...},
+    fun makeDecisionTree(orNodes: APQ.queue, survivors: LS.set, dtrace) =
+	if LS.isEmpty survivors then DMATCH (rev dtrace) else
+	  (case Q.selectBestRelevant(orNodes, LS.minItem survivors)
+	    of SOME (node as OR{info = {path,...}, live, variants, ...},
 		     candidates) =>
 	       (* best relevant OR node, remainder is queue of remaining OR nodes *)
 	       let (* val _ =
@@ -77,45 +85,40 @@ let val orNodes = Q.accessible andor
 		       print "  thisPath: "; MCPrint.tppPath thisPath;
 		       print "  survivors: "; MCPrint.tppRules survivors;
 		       print "  path: "; MCPrint.tppPath path) *)
-		   (* variantDecTrees: variant list * decVariant list * APQ.queue
+		   (* variantDecTrees: variants * decVariant variants * APQ.queue
 				       -> decVariant list * APQ.queue
                     * the andor of each variant is a child of the parent OR node *)
-		   fun variantDecTrees ((key,andor)::rest, decvariants) =
+		   fun variantDecTrees andor =
 		       let val variantPath = getPath andor
 			   val variantLive = getLive andor
-			   val variantSurvivors = R.intersection(variantLive, survivors)
+			   val variantSurvivors = LS.intersection(variantLive, survivors)
 			   val variantCandidates = APQ.merge(candidates, Q.accessible andor)
 				(* add newly accessible OR nodes only under this variant,
 				 * OR nodes under other variants will be incompatible *)
-			   val dectree =
-			       makeDecisionTree(variantCandidates, variantSurvivors,
-						variantPath::dtrace)
-			in variantDecTrees(rest, (key, dectree) :: decvariants)
+			in makeDecisionTree(variantCandidates, variantSurvivors,
+					    variantPath::dtrace)
 		       end
-		     | variantDecTrees(nil, decvariants) = (rev decvariants)
-		   val decvariants = variantDecTrees(variants, nil)
+		   val decvariants = Variants.map makeDecisionTree variants
 		   val defaultOp =
 		       if partial node
-		       then let val defaultSurvivors = R.intersection(survivors, defaults)
-			    in (* if R.isEmpty defaultSurvivors
+		       then let val defaultSurvivors = LS.intersection(survivors, live)
+			    in (* if LS.isEmpty defaultSurvivors
 			          then (print "Default: no survivors\n";
-				     print "survivors: ";
-				     MCPrint.tppRules survivors;
-				     print "local live: ";
-				     MCPrint.tppRules defaults)
+				        print "survivors: "; MCPrint.tppLayers survivors;
+				        print "live: "; MCPrint.tppLayers live)
 			          else (); *)
 			       SOME(makeDecisionTree(candidates, defaultSurvivors, path::dtrace))
 			       (* BUG? path added to dtrace does not reflect default _choice_.
-                                * This might cause wrong svar choice in MCCode.genRHS? *)
+                                * Could this cause wrong svar choice in MCCode.genRHS? *)
 			    end
 		       else NONE  (* no default clause *)
 		   in CHOICE{node = node, choices = decvariants, default = defaultOp}
 	       end
 	     | NONE =>
 	       (* no relevant OR nodes; pick minimum rule *)
-	       let val rule = R.minItem survivors
-		in incrementRuleCount rule;
-		   DLEAF (rule, rev dtrace)
+	       let val layer = LS.minItem survivors
+		in incrementRuleCount (ruleOf layer);
+		   DLEAF (rule, rev dtrace)   (* ??? rule -> layer ? *)
 	       end
 	     | _ => bug "makeDecisionTree")
 
