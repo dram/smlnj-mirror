@@ -2742,8 +2742,10 @@ Example:
       ==> (OR(x,x), OR(true,y))
       ==> (x, y)
 
-------------------------------------
-== OR pattern checking or validation
+
+--------------------------------------
+37.1 OR pattern checking or validation
+--------------------------------------
 
 Rather than "normalizing" OR patterns to remove undesired examples, we can establish
 criteria for "legal" OR patterns and generate error message when an illegal OR pattern
@@ -2801,10 +2803,13 @@ Pattern Variables
 Two simple patterns are _variable-congruent_ if they have the same variables bound
 at the same pattern paths.
 
-It is not clear what the corresponding notion is for OR (cor or por) patterns is.
+It is not clear what the corresponding notion is for OR (cor or por) patterns.
 
-Semantics of a pattern (2nd version)
--------------------------------------
+
+-----------------------------------------
+37.2 Semantics of a pattern (2nd version)
+-----------------------------------------
+
 [[p]] : values -> (vars f-> values)
 
 where vars is the set of variables in the pattern.  The domain of this map is the
@@ -2866,7 +2871,7 @@ Counter example to 2:
 
 Is there some variant of reduction rule 2 that is valid?
 
-7. Horizontal vs vertical overlays:
+7. Horizontal vs vertical overlays (layers):
   Horizontal:
 
      true | _     (r, s.0) vs (r, s.1)
@@ -2942,16 +2947,18 @@ an orpath (i.e. bitstring).
       Note: RHS(1) has a multiplicty of 2, so needs to be abstracted.
 
 
-Note on pattern/layer subsumption
----------------------------------
+--------------------------------------
+37.3 Note on pattern/layer subsumption
+--------------------------------------
 
 Prop: [[p]] < [[q]] => [[p | q]] == [[p]].
 
 The implimentation must satisfy this proposition. (precise defn of < needed).
 
 
-Note on variable "consistency"
-------------------------------
+-----------------------------------
+37.4 Note on variable "consistency"
+-----------------------------------
 
     true | _
 
@@ -2979,8 +2986,9 @@ are legal, but degnerate:
   [[x | x as true]] = [[x]] = \v: bool.{(x,v)}
   
 
-Note on pattern/path/rule relationship
---------------------------------------
+-------------------------------------------
+37.5 Note on pattern/path/rule relationship
+-------------------------------------------
 
 Assume a sequence (list) of rules, with the corresponding list
 of patterns, indexed by rule numbers: pats = [p0, ..., pn] = #1 rules.
@@ -3032,7 +3040,10 @@ Defn %% : value * pattern -> env option
 
 where compose* is the obvious composition of env options.
 
-Least matching rule/pattern.
+
+--------------------------------
+37.6 Least matching rule/pattern
+--------------------------------
 
 Defn: LMR (v, pats) = the smallest index r (ruleno) such that v $ pats(r)
 
@@ -3107,7 +3118,11 @@ in the sequence (i.e. LMR(v,pats) is defined).  But we need more information:
 we need to know which _horizontal_ layer (if any) is matched, since this affects
 the resulting variable bindings.
 
-Relevance:
+
+--------------
+37.7 Relevance
+--------------
+
 For the simple (no OR-pattern) case, there is a relation
 
    relevant(path,ruleno)
@@ -3204,13 +3219,16 @@ the simple pattern case.  In particular, there is no need for "layers", just
 rule numbers.
 
 
-Implementation Problem
-----------------------
+---------------------------
+37.8 Implementation Problem
+---------------------------
+
 How can pushDefaults push "layers" instead of "rules" down through the AndOr tree?
 
 
-Note & Examples for top-level variables in OR patterns
-------------------------------------------------------
+-----------------------------------------------------------
+37.9 Note & Examples for top-level variables in OR patterns
+-----------------------------------------------------------
 
 Ex.1 (orpat/o5.sml)
 
@@ -3484,9 +3502,9 @@ BUG[newmc]. No "match nonexhaustive" warning message is produced by:
   - fn true => 3;
 
 
-================================================================================
-More examples
-================================================================================
+-------------------
+37.10 More examples
+-------------------
 
 5. datatype d = A of int | B of int | C of int
 5a.  A x | (B x | C x) => x + 1
@@ -3617,8 +3635,10 @@ datatype t
 fun addr (ADD ((ADD (e, LI n) | ADD (LI n, e)), LI n')) = n + n'
 
 
-Pattern _overlays_ or _layers_ with priorities
-----------------------------------------------
+----------------------------------------------------
+37.11 Pattern _overlays_ or _layers_ with priorities
+----------------------------------------------------
+
 Without OR patterns, each _rule_ overlays previous patterns with rule numbers
 as priorities.
 
@@ -3645,8 +3665,9 @@ where the ordering on branches (= branch list) is
      branches ordered lexiocographically
 
 
-Preliminary Implementation Ideas for OR ("layered") patterns
---------------------------------
+------------------------------------------------------------------
+37.12 Preliminary Implementation Ideas for OR ("layered") patterns
+------------------------------------------------------------------
 
 1. View a pattern containing OR patterns as a tree where the nodes are the OR (or ;)
 patterns.  Create "addresses" for the elements of OR patterns in the form of a list
@@ -3659,8 +3680,9 @@ Extend the priority scheme for OR nodes to use these lists (i.e. OR tree address
 duplication of decision tree subtrees.
 
 
-Note on AndOr nodes and rules/layers
-------------------------------------
+------------------------------------------
+37.13 Note on AndOr nodes and rules/layers
+------------------------------------------
 
 [** Simple Case: no OR patterns **]
 
@@ -3802,7 +3824,7 @@ rule would be violated:
 RULE: Layer-Binding
 -------------------
 A pattern variable can be bound at most once in an hlayer (but it may be
-bound multiple times in different, related, hlayers). [An hlayer is
+bound multiple times in different, _related_, hlayers). [An hlayer is
 determined by a maximal hlpath.]
 
 It is also the case that if x is bound multiple times, the multiple times
@@ -3813,14 +3835,29 @@ the context of the rule pattern.
 
 Defn: Two horizontal layers are _related_ if they have a common root.
 
+Defn: A layer (r,p) is "maximal" if there does not exist a layer (r, p') where
+p < p' (p is a proper prefix of p') [in the context of all layers occurring
+in an AndOr tree of a pattern list].
+
+Note: The "best" hlpath is the longest hlpath, since it contains as prefixes
+all the "compatible" hlpaths that are considered EQUAL when comparing hlpaths.
+
+Example: 
+
+       (_::x) | x
+
+The left occurrence of x (@ path cons:1) is associated with layer (0, 0)
+and the right occurrence of x (@ path at path <>) is associated with layer (0,1).
+
 Example:
 
-   ((_::x | x) , (_::x | x))
+(1)    ((_::x | x) , (_::x | x))
 
-Here the root of the left OR-pattern is <0> and the root of the right OR-pattern
-is <1>. They have different roots so they are not "related".  Thus the
-pattern is illegal because it has multiple occurrences of x in unrelated
-layers. The following pattern would be legal.
+Here the root path of the left OR-pattern is <0> and the root of the
+right OR-pattern is <1>. They have different roots so they are not
+"related".  Thus the pattern is illegal because it has multiple
+occurrences of x in unrelated layers. The following pattern would be
+legal.
 
    ((_::x | x) , (_::y | y))
 
@@ -3830,7 +3867,19 @@ to layers with different roots.
 
 Note: This notion of related layers needs to be generalized (recursively),
 since within an OR-pattern, there may be _unrelated_ subsidiary OR-patterns.
-(need "relative roots" of families of layers?)
+(need "relative roots" of families of layers?)  For instance, pattern (1)
+above may occure nested within a branch of an OR pattern (i.e. within a
+single horizontal layer). But it will still be the case that the root paths
+of the two problematic OR patterns are different.  
+
+Prop: Two related layers will have the same set of pvars.
+[Assumine the layers are "maximal"?]
+
+Prop: A variable x will occur at most once in a given layer.  If x
+occurs in layer (r, p), then x will not occur at (r, p') for any p' >
+p (p' extending lhpath p).  Any other occurrence of x (in pat(r)) must
+be associated with layer (r, q) where p and q diverge (are not EQUAL
+in the hlpath ordering hlpathCompare, i.e. neither is a prefix of the other).
 
 Conjecture: if a varenvMC maps a pvar x to a given (layer, svar), then that layer
 will be "unequal" to the layer of any other binding of that pvar.  Otherwise
@@ -3851,6 +3900,30 @@ that node. (Example?).
 Question: What role do "traces" (path lists) play in this, if any?  Main motivation
 for adding traces was to use them to generate counterexamples at DMATCH nodes in
 decision trees.
+
+
+----------------------------------
+37.14 "Intersection" of layer sets
+----------------------------------
+
+For the purpose of calculating "intersections" of layer sets, we can regard
+a rule (layer (r,nil)) and matching any layer of the form (r,p).  Similarly,
+(r, p) will match any layer of the form (r, p') where p < p' (and (r,p') can
+replace (r,p) in the result of intersection.  So layer sets can be effectively
+seen as "upward" closed with respect to the prefix ordering of lhpath components.
+Thus LS.intersect may result in a larger set than either of its arguments.
+
+A minimal representation of an LS.set may then consist of layers with maximal
+lhpath components, since these will cover the corresponding prefixes.  Should
+LS.intersect maintain this representation?  Or can it produce representations
+with "redundant" layers?  Does it matter?
+
+Thus repeated intersections with "live" layer sets of nodes will develop a set
+of (eventually) maximap layers, possibly with additional "redundant" members.
+
+The maximal hlpath should also be used when calculating the "least" element
+for a layer set, i.e. the least element should have the least rule and for that
+rule the least, maximal hlpath.
 
 ================================================================================
 [38] polymorphism, bound type variables
