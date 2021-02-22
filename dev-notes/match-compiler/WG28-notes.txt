@@ -1,0 +1,77 @@
+1. SML/NJ started Spring 1986 (soon after Andrew Appel arrived at Princeton)
+   decades of accumulated cruft, kludges, some written by PhD students and BL summer interns
+
+   Project: rewrite and take ownership of components that have become "unmaintainable"
+
+   First component: match compiler
+
+2. Some history
+
+   1980, 1981 POP2 and Lisp implementations of HOPE
+     first implementation of datatypes and pattern matching
+     naive approach to pattern matching?
+
+   May, 1984.  First working note on optimizing pattern matching. Analysis in terms
+     of rows and columns
+
+   Summer, 1985. Work with BTL summer intern Marianne Baudinet on optimized pattern
+     matching.
+     AndOr trees -> Decision trees -> code
+     Paper: ...  (never published)
+
+   1986. Start of work on SML/NJ compiler with Andrew Appel.
+     First implementation of the match compiler for SML/NJ (first version distributed, 0.22)
+
+   1989?. Bruce Duba visiting Bell Labs, Makes some minor modifications of the
+     match compiler (SML/NJ 0.33?)
+
+   1992. Bill Aiken BTL summer intern working with John Reppy.
+     completely rewrites match compiler adding two major features
+     1) pattern macros
+     2) OR patterns  (eliminated through a preprocessing pass)
+     match compiler part of the translation from Front End abstract syntax to
+     FLINT intermediate language.
+
+   2006? DBM does a partial simplification and cleanup of Aiken's code,
+     removing pattern macros but retaining OR patterns
+
+   2008? DBM, while teaching a compiler course develops a simple implementation
+     of the AndOr tree approach.
+
+   May, 2020. DBM begins full overhaul of match compiler, based on "first principles"
+
+
+3. Main ideas of match compilation
+
+   Assumptions:
+   1) call by value language, so value being matched is fully evaluated
+   2) patten matching is pure -- it involves no side effects
+   3) a sequence of patterns where first pattern that matches wins, after which
+      no further matching is required  (clausal functions; match = sequence of rules)
+
+   Principles/Desiderata:
+     *) pattern matching should be deterministic
+     *) pattern matching should be terminating
+
+   Patterns are made up from a few basic constructions
+     *) products
+     *) (discriminated) sums  (e.g. datatypes and their constructors)
+     *) constants (for certain primitive types, e.g. ints but not reals)
+     *) variables (& the related case of wildcard patterns)
+
+
+   Very naive approach.  Match each pattern sequentially until a match is found.
+
+   1st improvement.  Preserve the results of partial maps so they don't need to
+   be repeated in subsequent matches.
+     * any "node" in the value needs to be examined at most once
+
+   2nd improvement.  (enabled by purity of matching).  Examine the value being
+   matched in a clever order that
+     1) avoids examinging irrelevant parts of the value being matched
+        E.g. x; (true, false)  
+     2) minimize code size of matcher
+
+
+   Baudinet showed that "optimal" matching is NP-hard (NP-complete?), so have
+   to fall back on "heuristics" to find "good" matching algorithm
