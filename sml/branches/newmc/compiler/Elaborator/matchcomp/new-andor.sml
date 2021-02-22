@@ -10,6 +10,7 @@ local
   structure LV = LambdaVar
   structure V = VarCon
   structure SV = SVar
+  structure K = Key
   structure MU = MCUtil
   structure LS = Layers.Set
   structure R = Rules
@@ -37,11 +38,11 @@ local
 in
 
 (* numToKey : T.ty IntConst.t -> key *)
-fun numToKey ((num as {ival,ty}): T.ty IntConst.t) : key =
+fun numToKey ((num as {ival,ty}): T.ty IntConst.t) : K.key =
     if List.exists (fn ty' => TU.equalType(ty,ty'))
 		   [BT.intTy, BT.int32Ty, BT.int64Ty, BT.intinfTy]
-    then I num
-    else W num
+    then K.I num
+    else K.W num
 
 (* node ids (: int) *)
 val idcount = ref 0;
@@ -78,15 +79,15 @@ fun addVarBindings (b, AND{info,live,children,andKind}) =
   | addVarBindings _ = bug "addVarBindings"
     (* var-binding for a key LEAF will be attached to the parent OR node *)
 
-(* mergeConst: key * layer * path * variants -> variants *)
+(* mergeConst: K.key * layer * path * variants -> variants *)
 fun mergeConst (key, layer, path, variants) = 
-    case Variants.find (variants, key)
+    (case Variants.find (variants, key)
       of NONE =>  (* new constant variant *)
 	 Variants.insert (variants, key,
-			  LEAF{path=extendPath(path, key), live=LS.singleton layer}),
+			  LEAF{path=extendPath(path, key), live=LS.singleton layer})
        | SOME (LEAF{path,live}) =>
 	 Variants.insert (variants, key, LEAF{path=path,live=LS.add(live,layer)})
-  | mergeConst _ = bug "mergeConst"
+       | _ =>  bug "mergeConst")
 			  
 (* makeAndor : pat list * T.ty -> andor *)
 (* construct the AND-OR tree for the sequence of patterns of a match
@@ -99,11 +100,11 @@ let
      * This is used as a post-processing phase after the initial andor is
      * constructued by calls of mergeAndor. It is expected that the AND-OR tree 
      * was constructed by the repeated calls of mergeAndor for each layer. *)
-    fun pushDefaults (outerDefaults : layerset, andor: andor) : andor =
+    fun pushDefaults (outerDefaults : LS.set, andor: andor) : andor =
 	case andor
 	 of OR{info,live,variants} =>
 	     let val defaults = LS.addList(outerDefaults, map #2 (#vars info))
-		 fun push andor = pushDefaults(defaults, andor))
+		 fun push andor = pushDefaults(defaults, andor)
 	     in OR{info=info, live=LS.union(live,defaults),
 		   variants = Variants.map push variants}
 	     end
@@ -138,7 +139,7 @@ let
 	else
 	rev(#1 (foldl
 		 (fn ((pat,ty), (andors,index)) =>
-		     (mergeAndor(pat, ty, layer, extendRPath(rpath, R index), INITIAL)::andors,
+		     (mergeAndor(pat, ty, layer, extendRPath(rpath, K.R index), INITIAL)::andors,
 		      index+1))
 		 (nil,0) (ListPair.zipEq(pats,tys))))
 
@@ -202,10 +203,10 @@ let
 	  end
       | mergeAndor (STRINGpat s, ty, layer, rpath, INITIAL) =
 	  (* ASSERT: ty = BT.stringTy *)
-	  let val key = S s
+	  let val key = K.S s
 	      val path = reverseRPath rpath
 	      val newRPath = extendRPath(rpath,key)
-	      val live = LS.singleton layer,
+	      val live = LS.singleton layer
 	  in OR{info = {id = newId(), typ = ty, path = path, asvars = nil, vars = nil},
 		live = live,
 		variants = Variants.insert (Variants.empty key, key,
@@ -213,7 +214,7 @@ let
 	  end
       | mergeAndor (CHARpat c, ty, layer, rpath, INITIAL) =
 	  (* ASSERT: ty = BT.charTy *)
-	  let val key = C c
+	  let val key = K.C c
 	      val path = reverseRPath rpath
 	      val newRPath = extendRPath(rpath, key)
 	      val newPath = reverseRPath newRPath
@@ -247,7 +248,7 @@ let
 
       | mergeAndor (CONpat(dcon,tvs), ty, layer, rpath, INITIAL) =  (* constant datacon *)
           (* ty is the (instantiated) type of the dcon *)
-	  let val key = D (dcon, tvs)
+	  let val key = K.D (dcon, tvs)
 	      val path = reverseRPath rpath
 	      val newRPath = extendRPath(rpath, key)
 	      val newPath = reverseRPath newRPath
@@ -264,7 +265,7 @@ let
 
       | mergeAndor (APPpat(dcon,tvs,pat), ty, layer, rpath, INITIAL) =
 	  let (* val _ = print ">>>mergeAndor:APPpat\n" *)
-	      val key = D (dcon,tvs)
+	      val key = K.D (dcon,tvs)
 	      val path = reverseRPath rpath
 	      val newRPath : rpath = extendRPath(rpath, key)
 	      (* val _ = print ">>>destructDataconTy\n" *)
@@ -280,7 +281,7 @@ let
 		    OR{info = {id = newId(), typ = ty, path = path, asvars = nil, vars = nil},
 		       live = LS.singleton layer,
 		       variants = Variants.insert (Variants.empty key, key,
-						   mergeAndor (pat,argty,layer,newRPath,INITIAL))]})
+						   mergeAndor (pat,argty,layer,newRPath,INITIAL))})
 	  end
 
       | mergeAndor (VECTORpat(pats,elemty), vecty, layer, rpath, INITIAL) =
@@ -292,7 +293,7 @@ let
 		         say "; elemty = "; ppType elemty; newline()) *)
 	      val vlen = length pats  (* vector length *)
 	      val path = reverseRPath rpath  (* path for vector node *)
-	      val newRPath = extendRPath(rpath, V(vlen))
+	      val newRPath = extendRPath(rpath, K.V vlen)
 	      val newPath = reverseRPath newRPath
 	      val elemTys = TU.replicateTy(elemty, vlen)  (* list of replicated elemty *)
 	      val live = LS.singleton layer
@@ -303,7 +304,7 @@ let
 		      andKind = VECTOR}
 	   in OR{info = {id = newId(), typ = vecty, path = path, asvars = nil, vars = nil},
 		 live = live,
-		 variants = Variants.insert (Variants.empty (V len), V vlen, variantNode)}
+		 variants = Variants.insert (Variants.empty (K.V vlen), K.V vlen, variantNode)}
 	  end
 
       (* ====== following clauses merge a pattern into an existing andor node ====== *)
@@ -321,17 +322,17 @@ let
            * and they have been checked by the type checker *)
 	  mergeAndor(pat, ty, layer, path, andor)
       | mergeAndor (LAYEREDpat(VARpat v, basepat), ty, layer, rpath, andor) =
-	  addAsBindings ([(v,rule)], mergeAndor (basepat, ty, layer, rpath, andor))
+	  addAsBindings ([(v,layer)], mergeAndor (basepat, ty, layer, rpath, andor))
       | mergeAndor (NUMpat(_, numLiteral), ty, layer, _, 
 		    OR{info,live,variants}) =
 	  OR{info = info, live = LS.add(live,layer),
 	     variants = mergeConst(numToKey(numLiteral), layer, (#path info), variants)}
       | mergeAndor (STRINGpat s, _, layer, _, OR{info,live,variants}) =
 	  OR{info = info, live = LS.add(live,layer),
-	     variants = mergeConst(S s, rule, (#path info), variants)}
-      | mergeAndor (CHARpat c, _, rule, _, OR{info,live,variants}) =
+	     variants = mergeConst(K.S s, layer, (#path info), variants)}
+      | mergeAndor (CHARpat c, _, layer, _, OR{info,live,variants}) =
 	  OR{info = info, live = LS.add(live,layer),
-	     variants = mergeConst(C c, rule, (#path info), variants)}
+	     variants = mergeConst(K.C c, layer, (#path info), variants)}
       | mergeAndor (RECORDpat{fields,...}, _, layer, _,
 		    AND{info,live,children,andKind}) =
               (* mergeAnd : pat * andor -> andor *)
@@ -348,15 +349,15 @@ let
 	  OR{info = info, live = LS.add(live,layer),
 	     variants = mergeVector (pats, vecty, elemty, layer, (#path info), variants)}
       | mergeAndor (CONpat(dcon,tvs), ty, layer, _, OR{info,live,variants}) =
-	let val newVariants = mergeDataConst (D (dcon,tvs), ty, layer, #path info, variants)
+	let val newVariants = mergeDataConst (K.D (dcon,tvs), ty, layer, #path info, variants)
 	 in OR{info = info, live=LS.add(live,layer), variants = newVariants}
 	end
       | mergeAndor (CONpat (patDcon, tvs), _, layer, _,
-		    SINGLE {info, variant=(key as D(dcon,_),arg)}) =
+		    SINGLE {info, variant=(key as K.D(dcon,_),arg)}) =
           if TU.eqDatacon (patDcon, dcon) then
 	     (* Sanity check: this should always be true, because dcon is singleton *)
 	     (case arg
-	       of LEAF {path=leafPath, live, defaults} =>
+	       of LEAF {path=leafPath, live} =>
 		    let val newArg =
 			    LEAF{path = leafPath, live = LS.add (live, layer)}
 		     in SINGLE{info = info, variant = (key, newArg)}
@@ -365,14 +366,14 @@ let
 	  else bug "mergeAndor:CONpat:SINGLE: dcons don't agree"
       | mergeAndor (APPpat(dcon,tvs,pat), _, layer, _, OR{info,live,variants}) =
 	let val ty = #typ info
-	    val newVariants = mergeData (D (dcon,tvs), pat, ty, layer, (#path info), variants)
+	    val newVariants = mergeData (K.D (dcon,tvs), pat, ty, layer, (#path info), variants)
 	 in OR{info = info, live = LS.add(live, layer), variants = newVariants}
 	end
       | mergeAndor (APPpat (patDcon, tvs, argPat), ty, layer, rpath,
-		    SINGLE{info, variant = (key as D(dcon,_), arg)}) =
+		    SINGLE{info, variant = (key as K.D(dcon,_), arg)}) =
           if TU.eqDatacon (patDcon, dcon) then  (* must be true, because dcon is singleton *)
 	     let val argTy = TU.destructDataconTy (#typ info, patDcon)
-		 val argRpath = extendRPath (rpath, D(patDcon,tvs)) (* == reverse(rpath of arg)? *)
+		 val argRpath = extendRPath (rpath, K.D(patDcon,tvs)) (* == reverse(rpath of arg)? *)
 		 val mergedArg = mergeAndor(argPat, argTy, layer, argRpath, arg) 
 	      in SINGLE{info = info, variant = (key, mergedArg)}
 	     end
@@ -397,7 +398,7 @@ let
    (* maintains vector variants in ascending order by length *)
     and mergeVector (pats, vecty, elemty, layer, path, variants: variants) : variants =
 	let val vlen = length pats (* could be 0 *)
-	    val key = V vlen
+	    val key = K.V vlen
 	    val newPath : path = extendPath(path, key)
 	    val elemTys = TU.replicateTy(elemty, vlen)  (* list of replicated elem tys *)
 	in case Variants.find (variants, key)
@@ -419,6 +420,7 @@ let
 			       andKind = VECTOR}
 		  in Variants.insert (variants, key, andor')
 		 end
+	     | _ => bug "mergeVector"
 	end
 
     (* mergeDataConst : key * ty * layer * path * variants -> variants *)
@@ -434,19 +436,18 @@ let
 		let val modifiedVariant =
 				(* merge with existing variant for this dcon *)
 			case andor
-			 of LEAF{path,direct,defaults} =>  (* constant dcon *)
+			 of LEAF{path,live} =>  (* constant dcon *)
 			      LEAF{path=path, live=LS.add(live,layer)}
 			  | _ => bug "mergeDataConst"
 		 in Variants.insert(variants, key, modifiedVariant)
 		end)
-      | mergeDataConst _ = bug "mergeDataConst: bad key"
 
     (* mergeData : key * pat * ty * layer * path * variant list -> variant list *)
     (* the new key and an existing matching key would have different tvs (instantiation
      * metatyvars), but this doesn't matter since the type (ty) of the pattern node is
      * the same for all variants, so instantiations will be equivalent for the same 
      * dataconstructor. *)
-    and mergeData (key as D (dcon,tvs), pat, ty, layer, path, variants) =
+    and mergeData (key as K.D (dcon,tvs), pat, ty, layer, path, variants) =
 	let val patTy = TU.destructDataconTy(ty, dcon)
 	 in case Variants.find (variants, key)
 	     of NONE => 
@@ -468,7 +469,7 @@ let
     (* ASSERT: ty will the the type of all the patterns *)
     fun makeAndor0 (pats, ty) =
         #1 (foldl (fn (pat, (andor, ruleno)) =>
-		      (mergeAndor (pat, ty, Layer.fromRule ruleno, rootRPath, andor),
+		      (mergeAndor (pat, ty, Layers.fromRule ruleno, rootRPath, andor),
 		       R.increment ruleno))
 		  (INITIAL, 0) pats)
 

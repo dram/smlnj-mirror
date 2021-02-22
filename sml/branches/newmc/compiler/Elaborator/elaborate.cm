@@ -69,17 +69,20 @@ is
         matchcomp/svar.sml
         matchcomp/rules.sig
         matchcomp/rules.sml
-        matchcomp/mctypes.sml
+	matchcomp/key.sml
+        matchcomp/variants.sml
+	matchcomp/layers.sml
+        matchcomp/new-mctypes.sml
 	matchcomp/mcutil.sml
-        matchcomp/mcprint.sml
-        matchcomp/andor.sml
-        matchcomp/or-queues.sml
-        matchcomp/decisiontree.sml
-        matchcomp/vmcexp.sml
+        matchcomp/new-mcprint.sml
+        matchcomp/new-andor.sml
+        matchcomp/new-or-queues.sml
+        matchcomp/new-decisiontree.sml
+        matchcomp/new-vmcexp.sml
 	matchcomp/svarenv.sml
-        matchcomp/varenvmc.sml
+        matchcomp/new-varenvmc.sml
         matchcomp/varenvac.sml
-        matchcomp/matchcomp.sml
+        matchcomp/new-matchcomp.sml
 
 	$smlnj/viscomp/elabdata.cm
 	$smlnj/viscomp/basics.cm

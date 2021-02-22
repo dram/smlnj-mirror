@@ -10,6 +10,11 @@ struct
  *   There is an extra R (for record) key representing record/product selection.
  *   R keys appear only in paths to indicate product projections. *)
 
+local
+  structure T = Types
+  structure TU = TypesUtil
+in
+
   datatype key
     = D of T.datacon * T.tyvar list
        (* datacon key, possibly constant, with instantiation tyvars *)
@@ -46,4 +51,5 @@ struct
     | keyToString (S s) = "S["^ s ^ "]"
     | keyToString (R i) = Int.toString i
 
+end (* local *)
 end (* structure Key *)				     

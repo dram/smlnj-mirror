@@ -136,7 +136,7 @@ fun elabDB((tyc,args,name,def,region,lazyp),env,rpath:IP.path,error) =
 	val _ = TU.bindTyvars args
 	val sdcl = EU.sort3 dcl
 	val (reps, sign) = ConRep.infer isrec sdcl
-	fun bindDcons ((sym,const,typ),rep) =
+	fun makeDcon ((sym,const,typ), rep) =
 	      let val _ = TU.compressTy typ
 		  val typ =
 		      if arity > 0
@@ -146,15 +146,8 @@ fun elabDB((tyc,args,name,def,region,lazyp),env,rpath:IP.path,error) =
 	       in DATACON{name=sym, const=const, rep=rep,
                           sign=sign, typ=typ, lazyp=lazyp}
 	      end
-	fun bindDconslist ((r1 as (name,_,_))::l1,r2::l2) =
-	      let val dcon = bindDcons (r1,r2)
-		  val (dcl,e2) = bindDconslist (l1,l2)
-	       in (dcon::dcl,SE.bind(name,B.CONbind dcon,e2))
-	      end
-	  | bindDconslist ([],[]) = ([],SE.empty)
-	  | bindDconslist _ = bug "elabDB.bindDconslist"
 
-     in if length sdcl < length dcl  (* duplicate constructor names *)
+     in if length sdcl < length dcl  (* check for duplicate constructor names *)
 	then let fun member(x:string,[]) = false
 		   | member(x,y::r) = (x = y) orelse member(x,r)
 		 fun dups([],l) = l
@@ -173,7 +166,7 @@ fun elabDB((tyc,args,name,def,region,lazyp),env,rpath:IP.path,error) =
 		   EM.nullErrorBody
 	     end
 	else ();
-	bindDconslist(sdcl, reps)
+	ListPair.mapEq makeDcon (sdcl, reps)
     end
 
 
@@ -331,7 +324,7 @@ fun elabDATATYPEdec({datatycs,withtycs}, env0, sigContext,
 	(* elaborate the definition of a datatype *)
 	fun elabRHS ({tvs,name,def,region,tyc,lazyp,binddef,strictName},
 		     (i,done)) =
-	    let val (datacons,_) =
+	    let val datacons =
                       elabDB((tyc,tvs,name,def,region,lazyp),fullEnv,rpath,error)
 		fun mkDconDesc (DATACON{name,const,rep,sign,typ,lazyp}) =
 		    {name=name, rep=rep,
@@ -466,7 +459,7 @@ fun elabDATATYPEdec({datatycs,withtycs}, env0, sigContext,
 	   List.concat(map #dconNames dbs'));
         debugmsg "<<elabDATATYPEdec";
 	(finalDtycs,finalWithtycs,finalDcons,finalEnv)
-    end (* fun elabDATATYPEdec0 *)
+    end (* fun elabDATATYPEdec *)
 
 end (* local *)
 end (* structure ElabType *)

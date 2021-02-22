@@ -66,8 +66,7 @@ sig
   val typeArgs : int -> Types.ty list
   val mkPolySign : int -> Types.polysign
 
-  val dconName : Types.datacon -> Symbol.symbol
-  val dconTyc : Types.datacon -> Types.tycon
+  val dataconTyc : Types.datacon -> Types.tycon
   val dconType : Types.tycon * Types.ty option  -> Types.ty
 
 (* get rid of INSTANTIATED indirections throughout a type *)
@@ -145,7 +144,7 @@ sig
 
   val numInfo : Types.ty -> { wid : int, signed : bool }
   (* return size and signedness information about integer and word types.
-   * We use a width of zero for IntInf.int. *)
+   * returns size (wid) zero for IntInf.int. *)
 
   val numInRange : IntInf.int * Types.ty -> bool
   (* check an integer/word literal value for being in range as defined by its type *)
@@ -158,6 +157,9 @@ sig
 
   val dataconWidth : Types.datacon -> int
   (* returns the number of datacons of the datacon's owner datatype *)
+
+  val typeVariants : Types.ty -> int
+  (* "width" of the head tycon of the type argument *)
 
   val dataconName : Types.datacon -> Symbol.symbol
   (* the name (a symbol) of a datacon *)

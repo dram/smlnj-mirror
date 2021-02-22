@@ -77,8 +77,7 @@ let val orNodes = Q.accessible andor
 		       print "  thisPath: "; MCPrint.tppPath thisPath;
 		       print "  survivors: "; MCPrint.tppRules survivors;
 		       print "  path: "; MCPrint.tppPath path) *)
-		   (* variantDecTrees: variant list * decVariant list * APQ.queue
-				       -> decVariant list * APQ.queue
+		   (* variantDecTrees: variant list * decVariant list -> decVariant list
                     * the andor of each variant is a child of the parent OR node *)
 		   fun variantDecTrees ((key,andor)::rest, decvariants) =
 		       let val variantPath = getPath andor

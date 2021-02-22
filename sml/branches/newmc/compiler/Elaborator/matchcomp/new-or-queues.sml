@@ -10,10 +10,13 @@ struct
 
 local
     structure R = Rules
+    structure LS = Layers.Set
     structure TU = TypesUtil
     structure MU = MCUtil
     open MCTypes (* AND, OR, SINGLE, VARS, LEAF *)
 in
+
+fun bug msg = ErrorMsg.impossible ("ORQueues: "^msg)
 
 structure AndorPriority =
 struct
@@ -34,24 +37,19 @@ struct
 		  | GREATER => LESS)
 	  | GREATER => LESS)
 
-  (* priority: andor -> goodness *)
+  (* priority: andor -> priority *)
   (* priority applies only to OR nodes *)
-  fun priority (OR{defaults,variants,...}) : priority =
-      let val variantsLength = length variants
-	  val variantsCount =
-	      case variants
-	       of (D (dcon,_), _)::_ =>
-		   if variantsLength < TU.dataconWidth dcon
-                      andalso not(R.isEmpty defaults)
-		   then variantsLength + 1
-		   else variantsLength
-		| _ =>
-		   if not(R.isEmpty defaults) then variantsLength + 1 else variantsLength
-       in (R.numItems defaults, variantsCount)
+  fun priority (OR{info={typ,...}, live, variants, ...}) : priority =
+      let val numVariants = Variants.numItems variants
+	  val maxVariants = TU.typeVariants typ
+	  val numVariants =
+	      if numVariants < maxVariants
+	      then numVariants + 1  (* assume exist defaults in this case ?? *)
+	      else numVariants
+       in (LS.numItems live, numVariants)
 	(* variants counts only the keys that actually occur in the patterns *)
       end
-    | priority _ = (10000,10000)
-	(* "infinitely low" priority for non-OR nodes, which won't occur in queues anyway *)
+    | priority _ = bug "priority -- not an OR node"
 
 end (* structure AndorPriority *)
 
@@ -101,7 +99,7 @@ and accessibleList andors =
 (* selectBestRelevant : APQ.queue * ruleno -> (andor * APQ.queue) option *)
 (* CLAIM: the compatibility test is probably redundant, because queues will always
  * contain only mutually compatible OR nodes. *)
-fun selectBestRelevant (orNodes: APQ.queue, leastLive: layer) =
+fun selectBestRelevant (orNodes: APQ.queue, leastLive: Layers.layer) =
     let fun relevant (OR{variants,...}) =
 	    Variants.exists
 		(fn andor =>

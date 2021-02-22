@@ -403,12 +403,13 @@ end (* fun genMatch *)
 and matchComp (rules: AS.rule list, lhsTy: T.ty, rhsTy: T.ty, varenvAC,
 	       matchFailExn: T.datacon) =
     let val _ = if !debugging then print ">>> matchComp\n" else (); (* -- debugging *)
+	val numRules = length rules
 	val patterns = map (fn (AS.RULE(pat,_)) => pat) rules (* strip RULE constructor *)
 	val andor = AndOr.makeAndor(patterns, lhsTy)
 	val _ = if !printAndor
 		then ppAndor andor
 		else ()
-	val (dectree,ruleCounts) = DecisionTree.decisionTree andor
+	val (dectree,ruleCounts) = DecisionTree.decisionTree (andor, numRules)
 	val _ = if !printDecisionTree
 		then ppDecisionTree dectree
 		else ()

@@ -9,6 +9,7 @@ local
   structure LV = LambdaVar
   structure V = VarCon
   structure AS = Absyn
+  structure K = Key
   open Absyn MCTypes
 
   fun bug msg = ErrorMsg.impossible ("MCUtil: "^ msg)
@@ -29,71 +30,6 @@ fun printMappedVars (var, svar, header) =
 		      "] ==> ", Symbol.name (V.varName svar), "[",
 		      LambdaVar.prLvar svarLvar, "]\n"])
     end
-(*
-(* substVars : AS.exp * varmap -> unit *)
-fun substVars (exp: AS.exp, varmap: (V.var * SVar.svar) list) =
-    let fun lookup (var: V.var) =
-	    let fun look nil = NONE
-		  | look ((v,sv)::rest) =
-		    if V.eqVar(v,var)
-		    then (printMappedVars (var, sv, "L: "); SOME sv) 
-		    else look rest
-	     in look varmap
-	    end
-	fun substExp exp =
-            (case exp
-	      of VARexp (varref, _) =>
-		   if V.hasLvarAccess (!varref)
-		   then (case lookup (!varref)
-			   of SOME sv => varref := SVar.svarToVar sv
-				(* replace the var with the associated svar *)
-			    | NONE => ())
-		   else ()
-	      | RECORDexp fields => 
-		  List.app (fn (l,e) => substExp e) fields
-              | VECTORexp (exps, _) =>
-		  List.app substExp exps
-	      | APPexp (rator, rand) => 
-		  (substExp rator; substExp rand)
-	      | FNexp (rules,_,_) =>  (* single simple rule after transMatch *)
-		  List.app (fn (RULE(p,e)) => substExp e) rules
-	      | HANDLEexp (base, (rules,_,_)) => (* single simple rule after transMatch *)
-		  (substExp base; List.app (fn (RULE(p,e)) => substExp e) rules)
-	      | CASEexp (scrut, (rules,_,_)) => (* transMatch will have eliminated these *)
-	          (substExp scrut; List.app (fn (RULE(p,e)) => substExp e) rules)
-	      | SWITCHexp (_, rules, defaultOp) => 
-		  (List.app (fn RULE(p,e) => substExp e) rules;
-		   Option.app substExp defaultOp)
-	      | VSWITCHexp (_, rules, default) => 
-		  (List.app (fn RULE(p,e) => substExp e) rules;
-		   substExp default)
-	      | RAISEexp (e,_) => substExp e
-	      | IFexp {test, thenCase, elseCase} => 
-                  (substExp test; substExp thenCase; substExp elseCase)
-	      | ANDALSOexp (e1, e2) => (substExp e1; substExp e2)
-	      | ORELSEexp (e1, e2) => (substExp e1; substExp e2)
-	      | WHILEexp {test, expr} => (substExp test; substExp expr)
-	      | LETexp (decl, body) => (substDec decl; substExp body)
-	      | SEQexp exps => List.app substExp exps
-	      | CONSTRAINTexp (e,_) => substExp e
-	      | MARKexp (e,_) => substExp e
-	      | _ => ()  (* datacons, constants, ?SELECTexp: nothing to do *)
-	    (* end case *))
-	and substDec dec =
-            (case dec
-	       of VALdec vbs => 
-		    List.app (fn (VB{exp,...}) => substExp exp) vbs
-	        | VALRECdec rvbs => 
-		    List.app (fn (RVB{exp,...}) => substExp exp) rvbs
-		| DOdec e => substExp e
-		| LOCALdec (inner, outer) => (substDec inner; substDec outer)
-		| SEQdec decs => List.app substDec decs
-		| MARKdec (dec,_) => substDec dec
-		| _ => ()  (* excluding type decls, abstype decls, module decls *)
-	    (* end case *))
-     in substExp exp
-    end
-*)
 
 (* intToIntLiteral : int -> Types.ty IntConst.t *)
 fun intToIntLiteral (n: int) =
@@ -106,22 +42,23 @@ fun intToIntLiteral (n: int) =
  * Paths that diverge at a product node (diff first at R links) are
  * compatible; paths that are prefix comparable are compatible. *)
 fun incompatible (k1::rest1, k2::rest2) =
-      if eqKey(k1,k2) then incompatible(rest1, rest2)
+      if K.eqKey(k1,k2) then incompatible(rest1, rest2)
       else (case k1
-	     of R _ => false
+	     of K.R _ => false
 	      | _ => true)
   | incompatible (nil, path2) = false
   | incompatible (path1, nil) = false
 
 (* consistentPath : path -> path -> bool *)
 (* path1 (a var node path) is consistent with path2 (a decision point) *)
+(* NOT USED (except in MatchComp..allConsistent, which is not used. *)
 fun consistentPath path1 path2 = 
     case (path1, path2)
-     of (R n1 :: rest1, R n2 :: rest2) =>
+     of (K.R n1 :: rest1, K.R n2 :: rest2) =>
 	if n1 = n2 then consistentPath rest1 rest2
         else true  (* consistent if diverge at R key *)
       | (k1 :: rest1, k2 :: rest2) =>
-	if eqKey(k1,k2) then consistentPath rest1 rest2
+	if K.eqKey(k1,k2) then consistentPath rest1 rest2
 	else false  (* branch at an OR node *)
       | (_, nil) => true (* consistent all choices on path2 *)
       | (nil, _) => true (* consistent down to variable node *)

@@ -16,7 +16,7 @@ struct
  *)
 
 type hlpath = int list  (* horizontal layer path *)
-type layer = ruleno * hlpath
+type layer = Rules.ruleno * hlpath
 
 fun layerEq ((r1,s1): layer, (r2,s2)) =
     r1 = r2 andalso ListPair.allEq (op =) (s1, s2)
@@ -46,7 +46,7 @@ fun hlpathPrefixCompare (p1,p2) =
       | (b1::rest1, b2::rest2) =>
 	(case Int.compare (b1,b2)
 	  of LESS => LEFT
-	   | EQUAL => hlpathComparePrefix (rest1, rest2)
+	   | EQUAL => hlpathPrefixCompare (rest1, rest2)
 	   | GREATER => RIGHT)
 
 fun layerLT ((r1,p1): layer, (r2,p2)) =
@@ -63,6 +63,14 @@ fun toRule (r, _) = r
 fun fromRule r = (r, nil)
 fun extendLeft (r,s) = (r, s@[0])
 fun extendRight (r,s) = (r, s@[1])
+
+fun hlpathToString nil = ""
+  | hlpathToString [b] = Int.toString b
+  | hlpathToString (b::rest) =
+    concat [Int.toString b, ".", hlpathToString rest]
+
+fun toString (r,s) =
+    concat [Int.toString r, ".",  hlpathToString s]
 
 (*
 structure OrdKey =
@@ -128,7 +136,7 @@ struct
 
   (* union : set * set -> set *)
   fun union (set1, set2) =
-      foldr add set2 set1
+      foldr add' set2 set1
 
   (* intersect : set * set -> set *)
   fun intersect (set0, set1) =
@@ -147,9 +155,13 @@ struct
 		      | LEFT => intersect (rest0, set1)
 		      | RIGHT => intersect (set0, rest1)))
 
+  (* minItem : set -> layer option *)
+  fun minItem (nil: set) = NONE
+    | minItem (layer::_) = SOME layer
 
-  fun minItem nil = NONE
-    | minItem (layer::_) = layer
+  fun numItems set = length set
+
+  fun listItems set = set
 
 end (* structure Set *)
 

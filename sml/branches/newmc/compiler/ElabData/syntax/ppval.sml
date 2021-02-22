@@ -92,7 +92,7 @@ fun ppConBinding ppstrm =
 	  | ppCon (con,env) =
 	      let exception Hidden
 		  val visibleDconTyc =
-		      let val tyc = TU.dconTyc con
+		      let val tyc = TU.dataconTyc con
 		       in
 			  (TypesUtil.equalTycon
 			      (LU.lookTyc

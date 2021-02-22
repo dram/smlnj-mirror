@@ -437,17 +437,12 @@ in
     fun mkPolySign 0 = []
       | mkPolySign n = default_tvprop :: mkPolySign(n-1)
 
-    fun dconName(DATACON{name,...}) = name
-
-    fun dconTyc(DATACON{typ,const,name,...}) =
-	let (* val _ = say "*** the screwed datacon ***"
-	       val _ = say (S.name(name))
-	       val _ = say " \n" *)
-	    fun f (POLYty{tyfun=TYFUN{body,...},...},b) = f (body,b)
+    fun dataconTyc(DATACON{typ,const,name,...}) =
+	let fun f (POLYty{tyfun=TYFUN{body,...},...},b) = f (body,b)
 	      | f (CONty(tyc,_),true) = tyc
 	      | f (CONty(_,[_,CONty(tyc,_)]),false) = tyc
 	      | f (MARKty(ty, region), b) = f(ty, b)
-	      | f _ = bug "dconTyc"
+	      | f _ = bug "dataconTyc"
 	 in f (typ,const)
 	end
 
@@ -1058,7 +1053,7 @@ in
 
 	    fun expand ty = mapTypeFull expandTyc ty
 
-	    fun mkDcon({name,rep,domain}) =
+	    fun mkDcon({name,rep,domain}: dconDesc) =
 		DATACON{name = name, rep = rep, sign = sign, lazyp = lazyp,
 			typ = dconType (tyc, Option.map expand domain),
 			const = case domain of NONE => true | _ => false}
@@ -1207,10 +1202,16 @@ in
                 let val {dcons,...} = Vector.sub(members, index)
 	         in length dcons
 	        end
-	    | PRIMITIVE => 1000000  (* exn pseudo datatype, width "infinite" *)
+	    | PRIMITIVE => infinity (* exn pseudo datatype, width "infinite" *)
 	    | ABSTRACT tycon => datatypeWidth tycon  (* probably impossible *)
 	    | _ => bug "datatypeWidth: bad tycon" )
       | datatypeWidth _ = bug "datatypeWidth: not GENtyc"
+
+    (* typeVariants : ty -> int *)
+    fun typeVariants ty =
+	(case headReduceType ty
+	  of CONty (tycon, _) => datatypeWidth tycon
+	   | _ => infinity)
 
     (* dataconName: datacon -> symbol *)
     fun dataconName (DATACON{name,...}) = name

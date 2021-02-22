@@ -29,7 +29,7 @@ in
 
 fun bug s = ErrorMsg.impossible ("PPMC: "^s)
 
-				fun debugMsg (debugging: bool ref) (msg: string) =
+fun debugMsg (debugging: bool ref) (msg: string) =
     if (!debugging)
     then with_default_pp
 	  (fn ppstrm =>
@@ -61,7 +61,7 @@ fun ppPcon (pd: int) ppstrm (c : pcon) : unit =
     let val {openHOVBox, openHVBox, closeBox, break, newline, pps, ppi, ...} =
             en_pp ppstrm
      in case c
-	 of DATApcon (datacon, _) => ppSym ppstrm (TypesUtil.dconName datacon)
+	 of DATApcon (datacon, _) => ppSym ppstrm (TypesUtil.dataconName datacon)
 	  | INTpcon (intConst) => pps (IntConst.toString intConst)
 	  | WORDpcon (intConst) => pps (IntConst.toString intConst)
 	  | STRINGpcon s => ppString ppstrm s

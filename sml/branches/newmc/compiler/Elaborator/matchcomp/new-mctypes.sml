@@ -16,7 +16,9 @@ local
   structure R = Rules
   structure V = VarCon
   structure SV = SVar
-  structure LS = Layers.set
+  structure K = Key
+  structure L = Layers
+  structure LS = Layers.Set
   open Absyn
   (* also used/mentioned: IntConst, ListPair *)
 in
@@ -29,7 +31,7 @@ type ruleset = R.ruleset  (* == IntBinarySet.set *)
    (* a set of rule numbers (no duplicates) *)
 
 
-type binding = V.var * layer
+type binding = V.var * L.layer
    (* a variable bound at some point in the given rule, either as a
     * basic var pattern (VARpat) or through an "as" pattern (LAYEREDpat) *)
 type varBindings = binding list
@@ -44,10 +46,10 @@ type varBindings = binding list
 *)
 
 (* a path is well formed only if its links are well formed *)
-type path  = key list (* keys ordered from root to node *)
-type rpath = key list (* keys are in reverse order from node to root *)
+type path  = K.key list (* keys ordered from root to node *)
+type rpath = K.key list (* keys are in reverse order from node to root *)
 
-val pathEq = ListPair.allEq eqKey
+val pathEq = ListPair.allEq K.eqKey
 
 val rootPath : path = []
 val rootRPath : rpath = []
@@ -66,7 +68,7 @@ fun pathToString path =
     let fun ts [] = []
 	  | ts [s] = [s]
 	  | ts (s::ss) = s :: "." :: ts ss
-     in concat("<":: ts (map keyToString path) @ [">"])
+     in concat("<":: ts (map K.keyToString path) @ [">"])
     end
 
 type trace = path list
@@ -157,7 +159,7 @@ datatype andor
   | INITIAL   (* initial empty andor into which initial pattern is merged
                * to begin the construction of an AND-OR tree *)
 
-withtype variant = key * andor
+withtype variant = K.key * andor
 and variants = andor Variants.variants
 (* this pushes the discrimination of the OR-kind into the keys of the variants. *)
 
@@ -210,11 +212,11 @@ fun getLive(AND{live,...}) = live
 (* findKey : key * variant list -> andor option *)
 (* search for a variant with the given key *)
 fun findKey (key, (key',node)::rest) =
-    if eqKey(key,key') then SOME node
+    if K.eqKey(key,key') then SOME node
     else findKey(key, rest)
   | findKey (_, nil) = NONE
 
-(* FIX: getNode and parentNode not used *)
+(* FIX: getNode and parentNode not used.  Therefor commented out.
 
 (* getNode : andor * path * int -> andor *)
 (* REQUIRE: for getNode(andor,path,depth): depth <= length path *)
@@ -222,7 +224,7 @@ fun getNode(andor, _, 0) = andor
   | getNode(andor, nil, _) = andor
   | getNode(andor, key::path, depth) =
     (case (andor,key)
-      of (AND{children,...}, R i) =>
+      of (AND{children,...}, K.R i) =>
 	   getNode(List.nth(children, i),path,depth-1)
        | (OR{variants,...},key) =>
 	   (case findKey(key,variants)
@@ -240,15 +242,14 @@ fun parent (andor, rootAndor) =
         val d = length(path) - 1
      in getNode(rootAndor, path, d)
     end
-
+*)
 
 (* ---------------------------------------------------------------------- *)
 (* decision trees *)
 
 datatype decTree
-  = DLEAF of ruleno * trace
-      (* bind variables consistent with trace and dispatch
-       * to RHS(ruleno) *)
+  = DLEAF of L.layer * trace
+      (* bind variables consistent with layer and dispatch to RHS for layer's ruleno *)
   | DMATCH of trace (* trace of decision ponts in leading to this DMATCH node *)
       (* generate a match exception.
        * would be redundant if we were adding a final default rule with wildcard pat

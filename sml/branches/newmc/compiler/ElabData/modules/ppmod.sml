@@ -131,7 +131,7 @@ fun is_ppable_ConBinding (T.DATACON{rep=A.EXN _, ...}, _) = true
   | is_ppable_ConBinding (con,env) =
       let exception Hidden
 	  val visibleDconTyc =
-	        let val tyc = TU.dconTyc con
+	        let val tyc = TU.dataconTyc con
 		 in (TU.equalTycon
 		      (LU.lookTyc
 			 (env,
@@ -618,7 +618,7 @@ and ppTycBind ppstrm (tyc,env) =
 					 fn _ => raise SE.Unbound))
 		       in (* test whether the datatypes of actual and
 			     found constructor agree *)
-			  case TU.dconTyc found
+			  case TU.dataconTyc found
 			    of tyc1 as T.GENtyc _ =>
 			       (* the expected form in structures *)
 				  if TU.eqTycon(tyc,tyc1)
