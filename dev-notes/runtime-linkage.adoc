@@ -1,0 +1,103 @@
+= Linkage Between the SML/NJ Runtime System and SML Code
+:Date: 2021-02-21
+:stem: latexmath
+:source-highlighter: pygments
+
+== Overview
+
+This document describes the mechanisms that provide the linkage between
+the *SML/NJ* Runtime system and executing code.  These mechanisms are quite
+crufty and inflexible with many vistigial features, so we describe a new
+design at the end that is both more flexible and that removes the cruft.
+
+== The Assembly structure
+
+The `Assembly` structure is a pseudo-structure whose actual implementation
+is in the runtime system.  It provides access to a small collection of
+assembly routines (these use *SML* calling conventions) as well as to
+values that both the runtime and *SML* code must access.  It has the following
+signature:
+
+[source,sml]
+------------
+signature ASSEMBLY =
+  sig
+    type object
+    datatype 'a option = NONE | SOME of 'a
+
+    structure A :
+      sig
+        type c_function
+        type word8array = PrimTypes.word8array
+        eqtype real64array
+        type spin_lock
+
+        val array : int * 'a -> 'a array
+        val bind_cfun : (string * string) -> c_function
+        val callc : (c_function * 'a) -> 'c
+        val create_b : int -> word8array
+        val create_r : int -> real64array
+        val create_s : int -> string
+        val create_v : int * 'a list -> 'a vector
+        val floor : real -> int
+        val logb : real -> int
+        val scalb : real * int -> real
+        val try_lock : spin_lock -> bool
+        val unlock : spin_lock -> unit
+      end
+
+    exception Div
+    exception Overflow
+    exception SysErr of (string * int option)
+
+    val profCurrent : int ref
+    val pollEvent : bool ref
+    val pollFreq : int ref
+    val pollHandler : (unit cont -> unit cont) ref
+    val activeProcs : int ref
+    val pstruct : object ref
+    val sighandler : ((int * int * unit cont) -> unit cont) ref
+    val vector0 : 'a vector
+  end
+------------
+
+--
+* The `Assembly` structure has a predictable layout -- essentially a record
+  of the exception and value identifiers in the order in which they appear
+  (__i.e.__, the type component are erased).
+
+* Note that this module is where the `Div`, `Overflow`, and `SysErr` exceptions
+  are defined.
+
+* Because the binding to the `Assembly` structure is static, it is only possible
+  for the compiler to access its components during the early phases where the
+  static environment is present.
+
+* The module has a number of fields that are no longer used.
+
+** The `Div` exception was included to allow the runtime system to map
+  division-by-zero traps to raising the exception, but we no longer use
+  this mechanism.  Instead, we explicitly test for zero before doing the
+  divide.  The `Div` exception could be moved to the `Core` structure.
+
+** The software polling mechanisms are no longer supported, so the
+  `pollEvent`, `pollFreq`, `pollHandler` fields could be eliminated.
+
+** The multiprocessor support is no longer supported, so the `activeProcs` field
+  is not needed; also the `try_lock` and `unlock` functions can be removed from
+  the `A` substructure.
+
+** The `logb` function has been deprecated, so we can remove it from the
+  `A` substructure.
+--
+
+== Proposal for the future
+
+* remove unused components (`A.logb`, `A.try_lock`, and `A.unlock`).
+
+* Generalize the creation functions to support more kinds of arrays and
+  vectors in the future.  This might involve splitting the creation of the
+  data area from creating the header.
+
+* Make `Overflow` exception (and possibly others) dynamically accessible.
+  We can do this by adding them to the stack at known locations.
