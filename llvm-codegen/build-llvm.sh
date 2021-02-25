@@ -20,6 +20,8 @@
 #	--release		Build a "release" build in llvm-build-release
 #				[default: "debug" build in llvm-build-debug]
 #
+#	--targets <targets>	Specify the target architectures to support.
+#
 
 FORCE=no
 LLVM_SRC=llvm-10.0.1.src
@@ -34,21 +36,32 @@ case `uname -s` in
   ;;
 esac
 
+case $(uname -m) in
+  x86_64) TARGETS="X86" ;;
+  arm64) TARGETS="AArch64" ;;
+  *) echo "unknown hardware platform"
+    exit 1
+    ;;
+esac
+
 usage() {
   echo "usage: build-llvm.sh [--force] [--np <n>] [--llvm-src <path>] [--release_build]"
   echo ""
-  echo "    --help              Generate help message"
+  echo "    --help                Generate help message"
   echo ""
-  echo "    --force             Remove any existing build directory before"
-  echo "                        configuration"
+  echo "    --force               Remove any existing build directory before"
+  echo "                          configuration"
   echo ""
-  echo "    --np <n>            Specify the number of cores to use in the build"
-  echo "                        [default: $NPROCS]"
+  echo "    --np <n>              Specify the number of cores to use in the build"
+  echo "                          [default: $NPROCS]"
   echo ""
-  echo "    --llvm-src <path>   Specify path to LLVM source tree relative to the"
-  echo "                        llvm-codegen directory [default: $LLVM_SRC]"
+  echo "    --llvm-src <path>     Specify path to LLVM source tree relative to the"
+  echo "                          llvm-codegen directory [default: $LLVM_SRC]"
   echo ""
-  echo "    --release           Build a "release" build to install in llvm-release"
+  echo "    --release             Build a "release" build to install in llvm-release"
+  echo ""
+  echo "    --targets <targets>   Specify target architectures (default: $TARGETS)"
+  echo "                          The supported targets are X86 and AArch64"
 
   exit $1
 }
@@ -78,9 +91,9 @@ while [ "$#" != "0" ] ; do
     --release)
       BUILD_TYPE=Release
       ;;
-    --build-dir)
+    --targets)
       if [ $# -ge 1 ] ; then
-	LLVM_BUILD=$1
+	TARGETS=$1
 	shift
       else
 	usage 1
@@ -95,10 +108,6 @@ else
   LLVM_INSTALL=llvm-release
 fi
 LLVM_BUILD=build-"$LLVM_INSTALL"
-
-#TARGETS="X86;AArch64"
-#TARGETS="X86"
-TARGETS="AArch64"
 
 CMAKE_DEFS="\
   -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
