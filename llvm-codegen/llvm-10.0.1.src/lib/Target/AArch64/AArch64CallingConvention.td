@@ -491,7 +491,14 @@ def CSR_AArch64_SVE_AAPCS_SCS
 def CSR_AArch64_AAPCS_SCS
     : CalleeSavedRegs<(add CSR_AArch64_AAPCS, X18)>;
 
-// JWA calling convention
+//===----------------------------------------------------------------------===//
+// JWA Calling Convention
+//===----------------------------------------------------------------------===//
+
+// The "Jump With Arguments" calling convention is designed to support the
+// "continuation-passing, closure-passing" model used by SML/NJ and the Manticore
+// compiler.  The convention is described in the paper "Compiling with Continuations
+// and LLVM" (https://arxiv.org/abs/1805.08842v1).
 //
 let Entry = 1 in
 def CC_AArch64_JWA : CallingConv<[

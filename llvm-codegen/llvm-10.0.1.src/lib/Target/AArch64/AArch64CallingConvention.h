@@ -46,6 +46,12 @@ bool RetCC_AArch64_AAPCS(unsigned ValNo, MVT ValVT, MVT LocVT,
 bool RetCC_AArch64_WebKit_JS(unsigned ValNo, MVT ValVT, MVT LocVT,
                              CCValAssign::LocInfo LocInfo,
                              ISD::ArgFlagsTy ArgFlags, CCState &State);
+bool CC_AArch64_JWA(unsigned ValNo, MVT ValVT, MVT LocVT,
+                    CCValAssign::LocInfo LocInfo, ISD::ArgFlagsTy ArgFlags,
+                    CCState &State);
+bool RetCC_AArch64_JWA(unsigned ValNo, MVT ValVT, MVT LocVT,
+                         CCValAssign::LocInfo LocInfo, ISD::ArgFlagsTy ArgFlags,
+                         CCState &State);
 } // namespace llvm
 
 #endif
