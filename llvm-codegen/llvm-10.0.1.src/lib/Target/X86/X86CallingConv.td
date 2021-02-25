@@ -267,21 +267,16 @@ def CC_X86_64_JWA : CallingConv<[
 
   // The only registers we skip are RBP and RSP.
 
-  // Manticore assignment: alloc, vproc, clos, retk, exh, stdArg, otherArgs
-
   // registers are ordered according to SML/NJ convention as follows:
   // alloc, limit, store, link, clos, cont, arg, misc0, ... misc6
-//  CCIfType<[i64],
-//  CCAssignToReg<[RSI, R11, RDI, R8, R9, RAX,
-//                 RDX, RCX, R10, RBX, R12, R13, R14, R15]>>,
-    CCIfType<[i64],
-	CCAssignToReg<[
-	    RDI, R14, R15,	// ALLOC, LIMIT, STORE
-	    R8, R9, RSI,	// LINK, CLOS, CONT
-	    RBX, RCX, RDX,	// MISC01-MISC2 (CALLEE SAVES)
-	    RBP, R10, R11,	// ARG, MISC3, MISC4,
-	    R12, R13		// MISC5, MISC6
-	]>>,
+  CCIfType<[i64],
+    CCAssignToReg<[
+	RDI, R14, R15,	// ALLOC, LIMIT, STORE
+	R8, R9, RSI,	// LINK, CLOS, CONT
+	RBX, RCX, RDX,	// MISC01-MISC2 (CALLEE SAVES)
+	RBP, R10, R11,	// ARG, MISC3, MISC4,
+	R12, R13	// MISC5, MISC6
+    ]>>,
 
   // TODO(kavon): check if something breaks if the target
   // does not support SSE registers? should add a check for that.
