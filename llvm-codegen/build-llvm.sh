@@ -23,7 +23,7 @@
 
 FORCE=no
 LLVM_SRC=llvm-10.0.1.src
-BUILD_TYPE=Debug
+BUILD_TYPE=Release
 NPROCS=4
 
 # system specific defaults
@@ -97,7 +97,8 @@ fi
 LLVM_BUILD=build-"$LLVM_INSTALL"
 
 #TARGETS="X86;AArch64"
-TARGETS="X86"
+#TARGETS="X86"
+TARGETS="AArch64"
 
 CMAKE_DEFS="\
   -DCMAKE_BUILD_TYPE=$BUILD_TYPE \

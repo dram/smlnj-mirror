@@ -3299,6 +3299,8 @@ CCAssignFn *AArch64TargetLowering::CCAssignFnForCall(CallingConv::ID CC,
     return CC_AArch64_WebKit_JS;
   case CallingConv::GHC:
     return CC_AArch64_GHC;
+  case CallingConv::JWA:
+    return CC_AArch64_JWA;
   case CallingConv::C:
   case CallingConv::Fast:
   case CallingConv::PreserveMost:
@@ -3736,7 +3738,7 @@ SDValue AArch64TargetLowering::LowerCallResult(
 
 /// Return true if the calling convention is one that we can guarantee TCO for.
 static bool canGuaranteeTCO(CallingConv::ID CC) {
-  return CC == CallingConv::Fast;
+  return (CC == CallingConv::Fast) || (CC == CallingConv::JWA);
 }
 
 /// Return true if we might ever do TCO for calls with this calling convention.

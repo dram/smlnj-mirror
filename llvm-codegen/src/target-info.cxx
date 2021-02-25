@@ -19,9 +19,7 @@ static target_info AMD64Info = {
 	3,				// numCalleeSaves
 	true,				// hasPCRel
 	{				// offsets for memory registers
-	    0, 0, 0,			    // ALLOC_PTR, LIMIT_PTR, STORE_PTR
-// FIXME: we are using the stack layout used for the MLRISC backend, it may have
-// to be adjusted to be compatible with LLVM's stack layout conventions
+	    0, 0, 0,			// ALLOC_PTR, LIMIT_PTR, STORE_PTR
 	    8224, 8232		   	// EXN_HNDLR, VAR_PTR
 	},
 	8240,				// call-gc offset
@@ -35,10 +33,10 @@ static target_info AArch64 = {
 	llvm::Triple::aarch64,
 	"",
 	64,				// wordSz
-	?,
+	29,				// numRegs
 	3,				// numCalleeSaves
 	true,				// hasPCRel
-	{ 0, 0, 0, 0, 0 },		// no memory reisters
+	{ 0, 0, 0, 0, 0 },		// no memory registers
 	?,				// call-gc offset
 	8*1024				// allocation slop
     };
