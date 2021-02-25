@@ -29,7 +29,7 @@ struct target_info {
     bool hasPCRel;			// true if the target supports PC-relative addressing.
     int stkOffset[reg_info::NUM_REGS];	// byte offset from stack pointer to location where
 					// the value is stored.  Will be non-zero only
-					// for SML registers that are represented in memory.
+					// for CMachine registers that stack allocated
     int callGCOffset;			// stack offset of call-gc entry address
     unsigned int allocSlopSzb;		// byte size of allocation slop
 
