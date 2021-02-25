@@ -11,6 +11,7 @@
 #include "code-buffer.hxx"
 #include "cfg.hxx"
 #include "codegen.hxx"
+#include "target-info.hxx"
 #include <iostream>
 
 #include "llvm/Support/Error.h"
@@ -58,13 +59,24 @@ static code_buffer *CodeBuf = nullptr;
 
 static llvm::ExitOnError exitOnErr;
 
+void setTarget (std::string const &target)
+{
+    if (CodeBuf != nullptr) {
+	if (CodeBuf->targetInfo()->name == target) {
+	    return;
+	}
+	delete CodeBuf;
+    }
+    
+    CodeBuf = code_buffer::create (target);
+
+}
+
 void codegen (std::string const & src, bool emitLLVM, bool dumpBits, output out)
 {
     asdl::file_instream inS(src);
 
-    if (CodeBuf == nullptr) {
-	CodeBuf = code_buffer::create ("amd64");
-    }
+    assert (CodeBuf != nullptr);
 
     std::cout << "read pickle ..." << std::flush;
     Timer pklTimer = Timer::start();

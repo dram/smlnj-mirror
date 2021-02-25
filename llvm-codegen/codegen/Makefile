@@ -3,8 +3,17 @@
 
 SHELL =		/bin/sh
 
-BUILD =		debug
-#BUILD =		release
+UNAME_ARCH :=	$(shell uname -m)
+ifeq ($(UNAME_ARCH),amd64)
+HOST_ARCH="amd64"
+else ifeq ($(UNAME_ARCH),arm64)
+HOST_ARCH="aarch64"
+else
+HOST_ARCH="unknown"
+endif
+
+#BUILD =		debug
+BUILD =		release
 
 SML_ROOT =	../..
 LLVM_DIR =	../llvm-$(BUILD)
@@ -14,11 +23,11 @@ BUILD_DIR =	../build-$(BUILD)
 CXX =		clang++ --std=c++14
 CPP_FLAGS =	-I../include -I$(SML_ROOT)/include -I/opt/local/include
 CXX_FLAGS =	-g
-LD_FLAGS =	-L../../lib
+LD_FLAGS =
 
-LLVM_CPP_FLAGS = $(shell $(LLVM_CONFIG) --cppflags)
-LLVM_LD_FLAGS =	$(shell $(LLVM_CONFIG) --ldflags)
-LLVM_LIBS =	$(shell $(LLVM_CONFIG) --libs x86 aarch64) \
+LLVM_CPP_FLAGS := $(shell $(LLVM_CONFIG) --cppflags)
+LLVM_LD_FLAGS := $(shell $(LLVM_CONFIG) --ldflags)
+LLVM_LIBS :=	$(shell $(LLVM_CONFIG) --libs x86 aarch64) \
 		$(shell $(LLVM_CONFIG) --system-libs)
 
 INCLUDES =	$(wildcard ../include/*hxx) $(wildcard ../include/asdl/*hxx) $(wildcard $(BUILD_DIR)/*hxx)
@@ -31,7 +40,7 @@ codegen:	main.o $(CODEGEN_SRCS) $(INCLUDES)
 	clang++ -o codegen $(LLVM_LD_FLAGS) $(LD_FLAGS) $(OBJS) $(LLVM_LD_FLAGS) $(LIBS) $(LLVM_LIBS)
 
 %.o: %.cxx
-	$(CXX) -c $(LLVM_CPP_FLAGS) $(CPP_FLAGS) $(CXX_FLAGS) $<
+	$(CXX) -c -DHOST_ARCH=$(HOST_ARCH) $(LLVM_CPP_FLAGS) $(CPP_FLAGS) $(CXX_FLAGS) $<
 
 .PHONY:		clean
 clean:

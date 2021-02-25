@@ -26,30 +26,29 @@ static target_info AMD64Info = {
 	8*1024				// allocation slop
     };
 
-/* TODO: AArch64 */
-#ifdef AARCH64_DONE
-static target_info AArch64 = {
+static target_info AArch64Info = {
 	"aarch64",			// name
 	llvm::Triple::aarch64,
-	"",
+	"e-m:o-i64:64-i128:128-n32:64-S128",
 	64,				// wordSz
 	29,				// numRegs
 	3,				// numCalleeSaves
 	true,				// hasPCRel
 	{ 0, 0, 0, 0, 0 },		// no memory registers
-	?,				// call-gc offset
+	8240,				// call-gc offset *** FIXME ***
 	8*1024				// allocation slop
     };
-#endif
 
-#define NUM_TARGETS	1
-static target_info const *Targets[NUM_TARGETS] = {
-	&AMD64Info
+static target_info const *Targets[] = {
+	&AMD64Info,
+	&AArch64Info
     };
+
+constexpr int kNumTargets = sizeof(Targets) / sizeof(target_info *);
 
 target_info const *target_info::InfoForTarget (std::string const &name)
 {
-    for (int i = 0;  i < NUM_TARGETS;  i++) {
+    for (int i = 0;  i < kNumTargets;  i++) {
 	if (Targets[i]->name == name) {
 	    return Targets[i];
 	}

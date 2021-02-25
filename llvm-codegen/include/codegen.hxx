@@ -11,7 +11,11 @@
 #ifndef _CODEGEN_HXX_
 #define _CODEGEN_HXX_
 
+#include <string>
+
 enum class output { PrintAsm, AsmFile, ObjFile, Memory };
+
+void setTarget (std::string const &target);
 
 void codegen (std::string const & src, bool emitLLVM, bool dumpBits, output out);
 
