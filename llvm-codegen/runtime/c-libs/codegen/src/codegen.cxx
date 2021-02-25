@@ -205,7 +205,7 @@ ml_val_t llvm_codegen (ml_state_t *msp, const char *src, const char *pkl, size_t
 #ifdef NDEBUG
   /* report stats */
     double relocT = relocTimer.msec();
-llvm::dbgs() << "\"" << src << "\"," << pklSzb << "," << szb << ","
+llvm::dbgs() << "\"" << src << "\"," << pklSzb << "," << codeSzb << ","
     << initT << "," << unpklT << "," << genT << "," << optT << "," << verifyT << "," << relocT
     << "," << totalTimer.msec() << "\n";
 #endif

@@ -23,8 +23,8 @@ RANLIB =	ranlib
 LLVM_CONFIG =	$(LLVM_DIR)/bin/llvm-config
 
 LLVM_CXX_FLAGS = $(shell $(LLVM_CONFIG) --cxxflags)
-LLVM_CPP_FLAGS = -Iinclude $(INCLUDES)
-#LLVM_CPP_FLAGS = -DNDEBUG -Iinclude $(INCLUDES)
+#LLVM_CPP_FLAGS = -Iinclude $(INCLUDES)
+LLVM_CPP_FLAGS = -DNDEBUG -Iinclude $(INCLUDES)
 
 CXX =           clang++ -g -O2 $(LLVM_CXX_FLAGS) 
 
