@@ -30,64 +30,48 @@ structure Timing : sig
 
     fun start () = (
 	  SMLofNJ.Internals.GC.doGC 1000;
-         {realt = TR.startRealTimer(), timer = TR.startCPUTimer()})
+          Time.now())
 
-    fun stop {realt, timer} = let
-          val rt = TR.checkRealTimer realt
-          val {usr, sys} = TR.checkCPUTimer timer
-	  val gc = TR.checkGCTime timer
-	  in
-	    {usr=usr, gc=gc, sys=sys, real=rt}
-	  end
+    fun stop startT = Time.-(Time.now(), startT)
 
     (* convert a time value to a string, padded on the left to 8 characters *)
     fun timeToStr time = pad (Time.toString time, 6)
 
-    fun output (strm, {usr, gc, sys, real} : timing) = let
-	  val str = concat[
-		  "{usr = ", timeToStr usr,
-		  ", sys = ", timeToStr sys,
-		  ", gc = ", timeToStr gc,
-		  ", real = ", timeToStr real, "}"
-		]
-	  in
-	    TextIO.output (strm, str)
-	  end
+    fun output (strm, t) = TextIO.output (strm, timeToStr t)
 
   (* measure the compile time for a file *)
     fun timeUse (outstrm, file) = let
 	  val t0 = start()
 	  in
 	    use file;
-	    output (outstrm, stop t0);
-	    TextIO.output1 (outstrm, #"\n")
-	  end
-
-  (* Time one run of the benchmark *)
-    fun timeOne (outstrm, doit) = let
-	  val t0 = start()
-	  in
-	    doit();
-	    TextIO.output1 (outstrm, #"\t");
 	    output (outstrm, stop t0)
 	  end
 
-    fun timeIt (outstrm, doit) = (
-	  timeOne (outstrm, doit);
-	  TextIO.output1 (outstrm, #"\n"))
+  (* Time one run of the benchmark *)
+    fun timeOne doit = let
+	  val t0 = start()
+	  in
+	    doit();
+	    stop t0
+	  end
+
+    fun timeIt (outstrm, doit) = let
+	    val t = timeOne doit
+	    in
+	      TextIO.output1 (outstrm, #"\t");
+	      output (outstrm, t);
+	      TextIO.output1 (outstrm, #"\n")
+	    end
 
   (* Time n runs of the benchmark *)
     fun time (n, outstrm, doit) = let
 	  fun loop 0 = ()
-	    | loop 1 = timeIt(outstrm, doit)
 	    | loop i = (
-		timeOne(outstrm, doit);
-		TextIO.output(outstrm, ",\n");
-		loop(i-1))
+		output (outstrm, timeOne doit);
+		if (i > 1) then TextIO.output (outstrm, ", ") else ();
+		loop (i-1))
 	  in
-	    TextIO.output (outstrm, "    Runs=[\n");
-	    loop n;
-	    TextIO.output (outstrm, "      ]\n")
+	    loop n
 	  end
 
   end
