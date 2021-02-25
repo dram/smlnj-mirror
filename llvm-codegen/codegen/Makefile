@@ -3,10 +3,13 @@
 
 SHELL =		/bin/sh
 
+BUILD =		debug
+#BUILD =		release
+
 SML_ROOT =	../..
-LLVM_DIR =	../llvm-debug
+LLVM_DIR =	../llvm-$(BUILD)
 LLVM_CONFIG =	$(LLVM_DIR)/bin/llvm-config
-BUILD_DIR =	../build
+BUILD_DIR =	../build-$(BUILD)
 
 CXX =		clang++ --std=c++14
 CPP_FLAGS =	-I../include -I$(SML_ROOT)/include -I/opt/local/include
