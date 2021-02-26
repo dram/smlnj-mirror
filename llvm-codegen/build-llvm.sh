@@ -219,3 +219,7 @@ rm -rf $LLVM_INSTALL
 
 echo "$0: building on $NPROCS cores"
 time make -j $NPROCS install
+
+echo ""
+echo "LLVM for $TARGETS installed in $LLVM_INSTALL"
+

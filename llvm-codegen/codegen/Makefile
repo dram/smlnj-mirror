@@ -27,7 +27,7 @@ LD_FLAGS =
 
 LLVM_CPP_FLAGS := $(shell $(LLVM_CONFIG) --cppflags)
 LLVM_LD_FLAGS := $(shell $(LLVM_CONFIG) --ldflags)
-LLVM_LIBS :=	$(shell $(LLVM_CONFIG) --libs x86 aarch64) \
+LLVM_LIBS :=	$(shell $(LLVM_CONFIG) --libs aarch64) \
 		$(shell $(LLVM_CONFIG) --system-libs)
 
 INCLUDES =	$(wildcard ../include/*hxx) $(wildcard ../include/asdl/*hxx) $(wildcard $(BUILD_DIR)/*hxx)
