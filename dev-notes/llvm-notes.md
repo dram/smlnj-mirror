@@ -102,7 +102,7 @@ the various calling conventions.  In **LLVM** 10.0.x, the last number assigned
 is `19`, so we use `20` for **JWA**.  Add the following code to the file just
 before the first target-specific code (which will be `64`).
 
-````C
+```` c++
     /// JWA - "Jump With Arguments" is a calling convention that requires the
     /// use of registers for parameter passing. It is designed for language
     /// implementations that do not use a stack, however, it will not warn
@@ -134,43 +134,42 @@ def CC_X86_64_JWA : CallingConv<[
   // Promote i8/i16/i32 arguments to i64.
   CCIfType<[i8, i16, i32], CCPromoteToType<i64>>,
 
-  // The only registers we skip are RBP and RSP.
-
-  // Manticore assignment: alloc, vproc, clos, retk, exh, stdArg, otherArgs
+  // The only registers we skip are RAX and RSP.
 
   // registers are ordered according to SML/NJ convention as follows:
-  // alloc, limit, store, link, clos, cont, arg, misc0, ... misc6
+  // alloc, limit, store, link, clos, cont, misc0, ..., misc3, arg, ... misc6
   CCIfType<[i64],
-  CCAssignToReg<[RSI, R11, RDI, R8, R9, RAX,
-                 RDX, RCX, R10, RBX, R12, R13, R14, R15]>>,
-
-  // TODO(kavon): check if something breaks if the target
-  // does not support SSE registers? should add a check for that.
+    CCAssignToReg<[
+        RDI, R14, R15,  // ALLOC, LIMIT, STORE
+        R8, R9, RSI,    // LINK, CLOS, CONT
+        RBX, RCX, RDX,  // MISC01-MISC2 (CALLEE SAVES)
+        RBP, R10, R11,  // ARG, MISC3, MISC4,
+        R12, R13        // MISC5, MISC6
+    ]>>,
 
   // Use as many vector registers as possible!
+  // NOTE: we are assuming that SSE is never disabled for JWA, since it
+  // would break upstream assumptions in the SML/NJ compiler.
   CCIfType<[f32, f64, v16i8, v8i16, v4i32, v2i64, v4f32, v2f64],
-           CCAssignToReg<[XMM0, XMM1, XMM2, XMM3,
-                          XMM4, XMM5, XMM6, XMM7,
-                          XMM8, XMM9, XMM10, XMM11,
-                          XMM12, XMM13, XMM14, XMM15]>>,
+    CCAssignToReg<[
+      XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7,
+      XMM8, XMM9, XMM10, XMM11, XMM12, XMM13, XMM14, XMM15]>>,
 
-  // 256-bit vectors registers
+  // AVX (256-bit) vector registers
   CCIfType<[v32i8, v16i16, v8i32, v4i64, v8f32, v4f64],
-           CCAssignToReg<[YMM0, YMM1, YMM2, YMM3,
-                          YMM4, YMM5, YMM6, YMM7,
-                          YMM8, YMM9, YMM10, YMM11,
-                          YMM12, YMM13, YMM14, YMM15]>>,
+    CCIfSubtarget<"hasAVX()",
+      CCAssignToReg<[
+	YMM0, YMM1, YMM2, YMM3, YMM4, YMM5, YMM6, YMM7,
+	YMM8, YMM9, YMM10, YMM11, YMM12, YMM13, YMM14, YMM15]>>>,
 
-  // 512-bit vector registers
+  // AVX-512 (512-bit) vector registers
   CCIfType<[v64i8, v32i16, v16i32, v8i64, v16f32, v8f64],
-           CCAssignToReg<[ZMM0, ZMM1, ZMM2, ZMM3,
-                          ZMM4, ZMM5, ZMM6, ZMM7,
-                          ZMM8, ZMM9, ZMM10, ZMM11,
-                          ZMM12, ZMM13, ZMM14, ZMM15,
-                          ZMM16, ZMM17, ZMM18, ZMM19,
-                          ZMM20, ZMM21, ZMM22, ZMM23,
-                          ZMM24, ZMM25, ZMM26, ZMM27,
-                          ZMM28, ZMM29, ZMM30, ZMM31]>>
+    CCIfSubtarget<"hasAVX512()",
+      CCAssignToReg<[
+	ZMM0, ZMM1, ZMM2, ZMM3, ZMM4, ZMM5, ZMM6, ZMM7,
+	ZMM8, ZMM9, ZMM10, ZMM11, ZMM12, ZMM13, ZMM14, ZMM15,
+	ZMM16, ZMM17, ZMM18, ZMM19, ZMM20, ZMM21, ZMM22, ZMM23,
+	ZMM24, ZMM25, ZMM26, ZMM27, ZMM28, ZMM29, ZMM30, ZMM31]>>>
 
 ]>;
 ````
@@ -211,7 +210,7 @@ In the file `$LLVM/lib/Target/X86/X86FastISel.cpp`, the function
 recognize the **JWA** convention.
 
 To the code
-````
+```` c++
   if (CC == CallingConv::Fast || CC == CallingConv::GHC ||
       CC == CallingConv::HiPE || CC == CallingConv::Tail)
     return 0;
@@ -223,7 +222,7 @@ add a test for **JWA** (`CC == CallingConv::JWA`).
 In the file `$LLVM/lib/Target/X86/X86ISelLowering.cpp`, we need to add
 a check for **JWA** to the function `canGuaranteeTCO`.
 
-````
+```` c++
   return (CC == CallingConv::Fast || CC == CallingConv::GHC ||
           CC == CallingConv::X86_RegCall || CC == CallingConv::HiPE ||
           CC == CallingConv::HHVM || CC == CallingConv::Tail ||
@@ -234,55 +233,282 @@ a check for **JWA** to the function `canGuaranteeTCO`.
 
 In the file `$LLVM/lib/Target/X86/X86RegisterInfo.cpp`, we need to add
 cases for **JWA** to the method `getCalleeSavedRegs`:
-````
+```` c++
   case CallingConv::GHC:
   case CallingConv::HiPE:
   case CallingConv::JWA:
     return CSR_NoRegs_SaveList;
 ````
 and to the method `getCallPreservedMask`
-````
+```` c++
   case CallingConv::GHC:
   case CallingConv::HiPE:
   case CallingConv::JWA:
     return CSR_NoRegs_RegMask;
 ````
 
+### `Target/AArch64`
+
+The basic approach to supporting the **AArch64** (aka **arm64**) target is similar
+to the **X86**, but the details are different.  Both because of differences in
+the number of target registers and because the **LLVM** code for the ``AArch64``
+is writting in a different style (*e.g.*, conditionals instead of `switch`
+statements for testing calling conventions).  As before, we need to modify a number
+of files in the directory `$LLVM/lib/Target/AArch64/`.
+
+### `AArch64CallingConvention.td`
+
+At the end of the file, add the following code:
+
+````
+//===----------------------------------------------------------------------===//
+// JWA Calling Convention
+//===----------------------------------------------------------------------===//
+
+// The "Jump With Arguments" calling convention is designed to support the
+// "continuation-passing, closure-passing" model used by SML/NJ and the Manticore
+// compiler.  The convention is described in the paper "Compiling with Continuations
+// and LLVM" (https://arxiv.org/abs/1805.08842v1).
+//
+let Entry = 1 in
+def CC_AArch64_JWA : CallingConv<[
+  CCIfType<[i1, i8, i16, i32], CCPromoteToType<i64>>,
+  //
+  // SML/NJ argument order:
+  //    alloc, limit, store, exn, var, link, clos, cont,
+  //    misc0, ..., misc3, arg, misc4, .., misc17
+  CCIfType<[i64],
+    CCAssignToReg<[
+        X24, X25, X26, X27, X28,        // ALLOC, LIMIT, STORE, EXN, VAR
+        X3, X2, X0, X1,                 // LINK, CLOS, CONT
+        X4, X5, X6,                     // MISC0-MISC2 (aka, CS0-CS2)
+        X0, X7, X8, X9, X10, X11, X12,  // ARG, MISC3-MISC8
+        X13, X14, X15, X16, X19, X20,   // MISC9-MISC14
+        X21, X22, X23                   // MISC15-MISC17
+      ]>>,
+  // there are 32 float/vector registers, but we only make 16 of them available
+  // for parameter passing
+  CCIfType<[f32], CCAssignToRegWithShadow<
+    [S0, S1, S2, S3, S4, S5, S6, S7, S8, S9, S10, S11, S12, S13, S14, S15],
+    [Q0, Q1, Q2, Q3, Q4, Q5, Q6, Q7, Q8, Q9, Q10, Q11, Q12, Q13, Q14, Q15]>>,
+  CCIfType<[f64], CCAssignToRegWithShadow<
+    [S0, S1, S2, S3, S4, S5, S6, S7, S8, S9, S10, S11, S12, S13, S14, S15],
+    [Q0, Q1, Q2, Q3, Q4, Q5, Q6, Q7, Q8, Q9, Q10, Q11, Q12, Q13, Q14, Q15]>>
+]>;
+
+// use the same convention for returns
+def RetCC_AArch64_JWA : CallingConv<[
+  CCDelegateTo<CC_AArch64_JWA>
+]>;
+````
+
+### `AArch64CallingConvention.h`
+
+Add the following function prototypes:
+
+```` c++
+bool CC_AArch64_JWA(unsigned ValNo, MVT ValVT, MVT LocVT,
+                    CCValAssign::LocInfo LocInfo, ISD::ArgFlagsTy ArgFlags,
+                    CCState &State);
+bool RetCC_AArch64_JWA(unsigned ValNo, MVT ValVT, MVT LocVT,
+                         CCValAssign::LocInfo LocInfo, ISD::ArgFlagsTy ArgFlags,
+                         CCState &State);
+````
+
+### `AArch64FastISel.cpp`
+
+In the method `AArch64FastISel::CCAssignFnForCall`, we add the following statement
+before the final return:
+
+```` c++
+  if (CC == CallingConv::JWA)
+    return CC_AArch64_JWA;
+````
+
+### `AArch64RegisterInfo.cpp`
+
+In the method `AArch64RegisterInfo::getCalleeSavedRegs`, add the following test
+following the similar code for the `GHC` convention.
+```` c++
+  if (MF->getFunction().getCallingConv() == CallingConv::JWA)
+    // no callee-saves for JWA
+    return CSR_AArch64_NoRegs_SaveList;
+````
+
+**NOTE**: it might be better to merge the `GHC` and `JWA` cases into a single
+conditional.
+
+In `AArch64RegisterInfo::getCallPreservedMask` method, change the `GHC` test to
+the following statement:
+```` c++
+  if ((CC == CallingConv::GHC) || (CC == CallingConv::JWA))
+     // This is academic because all GHC/JWA calls are (supposed to be) tail calls
+     return SCS ? CSR_AArch64_NoRegs_SCS_RegMask : CSR_AArch64_NoRegs_RegMask;
+````
+
+Add the following assertion to the `AArch64RegisterInfo::getThisReturnPreservedMask`
+method:
+
+```` c++
+  assert(CC != CallingConv::JWA && "should not be JWA calling convention.");
+````
+
+### `AArch64ISelLowering.cpp`
+
+There are two changes to the `$LLVM/lib/Target/AArch64/AArch64ISelLowering.cpp`
+file.  In the method `AArch64TargetLowering::CCAssignFnForCall`, add the case
+```` c++
+  case CallingConv::JWA:
+    return CC_AArch64_JWA;
+````
+and change the function `canGuaranteeTCO` to the following:
+```` c++
+static bool canGuaranteeTCO(CallingConv::ID CC) {
+  return (CC == CallingConv::Fast) || (CC == CallingConv::JWA);
+}
+````
+
+
+### `AArch64FrameLowering.cpp`
+
+We add the following statement
+
+```` c++
+ // All calls are tail calls in JWA calling conv, and functions have no
+ // prologue/epilogue.
+ if (MF.getFunction().getCallingConv() == CallingConv::JWA)
+   return;
+````
+
+in three places (following the similar code for the `GHC` calling convention):
+
+  * in method `AArch64FrameLowering::emitPrologue`
+
+  * in method `AArch64FrameLowering::emitEpilogue`
+
+  * in method `AArch64FrameLowering::determineCalleeSaves`
+
 ## Building LLVM
 
 Once the above edits have been made to the **LLVM** sources, you can use the
-following steps to build the **LLVM** library that will be linked with the
-**SML/NJ** runtime system.
+the `build-llvm.sh` script to build LLVM.  This script packages up the various
+steps needed to build and install LLVM, but we outline the build process here.
 
+There are three directories involved:
+
+  * The LLVM source directory (`$LLVM_SRC`); currently this directory is `llvm-10.0.1.src`
+
+  * A fresh build directory, (`$LLVM_BUILD`)
+
+  * A fresh installation directory (`$LLVM_INSTALL`)
+
+We also need to decide on the build type (`$BUILD_TYPE`), which can be either
+`Release` or `Debug`. The latter is significantly larger, slower, and takes much
+longer to build, but it is useful for development purposes.
+
+We start by creating the build directory:
+
+```` sh
+mkdir $LLVM_BUILD
+cd $LLVM_BUILD
 ````
-# make a directory to build LLVM in
-#
-mkdir llvm-build
-cd llvm-build
 
-# configure the build
-#
-CMAKE_OPTS="\
-  -DLLVM_ENABLE_ASSERTIONS=ON \
-  -DLLVM_OPTIMIZED_TABLEGEN=ON \
-  -DLLVM_CCACHE_BUILD=OFF \
-  -DCMAKE_INSTALL_PREFIX=../llvm \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DLLVM_TARGETS_TO_BUILD=X86 \
-  -DLLVM_INCLUDE_TOOLS=OFF \
-  -DLLVM_TOOL_LLVM_CONFIG_BUILD=ON \
-  -DLLVM_BUILD_LLVM_DYLIB=ON \
+Then we need to configure the build.  We use a bunch of options to try to reduce the
+time it takes to build LLVM.
+
+```` sh
+CMAKE_DEFS="\
+  -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+  -DCMAKE_INSTALL_PREFIX=../$LLVM_INSTALL \
+  -DLLVM_TARGETS_TO_BUILD=$TARGETS \
+  -DLLVM_ENABLE_LIBXML2=OFF \
+  -DLLVM_ENABLE_OCAMLDOC=OFF \
+  -DLLVM_INCLUDE_BENCHMARKS=OFF \
+  -DLLVM_INCLUDE_DOCS=OFF \
+  -DLLVM_INCLUDE_GO_TESTS=OFF \
+  -DLLVM_INCLUDE_TESTS=OFF \
+  -DLLVM_TOOL_DSYMUTIL_BUILD=OFF \
+  -DLLVM_TOOL_GOLD_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_AR_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_AS_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_AS_FUZZER_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_BCANALYZER_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_CAT_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_CFI_VERIFY_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_COV_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_CVTRES_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_CXXDUMP_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_CXXFILT_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_CXXMAP_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_C_TEST_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_DIFF_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_DIS_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_DWP_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_ELFABI_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_EXEGESIS_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_EXTRACT_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_GO_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_IFS_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_ISEL_FUZZER_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_ITANIUM_DEMANGLE_FUZZER_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_JITLINK_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_JITLISTENER_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_LINK_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_LIPO_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_LTO2_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_LTO_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_MCA_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_MC_ASSEMBLE_FUZZER_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_MC_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_MC_DISASSEMBLE_FUZZER_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_MICROSOFT_DEMANGLE_FUZZER_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_MODEXTRACT_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_MT_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_NM_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_OBJCOPY_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_OBJDUMP_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_OPT_FUZZER_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_OPT_REPORT_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_PDBUTIL_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_PROFDATA_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_RC_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_READOBJ_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_REDUCE_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_RTDYLD_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_SHLIB_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_SIZE_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_SPECIAL_CASE_LIST_FUZZER_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_SPLIT_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_STRESS_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_STRINGS_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_SYMBOLIZER_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_UNDNAME_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_XRAY_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_YAML_NUMERIC_PARSER_FUZZER_BUILD=OFF \
+  -DLLVM_TOOL_LTO_BUILD=OFF \
+  -DLLVM_TOOL_OBJ2YAML_BUILD=OFF \
+  -DLLVM_TOOL_OPT_BUILD=OFF \
+  -DLLVM_TOOL_OPT_VIEWER_BUILD=OFF \
+  -DLLVM_TOOL_REMARKS_SHLIB_BUILD=OFF \
+  -DLLVM_TOOL_SANCOV_BUILD=OFF \
+  -DLLVM_TOOL_SANSTATS_BUILD=OFF \
+  -DLLVM_TOOL_VERIFY_USELISTORDER_BUILD=OFF \
+  -DLLVM_TOOL_VFABI_DEMANGLE_FUZZER_BUILD=OFF \
+  -DLLVM_TOOL_XCODE_TOOLCHAIN_BUILD=OFF \
+  -DLLVM_TOOL_YAML2OBJ_BUILD=OFF \
 "
-
-cmake -G "Unix Makefiles" "$CMAKE_OPTS" ../llvm-src
-
-# build LLVM using $NPROC processors
-#
-make -j $NPROC install
 ````
 
 On **Linux** systems, you should add the option `-DLLVM_USE_LINKER=gold` to
-the `CMAKE_OPTS` definition.
+the `CMAKE_DEFS` definition.
+
+```` sh
+cmake -G "Unix Makefiles" "$CMAKE_OPTS" ../llvm-src
+````
+
+```` sh
+make -j $NPROC install
+````
 
 In the future, we may want to add `AArch64` (64-bit ARM), `PowerPC`, `RISCV`,
-and `Sparc` as targets.
+or `Sparc` as targets.
