@@ -27,12 +27,16 @@ FORCE=no
 LLVM_SRC=llvm-10.0.1.src
 BUILD_TYPE=Release
 NPROCS=4
+USE_GOLD_LD=no
 
 # system specific defaults
 #
 case `uname -s` in
   Darwin)
     NPROCS=$(sysctl -n hw.physicalcpu)
+  ;;
+  Linux)
+    USE_GOLD_LD=yes
   ;;
 esac
 
@@ -190,6 +194,10 @@ CMAKE_DEFS="\
   -DLLVM_TOOL_YAML2OBJ_BUILD=OFF \
 "
 
+if [ x"$USE_GOLD_LD" = xyes ] ; then
+  CMAKE_DEFS="$CMAKE_DEFS -DLLVM_USE_LINKER=gold"
+fi
+
 if [ -d "$LLVM_BUILD" ] ; then
   if [ $FORCE = yes ] ; then
     echo  "$0: removing old $LLVM_BUILD"
@@ -211,4 +219,3 @@ rm -rf $LLVM_INSTALL
 
 echo "$0: building on $NPROCS cores"
 time make -j $NPROCS install
-
