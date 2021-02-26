@@ -25,7 +25,7 @@
 
 FORCE=no
 LLVM_SRC=llvm-10.0.1.src
-BUILD_TYPE=Release
+BUILD_TYPE=Debug
 NPROCS=4
 USE_GOLD_LD=no
 
