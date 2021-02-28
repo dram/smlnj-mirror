@@ -189,8 +189,9 @@ llvm::Function *code_buffer::newFunction (
 // a fragment
 code_buffer::arg_info code_buffer::_getArgInfo (frag_kind kind) const
 {
-    code_buffer::arg_info info;
+    assert (this->_curCluster != nullptr && "no current cluster defined");
 
+    code_buffer::arg_info info;
     info.nExtra = this->_regInfo.numMachineRegs();
 
     switch (kind) {
