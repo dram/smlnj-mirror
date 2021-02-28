@@ -4,9 +4,7 @@ This is a list of things (both major and minor) that should be fixed/improved/ch
 in the SML/NJ compiler.  It is organized into short-term goals by proposed release
 target plus an additional "wish-list" of long-term goals.
 
-## For 110.99
-
-  * fix pretty-printer bugs
+## For 2021.1
 
   * check if the problem with IntInf literals has gone away.
 
@@ -24,6 +22,10 @@ target plus an additional "wish-list" of long-term goals.
 
 ## Future work
 
+We divide future work into small and big projects.
+
+### Small projects
+
   * Better type error messages:
     - Do not use the **same** name to refer to types that are **different**
     - Do not use **different** names to refer to types that are the **same**
@@ -40,8 +42,6 @@ target plus an additional "wish-list" of long-term goals.
 
   * Cleanup `compiler/CPS/clos/closure.sml`; there is a lot of code that was
     written to support quasi-stacks, which is no longer needed.
-
-  * Switch environment pickling to use ASDL
 
   * The `CPS.SWITCH` construct only supports tagged integer arguments (this limitation
     is because of the way that jump-table indices is handled in `CodeGen/mlriscGen.sml`).
@@ -73,9 +73,6 @@ target plus an additional "wish-list" of long-term goals.
   * The `unboxedFloats` flag in the `MACH_SPEC` signature is `true` for all targets; can
     we get rid of it?
 
-  * New post-typechecking Absyn representation that makes the polymorphic type machinery
-    explicit (*i.e.*, type abstraction and applications explicit).
-
   * Functor specialization in the compiler.  This feature would allow more code
     sharing in the libraries (since functors could be used to generate multiple
     implementations).  It will require both the new Absyn representation and ASDL
@@ -102,6 +99,26 @@ target plus an additional "wish-list" of long-term goals.
   * Expose the two-level representation of arrays and vectors and add compiler support
     for slices.
 
-  * New-new-runtime: new GC and core services with old version of C functions.
-
   * FLINT replacement (switch to 3CPS?)
+
+### Big projects
+
+  * New-new-runtime: new GC and core services with old version of C functions
+    and the LLVM code generator.
+
+  * Switch environment pickling to use ASDL
+
+  * New post-typechecking Absyn representation that makes the polymorphic type machinery
+    explicit (*i.e.*, type abstraction and applications explicit).
+
+  * Compile-time application of functors.  This change will yield several significant
+    benefits:
+    - allow functors to be used to refactor the basis and SML/NJ library code
+      so that there is less code duplication without sacrificing performance.
+    - better performance for heavily functorized code (*e.g.*, MLton).
+    - Eliminate the need for special tricks to get datatype representations
+      right (*e.g.*, it avoids the `type 'a list = nil | cons of 'a t` problem.
+      It should also allow more aggressive specialization of datatype representations.
+    This change depends on the migration to ASDL for pickling (because we will need
+    to pickle functors) and on the overhaul of the Absyn representation.
+
