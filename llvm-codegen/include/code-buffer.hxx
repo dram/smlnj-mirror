@@ -771,8 +771,8 @@ class code_buffer {
 
   // information about JWA arguments
     struct arg_info {
-	int nExtra;	// number of extra args for special SML registers that
-			// are mapped to machine registers
+	int nExtra;	// number of extra args for special CMachine registers
+			// that are mapped to machine registers
 	int basePtr;	// == 1 if there is a base-pointer arg, 0 otherwise
 	int nUnused;	// unused args (for STD_CONT convention)
 
