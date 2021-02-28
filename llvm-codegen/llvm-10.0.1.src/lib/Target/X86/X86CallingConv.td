@@ -278,33 +278,29 @@ def CC_X86_64_JWA : CallingConv<[
 	R12, R13	// MISC5, MISC6
     ]>>,
 
-  // TODO(kavon): check if something breaks if the target
-  // does not support SSE registers? should add a check for that.
-
   // Use as many vector registers as possible!
+  // NOTE: we are assuming that SSE is never disabled for JWA, since it
+  // would break upstream assumptions in the SML/NJ compiler.
   CCIfType<[f32, f64, v16i8, v8i16, v4i32, v2i64, v4f32, v2f64],
-           CCAssignToReg<[XMM0, XMM1, XMM2, XMM3,
-                          XMM4, XMM5, XMM6, XMM7,
-                          XMM8, XMM9, XMM10, XMM11,
-                          XMM12, XMM13, XMM14, XMM15]>>,
+    CCAssignToReg<[
+      XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7,
+      XMM8, XMM9, XMM10, XMM11, XMM12, XMM13, XMM14, XMM15]>>,
 
-  // 256-bit vectors registers
+  // AVX (256-bit) vector registers
   CCIfType<[v32i8, v16i16, v8i32, v4i64, v8f32, v4f64],
-           CCAssignToReg<[YMM0, YMM1, YMM2, YMM3,
-                          YMM4, YMM5, YMM6, YMM7,
-                          YMM8, YMM9, YMM10, YMM11,
-                          YMM12, YMM13, YMM14, YMM15]>>,
+    CCIfSubtarget<"hasAVX()",
+      CCAssignToReg<[
+	YMM0, YMM1, YMM2, YMM3, YMM4, YMM5, YMM6, YMM7,
+	YMM8, YMM9, YMM10, YMM11, YMM12, YMM13, YMM14, YMM15]>>>,
 
-  // 512-bit vector registers
+  // AVX-512 (512-bit) vector registers
   CCIfType<[v64i8, v32i16, v16i32, v8i64, v16f32, v8f64],
-           CCAssignToReg<[ZMM0, ZMM1, ZMM2, ZMM3,
-                          ZMM4, ZMM5, ZMM6, ZMM7,
-                          ZMM8, ZMM9, ZMM10, ZMM11,
-                          ZMM12, ZMM13, ZMM14, ZMM15,
-                          ZMM16, ZMM17, ZMM18, ZMM19,
-                          ZMM20, ZMM21, ZMM22, ZMM23,
-                          ZMM24, ZMM25, ZMM26, ZMM27,
-                          ZMM28, ZMM29, ZMM30, ZMM31]>>
+    CCIfSubtarget<"hasAVX512()",
+      CCAssignToReg<[
+	ZMM0, ZMM1, ZMM2, ZMM3, ZMM4, ZMM5, ZMM6, ZMM7,
+	ZMM8, ZMM9, ZMM10, ZMM11, ZMM12, ZMM13, ZMM14, ZMM15,
+	ZMM16, ZMM17, ZMM18, ZMM19, ZMM20, ZMM21, ZMM22, ZMM23,
+	ZMM24, ZMM25, ZMM26, ZMM27, ZMM28, ZMM29, ZMM30, ZMM31]>>>
 
 ]>;
 
