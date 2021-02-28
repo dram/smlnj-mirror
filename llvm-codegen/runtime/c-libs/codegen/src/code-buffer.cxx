@@ -86,9 +86,23 @@ code_buffer::code_buffer (target_info const *target)
 	this->_gcFnTy = llvm::FunctionType::get(gcRetTy, gcTys, false);
     }
 
-  // overflow block/function
+  // initialize the overflow block and function type
     {
-	std::vector<Type *> tys = this->createParamTys (frag_kind::KNOWN_FUN, 0);
+      // the overflow block and function have a minimal calling convention
+      // that consists of just the hardware CMachine registers.  These are
+      // necessary to ensure that the correct values are in place at the point
+      // where the Overflow exception will be raised.
+      //
+	std::vector<Type *> tys;
+	int nArgs = this->_regInfo.numMachineRegs();
+	tys.reserve (nArgs);
+	for (int i = 0;  i < nArgs;  ++i) {
+	    if (this->_regInfo.machineReg(i)->id() <= sml_reg_id::STORE_PTR) {
+		tys.push_back (this->objPtrTy);
+	    } else {
+		tys.push_back (this->mlValueTy);
+	    }
+	}
 	this->_overflowFnTy = llvm::FunctionType::get(this->voidTy, tys, false);
 	this->_overflowBB = nullptr;
 	this->_overflowFn = nullptr;
