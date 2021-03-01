@@ -5,6 +5,11 @@ correspond to SML/NJ releases.
 SML/NJ 2021.1
 -------------------
 
+[2021-03-01]
+	Added the `FIND` constructor the the `JSONUtil.edge` datatype to
+	support indexing arrays by value in paths.  Also added the `ElemNotFound`
+	exception for when indexing fails.
+
 [2021-02-08]
 	Fixed the handling of the empty list in the `ANSITerm` structure.
 	Also updated the documentation.

@@ -26,6 +26,9 @@ structure JSONUtil : sig
   (* exception that is raised when access to an array value is out of bounds *)
     exception ArrayBounds of JSON.value * int
 
+  (* exception that is raised when a `FIND` edge does not match any array element *)
+    exception ElemNotFound of JSON.value
+
   (* map the above exceptions to a message string; we use General.exnMessage for other
    * exceptions.
    *)
@@ -63,14 +66,16 @@ structure JSONUtil : sig
 
   (* path specification for indexing into JSON values *)
     datatype edge
-      = SUB of int      (* index into array component *)
-      | SEL of string   (* select field of object *)
+      = SEL of string   (* select field of object *)
+      | SUB of int      (* index into array component *)
+      | FIND of JSON.value -> bool
+                        (* first array component that satisfies the predicate *)
 
     type path = edge list
 
   (* `get (jv, path)` returns the component of `jv` named by `path`.  It raises
-   * the NotObject, NotArray, and FieldNotFound exceptions if there is an inconsistency
-   * between the path and the structure of `jv`.
+   * the NotObject, NotArray, FieldNotFound, and ArrayBounds exceptions if there
+   * is an inconsistency between the path and the structure of `jv`.
    *)
     val get : JSON.value * path -> JSON.value
 
@@ -103,6 +108,7 @@ structure JSONUtil : sig
 
     exception NotArray of J.value
     exception ArrayBounds of J.value * int
+    exception ElemNotFound of JSON.value
 
   (* conversion functions for atomic values *)
     fun asBool (J.BOOL b) = b
@@ -183,6 +189,9 @@ structure JSONUtil : sig
 	      | NotArray v => String.concat[
 		    "expected array, but found ", v2s v
 		  ]
+	      | ElemNotFound v => String.concat[
+		    "no matching element found in ", v2s v
+		  ]
 	      | _ => General.exnMessage exn
 	    (* end case *)
 	  end
@@ -191,18 +200,33 @@ structure JSONUtil : sig
     datatype edge
       = SEL of string   (* select field of object *)
       | SUB of int      (* index into array component *)
+      | FIND of JSON.value -> bool
+                        (* first array component that satisfies the predicate *)
 
     type path = edge list
 
     fun get (v, []) = v
       | get (v as J.OBJECT fields, SEL lab :: rest) =
 	  (case List.find (fn (l, v) => (l = lab)) fields
-	   of NONE => raise raise FieldNotFound(v, concat["no definition for field \"", lab, "\""])
+	   of NONE => raise FieldNotFound(v, lab)
 	    | SOME(_, v) => get (v, rest)
 	  (* end case *))
       | get (v, SEL _ :: _) = raise NotObject v
-      | get (J.ARRAY vs, SUB i :: rest) = get (List.nth(vs, i), rest)
+      | get (v as J.ARRAY vs, SUB i :: rest) = let
+	  fun nth ([], _) = raise ArrayBounds(v, i)
+	    | nth (elem::_, 0) = elem
+	    | nth (_::r, i) = nth(r, i-1)
+	  in
+	    if (i < 0)
+	      then raise ArrayBounds(v, i)
+	      else get (nth(vs, i), rest)
+	  end
       | get (v, SUB _ :: _) = raise (NotArray v)
+      | get (v as J.ARRAY vs, FIND pred :: rest) = (case List.find pred vs
+	   of NONE => raise ElemNotFound v
+	    | SOME v => get (v, rest)
+	  (* end case *))
+      | get (v, FIND _ :: _) = raise (NotArray v)
 
   (* top-down zipper to support functional editing *)
     datatype zipper
@@ -222,7 +246,7 @@ structure JSONUtil : sig
   (* follow a path into a JSON value while constructing a zipper *)
     fun unzip (v, []) = (ZNIL, v)
       | unzip (v as J.OBJECT fields, SEL lab :: rest) = let
-          fun find (_, []) = raise FieldNotFound(v, concat["no definition for field \"", lab, "\""])
+          fun find (_, []) = raise FieldNotFound(v, lab)
             | find (pre, (l, v)::flds) = if (l = lab)
                 then let
 		  val (zipper, v) = unzip (v, rest)

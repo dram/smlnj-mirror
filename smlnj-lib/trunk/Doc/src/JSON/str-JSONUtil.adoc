@@ -31,6 +31,8 @@ exception NotArray of JSON.value
 
 exception ArrayBounds of JSON.value * int
 
+exception ElemNotFound of JSON.value
+
 val exnMessage : exn -> string
 
 val asBool : JSON.value -> bool
@@ -47,7 +49,10 @@ val asArray : JSON.value -> JSON.value vector
 
 val arrayMap : (JSON.value -> 'a) -> JSON.value -> 'a list
 
-datatype edge = SUB of int | SEL of string
+datatype edge
+  = SEL of string
+  | SUB of int
+  | FIND of JSON.value -> bool
 
 type path = edge list
 
@@ -99,6 +104,12 @@ val append : JSON.value * path * JSON.value list -> JSON.value
 `[.kw]#exception# ArrayBounds [.kw]#of# JSON.value * int`::
   [[exn:ArrayBounds]]
   This exception is raised when access to an array value is out of bounds.
+
+`[.kw]#exception# ElemNotFound [.kw]#of# JSON.value`::
+  [[exn:ElemNotFound]]
+  This exception is raised when there is no element of an array that satisfies
+  the predicate of a `FIND` edge in a path.  The argument will be the array
+  in question.
 
 `[.kw]#val# exnMessage : exn \-> string`::
   `exnMessage exn` returns an error-message string for the exception value
@@ -173,10 +184,13 @@ val append : JSON.value * path * JSON.value list -> JSON.value
   The constructors have the following meaning:
 +
 --
-    `SUB [.kw]#of# int`::
-	`SUB i` specifies the ``i``th element of a *JSON* array.
     `SEL [.kw]#of# string`::
 	`SEL key` specifies the value labeled by `key` in a *JSON* object.
+    `SUB [.kw]#of# int`::
+	`SUB i` specifies the ``i``th element of a *JSON* array.
+    `FIND [.kw]#of# JSON.value \-> bool`::
+        `FIND pred` specifies the first element of a *JSON* array that satisfies
+        the given predicate.
 --
 
 `[.kw]#type# path = edge list`::
@@ -186,8 +200,8 @@ val append : JSON.value * path * JSON.value list -> JSON.value
   [[val:get]]
   `get (jv, path)` returns the component of `jv` named by `path`.  It raises
   one of the xref:exn:NotObject[`NotObject`], xref:exn:NotArray[`NotArray`],
-  or xref:exn:FieldNotFound[`FieldNotFound`] exceptions if there is an
-  inconsistency between the path and the structure of `jv`.
+  xref:exn:FieldNotFound[`FieldNotFound`], or xref:exn:ElemNotFound[`ElemNotFound`]
+  exceptions if there is an inconsistency between the path and the structure of `jv`.
 
 == See Also
 
