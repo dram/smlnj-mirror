@@ -56,6 +56,16 @@ structure JSONUtil : sig
    *)
     val lookupField : JSON.value -> string -> JSON.value
 
+  (* does a JSON object have a given field?  This function returns false if called
+   * on a non-object value.
+   *)
+    val hasField : string -> JSON.value -> bool
+
+  (* does the specified field of an object satisfy the given predicate?  This function
+   * returns false if called on a non-object value.
+   *)
+    val testField : string -> (JSON.value -> bool) -> JSON.value -> bool
+
   (* convert a JSON array to an SML vector *)
     val asArray : JSON.value -> JSON.value vector
 
@@ -146,6 +156,16 @@ structure JSONUtil : sig
 	    find
 	  end
       | lookupField v = raise NotObject v
+
+    fun hasField lab (J.OBJECT fields) = List.exists (fn (lab', _) => lab = lab') fields
+      | hasField _ _ = false
+
+    fun testField lab pred (J.OBJECT fields) = (
+	  case List.find (fn (lab', _) => lab = lab') fields
+	   of SOME(_, v) => pred v
+	    | NONE => false
+	  (* end case *))
+      | testField _ _ _ = false
 
     fun asArray (J.ARRAY vs) = Vector.fromList vs
       | asArray v = raise NotArray v

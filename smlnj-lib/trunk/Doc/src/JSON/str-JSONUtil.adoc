@@ -42,8 +42,9 @@ val asNumber : JSON.value -> Real.real
 val asString : JSON.value -> string
 
 val findField : JSON.value -> string -> JSON.value option
-
 val lookupField : JSON.value -> string -> JSON.value
+val hasField : string -> JSON.value -> bool
+val testField : string -> (JSON.value -> bool) -> JSON.value -> bool
 
 val asArray : JSON.value -> JSON.value vector
 
@@ -166,6 +167,17 @@ val append : JSON.value * path * JSON.value list -> JSON.value
   xref:exn:FieldNotFound[`FieldNotFound`] exception otherwise.
   If `lookupField` is called on a value that is not a *JSON* object,
   then it raises the xref:exn:NotObject[`NotObject`] exception.
+
+`[.kw]#val# hasField : string \-> JSON.value \-> bool`::
+  [[val:hasField]]
+  `hasField key v` returns `true` when the value `v` is a *JSON* object that
+  has a field with `key` as its label and `false` otherwise.
+
+`[.kw]#val# testField : string \-> (JSON.value \-> bool) \-> JSON.value \-> bool`::
+  [[val:testField]]
+  `testField key pred v` returns the result of `pred jv` when
+   the value `v` is a *JSON* object that contains `(key, jv)`.
+   It returns `false` otherwise.
 
 `[.kw]#val# asArray : JSON.value \-> JSON.value vector`::
   [[val:asArray]]
