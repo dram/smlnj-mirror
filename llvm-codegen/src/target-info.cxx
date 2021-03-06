@@ -11,8 +11,7 @@
 #include "target-info.hxx"
 
 static target_info AMD64Info = {
-	"amd64",			// name
-	llvm::Triple::x86_64,
+	"x86-64",			// name
 	"e-i64:64-n8:16:32:64-S128",	// LLVM data layout string
 	64,				// wordSz
 	18,				// numRegs
@@ -28,7 +27,6 @@ static target_info AMD64Info = {
 
 static target_info AArch64Info = {
 	"aarch64",			// name
-	llvm::Triple::aarch64,
 	"e-m:o-i64:64-i128:128-n32:64-S128",
 	64,				// wordSz
 	29,				// numRegs

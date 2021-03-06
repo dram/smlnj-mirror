@@ -5,15 +5,15 @@ SHELL =		/bin/sh
 
 UNAME_ARCH :=	$(shell uname -m)
 ifeq ($(UNAME_ARCH),amd64)
-HOST_ARCH="amd64"
+HOST_ARCH=amd64
 else ifeq ($(UNAME_ARCH),arm64)
-HOST_ARCH="aarch64"
+HOST_ARCH=aarch64
 else
-HOST_ARCH="unknown"
+HOST_ARCH=unknown
 endif
 
-#BUILD =		debug
-BUILD =		release
+BUILD =		debug
+#BUILD =		release
 
 SML_ROOT =	../..
 LLVM_DIR =	../llvm-$(BUILD)
@@ -40,7 +40,7 @@ codegen:	main.o $(CODEGEN_SRCS) $(INCLUDES)
 	clang++ -o codegen $(LLVM_LD_FLAGS) $(LD_FLAGS) $(OBJS) $(LLVM_LD_FLAGS) $(LIBS) $(LLVM_LIBS)
 
 %.o: %.cxx
-	$(CXX) -c -DHOST_ARCH=$(HOST_ARCH) $(LLVM_CPP_FLAGS) $(CPP_FLAGS) $(CXX_FLAGS) $<
+	$(CXX) -c -DHOST_ARCH="\"$(HOST_ARCH)\"" $(LLVM_CPP_FLAGS) $(CPP_FLAGS) $(CXX_FLAGS) $<
 
 .PHONY:		clean
 clean:

@@ -36,13 +36,13 @@
 
 mc_gen::mc_gen (llvm::LLVMContext &context, target_info const *info)
 {
-    std::string triple = "x86_64-apple-macosx10.15.0";
-
   // lookup the target in the registry
+    llvm::Triple triple;
     std::string errMsg;
-    auto *target = llvm::TargetRegistry::lookupTarget(triple, errMsg);
+    auto *target = llvm::TargetRegistry::lookupTarget(info->name, triple, errMsg);
     if (target == nullptr) {
-	std::cerr << "**** Fatal error: unable to find target\n";
+	std::cerr << "**** Fatal error: unable to find target for \""
+	    << info->name << "\"\n";
         assert(false);
     }
 
@@ -61,7 +61,7 @@ llvm::dbgs() << "host CPU = " << llvm::sys::getHostCPUName() << "\n";
 // see include/llvm/Support/*Parser.def for the various CPS and feature names
 // that are recognized
     std::unique_ptr<llvm::TargetMachine> tgtMachine(target->createTargetMachine(
-	triple,
+	triple.str(),
 	"generic",		/* CPU name */
 	"",			/* features string */
 	tgtOptions,

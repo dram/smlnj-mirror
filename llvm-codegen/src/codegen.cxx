@@ -59,16 +59,18 @@ static code_buffer *CodeBuf = nullptr;
 
 static llvm::ExitOnError exitOnErr;
 
-void setTarget (std::string const &target)
+bool setTarget (std::string const &target)
 {
     if (CodeBuf != nullptr) {
 	if (CodeBuf->targetInfo()->name == target) {
-	    return;
+	    return false;
 	}
 	delete CodeBuf;
     }
     
     CodeBuf = code_buffer::create (target);
+
+    return (CodeBuf == nullptr);
 
 }
 
@@ -76,7 +78,7 @@ void codegen (std::string const & src, bool emitLLVM, bool dumpBits, output out)
 {
     asdl::file_instream inS(src);
 
-    assert (CodeBuf != nullptr);
+    assert (CodeBuf != nullptr && "call setTarget before calling codegen");
 
     std::cout << "read pickle ..." << std::flush;
     Timer pklTimer = Timer::start();

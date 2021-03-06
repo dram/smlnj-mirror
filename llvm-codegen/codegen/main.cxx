@@ -28,7 +28,7 @@ int main (int argc, char **argv)
     bool emitLLVM = false;
     bool dumpBits = false;
     std::string src = "";
-    std::string targetArch = "HOST_ARCH";
+    std::string targetArch = HOST_ARCH;
 
     if (argc < 2) {
 	usage();
@@ -66,7 +66,10 @@ int main (int argc, char **argv)
     llvm::InitializeAllAsmParsers();
     llvm::InitializeAllAsmPrinters();
 
-    setTarget (targetArch);
+    if (setTarget (targetArch)) {
+	std::cerr << "codegen: unable to set target to \"" << targetArch << "\"\n";
+	return 1;
+    }
 
     codegen (src, emitLLVM, dumpBits, out);
 

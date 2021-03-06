@@ -15,7 +15,10 @@
 
 enum class output { PrintAsm, AsmFile, ObjFile, Memory };
 
-void setTarget (std::string const &target);
+// set the target architecture.  This call returns `true` when there
+// is an error and false otherwise.
+//
+bool setTarget (std::string const &target);
 
 void codegen (std::string const & src, bool emitLLVM, bool dumpBits, output out);
 
