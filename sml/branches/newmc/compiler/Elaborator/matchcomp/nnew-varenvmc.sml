@@ -9,7 +9,17 @@ local
   structure M = LV.Map
   structure V = VarCon
   structure PU = PrintUtil
+
+  val debugging = ElabControl.mcdebugging
+  val say = Control_Print.say
+  fun newline () = say "\n"
+  fun dbsay msg =
+      if !debugging
+      then (say msg; newline())
+      else ()
+  fun dbsays msgs = dbsay (concat msgs)
   fun bug msg = ErrorMsg.impossible ("VarEnvMC: " ^ msg)
+
 in
 
 (* varenvMC environments
@@ -37,13 +47,13 @@ fun lookVar (varenvmc, var, layer) =
 	       in case List.mapPartial scan bindings
 		   of nil =>
 		        bug (concat[ "lookVar: no binding for var, layer: ",
-				     V.toString var, ", ", Layers.toString layer])
+				     V.toString var, ", ", Layers.layerToString layer])
 		     | _::_::_ =>
 		        bug (concat["lookVar: multiple consistent bindings for var, layer: ",
-				    V.toString var, ", ", Layers.toString layer])
+				    V.toString var, ", ", Layers.layerToString layer])
 		     | [svar] => (* there should be a unique svar for this var, rule, path *)
-		       (print (concat[">> lookVar: ", V.toString var, " @ ",
-				      Layers.toString layer, " --> ", V.toString svar, "\n"]);
+		       (dbsays [">> lookVar: ", V.toString var, " @ ",
+				Layers.layerToString layer, " --> ", V.toString svar];
 			svar)
 	      end
        | NONE => bug (concat ["lookVar: unbound pattern var: ", V.toString var]))
@@ -56,14 +66,15 @@ fun lookVar (varenvmc, var, layer) =
  * for that layer. The var will come frome either some nodes info.vars or info.asvars,
  * and will not be a "wildcard" variable. *)
 fun bindVar (var, layer, svar, varenvmc) =
-    let val lvar = V.varToLvar var
-	val _ = print (concat ["VarEnvMC.bindVar: ", V.toString var, ", ",
-		               Layers.toString layer,  " --> ", V.toString svar, "\n"])
-     in case M.find (varenvmc, lvar)
-         of NONE => M.insert(varenvmc, lvar, [(layer, svar)])
-	  | SOME bindings =>
-	      M.insert (varenvmc, lvar, (layer, svar) :: bindings)
-    end
+    if V.isWildVar var then varenvmc  (* don't bind V.wildVar in an varenvMC *)
+    else let val lvar = V.varToLvar var
+	     val _ = dbsays ["VarEnvMC.bindVar: ", V.toString var, ", ",
+			     Layers.layerToString layer,  " --> ", V.toString svar]
+	  in case M.find (varenvmc, lvar)
+	      of NONE => M.insert(varenvmc, lvar, [(layer, svar)])
+	       | SOME bindings =>
+		   M.insert (varenvmc, lvar, (layer, svar) :: bindings)
+	 end
 
 end (* local *)
 end (* structure VarEnvMC *)

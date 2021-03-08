@@ -69,8 +69,9 @@ fun hlpathToString nil = ""
   | hlpathToString (b::rest) =
     concat [Int.toString b, ".", hlpathToString rest]
 
-fun toString (r,s) =
-    concat [Int.toString r, ".",  hlpathToString s]
+fun layerToString (r,s) =
+    concat (Int.toString r ::
+	    (if null s then nil else [".", hlpathToString s]))
 
 (*
 structure OrdKey =
@@ -97,7 +98,7 @@ structure Set = RedBlackSetFn (OrdKey)
 
 structure Set =
 struct
-  type set = layer list (* "sorted" *)
+  type set = layer list (* sorted in "ascending" order *)
 
   val empty = nil
 
@@ -162,6 +163,9 @@ struct
   fun numItems set = length set
 
   fun listItems set = set
+
+  fun layerSetToString set =
+      PrintUtil.listToString ("[",",","]") layerToString set
 
 end (* structure Set *)
 

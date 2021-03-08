@@ -252,7 +252,7 @@ let
   	   in if TU.dataconWidth dcon = 1  (* single datacon *)
 	      then SINGLE{info = {id = newId(), typ = ty, path = path, asvars = nil, vars = nil},
 			  variant = (key, LEAF{path = newPath, direct = R.singleton rule,
-					       defaults=R.empty})}
+					       defaults = R.empty})}
 	      else OR{info = {id = newId(), typ = ty, path = path, asvars = nil, vars = nil},
 		      direct = R.singleton rule, defaults = R.empty,
 		      variants = [(key, LEAF{path=newPath, direct=R.singleton rule,

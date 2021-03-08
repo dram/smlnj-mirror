@@ -47,6 +47,18 @@ local
   val printMatchAbsyn = ElabControl.printMatchAbsyn
   val debugging = ElabControl.mcdebugging
 
+  val say = Control_Print.say
+  fun newline () = say "\n"
+  fun saynl msg = (say msg; newline())
+  fun dbsay msg =
+      if !debugging
+      then (say msg; newline())
+      else ()
+  fun dbsays msgs = dbsay (concat msgs)
+  fun says strings = saynl (concat strings)
+
+  fun bug msg = ErrorMsg.impossible ("MatchComp: " ^ msg)
+
   fun ppAndor andor =
       PP.with_default_pp
 	  (fn ppstrm =>
@@ -85,14 +97,6 @@ local
       PP.with_default_pp
 	(fn ppstrm => (PP.string ppstrm (msg^": "); PPType.ppType StaticEnv.empty ppstrm ty))
 
-  val say = Control_Print.say
-  fun newline () = say "\n"
-  fun dbsay msg =
-      if !debugging
-      then say msg
-      else ()
-
-  fun bug msg = ErrorMsg.impossible ("MatchComp: " ^ msg)
 
 in
 
@@ -117,19 +121,28 @@ fun simpleVALdec (var, exp, boundtvs) =
 	       typ = V.varType var, boundtvs = boundtvs, tyvars = ref nil}]
 
 
-(* genMatch : R.rules * MT.andor * DT.decTree * int vector * T.ty * T.datacon -> AS.exp * V.var *)
-(* top level code generating function (formerly MCCode.genCode) *)
+(* genMatch : AS.rules * MT.andor * DT.decTree * int vector * T.ty * varenvAC * T.datacon -> AS.exp * V.var *)
+(* top level code generating function for matches (formerly MCCode.genCode) *)
 fun genMatch (rules: AS.rule list, andor, decTree, ruleCounts, rhsTy, varenvAC, matchExn) =
-let val rules = map (fn AS.RULE r => r) rules
+    let val _ = dbsay ">> genMatch"
+	val rules = map (fn AS.RULE r => r) rules
 	  (* rules : (AS.pat * AS.exp) list -- the RULE constructor is stripped *)
 
     val numberOfRules = length rules
 
     (* isMultiple : ruleno -> bool *)
-    fun isMultiple ruleno = Vector.sub(ruleCounts, ruleno) > 1
+    fun isMultiple ruleno = Vector.sub (ruleCounts, ruleno) > 1
 
     val multirules = List.filter isMultiple (List.tabulate (numberOfRules, (fn n => n)))
         (* list of rule numbers that have multiple uses, in ascending order *)
+
+    val ruleCountsList = Vector.foldr (op ::) nil ruleCounts
+    val _ = dbsays ["** genMatch: ruleCounts: ",
+		    (PrintUtil.listToString ("[", ",", "]") Int.toString ruleCountsList),
+		    ", length rules: ", Int.toString (length rules)]
+	     
+    val _ = dbsays ["multirules = ",
+		    (PrintUtil.listToString ("[", ",", "]") Int.toString multirules)]
 
     (* rulePat : ruleno -> AS.pat *)
     fun rulePat n = #1 (List.nth (rules, n))
@@ -157,9 +170,9 @@ let val rules = map (fn AS.RULE r => r) rules
 	then let val pat = rulePat ruleno
 		 val boundVars = ruleBoundVars ruleno
 		 val rhs = ruleRHS ruleno
-	      in if (null boundVars andalso not(AU.isWild pat))
-		     orelse (length boundVars = 1 andalso sameVar (hd boundVars, rhs))
-		 then NONE (* rhs fn would take unit or is identity, don't wrap *)
+	      in if (* (null boundVars andalso not (AU.isWild pat)) orelse *)
+		    (length boundVars = 1 andalso sameVar (hd boundVars, rhs))
+		 then NONE (* rhs fn <<would take unit>> or is identity, don't wrap <- WRONG! scc/t2.sml *)
 		 else (* wrap rhs fun binding while alpha-converting boundVars in rhs *)
 		     let val venv = VarEnvAC.alphaEnv boundVars
 		         (* varenvAC for alpha-converting boundVars, empty if WILDpat *)
@@ -189,13 +202,8 @@ let val rules = map (fn AS.RULE r => r) rules
     fun genPrelude exp = (* foldr wrapFn exp multirules *)
 	let fun wrap (0, base) = wrapFn (0, base)
 	      | wrap (n, base) = wrap (n-1, wrapFn (n, base))       
-	in wrap (numberOfRules - 1, exp)
+	 in wrap (numberOfRules - 1, exp)
 	end
-
-    (* allConsistent : path * path list -> bool *)
-    (* not used. => MU.consistentPath not used *)
-    fun allConsistent (varpath, dtrace: path list) =
-	List.all (MU.consistentPath varpath) dtrace
 
     (* bindSVars : var list * layer * varenvMC -> VarEnvAC.varenvAC *)
     (* pvars will be the source pattern variables for the layer. bindSVars will
@@ -205,12 +213,12 @@ let val rules = map (fn AS.RULE r => r) rules
      * is because a pattern variable that is duplicated in OR patterns may be associated
      * with multiple svars. We choose the right one based on the layer argument. *)
     fun bindSVars (pvars, layer, varenvMC) =
-	let val _ = dbsay ">>>bindSVars\n";
+	let val _ = dbsay ">> bindSVars";
 	    fun findSvar (var: V.var) = (var, VarEnvMC.lookVar (varenvMC, var, layer))
 	    val venv = map findSvar pvars
 	 in if !debugging
             then (say "bindSvars: venv = "; VarEnvAC.printVarEnvAC venv;
-		  say "\n<<<bindSvar\n")
+		  say "\n<< bindSvar\n")
 	    else ();
 	    venv
 	end
@@ -241,13 +249,12 @@ let val rules = map (fn AS.RULE r => r) rules
      * (secondary) asvars are bound.
      * [Note: could use one foldl after appending vars to asvars.] *)
     fun bindPatVars (svar, {vars,asvars,...} : AOinfo, varenvMC) =
-	(print (concat [">> bindPatVars: |vars| = ", Int.toString (length vars), ", |asvars| = ",
-			Int.toString (length asvars), "\n"]);
+	(dbsays [">> bindPatVars: |vars| = ", Int.toString (length vars), ", |asvars| = ",
+		 Int.toString (length asvars)];
 	foldl (fn ((pvar,layer), env) => VarEnvMC.bindVar(pvar, layer, svar, env))
 	   (foldl (fn ((pvar,layer),env) => VarEnvMC.bindVar(pvar, layer, svar, env)) varenvMC vars)
 	   asvars)
 
-fun prints strings = print (concat strings)
 
     (* genAndor: andor * SE.svarenv * VarEnvMC.varenvMC * (exp -> exp)
                  -> SE.svarenv * VarEnvMC.varenvMC * (exp -> exp) *)
@@ -269,7 +276,7 @@ fun prints strings = print (concat strings)
             (* genNode : andor * SE.svarenv * varenvMC * (exp -> exp) 
                          -> SE.svarenv * varenvMC * (exp -> exp)  *)
 	    and genNode (AND {info,children,andKind,...}, svarenv, varenvMC, k) =
-                (prints [">> genNode:AND: ", Int.toString (#id info), ", ", Int.toString (length (#vars info)),"\n"];
+                (dbsays [">> genNode:AND: ", Int.toString (#id info), ", ", Int.toString (length (#vars info))];
 		 case SE.lookSvar (svarenv, #id info)
 		    of SOME thisSvar =>
 			 let fun collectChildSvars (childAndor, (svars, svarenv)) =
@@ -292,7 +299,7 @@ fun prints strings = print (concat strings)
 			 end
 		     | NONE => bug "genNode:AND: no svar")
 	      | genNode (SINGLE {info, variant = (key, arg)}, svarenv, varenvMC, k) =
-                (prints [">> genNode:SINGLE: ", Int.toString (#id info), ", ", Int.toString (length (#vars info)), "\n"];
+                (dbsays [">> genNode:SINGLE: ", Int.toString (#id info), ", ", Int.toString (length (#vars info))];
 		  case SE.lookSvar (svarenv, #id info)
 		    of SOME thisSvar =>
 			 let val varenvMC' = bindPatVars (thisSvar, info, varenvMC)
@@ -315,7 +322,7 @@ fun prints strings = print (concat strings)
 		     | NONE => bug "genNode:SINGLE: no svar")
 	      | genNode (OR {info,...}, svarenv, varenvMC, k) =
                   (* this OR node is already accounted for in the dectree (if not redundant) *)
-                (prints [">> genNode:OR: ", Int.toString (#id info), ", ", Int.toString (length (#vars info)), "\n"];
+                (dbsays [">> genNode:OR: ", Int.toString (#id info), ", ", Int.toString (length (#vars info))];
 		  case SE.lookSvar (svarenv, #id info)
 		     of SOME thisSvar =>
 			    let val varenvMC' = bindPatVars (thisSvar, info, varenvMC)
@@ -323,7 +330,7 @@ fun prints strings = print (concat strings)
 			    end
 		      | NONE => bug "genNode:OR: no svar")
 	      | genNode (VARS {info, ...}, svarenv, varenvMC, k) =
-                (prints [">> genNode:VARS: ", Int.toString (#id info), ", ", Int.toString (length (#vars info)), "\n"];
+                (dbsays [">> genNode:VARS: ", Int.toString (#id info), ", ", Int.toString (length (#vars info))];
 		   case SE.lookSvar (svarenv, #id info)
 		     of SOME thisSvar =>
 		         let val varenvMC' = bindPatVars (thisSvar, info, varenvMC)
@@ -408,23 +415,26 @@ end (* fun genMatch *)
  * Called by transMatch.  fillPat will have been applied to rule patterns. *)
 and matchComp (rules: AS.rule list, lhsTy: T.ty, rhsTy: T.ty, varenvAC,
 	       matchFailExn: T.datacon) =
-    let val _ = if !debugging then print ">>> matchComp\n" else (); (* -- debugging *)
+    let val _ = dbsay ">> matchComp";
 	val numRules = length rules
 	val patterns = map (fn (AS.RULE(pat,_)) => pat) rules (* strip RULE constructor *)
 	val andor = AndOr.makeAndor(patterns, lhsTy)
+	val _ = dbsay "<< makeAndor"
 	val _ = if !printAndor
 		then ppAndor andor
 		else ()
 	val (dectree,ruleCounts) = DecisionTree.decisionTree (andor, numRules)
+	val _ = dbsay "<< decisionTree"
 	val _ = if !printDecisionTree
 		then ppDecisionTree dectree
 		else ()
         val (matchExp, matchVar) =
 	    genMatch (rules, andor, dectree, ruleCounts, rhsTy, varenvAC, matchFailExn)
+	val _ = dbsay "<< genMatch"
 	val _ = if !printMatchAbsyn
 		then ED.withInternals (fn () => ppExp (matchExp, "matchComp:matchExp: \n"))
 		else ()
-    in if !debugging then say "<<< matchComp\n" else ();  (* -- debugging *)
+    in dbsay "<< matchComp";  (* -- debugging *)
        (matchExp, SVar.svarToVar matchVar)
     end
 
@@ -458,7 +468,7 @@ and transExp (exp, venv: VarEnvAC.varenvAC) =
 		    end
 		| RAISEexp (exp, ty) => RAISEexp (trans exp, ty) (* original source raise *)
 		| CASEexp (scrutinee, (rules, scrutTy, resTy)) =>
-		    let (* val _ = print ">>> transExp: CASEexp\n" *)
+		    let val _ = dbsay ">> transExp: CASEexp"
 			val (caseBody, matchVar) =
 			    matchComp(transRules rules, scrutTy, resTy, venv, EU.getMatchExn())
 		    in LETexp(VALdec[VB{pat = VARpat matchVar,
