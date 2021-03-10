@@ -199,6 +199,17 @@ llvm::Function *code_buffer::newFunction (
 
 }
 
+// helper function to initialize the argument info for the overflow
+// function, which just takes the CMachine registers as arguments.
+//
+code_buffer::arg_info code_buffer::_overflowArgInfo () const
+{
+    code_buffer::arg_info info;
+    info.nExtra = this->_regInfo.numMachineRegs();
+    info.nUnused = 0;
+    info.basePtr = 0;
+}
+
 // helper function to get the numbers of arguments/parameters for
 // a fragment
 code_buffer::arg_info code_buffer::_getArgInfo (frag_kind kind) const
@@ -595,14 +606,14 @@ void code_buffer::callGC (
 llvm::BasicBlock *code_buffer::getOverflowBB ()
 {
     auto srcBB = this->_builder.GetInsertBlock ();
-    arg_info info = this->_getArgInfo(frag_kind::INTERNAL);
-    int nArgs = info.nExtra;
+    int nArgs = this->_regInfo.numMachineRegs();
 
     if (this->_overflowBB == nullptr) {
       // if this is the first overflow BB for the module, then we need to define
       // the overflow function name
 	if (this->_overflowFn == nullptr) {
-	    this->_overflowFn = newFunction(this->_overflowFnTy, "raiseOverflow", false);
+	    this->_overflowFn = this->newFunction (
+		this->_overflowFnTy, "raiseOverflow", false);
 	}
 
 	this->_overflowBB = this->newBB ("trap");
@@ -633,7 +644,7 @@ llvm::BasicBlock *code_buffer::getOverflowBB ()
     }
 
   // add PHI-node dependencies
-    for (int i = 0;  i < info.nExtra;  ++i) {
+    for (int i = 0;  i < nArgs;  ++i) {
 	reg_info const *rInfo = this->_regInfo.machineReg(i);
 	this->_overflowPhiNodes[i]->addIncoming(this->_regState.get (rInfo->id()), srcBB);
     }

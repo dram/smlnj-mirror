@@ -21,7 +21,7 @@
 #include <exception>
 
 /* control the adding of symbolic names to some values for easier debugging */
-#ifdef NDEBUG
+#ifndef _DEBUG
 #  define NO_NAMES
 #endif
 
@@ -350,7 +350,7 @@ void code_buffer::setupStdEntry (CFG::attrs *attrs, CFG::frag *frag)
 	basePtr->setName ("basePtr");
 #endif
     }
-#ifndef NDEBUG
+#ifdef _DEBUG
     else {
 	this->_regState.clearBasePtr ();
     }
@@ -749,7 +749,7 @@ void code_buffer::dumpObj (std::string const &stem) const
 // dump the current module to stderr
 void code_buffer::dump () const
 {
-#if !defined(NDEBUG) || defined(LLVM_ENABLE_DUMP)
+#if defined(_DEBUG) || defined(LLVM_ENABLE_DUMP)
     this->_module->dump();
 #endif
 }
