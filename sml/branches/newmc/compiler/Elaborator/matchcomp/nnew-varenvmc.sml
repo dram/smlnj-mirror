@@ -37,7 +37,9 @@ in
  * used to deal with a single variable that occurs in multiple rules (vertical layers).
  *
  * The varenvMC environment must be threaded through the entire "code generation"
- * machinery (MatchComp.genAndor and MatchComp.genDecTree).
+ * machinery (MatchComp.genAndor and MatchComp.genDecTree). In other words, the varenvMC
+ * needs to accumulate bindings for _all_ pattern variables, no matter where they occur
+ * in the pattern (i.e. within constructor (OR) subpatterns).
  * 
  * Q: What is the exact role of varenvMC in maintaining the FLINT requirement of unique
  * lvar bindings?  (i.e. in comparison with svarenv)
