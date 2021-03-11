@@ -189,7 +189,6 @@ llvm::Function *code_buffer::newFunction (
 // a fragment
 code_buffer::arg_info code_buffer::_getArgInfo (frag_kind kind) const
 {
-    assert (this->_curCluster != nullptr && "no current cluster defined");
 
     code_buffer::arg_info info;
     info.nExtra = this->_regInfo.numMachineRegs();
@@ -207,6 +206,7 @@ code_buffer::arg_info code_buffer::_getArgInfo (frag_kind kind) const
 	break;
       case frag_kind::KNOWN_FUN:
       case frag_kind::INTERNAL:
+        assert (this->_curCluster != nullptr && "no current cluster defined");
 	info.nUnused = 0;
 	if (this->_regInfo.usesBasePtr()
 	&& this->_curCluster->get_attrs()->get_needsBasePtr()) {
