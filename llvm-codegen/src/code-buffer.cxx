@@ -86,9 +86,23 @@ code_buffer::code_buffer (target_info const *target)
 	this->_gcFnTy = llvm::FunctionType::get(gcRetTy, gcTys, false);
     }
 
-  // overflow block/function
+  // initialize the overflow block and function type
     {
-	std::vector<Type *> tys = this->createParamTys (frag_kind::KNOWN_FUN, 0);
+      // the overflow block and function have a minimal calling convention
+      // that consists of just the hardware CMachine registers.  These are
+      // necessary to ensure that the correct values are in place at the point
+      // where the Overflow exception will be raised.
+      //
+	std::vector<Type *> tys;
+	int nArgs = this->_regInfo.numMachineRegs();
+	tys.reserve (nArgs);
+	for (int i = 0;  i < nArgs;  ++i) {
+	    if (this->_regInfo.machineReg(i)->id() <= sml_reg_id::STORE_PTR) {
+		tys.push_back (this->objPtrTy);
+	    } else {
+		tys.push_back (this->mlValueTy);
+	    }
+	}
 	this->_overflowFnTy = llvm::FunctionType::get(this->voidTy, tys, false);
 	this->_overflowBB = nullptr;
 	this->_overflowFn = nullptr;
@@ -189,8 +203,8 @@ llvm::Function *code_buffer::newFunction (
 // a fragment
 code_buffer::arg_info code_buffer::_getArgInfo (frag_kind kind) const
 {
-
     code_buffer::arg_info info;
+
     info.nExtra = this->_regInfo.numMachineRegs();
 
     switch (kind) {
@@ -582,14 +596,14 @@ void code_buffer::callGC (
 llvm::BasicBlock *code_buffer::getOverflowBB ()
 {
     auto srcBB = this->_builder.GetInsertBlock ();
-    arg_info info = this->_getArgInfo(frag_kind::INTERNAL);
-    int nArgs = info.nExtra;
+    int nArgs = this->_regInfo.numMachineRegs();
 
     if (this->_overflowBB == nullptr) {
       // if this is the first overflow BB for the module, then we need to define
       // the overflow function name
 	if (this->_overflowFn == nullptr) {
-	    this->_overflowFn = newFunction(this->_overflowFnTy, "raiseOverflow", false);
+	    this->_overflowFn = this->newFunction (
+		this->_overflowFnTy, "raiseOverflow", false);
 	}
 
 	this->_overflowBB = this->newBB ("trap");
@@ -620,7 +634,7 @@ llvm::BasicBlock *code_buffer::getOverflowBB ()
     }
 
   // add PHI-node dependencies
-    for (int i = 0;  i < info.nExtra;  ++i) {
+    for (int i = 0;  i < nArgs;  ++i) {
 	reg_info const *rInfo = this->_regInfo.machineReg(i);
 	this->_overflowPhiNodes[i]->addIncoming(this->_regState.get (rInfo->id()), srcBB);
     }

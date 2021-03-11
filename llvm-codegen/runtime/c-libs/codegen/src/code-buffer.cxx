@@ -21,7 +21,7 @@
 #include <exception>
 
 /* control the adding of symbolic names to some values for easier debugging */
-#ifdef NDEBUG
+#ifndef _DEBUG
 #  define NO_NAMES
 #endif
 
@@ -199,17 +199,6 @@ llvm::Function *code_buffer::newFunction (
 
 }
 
-// helper function to initialize the argument info for the overflow
-// function, which just takes the CMachine registers as arguments.
-//
-code_buffer::arg_info code_buffer::_overflowArgInfo () const
-{
-    code_buffer::arg_info info;
-    info.nExtra = this->_regInfo.numMachineRegs();
-    info.nUnused = 0;
-    info.basePtr = 0;
-}
-
 // helper function to get the numbers of arguments/parameters for
 // a fragment
 code_buffer::arg_info code_buffer::_getArgInfo (frag_kind kind) const
@@ -231,6 +220,7 @@ code_buffer::arg_info code_buffer::_getArgInfo (frag_kind kind) const
 	break;
       case frag_kind::KNOWN_FUN:
       case frag_kind::INTERNAL:
+        assert (this->_curCluster != nullptr && "no current cluster defined");
 	info.nUnused = 0;
 	if (this->_regInfo.usesBasePtr()
 	&& this->_curCluster->get_attrs()->get_needsBasePtr()) {
@@ -374,7 +364,7 @@ void code_buffer::setupStdEntry (CFG::attrs *attrs, CFG::frag *frag)
 	basePtr->setName ("basePtr");
 #endif
     }
-#ifndef NDEBUG
+#ifdef _DEBUG
     else {
 	this->_regState.clearBasePtr ();
     }
@@ -773,7 +763,7 @@ void code_buffer::dumpObj (std::string const &stem) const
 // dump the current module to stderr
 void code_buffer::dump () const
 {
-#if !defined(NDEBUG) || defined(LLVM_ENABLE_DUMP)
+#if defined(_DEBUG) || defined(LLVM_ENABLE_DUMP)
     this->_module->dump();
 #endif
 }
