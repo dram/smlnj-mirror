@@ -21,35 +21,42 @@ fun bug msg = ErrorMsg.impossible ("ORQueues: "^msg)
 
 structure AndorPriority =
 struct
-  (* priority = (number defaults, number variants) *)
-  type priority = int * int
+  (* priority = (weight, #variants, #defaults) *)
+  type priority = int * int *int
 
   type item = andor
 
   (* compare: priority * priority -> order *)
-  (* smaller numbers are "better", hence GREATER, priority to the first component *)
-  fun compare ((x1,y1),(x2,y2)) =
-      (case Int.compare(x1, x2)
-         of LESS => GREATER            (* fewer defaults *)
+  (* priority to the first component, order on branching and defaults is reversed *)
+  fun compare ((w1,b1,d1),(w2,b2,d2)) =
+      (case Int.compare (w1,w2)               (* greater weight is better *)
+	 of LESS => LESS
+	  | GREATER => GREATER
 	  | EQUAL =>
-	      (case Int.compare(y1,y2)
-		 of LESS => GREATER    (* fewer variants *)
-		  | EQUAL => EQUAL
-		  | GREATER => LESS)
-	  | GREATER => LESS)
+	    (case Int.compare (b1, b2)        (* or fewer variants is better *)
+               of LESS => GREATER
+		| GREATER => LESS
+		| EQUAL =>
+		   (case Int.compare (d1,d2)  (* or fewer defaults is better *)
+		     of LESS => GREATER
+		      | GREATER => LESS
+		      | EQUAL => EQUAL)))
 
   (* priority: andor -> goodness *)
   (* priority applies only to OR nodes *)
-  fun priority (OR{info={typ,...}, variants, live, ...}) : priority =
-      let val numVariants = Variants.numItems variants (* the number of keys actually occuring *)
-	  val maxVariants = TU.typeVariants typ (* how many variants could potentially occur *)
-	  val numDefaults = LS.numItems (LL.defaults live)
-	  val numBranches = (* then number of branches, including a possible default branch *)
-	        if numVariants < maxVariants andalso numDefaults > 0
-		then numVariants + 1  (* adds default branch *)
-		else numVariants (* ?? even if defaults exist too? *)
-       in (numBranches, numDefaults)  (* banching trumps number of defaults *)
-      end
+  fun priority (OR{info={id, typ, ...}, variants, live, ...}) : priority =
+      (case ORinfo.getWeight id
+	of NONE => bug "priority: no weight available"
+	 | SOME weight => 
+	   let val numVariants = Variants.numItems variants (* the number of keys actually occuring *)
+	       val maxVariants = TU.typeVariants typ (* how many variants could potentially occur *)
+	       val numDefaults = LS.numItems (LL.defaults live)
+	       val numBranches = (* then number of branches, including a possible default branch *)
+		   if numVariants < maxVariants andalso numDefaults > 0
+		   then numVariants + 1  (* adds default branch *)
+		   else numVariants (* ?? even if defaults exist too? *)
+	    in (weight, numBranches, numDefaults)  (* banching trumps number of defaults *)
+	   end)
     | priority _ = bug "priority: not OR node"
 
 end (* structure AndorPriority *)
@@ -98,7 +105,7 @@ fun findAndRemove (pred: APQ.item -> bool) (queue: APQ.queue) =
 fun accessible andor =
     (case andor
        of AND{children,...} => accessibleList children
-	| OR _ => APQ.singleton andor       (* non-degenerate OR node is opaque *)
+	| OR _ => APQ.singleton andor       (* non-degenerate OR node is "opaque" *)
 	| SINGLE{variant = (_,arg),...} => accessible arg
 	    (* SINGLE nodes are "transparent" *)
 	| _ => APQ.empty)
@@ -112,7 +119,8 @@ and accessibleList andors =
  * contain only mutually compatible OR nodes. *)
 fun selectBestRelevant (orNodes: APQ.queue, leastLive: L.layer) =
     let fun relevant (OR{live,...}) =
-	      not(LS.member(LL.defaults live, leastLive))
+	      LS.member (LL.directs live, leastLive) (* andalso
+	      not(LS.member(LL.defaults live, leastLive)) -- redundant, implied *)
 	  | relevant _ = bug "selectBestRelevant..relevant: not OR node"
      in findAndRemove relevant orNodes
     end

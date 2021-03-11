@@ -1,0 +1,168 @@
+- use "t6b.sml";
+transVB:pat = ittransVB:exp = use "t6b.sml"
+[opening t6b.sml]
+>> matchComp
+<< makeAndor
+andor:
+<> VARS 0 (x,0) {0}
+>> decisionTree: andor ID = 0, numRules = 1
+** decisionTree: intialOrNodes = []
+>> makeDecisionTree: survivors = [0]; orNodes = []
+<< incrementRuleCount: 0 to 1
+<< makeDecisionTree: NO relevant
+<< decisionTree: ruleCounts = [1]
+  Total Choice Nodes = 142, Max Use Count = (0, 29)
+<< decisionTree
+dectree:
+DLEAF 0
+>> genMatch
+** genMatch: ruleCounts: [1], length rules: 1
+multirules = []
+>> genNode:VARS: 0, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: x[lv2] @ 0 --> <>[lv6]
+>> bindSVars
+>> lookVar: x[lv2] @ 0 --> <>[lv6]
+** bindSvars: venv = x[lv2]-><>[lv6]
+<< bindSvars
+>> transExp: CASEexp
+>> matchComp
+<< makeAndor
+andor:
+<> AND 9 {0,1} {}
+   <0> OR 0 {0,1} {}
+      I0 LEAF {0} {}
+      I1 LEAF {1} {}
+   <1> OR 1 {0,1} {}
+      ::
+      <1.::> AND 8 {0,1} {}
+         <1.::.0> OR 2 {0,1} {}
+            A <1.::.0.A> VARS 3 (u,0) {0}
+            B <1.::.0.B> VARS 10 (v,1) {1}
+         <1.::.1> OR 4 {0,1} {}
+            ::
+            <1.::.1.::> AND 7 {0} {}
+               <1.::.1.::.0> VARS 5 (%WILD%,0) {0}
+               <1.::.1.::.1> OR 6 {0} {}
+                  nil LEAF {0} {}
+            nil LEAF {1} {}
+>> decisionTree: andor ID = 9, numRules = 2
+** decisionTree: intialOrNodes = [1,0]
+>> makeDecisionTree: survivors = [0,1]; orNodes = [1,0]
+** makeDecisionTree[SOME(OR)]: best relevant = 1
+** andorToDecTree: id = 8
+  path = <1.::>
+  live = [0,1]
+  variantSurvivors = [0,1]
+  variantCandidates = [4,0,2]
+>> makeDecisionTree: survivors = [0,1]; orNodes = [4,0,2]
+** makeDecisionTree[SOME(OR)]: best relevant = 4
+** andorToDecTree: id = 7
+  path = <1.::.1.::>
+  live = [0]
+  variantSurvivors = [0]
+  variantCandidates = [6,0,2]
+>> makeDecisionTree: survivors = [0]; orNodes = [6,0,2]
+** makeDecisionTree[SOME(OR)]: best relevant = 6
+** andorToDecTree: id = ~1
+  path = <1.::.1.::.1.nil>
+  live = [0]
+  variantSurvivors = [0]
+  variantCandidates = [0,2]
+>> makeDecisionTree: survivors = [0]; orNodes = [0,2]
+** makeDecisionTree[SOME(OR)]: best relevant = 0
+** andorToDecTree: id = ~1
+  path = <0.I0>
+  live = [0]
+  variantSurvivors = [0]
+  variantCandidates = [2]
+>> makeDecisionTree: survivors = [0]; orNodes = [2]
+** makeDecisionTree[SOME(OR)]: best relevant = 2
+** andorToDecTree: id = 3
+  path = <1.::.0.A>
+  live = [0]
+  variantSurvivors = [0]
+  variantCandidates = []
+>> makeDecisionTree: survivors = [0]; orNodes = []
+<< incrementRuleCount: 0 to 1
+<< makeDecisionTree: NO relevant
+** andorToDecTree: id = 10
+  path = <1.::.0.B>
+  live = [1]
+  variantSurvivors = []
+  variantCandidates = []
+>> makeDecisionTree: survivors = []; orNodes = []
+<< makeDecisionTree: 2 relevant
+** andorToDecTree: id = ~1
+  path = <0.I1>
+  live = [1]
+  variantSurvivors = []
+  variantCandidates = [2]
+>> makeDecisionTree: survivors = []; orNodes = [2]
+defaultOp: id = 0, defaultSurvivors = []
+>> makeDecisionTree: survivors = []; orNodes = [2]
+<< makeDecisionTree: 0 relevant
+defaultOp: id = 6, defaultSurvivors = []
+>> makeDecisionTree: survivors = []; orNodes = [0,2]
+<< makeDecisionTree: 6 relevant
+** andorToDecTree: id = ~1
+  path = <1.::.1.nil>
+  live = [1]
+  variantSurvivors = [1]
+  variantCandidates = [0,2]
+>> makeDecisionTree: survivors = [1]; orNodes = [0,2]
+<< incrementRuleCount: 1 to 1
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 4 relevant
+defaultOp: id = 1, defaultSurvivors = []
+>> makeDecisionTree: survivors = []; orNodes = [0]
+<< makeDecisionTree: 1 relevant
+<< decisionTree: ruleCounts = [1,1]
+  Total Choice Nodes = 147, Max Use Count = (0, 30)
+<< decisionTree
+dectree:
+CHOICE 1 <1>
+   :: CHOICE 4 <1.::.1>
+      :: CHOICE 6 <1.::.1.::.1>
+         nil CHOICE 0 <0>  -- length list = 2 
+            I0 CHOICE 2 <1.::.0>
+               A DLEAF 0  -- 1.hd is A u,  binds u
+               B MATCH  -- 1.hd must be A *
+            I1 MATCH  -- list length = 2 > 1
+            * MATCH  -- 1 <> 0 or 1
+         * MATCH  -- list length > 2
+      nil DLEAF 1  -- 1.tl = nil; binds v (no CHOICE on B?)
+   * MATCH
+>> genMatch
+** genMatch: ruleCounts: [1,1], length rules: 2
+multirules = []
+>> genNode:AND: 9, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:OR: 1, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:OR: 0, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:AND: 8, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:OR: 4, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:OR: 2, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:AND: 7, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:OR: 6, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:VARS: 5, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+>> genNode:VARS: 3, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: u[lv4] @ 0 --> <1.::.0.A>[lv17]
+>> bindSVars
+>> lookVar: u[lv4] @ 0 --> <1.::.0.A>[lv17]
+** bindSvars: venv = u[lv4]-><1.::.0.A>[lv17]
+<< bindSvars
+>> genNode:VARS: 10, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: v[lv3] @ 1 --> <1.::.0.B>[lv18]
+>> bindSVars
+Error: Compiler bug: VarEnvMC: lookVar: unbound pattern var: v[lv3]

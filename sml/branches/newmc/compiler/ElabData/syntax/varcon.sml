@@ -91,8 +91,9 @@ in
 
 (* Wildcard special "variable" *)
 
-val wildSymbol = S.varSymbol "WILD"
+val wildSymbol = S.varSymbol "%WILD%"
 			     
+(* a pseudo-variable used to represent wildcard patterns in the match compiler *)
 val wildVar = VALvar{path = SP.SPATH [wildSymbol],
 		     typ = ref(Types.UNDEFty),
 		     btvs = ref nil,
@@ -101,6 +102,7 @@ val wildVar = VALvar{path = SP.SPATH [wildSymbol],
 
 fun isWildVar (VALvar{path,...}) = S.eq (SymPath.last path, wildSymbol)
 
+(* toString : var -> string *)
 fun toString (VALvar{path, access, ...}) = 
     concat [S.name(SymPath.last path), "[", A.prAcc access, "]"]
   | toString (OVLDvar _) = "OVLD"

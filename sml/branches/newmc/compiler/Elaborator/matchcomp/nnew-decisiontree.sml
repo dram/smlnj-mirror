@@ -145,7 +145,8 @@ let val _ = dbsays [">> decisionTree: andor ID = ", Int.toString (getId andor),
 				    * Could this cause wrong svar choice in MCCode.genRHS? *)
 			       end
 			  else NONE  (* no default clause *)
-		   in dbsays ["<< makeDecisionTree: ", Int.toString id, " relevant"];
+		   in ORinfo.incrementUse id;
+		      dbsays ["<< makeDecisionTree: ", Int.toString id, " relevant"];
 		      CHOICE{node = node, choices = decvariants, default = defaultOp}
 		  end
 
@@ -166,9 +167,12 @@ let val _ = dbsays [">> decisionTree: andor ID = ", Int.toString (getId andor),
 
     val dectree = makeDecisionTree (initialOrNodes, initialLayers, nil)
     val ruleCountsVector = Array.vector ruleCounts
+    val (maxId, maxCount) = ORinfo.maxUseCount ()
  in dbsays ["<< decisionTree: ruleCounts = ",
 	    PrintUtil.listToString ("[", ",", "]") Int.toString
-		(Vector.foldr (op ::) nil ruleCountsVector)];
+				   (Vector.foldr (op ::) nil ruleCountsVector),
+	    "\n  Total Choice Nodes = ", Int.toString (ORinfo.getTotalUses()),
+	    ", Max Use Count = (", Int.toString maxId, ", ", Int.toString maxCount, ")"];
     (dectree, ruleCountsVector)
 end (* function decisionTree *)
 

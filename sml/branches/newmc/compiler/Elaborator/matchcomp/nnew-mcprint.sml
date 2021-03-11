@@ -176,6 +176,8 @@ val ppDecTree =
             (PP.openHBox ppstrm;
 	     PP.string ppstrm "CHOICE";
 	     PP.break ppstrm {nsp=1,offset=0};
+	     PP.string ppstrm (Int.toString (getId node));
+	     PP.break ppstrm {nsp=1,offset=0};
 	     ppPath ppstrm (getPath node);
 	     ppChoices ppstrm (choices,default);
 	     PP.closeBox ppstrm)
@@ -190,7 +192,7 @@ val ppDecTree =
 	     PP.string ppstrm "MATCH";
 	     PP.closeBox ppstrm)
 	and ppChoices ppstrm (decvariants,default) =
-            (PP.openVBox ppstrm (PP.Abs 2);
+            (PP.openVBox ppstrm (PP.Abs 3);
 	     PU.ppvseq ppstrm 0 "" ppDecvariant (Variants.listItems' decvariants);
 	     (case default
 	        of SOME dectree =>
@@ -203,7 +205,7 @@ val ppDecTree =
 		 | NONE => ());
 	     PP.closeBox ppstrm)
 	and ppDecvariant ppstrm (key, decTree) =
-	    (PP.openHOVBox ppstrm (PP.Abs 0);
+	    (PP.openHBox ppstrm;
 	     PP.string ppstrm (K.keyToString key);
 	     PP.break ppstrm {nsp=1,offset=0};
 	     ppDec ppstrm decTree;

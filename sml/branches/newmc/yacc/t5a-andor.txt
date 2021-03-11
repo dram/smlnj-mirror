@@ -1,0 +1,71 @@
+(* t4_1a.sml  -- based on yacc.grm.sml *)
+(* first rule + default, minimized set of constructors *)
+
+structure Y =
+struct
+
+  datatype svalue
+     = C0
+     | C1 of unit
+     | C2 of unit
+     | C3 of unit
+
+  type spp = svalue * int * int
+  type stack = spp list
+
+  val result: spp * stack = ((C0, 0, 0), nil)
+
+fun actions (state: int, stack: stack): spp * stack =
+case (state,stack)
+
+of (0, (C1 x0a, _, right) ::
+       _ ::
+       (C2 x0b, _, _) ::
+       (C3 x0c, left, _) ::
+       rest) =>
+    result
+
+ | _ => raise (Fail "rule 55")
+
+end (* structure Y *)
+
+-------------------------------------------------------------------------------------
+[opening t4_1a.sml]
+andor:
+[<>] AND 2 {0} {}
+   [<0>] VARS 0 (state,0) {0}
+   [<1>] VARS 1 (stack,0) {0}
+andor:
+[<>] AND 26 {0} {1}
+   [<0>] OR 0 {0} {1}
+      I0 LEAF {0} {1}
+   [<1>] OR 1 {0} {1}
+      ::
+      [<1.::>] AND 25 {0} {1}
+         [<1.::.0>] AND 6 {0} {1}
+            [<1.::.0.0>] OR 2 {0} {1}
+               C1 [<1.::.0.0.C1>] VARS 3 (x0a,0) {0,1}
+            [<1.::.0.1>] VARS 4 (%WILD%,0) {0,1}
+            [<1.::.0.2>] VARS 5 (right,0) {0,1}
+         [<1.::.1>] OR 7 {0} {1}
+            ::
+            [<1.::.1.::>] AND 24 {0} {1}
+               [<1.::.1.::.0>] VARS 8 (%WILD%,0) {0,1}
+               [<1.::.1.::.1>] OR 9 {0} {1}
+                  ::
+                  [<1.::.1.::.1.::>] AND 23 {0} {1}
+                     [<1.::.1.::.1.::.0>] AND 14 {0} {1}
+                        [<1.::.1.::.1.::.0.0>] OR 10 {0} {1}
+                           C2 [<1.::.1.::.1.::.0.0.C2>] VARS 11 (x0b,0) {0,1}
+                        [<1.::.1.::.1.::.0.1>] VARS 12 (%WILD%,0) {0,1}
+                        [<1.::.1.::.1.::.0.2>] VARS 13 (%WILD%,0) {0,1}
+                     [<1.::.1.::.1.::.1>] OR 15 {0} {1}
+                        ::
+                        [<1.::.1.::.1.::.1.::>] AND 22 {0} {1}
+                           [<1.::.1.::.1.::.1.::.0>] AND 20 {0} {1}
+                              [<1.::.1.::.1.::.1.::.0.0>] OR 16 {0} {1}
+                                 C3
+                                 [<1.::.1.::.1.::.1.::.0.0.C3>] VARS 17 (x0c,0) {0,1}
+                              [<1.::.1.::.1.::.1.::.0.1>] VARS 18 (left,0) {0,1}
+                              [<1.::.1.::.1.::.1.::.0.2>] VARS 19 (%WILD%,0) {0,1}
+                           [<1.::.1.::.1.::.1.::.1>] VARS 21 (rest,0) {0,1}

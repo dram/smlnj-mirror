@@ -481,7 +481,8 @@ let
     val andOr2 = pushDefaults (LS.empty, andOr1)
 	 (* propagating variable default layers down into live fields of the AndOr tree *)
 
- in andOr2
+ in ORinfo.initInfo andOr2; (* record OR-node weights *)
+    andOr2
 end (* fun makeAndor *)
 
 end (* local open *)

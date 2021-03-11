@@ -1,0 +1,79 @@
+andor:
+<> AND 26 {0,1} {2}
+   <0> OR 0 {0,1} {2}
+      I0 LEAF {0} {2}
+      I1 LEAF {1} {2}
+   <1> OR 1 {0,1} {2}
+      ::
+      <1.::> AND 25 {0,1} {2}
+         <1.::.0> AND 6 {0,1} {2}
+            <1.::.0.0> OR 2 {0,1} {2}
+               C1 <1.::.0.0.C1> VARS 3 (x0a,0) {0,2}
+               C4 <1.::.0.0.C4> VARS 27 (x1a,1) {1,2}
+            <1.::.0.1> VARS 4 (%WILD%,0) (l1a,1) {0,1,2}
+            <1.::.0.2> VARS 5 (r0,0) (r1,1) {0,1,2}
+         <1.::.1> OR 7 {0,1} {2}
+            ::
+            <1.::.1.::> AND 24 {0,1} {2}
+               <1.::.1.::.0> AND 32 {1} {0,2}
+                  <1.::.1.::.0.0> OR 28 {1} {0,2}
+                     C2 <1.::.1.::.0.0.C2> VARS 29 (x1b,1) {0,1,2}
+                  <1.::.1.::.0.1> VARS 30 (l1b,1) {0,1,2}
+                  <1.::.1.::.0.2> VARS 31 (%WILD%,1) {0,1,2}
+               <1.::.1.::.1> OR 9 {0} {1,2}
+                  ::
+                  <1.::.1.::.1.::> AND 23 {0} {1,2}
+                     <1.::.1.::.1.::.0> AND 14 {0} {1,2}
+                        <1.::.1.::.1.::.0.0> OR 10 {0} {1,2}
+                           C2 <1.::.1.::.1.::.0.0.C2> VARS 11 (x0b,0) {0,1,2}
+                        <1.::.1.::.1.::.0.1> VARS 12 (%WILD%,0) {0,1,2}
+                        <1.::.1.::.1.::.0.2> VARS 13 (%WILD%,0) {0,1,2}
+                     <1.::.1.::.1.::.1> OR 15 {0} {1,2}
+                        ::
+                        <1.::.1.::.1.::.1.::> AND 22 {0} {1,2}
+                           <1.::.1.::.1.::.1.::.0> AND 20 {0} {1,2}
+                              <1.::.1.::.1.::.1.::.0.0> OR 16 {0} {1,2}
+                                 C3
+                                 <1.::.1.::.1.::.1.::.0.0.C3> VARS 17 (x0c,0) {0,1,2}
+                              <1.::.1.::.1.::.1.::.0.1> VARS 18 (l0,0) {0,1,2}
+                              <1.::.1.::.1.::.1.::.0.2> VARS 19 (%WILD%,0) {0,1,2}
+                           <1.::.1.::.1.::.1.::.1> VARS 21 (rest,0) {0,1,2}
+
+--------------------------------------------------------------------------------
+dectree:
+CHOICE 1 <1>
+    :: CHOICE 7 <1.::.1>
+        :: CHOICE 9 <1.::.1.::.1>
+            :: CHOICE 15 <1.::.1.::.1.::.1>
+                :: CHOICE 16 <1.::.1.::.1.::.1.::.0.0>
+                    C3 CHOICE 10 <1.::.1.::.1.::.0.0>
+                        C2 CHOICE 0 <0>
+                            I0 CHOICE 2 <1.::.0.0>
+                                C1 DLEAF 0
+                                C4 DLEAF 2 -- THIS is where x1a is bound
+                                * DLEAF 2
+                            I1 CHOICE 28 <1.::.1.::.0.0>
+                                C2 DLEAF 1  -- xb1 is bound
+                                * DLEAF 2
+                            * DLEAF 2
+                        * CHOICE 28 <1.::.1.::.0.0>
+                            C2 DLEAF 1 -- xb1 is bound
+                            * DLEAF 2
+                    * CHOICE 28 <1.::.1.::.0.0>
+                        C2 DLEAF 1  -- xb1 is bound
+                        * DLEAF 2
+                * CHOICE 28 <1.::.1.::.0.0>
+                    C2 DLEAF 1  -- xb1 is bound
+                    * DLEAF 2
+            * CHOICE 28 <1.::.1.::.0.0>
+                C2 DLEAF 1  -- xb1 is bound
+                * DLEAF 2
+        * DLEAF 2
+    * DLEAF 2
+
+Note that x1a is bound in one place in the decision tree (under the C4 variant
+in the node 2 CHOICE), while xb1 is bound in 5 instances of the node 28 CHOICE
+under the C2 variant (all for DLEAF 1, i.e. rule 1).
+
+Does this mean that xb1 is bound 5 times in the threaded varenvMC?  To different
+svars in each instance?  They all are associated with the same layer.

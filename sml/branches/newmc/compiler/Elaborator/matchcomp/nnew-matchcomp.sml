@@ -33,6 +33,7 @@ local
   structure K = Key
   structure MT = MCTypes
   structure MU = MCUtil
+  structure L = Layers
   structure DT = DecisionTree
   structure C = VMCexp
   structure PP = PrettyPrint
@@ -217,15 +218,15 @@ fun genMatch (rules: AS.rule list, andor, decTree, ruleCounts, rhsTy, varenvAC, 
 	    fun findSvar (var: V.var) = (var, VarEnvMC.lookVar (varenvMC, var, layer))
 	    val venv = map findSvar pvars
 	 in if !debugging
-            then (say "bindSvars: venv = "; VarEnvAC.printVarEnvAC venv;
-		  say "\n<< bindSvar\n")
+            then (say "<< bindSvars: venv = "; VarEnvAC.printVarEnvAC venv;
+		  say ", layer = "; say (L.toString layer); say "\n")
 	    else ();
 	    venv
 	end
 
     (* genRHS : ruleno * varenvMC * path list * varenvAC -> AS.exp *)
     fun genRHS (layer, varenvMC: VarEnvMC.varenvMC, externVarenvAC) =
-	let val ruleno = Layers.toRule layer
+	let val ruleno = L.toRule layer
 	    val patvars = ruleBoundVars ruleno
 	    val localVarenvAC = bindSVars (patvars, layer, varenvMC)
 	    val svars = VarEnvAC.range localVarenvAC
@@ -244,7 +245,7 @@ fun genMatch (rules: AS.rule list, andor, decTree, ruleCounts, rhsTy, varenvAC, 
     fun saveTrace dtrace = (savedTraces := dtrace :: !savedTraces)
 
     (* bindPatVars: svar * AOinfo * varenvMC -> varenvMC *)
-    (* add bindings pvar |-> (layer, svar) to the argument varenvMC for all pvars bound at
+    (* add bindings pvar |-> (layer, svar) to the environment varenvMC for all pvars bound at
      * an AndOr node (represented by info and svar). First the (primary) vars, and then the
      * (secondary) asvars are bound.
      * [Note: could use one foldl after appending vars to asvars.] *)
@@ -252,7 +253,7 @@ fun genMatch (rules: AS.rule list, andor, decTree, ruleCounts, rhsTy, varenvAC, 
 	(dbsays [">> bindPatVars: |vars| = ", Int.toString (length vars), ", |asvars| = ",
 		 Int.toString (length asvars)];
 	foldl (fn ((pvar,layer), env) => VarEnvMC.bindVar(pvar, layer, svar, env))
-	   (foldl (fn ((pvar,layer),env) => VarEnvMC.bindVar(pvar, layer, svar, env)) varenvMC vars)
+	   (foldl (fn ((pvar,layer), env) => VarEnvMC.bindVar(pvar, layer, svar, env)) varenvMC vars)
 	   asvars)
 
 
@@ -320,30 +321,31 @@ fun genMatch (rules: AS.rule list, andor, decTree, ruleCounts, rhsTy, varenvAC, 
 				  end
 			 end
 		     | NONE => bug "genNode:SINGLE: no svar")
-	      | genNode (OR {info,...}, svarenv, varenvMC, k) =
+	      | genNode (OR {info={id,vars,...},...}, svarenv, varenvMC, k) =
                   (* this OR node is already accounted for in the dectree (if not redundant) *)
-                (dbsays [">> genNode:OR: ", Int.toString (#id info), ", ", Int.toString (length (#vars info))];
-		  case SE.lookSvar (svarenv, #id info)
+                (dbsays [">> genNode:OR: ", Int.toString id, ", ", Int.toString (length vars)];
+		  case SE.lookSvar (svarenv, id)
 		     of SOME thisSvar =>
 			    let val varenvMC' = bindPatVars (thisSvar, info, varenvMC)
 			     in (svarenv, varenvMC', k)
 			    end
 		      | NONE => bug "genNode:OR: no svar")
-	      | genNode (VARS {info, ...}, svarenv, varenvMC, k) =
-                (dbsays [">> genNode:VARS: ", Int.toString (#id info), ", ", Int.toString (length (#vars info))];
-		   case SE.lookSvar (svarenv, #id info)
+	      | genNode (VARS {info={id,vars,...}, ...}, svarenv, varenvMC, k) =
+                (dbsays [">> genNode:VARS: ", Int.toString id, ", ", Int.toString (length vars)];
+		   case SE.lookSvar (svarenv, id)
 		     of SOME thisSvar =>
 		         let val varenvMC' = bindPatVars (thisSvar, info, varenvMC)
 			  in (svarenv, varenvMC', k)
 			 end
 		      | NONE => bug "genNode:VARS: no svar")
 	      | genNode (LEAF _, _, _, _) = bug "genNode: LEAF"
-	          (* should not happen! LEAF is found only in an OR variant *)
+	          (* should not happen! LEAF is found only in an OR variant; genNode stops at OR *)
 	      | genNode (INITIAL, _, _, _) = bug "genNode: INITIAL"
 	 in genNode (andor, svarenv, varenvMC, k)
 	end (* genAndor *)
 
-    (* genDecTree: decTree * svarenv * varenvMC -> AS.exp *)
+    (* genDecTree: decTree * svarenv * varenvMC -> varenvMC * AS.exp *)
+    (* need to thread a varenvMC through or some varenvMC bindings will become inaccessible (t6.sml) *) 
     fun genDecTree (decTree, svarenv, varenvMC) =
 	(case decTree
 	   of MT.CHOICE{node, choices, default} =>

@@ -1,0 +1,163 @@
+andor:
+<> AND 26 {0} {1}
+   <0> OR 0 {0} {1}
+      I0 LEAF {0} {1}
+   <1> OR 1 {0} {1}
+      ::
+      <1.::> AND 25 {0} {1}
+         <1.::.0> AND 6 {0} {1}
+            <1.::.0.0> OR 2 {0} {1}
+               C1 <1.::.0.0.C1> VARS 3 (x0a,0) {0,1}
+            <1.::.0.1> VARS 4 (%WILD%,0) {0,1}
+            <1.::.0.2> VARS 5 (right,0) {0,1}
+         <1.::.1> OR 7 {0} {1}
+            ::
+            <1.::.1.::> AND 24 {0} {1}
+               <1.::.1.::.0> VARS 8 (%WILD%,0) {0,1}
+               <1.::.1.::.1> OR 9 {0} {1}
+                  ::
+                  <1.::.1.::.1.::> AND 23 {0} {1}
+                     <1.::.1.::.1.::.0> AND 14 {0} {1}
+                        <1.::.1.::.1.::.0.0> OR 10 {0} {1}
+                           C2 <1.::.1.::.1.::.0.0.C2> VARS 11 (x0b,0) {0,1}
+                        <1.::.1.::.1.::.0.1> VARS 12 (%WILD%,0) {0,1}
+                        <1.::.1.::.1.::.0.2> VARS 13 (%WILD%,0) {0,1}
+                     <1.::.1.::.1.::.1> OR 15 {0} {1}
+                        ::
+                        <1.::.1.::.1.::.1.::> AND 22 {0} {1}
+                           <1.::.1.::.1.::.1.::.0> AND 20 {0} {1}
+                              <1.::.1.::.1.::.1.::.0.0> OR 16 {0} {1}
+                                 C3
+                                 <1.::.1.::.1.::.1.::.0.0.C3> VARS 17 (x0c,0) {0,1}
+                              <1.::.1.::.1.::.1.::.0.1> VARS 18 (left,0) {0,1}
+                              <1.::.1.::.1.::.1.::.0.2> VARS 19 (%WILD%,0) {0,1}
+                           <1.::.1.::.1.::.1.::.1> VARS 21 (rest,0) {0,1}
+>> decisionTree: andor ID = 26, numRules = 2
+<< decisionTree
+>> makeDecisionTree: survivors = [0,1]; orNodes = [0,1]
+** makeDecisionTree[SOME(OR)]: best relevant = 0
+** andorToDecTree: id = ~1
+  path = <0.I0>
+  live = [0,1]
+  variantSurvivors = [0,1]
+  variantCandidates = [1]
+>> makeDecisionTree: survivors = [0,1]; orNodes = [1]
+** makeDecisionTree[SOME(OR)]: best relevant = 1
+** andorToDecTree: id = 25
+  path = <1.::>
+  live = [0,1]
+  variantSurvivors = [0,1]
+  variantCandidates = [2,7]
+>> makeDecisionTree: survivors = [0,1]; orNodes = [2,7]
+** makeDecisionTree[SOME(OR)]: best relevant = 2
+** andorToDecTree: id = 3
+  path = <1.::.0.0.C1>
+  live = [0,1]
+  variantSurvivors = [0,1]
+  variantCandidates = [7]
+>> makeDecisionTree: survivors = [0,1]; orNodes = [7]
+** makeDecisionTree[SOME(OR)]: best relevant = 7
+** andorToDecTree: id = 24
+  path = <1.::.1.::>
+  live = [0,1]
+  variantSurvivors = [0,1]
+  variantCandidates = [9]
+>> makeDecisionTree: survivors = [0,1]; orNodes = [9]
+** makeDecisionTree[SOME(OR)]: best relevant = 9
+** andorToDecTree: id = 23
+  path = <1.::.1.::.1.::>
+  live = [0,1]
+  variantSurvivors = [0,1]
+  variantCandidates = [10,15]
+>> makeDecisionTree: survivors = [0,1]; orNodes = [10,15]
+** makeDecisionTree[SOME(OR)]: best relevant = 10
+** andorToDecTree: id = 11
+  path = <1.::.1.::.1.::.0.0.C2>
+  live = [0,1]
+  variantSurvivors = [0,1]
+  variantCandidates = [15]
+>> makeDecisionTree: survivors = [0,1]; orNodes = [15]
+** makeDecisionTree[SOME(OR)]: best relevant = 15
+** andorToDecTree: id = 22
+  path = <1.::.1.::.1.::.1.::>
+  live = [0,1]
+  variantSurvivors = [0,1]
+  variantCandidates = [16]
+>> makeDecisionTree: survivors = [0,1]; orNodes = [16]
+** makeDecisionTree[SOME(OR)]: best relevant = 16
+** andorToDecTree: id = 17
+  path = <1.::.1.::.1.::.1.::.0.0.C3>
+  live = [0,1]
+  variantSurvivors = [0,1]
+  variantCandidates = []
+>> makeDecisionTree: survivors = [0,1]; orNodes = []
+incrementRuleCount: 0 from 0
+<< makeDecisionTree: NO relevant
+defaultOp: id = 16, defaultSurvivors = [1]
+>> makeDecisionTree: survivors = [1]; orNodes = []
+incrementRuleCount: 1 from 0
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 16 relevant
+defaultOp: id = 15, defaultSurvivors = [1]
+>> makeDecisionTree: survivors = [1]; orNodes = []
+incrementRuleCount: 1 from 1
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 15 relevant
+defaultOp: id = 10, defaultSurvivors = [1]
+>> makeDecisionTree: survivors = [1]; orNodes = [15]
+incrementRuleCount: 1 from 2
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 10 relevant
+defaultOp: id = 9, defaultSurvivors = [1]
+>> makeDecisionTree: survivors = [1]; orNodes = []
+incrementRuleCount: 1 from 3
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 9 relevant
+defaultOp: id = 7, defaultSurvivors = [1]
+>> makeDecisionTree: survivors = [1]; orNodes = []
+incrementRuleCount: 1 from 4
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 7 relevant
+defaultOp: id = 2, defaultSurvivors = [1]
+>> makeDecisionTree: survivors = [1]; orNodes = [7]
+incrementRuleCount: 1 from 5
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 2 relevant
+defaultOp: id = 1, defaultSurvivors = [1]
+>> makeDecisionTree: survivors = [1]; orNodes = []
+incrementRuleCount: 1 from 6
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 1 relevant
+defaultOp: id = 0, defaultSurvivors = [1]
+>> makeDecisionTree: survivors = [1]; orNodes = [1]
+incrementRuleCount: 1 from 7
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 0 relevant
+<< decisionTree
+dectree:
+CHOICE <0>
+  I0
+  CHOICE <1>
+    ::
+    CHOICE <1.::.0.0>
+      C1
+      CHOICE <1.::.1>
+        ::
+        CHOICE <1.::.1.::.1>
+          ::
+          CHOICE <1.::.1.::.1.::.0.0>
+            C2
+            CHOICE <1.::.1.::.1.::.1>
+              :: CHOICE <1.::.1.::.1.::.1.::.0.0>
+                C3 DLEAF 0
+                * DLEAF 1
+              * DLEAF 1
+            * DLEAF 1
+          * DLEAF 1
+        * DLEAF 1
+      * DLEAF 1
+    * DLEAF 1
+  * DLEAF 1
+>> genMatch
+** genMatch: ruleCounts: [1,8], length rules: 2
+multirules = [1]

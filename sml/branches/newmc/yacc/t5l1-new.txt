@@ -1,0 +1,1105 @@
+- use "t5l1.sml";
+transVB:pat = ittransVB:exp = use "t5l1.sml"
+[opening t5l1.sml]
+>> matchComp
+<< makeAndor
+andor:
+<> AND 2 {0} {}
+   <0> VARS 0 (state,0) {0}
+   <1> VARS 1 (stack,0) {0}
+>> decisionTree: andor ID = 2, numRules = 1
+** decisionTree: intialOrNodes = []
+>> makeDecisionTree: survivors = [0]; orNodes = []
+<< incrementRuleCount: 0 to 1
+<< makeDecisionTree: NO relevant
+<< decisionTree: ruleCounts = [1]
+<< decisionTree
+dectree:
+DLEAF 0
+>> genMatch
+** genMatch: ruleCounts: [1], length rules: 1
+multirules = []
+>> genNode:AND: 2, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:VARS: 1, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: stack[lv2], 0 --> <1>[lv18]
+>> genNode:VARS: 0, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: state[lv3], 0 --> <0>[lv19]
+>> bindSVars
+>> lookVar: stack[lv2] @ 0 --> <1>[lv18]
+>> lookVar: state[lv3] @ 0 --> <0>[lv19]
+bindSvars: venv = stack[lv2]-><1>[lv18], state[lv3]-><0>[lv19]
+<< bindSvar
+>> transExp: CASEexp
+>> matchComp
+>> addBind: id = 4; |bind| = 1
+>> addBind: id = 5; |bind| = 1
+>> addBind: id = 32; |bind| = 1
+>> addBind: id = 9; |bind| = 1
+>> addBind: id = 26; |bind| = 1
+<< makeAndor
+andor:
+<> AND 26 {0,1} {2}
+   <0> OR 0 {0,1} {2}
+      I0 LEAF {0} {2}
+      I1 LEAF {1} {2}
+   <1> OR 1 {0,1} {2}
+      ::
+      <1.::> AND 25 {0,1} {2}
+         <1.::.0> AND 6 {0,1} {2}
+            <1.::.0.0> OR 2 {0,1} {2}
+               C1 <1.::.0.0.C1> VARS 3 (x0a,0) {0,2}
+               C4 <1.::.0.0.C4> VARS 27 (x1a,1) {1,2}
+            <1.::.0.1> VARS 4 (%WILD%,0) (left1,1) {0,1,2}
+            <1.::.0.2> VARS 5 (right,0) (right,1) {0,1,2}
+         <1.::.1> OR 7 {0,1} {2}
+            ::
+            <1.::.1.::> AND 24 {0,1} {2}
+               <1.::.1.::.0> AND 32 {1} {0,2}
+                  <1.::.1.::.0.0> OR 28 {1} {0,2}
+                     C2 <1.::.1.::.0.0.C2> VARS 29 (x1b,1) {0,1,2}
+                  <1.::.1.::.0.1> VARS 30 (left2,1) {0,1,2}
+                  <1.::.1.::.0.2> VARS 31 (%WILD%,1) {0,1,2}
+               <1.::.1.::.1> OR 9 {0} {1,2}
+                  ::
+                  <1.::.1.::.1.::> AND 23 {0} {1,2}
+                     <1.::.1.::.1.::.0> AND 14 {0} {1,2}
+                        <1.::.1.::.1.::.0.0> OR 10 {0} {1,2}
+                           C2 <1.::.1.::.1.::.0.0.C2> VARS 11 (x0b,0) {0,1,2}
+                        <1.::.1.::.1.::.0.1> VARS 12 (%WILD%,0) {0,1,2}
+                        <1.::.1.::.1.::.0.2> VARS 13 (%WILD%,0) {0,1,2}
+                     <1.::.1.::.1.::.1> OR 15 {0} {1,2}
+                        ::
+                        <1.::.1.::.1.::.1.::> AND 22 {0} {1,2}
+                           <1.::.1.::.1.::.1.::.0> AND 20 {0} {1,2}
+                              <1.::.1.::.1.::.1.::.0.0> OR 16 {0} {1,2}
+                                 C3
+                                 <1.::.1.::.1.::.1.::.0.0.C3> VARS 17 (x0c,0) {0,1,2}
+                              <1.::.1.::.1.::.1.::.0.1> VARS 18 (left,0) {0,1,2}
+                              <1.::.1.::.1.::.1.::.0.2> VARS 19 (%WILD%,0) {0,1,2}
+                           <1.::.1.::.1.::.1.::.1> VARS 21 (rest,0) {0,1,2}
+>> decisionTree: andor ID = 26, numRules = 3
+** decisionTree: intialOrNodes = [1,0]
+>> makeDecisionTree: survivors = [0,1,2]; orNodes = [1,0]
+** makeDecisionTree[SOME(OR)]: best relevant = 1
+** andorToDecTree: id = 25
+  path = <1.::>
+  live = [0,1,2]
+  variantSurvivors = [0,1,2]
+  variantCandidates = [7,0,2]
+>> makeDecisionTree: survivors = [0,1,2]; orNodes = [7,0,2]
+** makeDecisionTree[SOME(OR)]: best relevant = 7
+** andorToDecTree: id = 24
+  path = <1.::.1.::>
+  live = [0,1,2]
+  variantSurvivors = [0,1,2]
+  variantCandidates = [28,9,0,2]
+>> makeDecisionTree: survivors = [0,1,2]; orNodes = [28,9,0,2]
+** makeDecisionTree[SOME(OR)]: best relevant = 9
+** andorToDecTree: id = 23
+  path = <1.::.1.::.1.::>
+  live = [0,1,2]
+  variantSurvivors = [0,1,2]
+  variantCandidates = [10,28,15,0,2]
+>> makeDecisionTree: survivors = [0,1,2]; orNodes = [10,28,15,0,2]
+** makeDecisionTree[SOME(OR)]: best relevant = 10
+** andorToDecTree: id = 11
+  path = <1.::.1.::.1.::.0.0.C2>
+  live = [0,1,2]
+  variantSurvivors = [0,1,2]
+  variantCandidates = [28,15,0,2]
+>> makeDecisionTree: survivors = [0,1,2]; orNodes = [28,15,0,2]
+** makeDecisionTree[SOME(OR)]: best relevant = 15
+** andorToDecTree: id = 22
+  path = <1.::.1.::.1.::.1.::>
+  live = [0,1,2]
+  variantSurvivors = [0,1,2]
+  variantCandidates = [16,28,0,2]
+>> makeDecisionTree: survivors = [0,1,2]; orNodes = [16,28,0,2]
+** makeDecisionTree[SOME(OR)]: best relevant = 16
+** andorToDecTree: id = 17
+  path = <1.::.1.::.1.::.1.::.0.0.C3>
+  live = [0,1,2]
+  variantSurvivors = [0,1,2]
+  variantCandidates = [28,0,2]
+>> makeDecisionTree: survivors = [0,1,2]; orNodes = [28,0,2]
+** makeDecisionTree[SOME(OR)]: best relevant = 0
+** andorToDecTree: id = ~1
+  path = <0.I0>
+  live = [0,2]
+  variantSurvivors = [0,2]
+  variantCandidates = [28,2]
+>> makeDecisionTree: survivors = [0,2]; orNodes = [28,2]
+** makeDecisionTree[SOME(OR)]: best relevant = 2
+** andorToDecTree: id = 3
+  path = <1.::.0.0.C1>
+  live = [0,2]
+  variantSurvivors = [0,2]
+  variantCandidates = [28]
+>> makeDecisionTree: survivors = [0,2]; orNodes = [28]
+<< incrementRuleCount: 0 to 1
+<< makeDecisionTree: NO relevant
+** andorToDecTree: id = 27
+  path = <1.::.0.0.C4>
+  live = [1,2]
+  variantSurvivors = [2]
+  variantCandidates = [28]
+>> makeDecisionTree: survivors = [2]; orNodes = [28]
+** makeDecisionTree[SOME(OR)]: best relevant = 28
+** andorToDecTree: id = 29
+  path = <1.::.1.::.0.0.C2>
+  live = [0,1,2]
+  variantSurvivors = [2]
+  variantCandidates = []
+>> makeDecisionTree: survivors = [2]; orNodes = []
+<< incrementRuleCount: 2 to 1
+<< makeDecisionTree: NO relevant
+defaultOp: id = 28, defaultSurvivors = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = []
+<< incrementRuleCount: 2 to 2
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 28 relevant
+defaultOp: id = 2, defaultSurvivors = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = [28]
+** makeDecisionTree[SOME(OR)]: best relevant = 28
+** andorToDecTree: id = 29
+  path = <1.::.1.::.0.0.C2>
+  live = [0,1,2]
+  variantSurvivors = [2]
+  variantCandidates = []
+>> makeDecisionTree: survivors = [2]; orNodes = []
+<< incrementRuleCount: 2 to 3
+<< makeDecisionTree: NO relevant
+defaultOp: id = 28, defaultSurvivors = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = []
+<< incrementRuleCount: 2 to 4
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 28 relevant
+<< makeDecisionTree: 2 relevant
+** andorToDecTree: id = ~1
+  path = <0.I1>
+  live = [1,2]
+  variantSurvivors = [1,2]
+  variantCandidates = [28,2]
+>> makeDecisionTree: survivors = [1,2]; orNodes = [28,2]
+** makeDecisionTree[SOME(OR)]: best relevant = 28
+** andorToDecTree: id = 29
+  path = <1.::.1.::.0.0.C2>
+  live = [0,1,2]
+  variantSurvivors = [1,2]
+  variantCandidates = [2]
+>> makeDecisionTree: survivors = [1,2]; orNodes = [2]
+** makeDecisionTree[SOME(OR)]: best relevant = 2
+** andorToDecTree: id = 3
+  path = <1.::.0.0.C1>
+  live = [0,2]
+  variantSurvivors = [2]
+  variantCandidates = []
+>> makeDecisionTree: survivors = [2]; orNodes = []
+<< incrementRuleCount: 2 to 5
+<< makeDecisionTree: NO relevant
+** andorToDecTree: id = 27
+  path = <1.::.0.0.C4>
+  live = [1,2]
+  variantSurvivors = [1,2]
+  variantCandidates = []
+>> makeDecisionTree: survivors = [1,2]; orNodes = []
+<< incrementRuleCount: 1 to 1
+<< makeDecisionTree: NO relevant
+defaultOp: id = 2, defaultSurvivors = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = []
+<< incrementRuleCount: 2 to 6
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 2 relevant
+defaultOp: id = 28, defaultSurvivors = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = [2]
+<< incrementRuleCount: 2 to 7
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 28 relevant
+defaultOp: id = 0, defaultSurvivors = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = [28,2]
+** makeDecisionTree[SOME(OR)]: best relevant = 28
+** andorToDecTree: id = 29
+  path = <1.::.1.::.0.0.C2>
+  live = [0,1,2]
+  variantSurvivors = [2]
+  variantCandidates = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = [2]
+<< incrementRuleCount: 2 to 8
+<< makeDecisionTree: NO relevant
+defaultOp: id = 28, defaultSurvivors = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = [2]
+<< incrementRuleCount: 2 to 9
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 28 relevant
+<< makeDecisionTree: 0 relevant
+defaultOp: id = 16, defaultSurvivors = [1,2]
+>> makeDecisionTree: survivors = [1,2]; orNodes = [28,0,2]
+** makeDecisionTree[SOME(OR)]: best relevant = 28
+** andorToDecTree: id = 29
+  path = <1.::.1.::.0.0.C2>
+  live = [0,1,2]
+  variantSurvivors = [1,2]
+  variantCandidates = [0,2]
+>> makeDecisionTree: survivors = [1,2]; orNodes = [0,2]
+** makeDecisionTree[SOME(OR)]: best relevant = 0
+** andorToDecTree: id = ~1
+  path = <0.I0>
+  live = [0,2]
+  variantSurvivors = [2]
+  variantCandidates = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = [2]
+<< incrementRuleCount: 2 to 10
+<< makeDecisionTree: NO relevant
+** andorToDecTree: id = ~1
+  path = <0.I1>
+  live = [1,2]
+  variantSurvivors = [1,2]
+  variantCandidates = [2]
+>> makeDecisionTree: survivors = [1,2]; orNodes = [2]
+** makeDecisionTree[SOME(OR)]: best relevant = 2
+** andorToDecTree: id = 3
+  path = <1.::.0.0.C1>
+  live = [0,2]
+  variantSurvivors = [2]
+  variantCandidates = []
+>> makeDecisionTree: survivors = [2]; orNodes = []
+<< incrementRuleCount: 2 to 11
+<< makeDecisionTree: NO relevant
+** andorToDecTree: id = 27
+  path = <1.::.0.0.C4>
+  live = [1,2]
+  variantSurvivors = [1,2]
+  variantCandidates = []
+>> makeDecisionTree: survivors = [1,2]; orNodes = []
+<< incrementRuleCount: 1 to 2
+<< makeDecisionTree: NO relevant
+defaultOp: id = 2, defaultSurvivors = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = []
+<< incrementRuleCount: 2 to 12
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 2 relevant
+defaultOp: id = 0, defaultSurvivors = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = [2]
+<< incrementRuleCount: 2 to 13
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 0 relevant
+defaultOp: id = 28, defaultSurvivors = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = [0,2]
+<< incrementRuleCount: 2 to 14
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 28 relevant
+<< makeDecisionTree: 16 relevant
+defaultOp: id = 15, defaultSurvivors = [1,2]
+>> makeDecisionTree: survivors = [1,2]; orNodes = [28,0,2]
+** makeDecisionTree[SOME(OR)]: best relevant = 28
+** andorToDecTree: id = 29
+  path = <1.::.1.::.0.0.C2>
+  live = [0,1,2]
+  variantSurvivors = [1,2]
+  variantCandidates = [0,2]
+>> makeDecisionTree: survivors = [1,2]; orNodes = [0,2]
+** makeDecisionTree[SOME(OR)]: best relevant = 0
+** andorToDecTree: id = ~1
+  path = <0.I0>
+  live = [0,2]
+  variantSurvivors = [2]
+  variantCandidates = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = [2]
+<< incrementRuleCount: 2 to 15
+<< makeDecisionTree: NO relevant
+** andorToDecTree: id = ~1
+  path = <0.I1>
+  live = [1,2]
+  variantSurvivors = [1,2]
+  variantCandidates = [2]
+>> makeDecisionTree: survivors = [1,2]; orNodes = [2]
+** makeDecisionTree[SOME(OR)]: best relevant = 2
+** andorToDecTree: id = 3
+  path = <1.::.0.0.C1>
+  live = [0,2]
+  variantSurvivors = [2]
+  variantCandidates = []
+>> makeDecisionTree: survivors = [2]; orNodes = []
+<< incrementRuleCount: 2 to 16
+<< makeDecisionTree: NO relevant
+** andorToDecTree: id = 27
+  path = <1.::.0.0.C4>
+  live = [1,2]
+  variantSurvivors = [1,2]
+  variantCandidates = []
+>> makeDecisionTree: survivors = [1,2]; orNodes = []
+<< incrementRuleCount: 1 to 3
+<< makeDecisionTree: NO relevant
+defaultOp: id = 2, defaultSurvivors = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = []
+<< incrementRuleCount: 2 to 17
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 2 relevant
+defaultOp: id = 0, defaultSurvivors = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = [2]
+<< incrementRuleCount: 2 to 18
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 0 relevant
+defaultOp: id = 28, defaultSurvivors = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = [0,2]
+<< incrementRuleCount: 2 to 19
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 28 relevant
+<< makeDecisionTree: 15 relevant
+defaultOp: id = 10, defaultSurvivors = [1,2]
+>> makeDecisionTree: survivors = [1,2]; orNodes = [28,15,0,2]
+** makeDecisionTree[SOME(OR)]: best relevant = 28
+** andorToDecTree: id = 29
+  path = <1.::.1.::.0.0.C2>
+  live = [0,1,2]
+  variantSurvivors = [1,2]
+  variantCandidates = [15,0,2]
+>> makeDecisionTree: survivors = [1,2]; orNodes = [15,0,2]
+** makeDecisionTree[SOME(OR)]: best relevant = 0
+** andorToDecTree: id = ~1
+  path = <0.I0>
+  live = [0,2]
+  variantSurvivors = [2]
+  variantCandidates = [15,2]
+>> makeDecisionTree: survivors = [2]; orNodes = [15,2]
+** makeDecisionTree[SOME(OR)]: best relevant = 15
+** andorToDecTree: id = 22
+  path = <1.::.1.::.1.::.1.::>
+  live = [0,1,2]
+  variantSurvivors = [2]
+  variantCandidates = [16,2]
+>> makeDecisionTree: survivors = [2]; orNodes = [16,2]
+** makeDecisionTree[SOME(OR)]: best relevant = 16
+** andorToDecTree: id = 17
+  path = <1.::.1.::.1.::.1.::.0.0.C3>
+  live = [0,1,2]
+  variantSurvivors = [2]
+  variantCandidates = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = [2]
+<< incrementRuleCount: 2 to 20
+<< makeDecisionTree: NO relevant
+defaultOp: id = 16, defaultSurvivors = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = [2]
+<< incrementRuleCount: 2 to 21
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 16 relevant
+defaultOp: id = 15, defaultSurvivors = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = [2]
+<< incrementRuleCount: 2 to 22
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 15 relevant
+** andorToDecTree: id = ~1
+  path = <0.I1>
+  live = [1,2]
+  variantSurvivors = [1,2]
+  variantCandidates = [15,2]
+>> makeDecisionTree: survivors = [1,2]; orNodes = [15,2]
+** makeDecisionTree[SOME(OR)]: best relevant = 2
+** andorToDecTree: id = 3
+  path = <1.::.0.0.C1>
+  live = [0,2]
+  variantSurvivors = [2]
+  variantCandidates = [15]
+>> makeDecisionTree: survivors = [2]; orNodes = [15]
+** makeDecisionTree[SOME(OR)]: best relevant = 15
+** andorToDecTree: id = 22
+  path = <1.::.1.::.1.::.1.::>
+  live = [0,1,2]
+  variantSurvivors = [2]
+  variantCandidates = [16]
+>> makeDecisionTree: survivors = [2]; orNodes = [16]
+** makeDecisionTree[SOME(OR)]: best relevant = 16
+** andorToDecTree: id = 17
+  path = <1.::.1.::.1.::.1.::.0.0.C3>
+  live = [0,1,2]
+  variantSurvivors = [2]
+  variantCandidates = []
+>> makeDecisionTree: survivors = [2]; orNodes = []
+<< incrementRuleCount: 2 to 23
+<< makeDecisionTree: NO relevant
+defaultOp: id = 16, defaultSurvivors = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = []
+<< incrementRuleCount: 2 to 24
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 16 relevant
+defaultOp: id = 15, defaultSurvivors = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = []
+<< incrementRuleCount: 2 to 25
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 15 relevant
+** andorToDecTree: id = 27
+  path = <1.::.0.0.C4>
+  live = [1,2]
+  variantSurvivors = [1,2]
+  variantCandidates = [15]
+>> makeDecisionTree: survivors = [1,2]; orNodes = [15]
+<< incrementRuleCount: 1 to 4
+<< makeDecisionTree: NO relevant
+defaultOp: id = 2, defaultSurvivors = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = [15]
+** makeDecisionTree[SOME(OR)]: best relevant = 15
+** andorToDecTree: id = 22
+  path = <1.::.1.::.1.::.1.::>
+  live = [0,1,2]
+  variantSurvivors = [2]
+  variantCandidates = [16]
+>> makeDecisionTree: survivors = [2]; orNodes = [16]
+** makeDecisionTree[SOME(OR)]: best relevant = 16
+** andorToDecTree: id = 17
+  path = <1.::.1.::.1.::.1.::.0.0.C3>
+  live = [0,1,2]
+  variantSurvivors = [2]
+  variantCandidates = []
+>> makeDecisionTree: survivors = [2]; orNodes = []
+<< incrementRuleCount: 2 to 26
+<< makeDecisionTree: NO relevant
+defaultOp: id = 16, defaultSurvivors = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = []
+<< incrementRuleCount: 2 to 27
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 16 relevant
+defaultOp: id = 15, defaultSurvivors = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = []
+<< incrementRuleCount: 2 to 28
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 15 relevant
+<< makeDecisionTree: 2 relevant
+defaultOp: id = 0, defaultSurvivors = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = [15,2]
+** makeDecisionTree[SOME(OR)]: best relevant = 15
+** andorToDecTree: id = 22
+  path = <1.::.1.::.1.::.1.::>
+  live = [0,1,2]
+  variantSurvivors = [2]
+  variantCandidates = [16,2]
+>> makeDecisionTree: survivors = [2]; orNodes = [16,2]
+** makeDecisionTree[SOME(OR)]: best relevant = 16
+** andorToDecTree: id = 17
+  path = <1.::.1.::.1.::.1.::.0.0.C3>
+  live = [0,1,2]
+  variantSurvivors = [2]
+  variantCandidates = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = [2]
+<< incrementRuleCount: 2 to 29
+<< makeDecisionTree: NO relevant
+defaultOp: id = 16, defaultSurvivors = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = [2]
+<< incrementRuleCount: 2 to 30
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 16 relevant
+defaultOp: id = 15, defaultSurvivors = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = [2]
+<< incrementRuleCount: 2 to 31
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 15 relevant
+<< makeDecisionTree: 0 relevant
+defaultOp: id = 28, defaultSurvivors = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = [15,0,2]
+** makeDecisionTree[SOME(OR)]: best relevant = 15
+** andorToDecTree: id = 22
+  path = <1.::.1.::.1.::.1.::>
+  live = [0,1,2]
+  variantSurvivors = [2]
+  variantCandidates = [16,0,2]
+>> makeDecisionTree: survivors = [2]; orNodes = [16,0,2]
+** makeDecisionTree[SOME(OR)]: best relevant = 16
+** andorToDecTree: id = 17
+  path = <1.::.1.::.1.::.1.::.0.0.C3>
+  live = [0,1,2]
+  variantSurvivors = [2]
+  variantCandidates = [0,2]
+>> makeDecisionTree: survivors = [2]; orNodes = [0,2]
+<< incrementRuleCount: 2 to 32
+<< makeDecisionTree: NO relevant
+defaultOp: id = 16, defaultSurvivors = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = [0,2]
+<< incrementRuleCount: 2 to 33
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 16 relevant
+defaultOp: id = 15, defaultSurvivors = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = [0,2]
+<< incrementRuleCount: 2 to 34
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 15 relevant
+<< makeDecisionTree: 28 relevant
+<< makeDecisionTree: 10 relevant
+defaultOp: id = 9, defaultSurvivors = [1,2]
+>> makeDecisionTree: survivors = [1,2]; orNodes = [28,0,2]
+** makeDecisionTree[SOME(OR)]: best relevant = 28
+** andorToDecTree: id = 29
+  path = <1.::.1.::.0.0.C2>
+  live = [0,1,2]
+  variantSurvivors = [1,2]
+  variantCandidates = [0,2]
+>> makeDecisionTree: survivors = [1,2]; orNodes = [0,2]
+** makeDecisionTree[SOME(OR)]: best relevant = 0
+** andorToDecTree: id = ~1
+  path = <0.I0>
+  live = [0,2]
+  variantSurvivors = [2]
+  variantCandidates = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = [2]
+<< incrementRuleCount: 2 to 35
+<< makeDecisionTree: NO relevant
+** andorToDecTree: id = ~1
+  path = <0.I1>
+  live = [1,2]
+  variantSurvivors = [1,2]
+  variantCandidates = [2]
+>> makeDecisionTree: survivors = [1,2]; orNodes = [2]
+** makeDecisionTree[SOME(OR)]: best relevant = 2
+** andorToDecTree: id = 3
+  path = <1.::.0.0.C1>
+  live = [0,2]
+  variantSurvivors = [2]
+  variantCandidates = []
+>> makeDecisionTree: survivors = [2]; orNodes = []
+<< incrementRuleCount: 2 to 36
+<< makeDecisionTree: NO relevant
+** andorToDecTree: id = 27
+  path = <1.::.0.0.C4>
+  live = [1,2]
+  variantSurvivors = [1,2]
+  variantCandidates = []
+>> makeDecisionTree: survivors = [1,2]; orNodes = []
+<< incrementRuleCount: 1 to 5
+<< makeDecisionTree: NO relevant
+defaultOp: id = 2, defaultSurvivors = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = []
+<< incrementRuleCount: 2 to 37
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 2 relevant
+defaultOp: id = 0, defaultSurvivors = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = [2]
+<< incrementRuleCount: 2 to 38
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 0 relevant
+defaultOp: id = 28, defaultSurvivors = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = [0,2]
+<< incrementRuleCount: 2 to 39
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 28 relevant
+<< makeDecisionTree: 9 relevant
+defaultOp: id = 7, defaultSurvivors = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = [0,2]
+<< incrementRuleCount: 2 to 40
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 7 relevant
+defaultOp: id = 1, defaultSurvivors = [2]
+>> makeDecisionTree: survivors = [2]; orNodes = [0]
+<< incrementRuleCount: 2 to 41
+<< makeDecisionTree: NO relevant
+<< makeDecisionTree: 1 relevant
+<< decisionTree: ruleCounts = [1,5,41]
+<< decisionTree
+dectree:
+CHOICE <1> [1]
+  ::
+  CHOICE <1.::.1> [7]
+    ::
+    CHOICE <1.::.1.::.1> [9]
+      ::
+      CHOICE <1.::.1.::.1.::.0.0> [10]
+        C2
+        CHOICE <1.::.1.::.1.::.1> [15]
+          ::
+          CHOICE <1.::.1.::.1.::.1.::.0.0> [16]
+            C3
+            CHOICE <0> [0]
+              I0
+              CHOICE <1.::.0.0> [2]
+                C1 DLEAF 0
+                C4 CHOICE <1.::.1.::.0.0> [28]
+                  C2 DLEAF 2
+                  * DLEAF 2
+                * CHOICE <1.::.1.::.0.0> [28]
+                  C2 DLEAF 2
+                  * DLEAF 2
+              I1
+              CHOICE <1.::.1.::.0.0> [28]
+                C2 CHOICE <1.::.0.0> [2]
+                  C1 DLEAF 2
+                  C4 DLEAF 1
+                  * DLEAF 2
+                * DLEAF 2
+              * CHOICE <1.::.1.::.0.0> [28]
+                C2 DLEAF 2
+                * DLEAF 2
+            *
+            CHOICE <1.::.1.::.0.0> [28]
+              C2
+              CHOICE <0> [0]
+                I0 DLEAF 2
+                I1 CHOICE <1.::.0.0> [2]
+                  C1 DLEAF 2
+                  C4 DLEAF 1
+                  * DLEAF 2
+                * DLEAF 2
+              * DLEAF 2
+          *
+          CHOICE <1.::.1.::.0.0> [28]
+            C2
+            CHOICE <0> [0]
+              I0 DLEAF 2
+              I1 CHOICE <1.::.0.0> [2]
+                C1 DLEAF 2
+                C4 DLEAF 1
+                * DLEAF 2
+              * DLEAF 2
+            * DLEAF 2
+        *
+        CHOICE <1.::.1.::.0.0> [28]
+          C2
+          CHOICE <0> [0]
+            I0
+            CHOICE <1.::.1.::.1.::.1> [15]
+              :: CHOICE <1.::.1.::.1.::.1.::.0.0> [16]
+                C3 DLEAF 2
+                * DLEAF 2
+              * DLEAF 2
+            I1
+            CHOICE <1.::.0.0> [2]
+              C1
+              CHOICE <1.::.1.::.1.::.1> [15]
+                :: CHOICE <1.::.1.::.1.::.1.::.0.0> [16]
+                  C3 DLEAF 2
+                  * DLEAF 2
+                * DLEAF 2
+              C4 DLEAF 1
+              *
+              CHOICE <1.::.1.::.1.::.1> [15]
+                :: CHOICE <1.::.1.::.1.::.1.::.0.0> [16]
+                  C3 DLEAF 2
+                  * DLEAF 2
+                * DLEAF 2
+            *
+            CHOICE <1.::.1.::.1.::.1> [15]
+              :: CHOICE <1.::.1.::.1.::.1.::.0.0> [16]
+                C3 DLEAF 2
+                * DLEAF 2
+              * DLEAF 2
+          *
+          CHOICE <1.::.1.::.1.::.1> [15]
+            :: CHOICE <1.::.1.::.1.::.1.::.0.0> [16]
+              C3 DLEAF 2
+              * DLEAF 2 [16]
+            * DLEAF 2 [15]
+      *
+      CHOICE <1.::.1.::.0.0> [28]
+        C2
+        CHOICE <0> [0]
+          I0 DLEAF 2
+          I1 CHOICE <1.::.0.0> [2]
+            C1 DLEAF 2
+            C4 DLEAF 1
+            * DLEAF 2
+          * DLEAF 2
+        * DLEAF 2
+    * DLEAF 2
+  * DLEAF 2
+>> genMatch
+** genMatch: ruleCounts: [1,5,41], length rules: 3
+multirules = [1,2]
+>> genNode:AND: 26, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+>> genNode:OR: 1, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:OR: 0, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:AND: 25, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:OR: 7, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:AND: 6, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:VARS: 5, 2
+>> bindPatVars: |vars| = 2, |asvars| = 0
+VarEnvMC.bindVar: right[lv14], 0 --> <1.::.0.2>[lv36]
+VarEnvMC.bindVar: right[lv7], 1 --> <1.::.0.2>[lv36]
+>> genNode:VARS: 4, 2
+>> bindPatVars: |vars| = 2, |asvars| = 0
+VarEnvMC.bindVar: left1[lv8], 1 --> <1.::.0.1>[lv37]
+>> genNode:OR: 2, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:AND: 24, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:OR: 9, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: rest[lv4], 1 --> <1.::.1.::.1>[lv40]
+>> genNode:AND: 32, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+>> genNode:VARS: 31, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+>> genNode:VARS: 30, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: left2[lv5], 1 --> <1.::.1.::.0.1>[lv43]
+>> genNode:OR: 28, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:AND: 23, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:OR: 15, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:AND: 14, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:VARS: 13, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+>> genNode:VARS: 12, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+>> genNode:OR: 10, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:VARS: 11, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: x0b[lv13], 0 --> <1.::.1.::.1.::.0.0.C2>[lv51]
+>> genNode:AND: 22, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:VARS: 21, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: rest[lv10], 0 --> <1.::.1.::.1.::.1.::.1>[lv53]
+>> genNode:AND: 20, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:VARS: 19, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+>> genNode:VARS: 18, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: left[lv11], 0 --> <1.::.1.::.1.::.1.::.0.1>[lv56]
+>> genNode:OR: 16, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:VARS: 17, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: x0c[lv12], 0 --> <1.::.1.::.1.::.1.::.0.0.C3>[lv58]
+>> genNode:VARS: 3, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: x0a[lv15], 0 --> <1.::.0.0.C1>[lv59]
+>> bindSVars
+>> lookVar: rest[lv10] @ 0 --> <1.::.1.::.1.::.1.::.1>[lv53]
+>> lookVar: left[lv11] @ 0 --> <1.::.1.::.1.::.1.::.0.1>[lv56]
+>> lookVar: x0c[lv12] @ 0 --> <1.::.1.::.1.::.1.::.0.0.C3>[lv58]
+>> lookVar: x0b[lv13] @ 0 --> <1.::.1.::.1.::.0.0.C2>[lv51]
+>> lookVar: right[lv14] @ 0 --> <1.::.0.2>[lv36]
+>> lookVar: x0a[lv15] @ 0 --> <1.::.0.0.C1>[lv59]
+bindSvars: venv = rest[lv10]-><1.::.1.::.1.::.1.::.1>[lv53], left[lv11]-><1.::.1.::.1.::.1.::.0.1>[lv56], x0c[lv12]-><1.::.1.::.1.::.1.::.0.0.C3>[lv58], x0b[lv13]-><1.::.1.::.1.::.0.0.C2>[lv51], right[lv14]-><1.::.0.2>[lv36], x0a[lv15]-><1.::.0.0.C1>[lv59]
+<< bindSvar
+>> genNode:VARS: 27, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: x1a[lv9], 1 --> <1.::.0.0.C4>[lv60]
+>> genNode:VARS: 29, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: x1b[lv6], 1 --> <1.::.1.::.0.0.C2>[lv61]
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> genNode:VARS: 29, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: x1b[lv6], 1 --> <1.::.1.::.0.0.C2>[lv62]
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> genNode:VARS: 29, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: x1b[lv6], 1 --> <1.::.1.::.0.0.C2>[lv63]
+>> genNode:VARS: 3, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: x0a[lv15], 0 --> <1.::.0.0.C1>[lv64]
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> genNode:VARS: 27, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: x1a[lv9], 1 --> <1.::.0.0.C4>[lv65]
+>> bindSVars
+>> lookVar: rest[lv4] @ 1 --> <1.::.1.::.1>[lv40]
+>> lookVar: left2[lv5] @ 1 --> <1.::.1.::.0.1>[lv43]
+>> lookVar: x1b[lv6] @ 1 --> <1.::.1.::.0.0.C2>[lv63]
+>> lookVar: right[lv7] @ 1 --> <1.::.0.2>[lv36]
+>> lookVar: left1[lv8] @ 1 --> <1.::.0.1>[lv37]
+>> lookVar: x1a[lv9] @ 1 --> <1.::.0.0.C4>[lv65]
+bindSvars: venv = rest[lv4]-><1.::.1.::.1>[lv40], left2[lv5]-><1.::.1.::.0.1>[lv43], x1b[lv6]-><1.::.1.::.0.0.C2>[lv63], right[lv7]-><1.::.0.2>[lv36], left1[lv8]-><1.::.0.1>[lv37], x1a[lv9]-><1.::.0.0.C4>[lv65]
+<< bindSvar
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> genNode:VARS: 29, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: x1b[lv6], 1 --> <1.::.1.::.0.0.C2>[lv66]
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> genNode:VARS: 29, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: x1b[lv6], 1 --> <1.::.1.::.0.0.C2>[lv67]
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> genNode:VARS: 3, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: x0a[lv15], 0 --> <1.::.0.0.C1>[lv68]
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> genNode:VARS: 27, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: x1a[lv9], 1 --> <1.::.0.0.C4>[lv69]
+>> bindSVars
+>> lookVar: rest[lv4] @ 1 --> <1.::.1.::.1>[lv40]
+>> lookVar: left2[lv5] @ 1 --> <1.::.1.::.0.1>[lv43]
+>> lookVar: x1b[lv6] @ 1 --> <1.::.1.::.0.0.C2>[lv67]
+>> lookVar: right[lv7] @ 1 --> <1.::.0.2>[lv36]
+>> lookVar: left1[lv8] @ 1 --> <1.::.0.1>[lv37]
+>> lookVar: x1a[lv9] @ 1 --> <1.::.0.0.C4>[lv69]
+bindSvars: venv = rest[lv4]-><1.::.1.::.1>[lv40], left2[lv5]-><1.::.1.::.0.1>[lv43], x1b[lv6]-><1.::.1.::.0.0.C2>[lv67], right[lv7]-><1.::.0.2>[lv36], left1[lv8]-><1.::.0.1>[lv37], x1a[lv9]-><1.::.0.0.C4>[lv69]
+<< bindSvar
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> genNode:VARS: 29, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: x1b[lv6], 1 --> <1.::.1.::.0.0.C2>[lv70]
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> genNode:VARS: 3, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: x0a[lv15], 0 --> <1.::.0.0.C1>[lv71]
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> genNode:VARS: 27, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: x1a[lv9], 1 --> <1.::.0.0.C4>[lv72]
+>> bindSVars
+>> lookVar: rest[lv4] @ 1 --> <1.::.1.::.1>[lv40]
+>> lookVar: left2[lv5] @ 1 --> <1.::.1.::.0.1>[lv43]
+>> lookVar: x1b[lv6] @ 1 --> <1.::.1.::.0.0.C2>[lv70]
+>> lookVar: right[lv7] @ 1 --> <1.::.0.2>[lv36]
+>> lookVar: left1[lv8] @ 1 --> <1.::.0.1>[lv37]
+>> lookVar: x1a[lv9] @ 1 --> <1.::.0.0.C4>[lv72]
+bindSvars: venv = rest[lv4]-><1.::.1.::.1>[lv40], left2[lv5]-><1.::.1.::.0.1>[lv43], x1b[lv6]-><1.::.1.::.0.0.C2>[lv70], right[lv7]-><1.::.0.2>[lv36], left1[lv8]-><1.::.0.1>[lv37], x1a[lv9]-><1.::.0.0.C4>[lv72]
+<< bindSvar
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> genNode:VARS: 29, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: x1b[lv6], 1 --> <1.::.1.::.0.0.C2>[lv73]
+>> genNode:AND: 22, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:VARS: 21, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: rest[lv10], 0 --> <1.::.1.::.1.::.1.::.1>[lv75]
+>> genNode:AND: 20, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:VARS: 19, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+>> genNode:VARS: 18, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: left[lv11], 0 --> <1.::.1.::.1.::.1.::.0.1>[lv78]
+>> genNode:OR: 16, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:VARS: 17, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: x0c[lv12], 0 --> <1.::.1.::.1.::.1.::.0.0.C3>[lv80]
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> genNode:VARS: 3, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: x0a[lv15], 0 --> <1.::.0.0.C1>[lv81]
+>> genNode:AND: 22, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:VARS: 21, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: rest[lv10], 0 --> <1.::.1.::.1.::.1.::.1>[lv83]
+>> genNode:AND: 20, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:VARS: 19, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+>> genNode:VARS: 18, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: left[lv11], 0 --> <1.::.1.::.1.::.1.::.0.1>[lv86]
+>> genNode:OR: 16, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:VARS: 17, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: x0c[lv12], 0 --> <1.::.1.::.1.::.1.::.0.0.C3>[lv88]
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> genNode:VARS: 27, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: x1a[lv9], 1 --> <1.::.0.0.C4>[lv89]
+>> bindSVars
+>> lookVar: rest[lv4] @ 1 --> <1.::.1.::.1>[lv40]
+>> lookVar: left2[lv5] @ 1 --> <1.::.1.::.0.1>[lv43]
+>> lookVar: x1b[lv6] @ 1 --> <1.::.1.::.0.0.C2>[lv73]
+>> lookVar: right[lv7] @ 1 --> <1.::.0.2>[lv36]
+>> lookVar: left1[lv8] @ 1 --> <1.::.0.1>[lv37]
+>> lookVar: x1a[lv9] @ 1 --> <1.::.0.0.C4>[lv89]
+bindSvars: venv = rest[lv4]-><1.::.1.::.1>[lv40], left2[lv5]-><1.::.1.::.0.1>[lv43], x1b[lv6]-><1.::.1.::.0.0.C2>[lv73], right[lv7]-><1.::.0.2>[lv36], left1[lv8]-><1.::.0.1>[lv37], x1a[lv9]-><1.::.0.0.C4>[lv89]
+<< bindSvar
+>> genNode:AND: 22, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:VARS: 21, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: rest[lv10], 0 --> <1.::.1.::.1.::.1.::.1>[lv91]
+>> genNode:AND: 20, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:VARS: 19, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+>> genNode:VARS: 18, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: left[lv11], 0 --> <1.::.1.::.1.::.1.::.0.1>[lv94]
+>> genNode:OR: 16, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:VARS: 17, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: x0c[lv12], 0 --> <1.::.1.::.1.::.1.::.0.0.C3>[lv96]
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> genNode:AND: 22, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:VARS: 21, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: rest[lv10], 0 --> <1.::.1.::.1.::.1.::.1>[lv98]
+>> genNode:AND: 20, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:VARS: 19, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+>> genNode:VARS: 18, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: left[lv11], 0 --> <1.::.1.::.1.::.1.::.0.1>[lv101]
+>> genNode:OR: 16, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:VARS: 17, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: x0c[lv12], 0 --> <1.::.1.::.1.::.1.::.0.0.C3>[lv103]
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> genNode:AND: 22, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:VARS: 21, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: rest[lv10], 0 --> <1.::.1.::.1.::.1.::.1>[lv105]
+>> genNode:AND: 20, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:VARS: 19, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+>> genNode:VARS: 18, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: left[lv11], 0 --> <1.::.1.::.1.::.1.::.0.1>[lv108]
+>> genNode:OR: 16, 0
+>> bindPatVars: |vars| = 0, |asvars| = 0
+>> genNode:VARS: 17, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: x0c[lv12], 0 --> <1.::.1.::.1.::.1.::.0.0.C3>[lv110]
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> genNode:VARS: 29, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: x1b[lv6], 1 --> <1.::.1.::.0.0.C2>[lv111]
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> genNode:VARS: 3, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: x0a[lv15], 0 --> <1.::.0.0.C1>[lv112]
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> genNode:VARS: 27, 1
+>> bindPatVars: |vars| = 1, |asvars| = 0
+VarEnvMC.bindVar: x1a[lv9], 1 --> <1.::.0.0.C4>[lv113]
+>> bindSVars
+>> lookVar: rest[lv4] @ 1 --> <1.::.1.::.1>[lv40]
+>> lookVar: left2[lv5] @ 1 --> <1.::.1.::.0.1>[lv43]
+>> lookVar: x1b[lv6] @ 1 --> <1.::.1.::.0.0.C2>[lv111]
+>> lookVar: right[lv7] @ 1 --> <1.::.0.2>[lv36]
+>> lookVar: left1[lv8] @ 1 --> <1.::.0.1>[lv37]
+>> lookVar: x1a[lv9] @ 1 --> <1.::.0.0.C4>[lv113]
+bindSvars: venv = rest[lv4]-><1.::.1.::.1>[lv40], left2[lv5]-><1.::.1.::.0.1>[lv43], x1b[lv6]-><1.::.1.::.0.0.C2>[lv111], right[lv7]-><1.::.0.2>[lv36], left1[lv8]-><1.::.0.1>[lv37], x1a[lv9]-><1.::.0.0.C4>[lv113]
+<< bindSvar
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+>> bindSVars
+bindSvars: venv = 
+<< bindSvar
+<< genMatch
+<< matchComp
+<< genMatch
+<< matchComp
+structure T5l1 :
+  sig
+  datatype svalue = C1 of unit | C2 of unit | C3 of unit | C4 of unit
+  type spp = svalue * int * int
+  type stack = spp list
+  val actions : int * stack -> int
+end
