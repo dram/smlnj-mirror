@@ -510,7 +510,7 @@ def CC_AArch64_JWA : CallingConv<[
   CCIfType<[i64],
     CCAssignToReg<[
 	X24, X25, X26, X27, X28,	// ALLOC, LIMIT, STORE, EXN, VAR
-	X3, X2, X0, X1,			// LINK, CLOS, CONT
+	X3, X2, X1,			// LINK, CLOS, CONT
 	X4, X5, X6,			// MISC0-MISC2 (aka, CS0-CS2)
 	X0, X7, X8, X9, X10, X11, X12,	// ARG, MISC3-MISC8
 	X13, X14, X15, X16, X19, X20,	// MISC9-MISC14
