@@ -489,7 +489,7 @@ void code_buffer::_initSPAccess ()
     this->_readReg = _getIntrinsic (llvm::Intrinsic::read_register, this->intTy);
     this->_spRegMD = llvm::MDNode::get (
 	this->_context,
-	llvm::MDString::get(this->_context, "rsp"));
+	llvm::MDString::get(this->_context, this->_target->spName));
 
 }
 

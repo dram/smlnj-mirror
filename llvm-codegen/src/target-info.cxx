@@ -13,6 +13,7 @@
 static target_info AMD64Info = {
 	"x86-64",			// name
 	"e-i64:64-n8:16:32:64-S128",	// LLVM data layout string
+	"rsp",				// stack-pointer name
 	64,				// wordSz
 	18,				// numRegs
 	3,				// numCalleeSaves
@@ -27,7 +28,8 @@ static target_info AMD64Info = {
 
 static target_info AArch64Info = {
 	"aarch64",			// name
-	"e-m:o-i64:64-i128:128-n32:64-S128",
+	"e-m:o-i64:64-i128:128-n32:64-S128", // LLVM data layout string
+	"sp",				// stack-pointer name
 	64,				// wordSz
 	29,				// numRegs
 	3,				// numCalleeSaves
@@ -38,6 +40,7 @@ static target_info AArch64Info = {
     };
 
 static target_info const *Targets[] = {
+/* FIXME: make these arguments conditional */
 	&AMD64Info,
 	&AArch64Info
     };
