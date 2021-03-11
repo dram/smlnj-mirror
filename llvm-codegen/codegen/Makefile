@@ -25,9 +25,10 @@ CPP_FLAGS =	-I../include -I$(SML_ROOT)/include -I/opt/local/include
 CXX_FLAGS =	-g
 LD_FLAGS =
 
+LLVM_TARGETS = $(shell $(LLVM_CONFIG) --targets-built)
 LLVM_CPP_FLAGS := $(shell $(LLVM_CONFIG) --cppflags)
 LLVM_LD_FLAGS := $(shell $(LLVM_CONFIG) --ldflags)
-LLVM_LIBS :=	$(shell $(LLVM_CONFIG) --libs aarch64 x86) \
+LLVM_LIBS :=	$(shell $(LLVM_CONFIG) --libs $(LLVM_TARGETS)) \
 		$(shell $(LLVM_CONFIG) --system-libs)
 
 INCLUDES =	$(wildcard ../include/*hxx) $(wildcard ../include/asdl/*hxx) $(wildcard $(BUILD_DIR)/*hxx)
