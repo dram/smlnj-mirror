@@ -325,6 +325,16 @@ before the final return:
     return CC_AArch64_JWA;
 ````
 
+In the function `AArch64FastISel::selectRet`, replace the statement
+```` c++
+    CCAssignFn *RetCC = CC == CallingConv::WebKit_JS ? RetCC_AArch64_WebKit_JS
+                                                     : RetCC_AArch64_AAPCS;
+````
+with
+```` c++
+    CCAssignFn *RetCC = AArch64TargetLowering::CCAssignFnForReturn(CC);
+````
+
 ### `AArch64RegisterInfo.cpp`
 
 In the method `AArch64RegisterInfo::getCalleeSavedRegs`, add the following test
@@ -342,8 +352,8 @@ In `AArch64RegisterInfo::getCallPreservedMask` method, change the `GHC` test to
 the following statement:
 ```` c++
   if ((CC == CallingConv::GHC) || (CC == CallingConv::JWA))
-     // This is academic because all GHC/JWA calls are (supposed to be) tail calls
-     return SCS ? CSR_AArch64_NoRegs_SCS_RegMask : CSR_AArch64_NoRegs_RegMask;
+    // This is academic because all GHC/JWA calls are (supposed to be) tail calls
+    return SCS ? CSR_AArch64_NoRegs_SCS_RegMask : CSR_AArch64_NoRegs_RegMask;
 ````
 
 Add the following assertion to the `AArch64RegisterInfo::getThisReturnPreservedMask`
@@ -355,29 +365,57 @@ method:
 
 ### `AArch64ISelLowering.cpp`
 
-There are two changes to the `$LLVM/lib/Target/AArch64/AArch64ISelLowering.cpp`
+There are several changes to the `$LLVM/lib/Target/AArch64/AArch64ISelLowering.cpp`
 file.  In the method `AArch64TargetLowering::CCAssignFnForCall`, add the case
 ```` c++
   case CallingConv::JWA:
     return CC_AArch64_JWA;
 ````
-and change the function `canGuaranteeTCO` to the following:
+
+Replace the body of `AArch64TargetLowering::CCAssignFnForReturn` with the following
+`switch` statement:
+```` c++
+  switch (CC) {
+  case CallingConv::WebKit_JS:
+    return RetCC_AArch64_WebKit_JS;
+  case CallingConv::JWA:
+    return RetCC_AArch64_JWA;
+  default:
+    return RetCC_AArch64_AAPCS;
+  }
+````
+
+Lastly, change the function `canGuaranteeTCO` to the following:
 ```` c++
 static bool canGuaranteeTCO(CallingConv::ID CC) {
   return (CC == CallingConv::Fast) || (CC == CallingConv::JWA);
 }
 ````
 
+There are a number of fucntions where the return calling-convention function is
+computed by testing the calling convention:
+`AArch64TargetLowering::LowerCallResult`,
+`AArch64TargetLowering::CanLowerReturn`, and
+`AArch64TargetLowering::LowerReturn`.  For these, the expression
+```` c++
+  CCAssignFn *RetCC = CCAssignFnForReturnCallConv == CallingConv::WebKit_JS
+                          ? RetCC_AArch64_WebKit_JS
+                          : RetCC_AArch64_AAPCS;
+````
+should be replaced by
+```` c++
+  CCAssignFn *RetCC = CCAssignFnForReturn (CallConv);
+````
 
 ### `AArch64FrameLowering.cpp`
 
 We add the following statement
 
 ```` c++
- // All calls are tail calls in JWA calling conv, and functions have no
- // prologue/epilogue.
- if (MF.getFunction().getCallingConv() == CallingConv::JWA)
-   return;
+  // All calls are tail calls in JWA calling conv, and functions have no
+  // prologue/epilogue.
+  if (MF.getFunction().getCallingConv() == CallingConv::JWA)
+    return;
 ````
 
 in three places (following the similar code for the `GHC` calling convention):
