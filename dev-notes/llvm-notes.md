@@ -102,7 +102,7 @@ the various calling conventions.  In **LLVM** 10.0.x, the last number assigned
 is `19`, so we use `20` for **JWA**.  Add the following code to the file just
 before the first target-specific code (which will be `64`).
 
-```` c++
+``` c++
     /// JWA - "Jump With Arguments" is a calling convention that requires the
     /// use of registers for parameter passing. It is designed for language
     /// implementations that do not use a stack, however, it will not warn
@@ -110,7 +110,7 @@ before the first target-specific code (which will be `64`).
     /// warning is needed in order to properly utilize musttail calls as
     /// jumps because they are picky about parameters.
     JWA = 20,
-````
+```
 
 ### `Target/X86`
 
@@ -125,7 +125,7 @@ using **LLVM**'s [**TabgeGen**](https://llvm.org/docs/TableGen/) language.
 We need to add several chunks of code to the file.  I added the first
 just before the definition for `RetCC_X86_32`.
 
-````
+```
 // The JWA calling convention for x86_64. Note that this is
 // also used as the return convention in order to implement call/cc.
 // True returns are not the norm. We _never_ use the stack.
@@ -172,7 +172,7 @@ def CC_X86_64_JWA : CallingConv<[
 	ZMM24, ZMM25, ZMM26, ZMM27, ZMM28, ZMM29, ZMM30, ZMM31]>>>
 
 ]>;
-````
+```
 
 The convention definition above specifies the decision procedure for assigning
 each argument of a function, from left-to-right, based on the type of the
@@ -191,17 +191,17 @@ the calling convention.  The following lines need to be added to the
 definition of the "root return-value convention for the X86-64 backend"
 (`RetCC_X86_64`):
 
-````
+```
   // Handle JWA calls.
   CCIfCC<"CallingConv::JWA", CCDelegateTo<CC_X86_64_JWA>>,
-````
+```
 
 The following line needs to be added to the definition of the
 "root argument convention for the X86-64 backend" (`CC_X86_64`):
 
-````
+```
 CCIfCC<"CallingConv::JWA", CCDelegateTo<CC_X86_64_JWA>>,
-````
+```
 
 #### `X86FastISel.cpp`
 
@@ -210,11 +210,11 @@ In the file `$LLVM/lib/Target/X86/X86FastISel.cpp`, the function
 recognize the **JWA** convention.
 
 To the code
-```` c++
+``` c++
   if (CC == CallingConv::Fast || CC == CallingConv::GHC ||
       CC == CallingConv::HiPE || CC == CallingConv::Tail)
     return 0;
-````
+```
 add a test for **JWA** (`CC == CallingConv::JWA`).
 
 #### `X86ISelLowering.cpp`
@@ -222,30 +222,30 @@ add a test for **JWA** (`CC == CallingConv::JWA`).
 In the file `$LLVM/lib/Target/X86/X86ISelLowering.cpp`, we need to add
 a check for **JWA** to the function `canGuaranteeTCO`.
 
-```` c++
+``` c++
   return (CC == CallingConv::Fast || CC == CallingConv::GHC ||
           CC == CallingConv::X86_RegCall || CC == CallingConv::HiPE ||
           CC == CallingConv::HHVM || CC == CallingConv::Tail ||
           CC == CallingConv::JWA);
-````
+```
 
 #### `X86RegisterInfo.cpp`
 
 In the file `$LLVM/lib/Target/X86/X86RegisterInfo.cpp`, we need to add
 cases for **JWA** to the method `getCalleeSavedRegs`:
-```` c++
+``` c++
   case CallingConv::GHC:
   case CallingConv::HiPE:
   case CallingConv::JWA:
     return CSR_NoRegs_SaveList;
-````
+```
 and to the method `getCallPreservedMask`
-```` c++
+``` c++
   case CallingConv::GHC:
   case CallingConv::HiPE:
   case CallingConv::JWA:
     return CSR_NoRegs_RegMask;
-````
+```
 
 ### `Target/AArch64`
 
@@ -260,7 +260,7 @@ of files in the directory `$LLVM/lib/Target/AArch64/`.
 
 At the end of the file, add the following code:
 
-````
+```
 //===----------------------------------------------------------------------===//
 // JWA Calling Convention
 //===----------------------------------------------------------------------===//
@@ -297,84 +297,90 @@ def CC_AArch64_JWA : CallingConv<[
 ]>;
 
 // use the same convention for returns
+let Entry = 1 in
 def RetCC_AArch64_JWA : CallingConv<[
   CCDelegateTo<CC_AArch64_JWA>
 ]>;
-````
+```
+
+Note that the `let Entry = 1` is necessary to make the function visible in the `llvm`
+namespace; otherwise it will be marked as a `static` function.
 
 ### `AArch64CallingConvention.h`
 
 Add the following function prototypes:
 
-```` c++
+``` c++
 bool CC_AArch64_JWA(unsigned ValNo, MVT ValVT, MVT LocVT,
                     CCValAssign::LocInfo LocInfo, ISD::ArgFlagsTy ArgFlags,
                     CCState &State);
 bool RetCC_AArch64_JWA(unsigned ValNo, MVT ValVT, MVT LocVT,
                          CCValAssign::LocInfo LocInfo, ISD::ArgFlagsTy ArgFlags,
                          CCState &State);
-````
+```
 
 ### `AArch64FastISel.cpp`
 
 In the method `AArch64FastISel::CCAssignFnForCall`, we add the following statement
 before the final return:
 
-```` c++
+``` c++
   if (CC == CallingConv::JWA)
     return CC_AArch64_JWA;
-````
+```
 
 In the function `AArch64FastISel::selectRet`, replace the statement
-```` c++
+``` c++
     CCAssignFn *RetCC = CC == CallingConv::WebKit_JS ? RetCC_AArch64_WebKit_JS
                                                      : RetCC_AArch64_AAPCS;
-````
+```
 with
-```` c++
-    CCAssignFn *RetCC = AArch64TargetLowering::CCAssignFnForReturn(CC);
-````
+``` c++
+    CCAssignFn *RetCC = CC == CallingConv::WebKit_JS ? RetCC_AArch64_WebKit_JS
+                      : CC == CallingConv::JWA       ? RetCC_AArch64_JWA
+                      : RetCC_AArch64_AAPCS;
+```
 
 ### `AArch64RegisterInfo.cpp`
 
 In the method `AArch64RegisterInfo::getCalleeSavedRegs`, add the following test
 following the similar code for the `GHC` convention.
-```` c++
+``` c++
   if (MF->getFunction().getCallingConv() == CallingConv::JWA)
     // no callee-saves for JWA
     return CSR_AArch64_NoRegs_SaveList;
-````
+```
 
 **NOTE**: it might be better to merge the `GHC` and `JWA` cases into a single
 conditional.
 
 In `AArch64RegisterInfo::getCallPreservedMask` method, change the `GHC` test to
 the following statement:
-```` c++
+``` c++
   if ((CC == CallingConv::GHC) || (CC == CallingConv::JWA))
     // This is academic because all GHC/JWA calls are (supposed to be) tail calls
     return SCS ? CSR_AArch64_NoRegs_SCS_RegMask : CSR_AArch64_NoRegs_RegMask;
-````
+```
 
 Add the following assertion to the `AArch64RegisterInfo::getThisReturnPreservedMask`
 method:
 
-```` c++
+``` c++
   assert(CC != CallingConv::JWA && "should not be JWA calling convention.");
-````
+```
 
 ### `AArch64ISelLowering.cpp`
 
 There are several changes to the `$LLVM/lib/Target/AArch64/AArch64ISelLowering.cpp`
 file.  In the method `AArch64TargetLowering::CCAssignFnForCall`, add the case
-```` c++
+``` c++
   case CallingConv::JWA:
     return CC_AArch64_JWA;
-````
+```
 
 Replace the body of `AArch64TargetLowering::CCAssignFnForReturn` with the following
 `switch` statement:
-```` c++
+``` c++
   switch (CC) {
   case CallingConv::WebKit_JS:
     return RetCC_AArch64_WebKit_JS;
@@ -383,40 +389,40 @@ Replace the body of `AArch64TargetLowering::CCAssignFnForReturn` with the follow
   default:
     return RetCC_AArch64_AAPCS;
   }
-````
+```
 
 Lastly, change the function `canGuaranteeTCO` to the following:
-```` c++
+``` c++
 static bool canGuaranteeTCO(CallingConv::ID CC) {
   return (CC == CallingConv::Fast) || (CC == CallingConv::JWA);
 }
-````
+```
 
 There are a number of fucntions where the return calling-convention function is
 computed by testing the calling convention:
 `AArch64TargetLowering::LowerCallResult`,
 `AArch64TargetLowering::CanLowerReturn`, and
 `AArch64TargetLowering::LowerReturn`.  For these, the expression
-```` c++
+``` c++
   CCAssignFn *RetCC = CCAssignFnForReturnCallConv == CallingConv::WebKit_JS
                           ? RetCC_AArch64_WebKit_JS
                           : RetCC_AArch64_AAPCS;
-````
+```
 should be replaced by
-```` c++
+``` c++
   CCAssignFn *RetCC = CCAssignFnForReturn (CallConv);
-````
+```
 
 ### `AArch64FrameLowering.cpp`
 
 We add the following statement
 
-```` c++
+``` c++
   // All calls are tail calls in JWA calling conv, and functions have no
   // prologue/epilogue.
   if (MF.getFunction().getCallingConv() == CallingConv::JWA)
     return;
-````
+```
 
 in three places (following the similar code for the `GHC` calling convention):
 
@@ -446,15 +452,15 @@ longer to build, but it is useful for development purposes.
 
 We start by creating the build directory:
 
-```` sh
+``` sh
 mkdir $LLVM_BUILD
 cd $LLVM_BUILD
-````
+```
 
 Then we need to configure the build.  We use a bunch of options to try to reduce the
 time it takes to build LLVM.
 
-```` sh
+``` sh
 CMAKE_DEFS="\
   -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
   -DCMAKE_INSTALL_PREFIX=../$LLVM_INSTALL \
@@ -535,17 +541,17 @@ CMAKE_DEFS="\
   -DLLVM_TOOL_XCODE_TOOLCHAIN_BUILD=OFF \
   -DLLVM_TOOL_YAML2OBJ_BUILD=OFF \
 "
-````
+```
 
 On **Linux** systems, you should add the option `-DLLVM_USE_LINKER=gold` to
 the `CMAKE_DEFS` definition.
 
-```` sh
+``` sh
 cmake -G "Unix Makefiles" "$CMAKE_OPTS" ../llvm-src
-````
+```
 
-```` sh
+``` sh
 make -j $NPROC install
-````
+```
 
 In the future, we may want to add `PowerPC`, `RISCV`, or `Sparc` as targets.
