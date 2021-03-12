@@ -1,0 +1,115 @@
+= Arrays, Vectors, and Slices
+:Date: 2021-03-07
+:stem: latexmath
+:source-highlighter: pygments
+
+== Introduction
+
+This document describes the runtime representation of the array, vector, and
+slice types.  The purpose is to design a new set of primitive operators that
+will allow type-safe access to the representation for purposes of more
+efficient library code.
+
+== Representation of Sequences
+
+The array and vector types (including strings) are represented by a two-word
+header object that contains the address of the data and the array length
+(the length is represented as a tagged integer).  The data object is usuall a
+heap object, in which case it has its own header, but the design can
+support an "array" view of other kinds of data, such as memory-mapped
+files or data objects in the *C* heap.
+
+The object descriptor for a sequence header will have a kind field of
+`00001` for vectors and `00010` for arrays.  The length field is used
+to specify the type of elements:
+
+--
+  0:: sequence of uniform ML values (_i.e._, a polymorphic sequence)
+  1:: sequence of 8-bit values
+  2:: sequence of 16-bit values
+  3:: sequence of 32-bit values
+  4:: sequence of 64-bit values
+  5:: sequece of 32-bit floating-point values
+  6:: sequence of 64-bit floating-point values
+--
+
+[Note]
+=====
+We probably do not need to distinguish between floating-point and word
+data.
+=====
+
+
+== Representation of Slices
+
+Slices are represented as three-element SML tuples of the sequence, starting
+position, and length.  Note that the `base` function in the slice signatures
+requires access to the array/vector that underlies the slice.  In the current
+handling of vectors and arrays, this requirement forces slices to have an
+extra level of indirection when accessing data.
+
+== Proposal for a New Interface to Sequences
+
+The basic idea is to make it possible to wrap data objects with headers
+to create array and vector types.  We can do this in a type-safe way using
+phantom types.  For example, here is a possible interface for dealing with
+the various
+[source,sml]
+------------
+structure PrimSeq :> sig
+
+    type 'a kind
+    type 'a data
+
+    val array : 'a kind * 'a data * int -> 'a
+    val vector : 'a kind * 'a data * int -> 'a
+
+    val kW8A : PrimTypes.word8array kind
+    val kW8V : PrimTypes.word8vector kind
+    val kChrA : PrimTypes.chararray kind
+    val kChrV : PrimTypes.string kind
+    ...
+    val kR64A : PrimTypes.real64array kind
+    val kR64V : PrimTypes.real64vector kind
+
+  (* allocate uninitialized data objects *)
+    val allocW8A : int -> PrimTypes.word8array data
+    val allocW8V : int -> PrimTypes.word8vector data
+    val allocChrA : int -> PrimTypes.chararray data
+    val allocChrV : int -> PrimTypes.string data
+    ...
+    val allocR64A : int -> PrimTypes.real64array data
+    val allocR64V : int -> PrimTypes.real64vector data
+
+  end = struct
+
+    type 'a kind = native_word
+    type 'a data = Assembly.object
+
+    fun array (kind, data, len) = Inline.mkSeqHeader (
+	    Inline.mkDesc (kind, 0w2),
+	    data,
+	    len)
+
+    fun vector (kind, data, len) = Inline.mkSeqHeader (
+	    Inline.mkDesc (kind, 0w1),
+	    data,
+	    len)
+
+    val kW8A : PrimTypes.word8array kind = 0w1
+    val kW8V : PrimTypes.word8vector kind = 0w1
+    val kChrA : PrimTypes.chararray kind = 0w1
+    val kChrV : PrimTypes.string kind = 0w1
+     ...
+    val kR64A : PrimTypes.real64array kind = 0w6
+    val kR64V : PrimTypes.real64vector kind = 0w6
+
+  end
+------------
+
+=== A New Slice Representation
+
+Once we have a way to create vector and array values from their
+length and data pointers, we can flatten the representation of
+slices to be a four-tuple consisting of the underlying data pointer,
+total sequence length, start index, and slice length.
