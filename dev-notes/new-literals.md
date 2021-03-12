@@ -15,14 +15,14 @@ byte first).
 The first four 32-bit words of the literal representation correspond to the
 following **C** struct:
 
-````C
+``` C
 struct literal_header {
     uint32_t    magic;
     uint32_t    maxstk;
     uint32_t    wordsz;
     uint32_t    maxsaved;
 };
-````
+```
 
 where
 

@@ -7,20 +7,20 @@ This document describes the CPS primitive operators that are defined in the
 
 CPS types (`cty`) have the following representation:
 
-````sml
+``` sml
 datatype cty
   = NUMt of intty       (* integers of the given type *)
   | PTRt of pkind       (* pointer *)
   | FUNt                (* function? *)
   | FLTt of int         (* float of given size *)
   | CNTt                (* continuation *)
-````
+```
 
 The primitive type structure distinguishes between three different
 kinds of numbers:
-````
+``` sml
 datatype numkind = INT of int | UINT of int | FLOAT of int
-````
+```
 
 ## Conditional branches
 

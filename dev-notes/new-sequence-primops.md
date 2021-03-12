@@ -27,7 +27,7 @@ with compiler support for slices.
 
 We need to introduce new types into the compiler for the data objects.
 
-````sml
+``` sml
 type 'a arr_data
 type 'a vec_data
 type w8arr_data
@@ -35,7 +35,7 @@ type w8vec_data
 type r64arr_data
 type r64vec_data
 type 'a slice
-````
+```
 
 ## Polymorphic Arrays
 
@@ -189,7 +189,7 @@ objects for a given array.
 
 Here is an example of how the `Array.modify` function could be implemented
 using direct access to the data object:
-````sml
+``` sml
 fun modify f arr = let
       val data = InlineT.arr_data arr
       val len = InlineT.arr_length arr
@@ -203,4 +203,4 @@ fun modify f arr = let
       in
         lp 0
       end
-````
+```

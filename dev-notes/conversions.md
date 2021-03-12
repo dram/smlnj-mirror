@@ -62,7 +62,7 @@ Assuming that LargeInt is aribitrary precision and the default Int
 and Word types are 31-bits, then the translation of conversion operations
 in the Word32 structure is given by:
 
-````
+```
                 toLargeInt    => TESTU(32,*)
                 toLargeIntX   => EXTEND(32,*)           = COPY(32,32)
                 fromLargeInt  => TESTU(*,32)
@@ -72,11 +72,11 @@ in the Word32 structure is given by:
                 toLargeWord   => COPY(32,32)
                 toLargeWordX  => EXTEND(32,32)          = COPY(32,32)
                 fromLargeWord => TRUNC(32,32)           = COPY(32,32)
-````
+```
 
 And if LargeInt was Int32, then the operations in Word8 would be
 
-````
+```
                 toLargeInt    => COPY(8,32)
                 toLargeIntX   => EXTEND(8,32)
                 fromLargeInt  => TRUNC(32,8)
@@ -86,7 +86,7 @@ And if LargeInt was Int32, then the operations in Word8 would be
                 toLargeWord   => COPY(8,32)
                 toLargeWordX  => EXTEND(8,32)
                 fromLargeWord => TRUNC(32,8)
-````
+```
 
 ### Rewrites
 
@@ -94,18 +94,18 @@ These operations allow for simplification via algebraic rewrites.
 
 Each operator composed with itself is itself, but with different parameters:
 
-````
+```
   TEST(n,p) o TEST(m,n)         == TEST(m,p)
   TESTU(n,p) o TESTU(m,n)       == TESTU(m,p)
   EXTEND(n,p) o EXTEND(m,n)     == EXTEND(m,p)
   TRUNC(n,p) o TRUNC(m,n)       == TRUNC(m,p)
   COPY(n,p) o COPY(m,n)         == COPY(m,p)
-````
+```
 
 The composition of different operators is described by the following
 simple algebra:
 
-````
+```
   EXTEND(n,p) o COPY(m,n)       == COPY(m,p)   if (n > m)
                                 == EXTEND(m,p) if (n = m)
 
@@ -134,7 +134,7 @@ simple algebra:
   COPY(n,p) o TEST(m,n)         == TEST(m,p)   if (n = p)
 
   COPY(n,p) o TESTU(m,n)        == TESTU(m,p)  if (n = p)
-````
+```
 
 For example, consider:
         Word.toInt o Word.fromLargeWord o Word8.toLargeWord
