@@ -3,11 +3,14 @@
 
 SHELL =		/bin/sh
 
+# determine the host architecture; we use the same names as llvm-config
+# reports.
+#
 UNAME_ARCH :=	$(shell uname -m)
-ifeq ($(UNAME_ARCH),amd64)
-HOST_ARCH=amd64
+ifeq ($(UNAME_ARCH),x86_64)
+HOST_ARCH=X86
 else ifeq ($(UNAME_ARCH),arm64)
-HOST_ARCH=aarch64
+HOST_ARCH=AArch64
 else
 HOST_ARCH=unknown
 endif
@@ -31,7 +34,9 @@ LLVM_LD_FLAGS := $(shell $(LLVM_CONFIG) --ldflags)
 LLVM_LIBS :=	$(shell $(LLVM_CONFIG) --libs $(LLVM_TARGETS)) \
 		$(shell $(LLVM_CONFIG) --system-libs)
 
-INCLUDES =	$(wildcard ../include/*hxx) $(wildcard ../include/asdl/*hxx) $(wildcard $(BUILD_DIR)/*hxx)
+INCLUDES =	$(wildcard ../include/*hxx) \
+		$(wildcard ../include/asdl/*hxx) \
+		$(wildcard $(BUILD_DIR)/*hxx)
 CODEGEN_SRCS =	$(wildcard ../src/*.cxx)
 CODEGEN_OBJS =	$(addprefix $(BUILD_DIR)/,$(notdir $(CODEGEN_SRCS:%.cxx=%.o)))
 OBJS =		main.o $(CODEGEN_OBJS)
