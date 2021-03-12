@@ -1,0 +1,13 @@
+Variable Relevance of a Node
+
+A node N is relevant to layer l:  vrel(N,l)
+  if somewhere in N's OR tree there is a var (var or asvar) bound in layer l.
+
+If vrel(N,l) and l is live(?), then N should be relevant for selection in genDecTree.  (selectBestRelevant)
+
+Possible element of priority ordering of OR nodes (OR priority queue).
+
+N1 > N2 if  size({l | vrel(N1,l)}) > size({l | vrel(N2,l)})
+i.e. N1 is vrel to more layers than N2 is.
+
+This factor could go after weight? and before #branch and #default?
