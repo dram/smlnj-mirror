@@ -18,7 +18,7 @@
 
 void usage ()
 {
-    std::cerr << "usage: codegen [ -o | -S | -c ] [ --emit-llvm ] <pkl-file>\n";
+    std::cerr << "usage: codegen [ -o | -S | -c ] [ --emit-llvm ] [ --target <target> ] <pkl-file>\n";
     exit (1);
 }
 
@@ -47,6 +47,13 @@ int main (int argc, char **argv)
 		emitLLVM = true;
 	    } else if (flag == "--bits") {
 		dumpBits = true;
+	    } else if (flag == "--target") {
+		i++;
+		if (i < argc) {
+		    targetArch = argv[i];
+		} else {
+		    usage();
+		}
 	    } else {
 		usage();
 	    }

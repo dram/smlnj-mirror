@@ -11,7 +11,7 @@
 #include "target-info.hxx"
 
 static target_info AMD64Info = {
-	"x86-64",			// name
+	"x86-64",			// official LLVM triple name
 	"e-i64:64-n8:16:32:64-S128",	// LLVM data layout string
 	"rsp",				// stack-pointer name
 	64,				// wordSz

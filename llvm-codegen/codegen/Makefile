@@ -3,14 +3,15 @@
 
 SHELL =		/bin/sh
 
-# determine the host architecture; we use the same names as llvm-config
+# determine the host architecture; we use the LLVM triple
+# names, which are different from the names that llvm-config
 # reports.
 #
 UNAME_ARCH :=	$(shell uname -m)
 ifeq ($(UNAME_ARCH),x86_64)
-HOST_ARCH=X86
+HOST_ARCH="x86-64"
 else ifeq ($(UNAME_ARCH),arm64)
-HOST_ARCH=AArch64
+HOST_ARCH="aarch64"
 else
 HOST_ARCH=unknown
 endif
