@@ -527,6 +527,7 @@ def CC_AArch64_JWA : CallingConv<[
 ]>;
 
 // use the same convention for returns
+let Entry = 1 in
 def RetCC_AArch64_JWA : CallingConv<[
   CCDelegateTo<CC_AArch64_JWA>
 ]>;

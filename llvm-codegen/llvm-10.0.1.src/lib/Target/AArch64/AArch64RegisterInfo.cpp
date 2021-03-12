@@ -120,7 +120,7 @@ AArch64RegisterInfo::getCallPreservedMask(const MachineFunction &MF,
                                           CallingConv::ID CC) const {
   bool SCS = MF.getFunction().hasFnAttribute(Attribute::ShadowCallStack);
   if ((CC == CallingConv::GHC) || (CC == CallingConv::JWA))
-    // This is academic because all GHC calls are (supposed to be) tail calls
+    // This is academic because all GHC/JWA calls are (supposed to be) tail calls
     return SCS ? CSR_AArch64_NoRegs_SCS_RegMask : CSR_AArch64_NoRegs_RegMask;
   if (CC == CallingConv::AnyReg)
     return SCS ? CSR_AArch64_AllRegs_SCS_RegMask : CSR_AArch64_AllRegs_RegMask;
