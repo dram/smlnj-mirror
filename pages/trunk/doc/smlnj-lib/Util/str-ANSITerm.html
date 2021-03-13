@@ -269,17 +269,14 @@ of <code>BF</code>).</p>
 <dt class="hdlist1"><code><span class="kw">val</span> toString : style list -&gt; string</code></dt>
 <dd>
 <p><code>toString styles</code> returns a command string that will cause the terminal
-to switch to the specified styles.</p>
-<div class="literalblock">
-<div class="content">
-<pre>(* output commands to set the given styles; the empty list is "normal" *)</pre>
-</div>
-</div>
+to switch to the specified styles.  Specifying the empty list is
+equivalent to <code>[RESET]</code>.</p>
 </dd>
 <dt class="hdlist1"><code><span class="kw">val</span> setStyle : TextIO.outstream * style list -&gt; unit</code></dt>
 <dd>
 <p><code>setStyle (outS, styles)</code> sets the styles for the terminal connected
-to the output stream <code>outS</code>.</p>
+to the output stream <code>outS</code>.  Specifying the empty list is
+equivalent to <code>[RESET]</code>.</p>
 </dd>
 </dl>
 </div>
@@ -298,8 +295,8 @@ to the output stream <code>outS</code>.</p>
     <div id="layout-footer-box">
       <div id="layout-footer">
 	<div id="layout-footer-text">
-	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
-	  Last updated 2020-07-15 22:22:15 UTC
+	  <strong>SML/NJ</strong> Version 110.99 (December 24, 2020)<br />
+	  Last updated 2021-02-08 15:48:25 UTC
 	</div> <!-- layout-footer-text -->
       </div> <!-- layout-footer -->
     </div> <!-- layout-footer-box -->

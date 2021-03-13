@@ -116,6 +116,8 @@
 
 <span class="tok-kr">exception</span> <span class="tok-nc">ArrayBounds</span> <span class="tok-kr">of</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-n">*</span> <span class="tok-n">int</span>
 
+<span class="tok-kr">exception</span> <span class="tok-nc">ElemNotFound</span> <span class="tok-kr">of</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span>
+
 <span class="tok-kr">val</span> <span class="tok-nv">exnMessage</span> <span class="tok-p">:</span> <span class="tok-n">exn</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span>
 
 <span class="tok-kr">val</span> <span class="tok-nv">asBool</span> <span class="tok-p">:</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
@@ -125,14 +127,18 @@
 <span class="tok-kr">val</span> <span class="tok-nv">asString</span> <span class="tok-p">:</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span>
 
 <span class="tok-kr">val</span> <span class="tok-nv">findField</span> <span class="tok-p">:</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-n">option</span>
-
 <span class="tok-kr">val</span> <span class="tok-nv">lookupField</span> <span class="tok-p">:</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span>
+<span class="tok-kr">val</span> <span class="tok-nv">hasField</span> <span class="tok-p">:</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
+<span class="tok-kr">val</span> <span class="tok-nv">testField</span> <span class="tok-p">:</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
 
 <span class="tok-kr">val</span> <span class="tok-nv">asArray</span> <span class="tok-p">:</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-p">-&gt;</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-n">vector</span>
 
 <span class="tok-kr">val</span> <span class="tok-nv">arrayMap</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">list</span>
 
-<span class="tok-kr">datatype</span> <span class="tok-kt">edge</span> <span class="tok-p">=</span> <span class="tok-nc">SUB</span> <span class="tok-kr">of</span> <span class="tok-n">int</span> <span class="tok-p">|</span> <span class="tok-nc">SEL</span> <span class="tok-kr">of</span> <span class="tok-n">string</span>
+<span class="tok-kr">datatype</span> <span class="tok-kt">edge</span>
+  <span class="tok-p">=</span> <span class="tok-nc">SEL</span> <span class="tok-kr">of</span> <span class="tok-n">string</span>
+  <span class="tok-p">|</span> <span class="tok-nc">SUB</span> <span class="tok-kr">of</span> <span class="tok-n">int</span>
+  <span class="tok-p">|</span> <span class="tok-nc">FIND</span> <span class="tok-kr">of</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
 
 <span class="tok-kr">type</span> <span class="tok-kt">path</span> <span class="tok-p">=</span> <span class="tok-n">edge</span> <span class="tok-n">list</span>
 
@@ -198,6 +204,13 @@ This exception is raised when trying to process a non-array value as an array.</
 <p><a id="exn:ArrayBounds"></a>
 This exception is raised when access to an array value is out of bounds.</p>
 </dd>
+<dt class="hdlist1"><code><span class="kw">exception</span> ElemNotFound <span class="kw">of</span> JSON.value</code></dt>
+<dd>
+<p><a id="exn:ElemNotFound"></a>
+This exception is raised when there is no element of an array that satisfies
+the predicate of a <code>FIND</code> edge in a path.  The argument will be the array
+in question.</p>
+</dd>
 <dt class="hdlist1"><code><span class="kw">val</span> exnMessage : exn -&gt; string</code></dt>
 <dd>
 <p><code>exnMessage exn</code> returns an error-message string for the exception value
@@ -262,6 +275,19 @@ list of fields <code>flds</code> contains <code>(key, jv)</code> and raises the
 If <code>lookupField</code> is called on a value that is not a <strong>JSON</strong> object,
 then it raises the <a href="#exn:NotObject"><code>NotObject</code></a> exception.</p>
 </dd>
+<dt class="hdlist1"><code><span class="kw">val</span> hasField : string -&gt; JSON.value -&gt; bool</code></dt>
+<dd>
+<p><a id="val:hasField"></a>
+<code>hasField key v</code> returns <code>true</code> when the value <code>v</code> is a <strong>JSON</strong> object that
+has a field with <code>key</code> as its label and <code>false</code> otherwise.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> testField : string -&gt; (JSON.value -&gt; bool) -&gt; JSON.value -&gt; bool</code></dt>
+<dd>
+<p><a id="val:testField"></a>
+<code>testField key pred v</code> returns the result of <code>pred jv</code> when
+ the value <code>v</code> is a <strong>JSON</strong> object that contains <code>(key, jv)</code>.
+ It returns <code>false</code> otherwise.</p>
+</dd>
 <dt class="hdlist1"><code><span class="kw">val</span> asArray : JSON.value -&gt; JSON.value vector</code></dt>
 <dd>
 <p><a id="val:asArray"></a>
@@ -284,13 +310,18 @@ The constructors have the following meaning:</p>
 <div class="content">
 <div class="dlist">
 <dl>
+<dt class="hdlist1"><code>SEL <span class="kw">of</span> string</code></dt>
+<dd>
+<p><code>SEL key</code> specifies the value labeled by <code>key</code> in a <strong>JSON</strong> object.</p>
+</dd>
 <dt class="hdlist1"><code>SUB <span class="kw">of</span> int</code></dt>
 <dd>
 <p><code>SUB i</code> specifies the <code>i</code>th element of a <strong>JSON</strong> array.</p>
 </dd>
-<dt class="hdlist1"><code>SEL <span class="kw">of</span> string</code></dt>
+<dt class="hdlist1"><code>FIND <span class="kw">of</span> JSON.value -&gt; bool</code></dt>
 <dd>
-<p><code>SEL key</code> specifies the value labeled by <code>key</code> in a <strong>JSON</strong> object.</p>
+<p><code>FIND pred</code> specifies the first element of a <strong>JSON</strong> array that satisfies
+the given predicate.</p>
 </dd>
 </dl>
 </div>
@@ -306,8 +337,8 @@ The constructors have the following meaning:</p>
 <p><a id="val:get"></a>
 <code>get (jv, path)</code> returns the component of <code>jv</code> named by <code>path</code>.  It raises
 one of the <a href="#exn:NotObject"><code>NotObject</code></a>, <a href="#exn:NotArray"><code>NotArray</code></a>,
-or <a href="#exn:FieldNotFound"><code>FieldNotFound</code></a> exceptions if there is an
-inconsistency between the path and the structure of <code>jv</code>.</p>
+<a href="#exn:FieldNotFound"><code>FieldNotFound</code></a>, or <a href="#exn:ElemNotFound"><code>ElemNotFound</code></a>
+exceptions if there is an inconsistency between the path and the structure of <code>jv</code>.</p>
 </dd>
 </dl>
 </div>
@@ -327,8 +358,8 @@ inconsistency between the path and the structure of <code>jv</code>.</p>
     <div id="layout-footer-box">
       <div id="layout-footer">
 	<div id="layout-footer-text">
-	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
-	  Last updated 2020-07-15 22:22:15 UTC
+	  <strong>SML/NJ</strong> Version 110.99 (December 24, 2020)<br />
+	  Last updated 2021-03-01 15:34:28 UTC
 	</div> <!-- layout-footer-text -->
       </div> <!-- layout-footer -->
     </div> <!-- layout-footer-box -->
