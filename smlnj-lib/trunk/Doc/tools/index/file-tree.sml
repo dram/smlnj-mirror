@@ -27,14 +27,24 @@ structure FileTree : sig
 	info : 'a		(* information specific to the type of file in the tree *)
       }
 
-    datatype page_kind = SigPage | StructPage | FunctPage | OtherPage
+    datatype module_kind = SIGNATURE | STRUCTURE | FUNCTOR
+
+    datatype page_kind = ModulePage of module_kind | OtherPage
+
+    val sigPage : page_kind	(* = ModulePage SIGNATURE *)
+    val structPage : page_kind	(* = ModulePage STRUCTURE *)
+    val functPage : page_kind	(* = ModulePage FUNCTOR *)
 
   (* the leaves of the tree are the pages that describe the modules *)
     type page = {
 	kind : page_kind,	(* specifies the kind of the main module
 				 * or `OtherPage` for other material.
 				 *)
-	name : string		(* the main module name or page title *)
+	name : string,		(* the main module name or page title *)
+	synopsis : (module_kind * string) list
+				(* summary of the "Synopsis" section; will be `nil`
+				 * for `OtherPage` pages.
+				 *)
       } file
 
   (* the interior nodes correspond to libraries.  The info describes the pages
@@ -103,14 +113,24 @@ structure FileTree : sig
 	info : 'a		(* information specific to the type of file in the tree *)
       }
 
-    datatype page_kind = SigPage | StructPage | FunctPage | OtherPage
+    datatype module_kind = SIGNATURE | STRUCTURE | FUNCTOR
+
+    datatype page_kind = ModulePage of module_kind | OtherPage
+
+    val sigPage = ModulePage SIGNATURE
+    val structPage = ModulePage STRUCTURE
+    val functPage = ModulePage FUNCTOR
 
   (* the leaves of the tree are the pages that describe the modules *)
     type page = {
 	kind : page_kind,	(* specifies the kind of the main module
 				 * or `OtherPage` for other material.
 				 *)
-	name : string		(* the main module name or page title *)
+	name : string,		(* the main module name or page title *)
+	synopsis : (module_kind * string) list
+				(* summary of the "Synopsis" section; will be `nil`
+				 * for `OtherPage` pages.
+				 *)
       } file
 
   (* the interior nodes correspond to libraries.  The info describes the pages
@@ -193,18 +213,36 @@ structure FileTree : sig
 		      info = getInfo (get, find)
 		    }
 		end
+	  fun jsonToSynopsis obj = (case U.findField obj "synopsis"
+		 of SOME(ARRAY mods) => let
+		      fun getSpec obj = let
+			    val name = U.lookupField obj "name"
+			    val mk = (case U.lookupField obj "kind"
+				   of STRING "signature" => SIGNATURE
+				    | STRING "structure" => STRUCTURE
+				    | STRING "functor" => FUNCTOR
+				    | _ => raise Fail "unknown module kind"
+				  (* end case *))
+			    in
+			      (mk, U.asString name)
+			    end
+		      in
+			List.map getSpec mods
+		      end
+		  | _ => []
+		(* end case *))
 	  fun jsonToPage obj = jsonToFile obj (fn (_, find) => (
 		case (find "kind", find "name")
 		 of (SOME k, SOME n) => let
-		      val kind = (case U.asString k
-			     of "signature" => SigPage
-			      | "structure" => StructPage
-			      | "functor" => FunctPage
-			      | "other" => OtherPage
+		      val (kind, synopsis) = (case U.asString k
+			     of "signature" => (sigPage, jsonToSynopsis obj)
+			      | "structure" => (structPage, jsonToSynopsis obj)
+			      | "functor" => (functPage, jsonToSynopsis obj)
+			      | "other" => (OtherPage, [])
 			      | s => raise Fail(concat["unknown page kind \"", s, "\""])
 			    (* end case *))
 		      in
-			{kind = kind, name = U.asString n}
+			{kind = kind, name = U.asString n, synopsis = synopsis}
 		      end
 		  | _ => raise Fail "misformed page"
 		(* end case *)))
@@ -245,16 +283,25 @@ structure FileTree : sig
 		    fields)
 		end
 	  fun pageToJSON page = let
-		fun infoToJSON {kind, name} = let
+		fun infoToJSON {kind, name, synopsis} = let
+		      fun modKindToJSON SIGNATURE = STRING "signature"
+			| modKindToJSON STRUCTURE = STRING "structure"
+			| modKindToJSON FUNCTOR = STRING "functor"
+		      fun modSpecToJSON (mk, name) = OBJECT[
+			      ("kind", modKindToJSON mk),
+			      ("name", STRING name)
+			    ]
 		      val kind = (case kind
-			     of SigPage => "signature"
-			      | StructPage => "structure"
-			      | FunctPage => "functor"
+			     of ModulePage SIGNATURE => "signature"
+			      | ModulePage STRUCTURE => "structure"
+			      | ModulePage FUNCTOR => "functor"
 			      | OtherPage => "other"
 			    (* end case *))
-		      in
-			[("kind", STRING kind), ("name", STRING name)]
-		      end
+		      in [
+			("kind", STRING kind),
+			("name", STRING name),
+			("synopsis", ARRAY(List.map modSpecToJSON synopsis))
+		      ] end
 		in
 		  fileToJSON page infoToJSON
 		end

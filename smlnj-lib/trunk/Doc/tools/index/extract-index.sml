@@ -31,7 +31,13 @@ structure ExtractIndex : sig
 	  "[ ]*xref:([^.]+\\.adoc)\\[([^\\]]+|`\\[\\.kw\\]#[a-z]+# [^`]+`)\\]::"
   (* match the title text for a module xref *)
     val pageRefRE = RE.compileString "`\\[\\.kw\\]#([a-z]+)# ([^`]+)`"
+  (* module specifications in the synopsis *)
+    val moduleRE = RE.compileString "^(signature|structure|functor)[ \t]+([A-Za-z0-9_]+)"
 
+  (* `match re ln` attempts to match the line of text `ln` using the regular
+   * expression `re`.  If successful, the result will be a match tree of strings
+   * corresponding to the matches (and submatches) of `re`.
+   *)
     fun match re = let
 	  val prefix = StringCvt.scanString (RE.prefix re)
 	  fun getSubstrs s = MT.map (fn {pos, len} => String.substring(s, pos, len))
@@ -74,7 +80,10 @@ structure ExtractIndex : sig
 	    { author = !author, kws = !keywords, title = !title }
 	  end
 
-  (* open a documentation file and extract some common information *)
+  (* `scanFile root path getContents processContents` scans the file
+   * specified by `path` using the `getContents` function to read the
+   * file and the `processContents` to process it.
+   *)
     fun scanFile rootDir path getContents processContent = let
 	  val dir = P.dir path
 	  val stem = P.base(P.file path)
@@ -109,6 +118,19 @@ structure ExtractIndex : sig
 	    lp ()
 	  end
 
+  (* scan the input until a line with the given prefix is encountered; this function
+   * returns true if it finds such a line and false otherwise.
+   *)
+    fun existsPrefix prefix = let
+	  val isPrefix = String.isPrefix prefix
+	  fun lp inS = (case TextIO.inputLine inS
+		   of NONE => false
+		    | SOME ln => isPrefix ln orelse lp inS
+		  (* end case *))
+	  in
+	    lp
+	  end
+
   (* find the next "include" directive in the input stream *)
     fun findInclude inS = scanLines (match includeRE) inS
 
@@ -118,15 +140,62 @@ structure ExtractIndex : sig
   (* match a module page reference *)
     val matchPageRef = match pageRefRE
 
-    fun doPage rootDir libDir {file, info} = let
+  (* match a module specification in the synopsis *)
+    val matchModule = match moduleRE
+
+  (* extract the modules that are listed in the "Synopsis" of a page.  We first look
+   * for a line of the form
+   *
+   *	== Synopsis
+   *
+   * and then for an SML source-code block.  In the body of the source-code block
+   * we expect to see lines that have prefixes of the form
+   *
+   *	signature NAME
+   *	structure NAME ...
+   *	functor NAME ...
+   *)
+    fun doPage rootDir libDir {file, info={kind, name}} = let
 	  val pagePath = P.joinDirFile{dir = libDir, file = file}
+	(* skip to the SML code block in the synopsis *)
+	  fun findSynopsis inS =
+		existsPrefix "== Synopsis" inS
+		andalso existsPrefix "[source,sml]" inS
+		andalso existsPrefix "----" inS
+	(* extract module names from the code block *)
+	  fun getSynopsis inS = let
+		fun lp mods = (case TextIO.inputLine inS
+		       of NONE => raise Fail "unexpected EOF in synopsis"
+			| SOME ln => (case matchModule ln
+			     of SOME(MT.Match(_, [MT.Match(mk, _), MT.Match(id, _)])) =>
+				  let
+				  val mk = (case mk
+					 of "signature" => FT.SIGNATURE
+					  | "structure" => FT.STRUCTURE
+					  | "functor" => FT.FUNCTOR
+					(* end case *))
+				  in
+				    lp ((mk, id)::mods)
+				  end
+			      | _ => if String.isPrefix "----" ln
+				  then List.rev mods
+				  else lp mods
+			    (* end case *))
+		      (* end case *))
+		in
+		  lp []
+		end
+	  fun scanContents inS = (case kind
+		 of FT.OtherPage => {kind = kind, name = name, synopsis = []}
+		  | _ => {
+		      kind = kind, name = name,
+		      synopsis = if findSynopsis inS
+			  then getSynopsis inS
+			  else []
+		    }
+		(* end case *))
 	  in
-(* NOTE: for now, we only extract the header info from pages, but eventually
- * we should get the list of defined modules.
- *)
-	    scanFile rootDir pagePath
-	      (fn inS => info)
-		(fn info => info)
+	    scanFile rootDir pagePath scanContents Fn.id
 	  end
 
   (* extract the list of page files from a library document *)
@@ -137,9 +206,9 @@ structure ExtractIndex : sig
 		      case matchPageRef title
 		       of SOME(MT.Match(_, [MT.Match(kw, []), MT.Match(name, [])])) => let
 			    val kind = (case kw
-				   of "signature" => FT.SigPage
-				    | "structure" => FT.StructPage
-				    | "functor" => FT.FunctPage
+				   of "signature" => FT.sigPage
+				    | "structure" => FT.structPage
+				    | "functor" => FT.functPage
 				    | _ => raise Fail(concat[
 					  "**bogus keyword \"", kw, "\""
 					])
