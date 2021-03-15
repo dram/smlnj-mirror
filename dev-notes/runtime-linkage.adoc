@@ -91,7 +91,116 @@ signature ASSEMBLY =
   `A` substructure.
 --
 
-== Proposal for the future
+== The Assembly Glue Code
+
+The `Assembly.A` structure is implemented in target-specific assembly code.
+In addition, there is assembly code that is used to handle the transfer of
+control between the runtime system and *SML* code.  The assembly code implements
+the following functions:
+
+--
+`sigh_return_a`::
+  This code is an entrypoint to the runtime system (request code `REQ_SIG_RETURN`)
+  that is used as the return continuation when invoking a *SML* signal handler.
+
+`sigh_resume`::
+  This code is an entrypoint to the runtime system (request code `REQ_SIG_RESUME`)
+  that is used as the continuation argument to a *SML* signal handler.
+
+`pollh_return_a`::
+  This code is an entrypoint to the runtime system (request code `REQ_POLL_RETURN`)
+  that is used as the return continuation when invoking a *SML* software-polling handler. +
+  Note that software polling is no longer supported.
+
+`pollh_resume`::
+  This code is an entrypoint to the runtime system (request code `REQ_POL_RESUME`)
+  that is used as the continuation argument to a *SML* software-polling  handler. +
+  Note that software polling is no longer supported.
+
+`handle_a`::
+  This code is an entrypoint to the runtime system (request code `REQ_EXN`) that
+  is used as the exception handler of last resort (_i.e._, the initial value of
+  the exception-handler *CMachine* reguister.
+
+`return_a`::
+  This code is an entrypoint to the runtime system (request code `REQ_RETURN`) that
+
+`request_fault`::
+  This code is an entrypoint to the runtime system (request code `REQ_FAULT`) that
+
+`bind_cfun`::
+  This code is an entrypoint to the runtime system (request code `REQ_BIND_CFUN`) that
+  is used to get the address of a runtime-system function.
+
+`build_literals`::
+  This code is an entrypoint to the runtime system (request code `REQ_BUILD_LITERALS`) that
+  is used to build the record of literal values for a compilation unit.
+
+`callc_a`::
+  This code is an entrypoint to the runtime system (request code `REQ_CALLC`) that is
+  used to call a runtime-system function that was returned by `bind_cfun`.
+
+`saveregs`::
+  This code is an entrypoint to the runtime system (request code `REQ_GC`) that is used
+  to invoke the garbage collector.
+
+`set_request`::
+  This code is the common code that handles the transfer of control from *SML* to the
+  runtime system.  It is used by all of the runtime-system entrypoints listed above.
+
+`restoreregs`::
+  This function is used to transfer control from the runtime system to *SML* code.
+  It allocates and initialized the *SML* stack frame and *CMachine* registers, and
+  then invokes the *SML* code.
+
+`array_a`::
+  This code is the implementation of the `Assembly.A.array function, which allocates
+  a polymorphic array initialized to a given value.
+
+`create_b_a`::
+  This code is the implementation of the `Assembly.A.create_b function, which allocates
+  an uninitialized monomorphic array of 8-bit elements.
+
+`create_r_a`::
+  This code is the implementation of the `Assembly.A.create_r function, which allocates
+  an uninitialized monomorphic array of 64-bit reals.
+
+`create_s_a`::
+  This code is the implementation of the `Assembly.A.create_b function, which allocates
+  an uninitialized monomorphic vector of 8-bit elements (_aka_, a string).
+
+`create_v_a`::
+  This code is the implementation of the `Assembly.A.create_v function, which
+  creates a polymorphic vector from a list of values.
+
+`floor_a`::
+  This code is the implementation of the `Assembly.A.floor function, which
+  computes the integer floor of a boxed real.
+
+`logb_a`::
+  This code is the implementation of the `Assembly.A.logb function, which
+  extracts the unbiased exponent from a boxed real value. +
+  Note: the `logb` function is no longer used and is considered deprecated.
+
+`scalb_a`::
+  This code is the implementation of the `Assembly.A.scalb function, which
+  multiplies a real by a power of two.
+
+`try_lock_a`::
+  This code is the implementation of the `Assembly.A.try_lock` function, which
+  acquires a spin lock. +
+  Note that this function is not used for anything anymore and is not implemented
+  on many targets.
+
+`unlock_a`::
+  This code is the implementation of the `Assembly.A.unlock` function, which
+  releases a spin lock. +
+  Note that this function is not used for anything anymore and is not implemented
+  on many targets.
+--
+
+
+== A Proposal for the Future
 
 * remove unused components (`A.logb`, `A.try_lock`, and `A.unlock`).
 
