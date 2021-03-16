@@ -9,54 +9,72 @@ structure ORQueues =
 struct
 
 local
-    structure L = Layers
-    structure LS = L.Set
-    structure LL = LiveLayers
-    structure TU = TypesUtil
-    structure MU = MCUtil
-    open MCTypes (* AND, OR, SINGLE, VARS, LEAF, getId *)
-in
+  structure L = Layers
+  structure LS = L.Set
+  structure LL = LiveLayers
+  structure TU = TypesUtil
+  structure MU = MCUtil
+  open MCTypes (* AND, OR, SINGLE, VARS, LEAF, getId *)
 
-fun bug msg = ErrorMsg.impossible ("ORQueues: "^msg)
+  val debugging = ElabControl.mcdebugging
+  val say = Control_Print.say
+  fun newline () = say "\n"
+  fun saynl msg = (Control_Print.say msg; newline())
+  fun dbsay msg =
+      if !debugging
+      then (say msg; newline())
+      else ()
+  fun dbsays msgs = dbsay (concat msgs)
+  fun says strings = saynl (concat strings)
+  fun bug msg = ErrorMsg.impossible ("ORQueues: "^msg)
+in
 
 structure AndorPriority =
 struct
-  (* priority = (weight, #variants, #defaults) *)
-  type priority = int * int *int
+
+  (* priority = (weight, #bindLayers #branches, #defaults) 
+   * weighted in that order, and inversely ordered for #branches and #defaults *)
+  type priority = int * int * int * int
 
   type item = andor
 
   (* compare: priority * priority -> order *)
   (* priority to the first component, order on branching and defaults is reversed *)
-  fun compare ((w1,b1,d1),(w2,b2,d2)) =
+  fun compare ((w1,bl1,b1,d1),(w2,bl2,b2,d2)) =
       (case Int.compare (w1,w2)               (* greater weight is better *)
 	 of LESS => LESS
 	  | GREATER => GREATER
 	  | EQUAL =>
-	    (case Int.compare (b1, b2)        (* or fewer variants is better *)
-               of LESS => GREATER
-		| GREATER => LESS
+	    (case Int.compare (bl1, bl2)
+	       of LESS => LESS
+		| GREATER => GREATER
 		| EQUAL =>
-		   (case Int.compare (d1,d2)  (* or fewer defaults is better *)
+		  (case Int.compare (b1, b2)        (* or fewer variants is better *)
 		     of LESS => GREATER
 		      | GREATER => LESS
-		      | EQUAL => EQUAL)))
+		      | EQUAL =>
+			(case Int.compare (d1,d2)  (* or fewer defaults is better *)
+			   of LESS => GREATER
+			    | GREATER => LESS
+			    | EQUAL => EQUAL))))
 
   (* priority: andor -> goodness *)
   (* priority applies only to OR nodes *)
   fun priority (OR{info={id, typ, ...}, variants, live, ...}) : priority =
-      (case ORinfo.getWeight id
-	of NONE => bug "priority: no weight available"
-	 | SOME weight => 
-	   let val numVariants = Variants.numItems variants (* the number of keys actually occuring *)
-	       val maxVariants = TU.typeVariants typ (* how many variants could potentially occur *)
-	       val numDefaults = LS.numItems (LL.defaults live)
-	       val numBranches = (* then number of branches, including a possible default branch *)
-		   if numVariants < maxVariants andalso numDefaults > 0
-		   then numVariants + 1  (* adds default branch *)
-		   else numVariants (* ?? even if defaults exist too? *)
-	    in (weight, numBranches, numDefaults)  (* banching trumps number of defaults *)
-	   end)
+      let val weight = ORinfo.getWeight id
+	  val numBindingLayers = ORinfo.getNumBindingLayers id
+	  val numDefaults = LS.numItems (LL.defaults live)
+	  val numVariants = Variants.numItems variants
+	      (* the number of keys actually occuring *)
+	  val maxVariants = TU.typeVariants typ
+	      (* how many variants could potentially occur *)
+	  val numBranches =
+	      (* number of branches, including a possible default branch *)
+	      if numVariants < maxVariants andalso numDefaults > 0
+	      then numVariants + 1  (* adds default branch *)
+	      else numVariants (* ?? even if defaults exist too? *)
+       in (weight, numBindingLayers, numBranches, numDefaults)
+      end
     | priority _ = bug "priority: not OR node"
 
 end (* structure AndorPriority *)
@@ -64,15 +82,15 @@ end (* structure AndorPriority *)
 (* APQ: priority queues of OR nodes *)
 structure APQ = LeftPriorityQFn(AndorPriority)
 
-(* toList : APQ.queue -> APQ.item list *)
-fun toList (q : APQ.queue) =
+(* pqToList : APQ.queue -> APQ.item list *)
+fun pqToList (q : APQ.queue) =
     case (APQ.next q)
-     of SOME (andor, q') => andor :: toList q'
+     of SOME (andor, qrest) => andor :: pqToList qrest
       | NONE => nil
 
-(* toString : APQ.queue -> string *)
-fun toString q =
-    PrintUtil.listToString ("[", ",","]") (fn andor => Int.toString (getId andor)) (toList q) 
+(* pqToString : APQ.queue -> string *)
+fun pqToString q =
+    PrintUtil.listToString ("[", ",","]") andorToString (pqToList q) 
 
 (* findAndRemove: (APQ.item -> bool) -> APQ.queue -> (APQ.item * APQ.queue) option *)
 (* This function will be added to the Priority Queue interface, at which point it
@@ -114,16 +132,61 @@ fun accessible andor =
 and accessibleList andors =
     foldl (fn (andor,queue) => APQ.merge(accessible andor, queue)) APQ.empty andors
 
+(* selection based on "relevance" *)
+
+(* CLAIM: layer \in directs  =>  layer not-\in defaults
+ *   but layer not-\in defaults does not impliy layer \in direct (? example? )
+ *)
+
+(* relevantDisc : L.layer -> andor -> bool *)
+(* "discriminant relevant": layer could be either confirmed or rejected by matching (or not)
+ * one of the variants of the OR node *)
+fun relevantDisc layer (OR{info = {id,...}, live, ...}) =
+    let val directs = LL.directs live
+	val disc = LS.member (directs, layer)
+	fun dbprint (result) =
+	    (dbsays ["<< relevantDisc: layer = ", L.layerToString layer,
+		     ", node id = ", Int.toString id,
+		     ", directs = ", LS.layerSetToString directs,
+		     ", result = ", Bool.toString result];
+	     result)
+    in if disc  (* OR node can "discriminate" on this layer (i.e. confirm or reject) *)
+       then if LS.member(LL.defaults live, layer) (* sanity check *)
+	    then bug ("relevantDisc: layer is in both directs and defaults sets: " ^
+		      L.layerToString layer)
+	    else dbprint true
+       else dbprint false
+    end
+  | relevantDisc _ _ = bug "relevantDisc: OR expected"
+
+(* relevantBind : L.layer -> andor -> bool *)
+(* the layer "involves" a variable binding associated with the OR node (??) *)
+fun relevantBind layer (OR{info={id,...},...}) =
+    LS.member (ORinfo.getBindingLayers id, layer)
+  | relevantBind _ _ = bug "relevantBind: OR expected"
+
 (* selectBestRelevant : APQ.queue * ruleno -> (andor * APQ.queue) option *)
 (* CLAIM: the compatibility test is probably redundant, because queues will always
  * contain only mutually compatible OR nodes. *)
 fun selectBestRelevant (orNodes: APQ.queue, leastLive: L.layer) =
-    let fun relevant (OR{live,...}) =
-	      LS.member (LL.directs live, leastLive) (* andalso
-	      not(LS.member(LL.defaults live, leastLive)) -- redundant, implied *)
-	  | relevant _ = bug "selectBestRelevant..relevant: not OR node"
-     in findAndRemove relevant orNodes
+    let fun relevant andor =
+	    relevantDisc leastLive andor orelse
+	    relevantBind leastLive andor
+	val result = findAndRemove relevant orNodes
+    in case result
+	of NONE => 
+	   (dbsay "<< selectBestRelevant: NONE"; NONE)
+	 | SOME (chosen, rest) =>
+	   (dbsays ["<< selectBestRelevant: chosen = ", andorToString chosen, ", Leaving: ", pqToString rest];
+	    result)
     end
 
 end (* local *)
-end (* structure OrderedOrNodes *)
+end (* structure ORQueues *)
+
+(* Notes:
+
+(1) Need and example where a layer is "bind-relevant" but not "discriminant relevant",
+    and visa versa to show that these two relevance tests are independent.
+
+*)

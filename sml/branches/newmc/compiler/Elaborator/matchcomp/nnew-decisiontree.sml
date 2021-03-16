@@ -84,7 +84,7 @@ let val _ = dbsays [">> decisionTree: andor ID = ", Int.toString (getId andor),
 	end
 
     val initialOrNodes = Q.accessible andor
-    val _ = dbsays["** decisionTree: intialOrNodes = ", ORQueues.toString initialOrNodes]
+    val _ = dbsays["** decisionTree: intialOrNodes = ", ORQueues.pqToString initialOrNodes]
 
     (* makeDecisionTree : APQ.queue * LS.set * trace -> decTree *)
     (* orNodes is a priority queue (APQ.queue) of OR nodes
@@ -98,7 +98,7 @@ let val _ = dbsays [">> decisionTree: andor ID = ", Int.toString (getId andor),
      * CLAIM: The orNodes queue argument will always be internally compatible. *)
     fun makeDecisionTree(orNodes: APQ.queue, survivors: LS.set, dtrace) =
 	(dbsays [">> makeDecisionTree: survivors = ", LS.layerSetToString survivors,
-		 "; orNodes = ", ORQueues.toString orNodes];
+		 "; orNodes = ", ORQueues.pqToString orNodes];
 	 case LS.minItem survivors
 	   of NONE => DMATCH (rev dtrace)  (* no survivors, match failure *)
 	    | SOME minSurvivor => 
@@ -106,7 +106,8 @@ let val _ = dbsays [">> decisionTree: andor ID = ", Int.toString (getId andor),
 	         of SOME (node as OR{info = {id, path,...}, live, variants, ...},
 			  candidates) =>
 		  (* best relevant OR node, candidates is queue containing remainder of OR nodes *)
-		  let val _ = dbsays ["** makeDecisionTree[SOME(OR)]: best relevant = ", Int.toString id]
+		    let val _ = dbsays ["** makeDecisionTree[SOME(OR)]: best relevant = ",
+					Int.toString id]
 		      (* (print "makeDecisionTree: \n";
 			  print "  thisPath: "; MCPrint.tppPath thisPath;
 			  print "  survivors: "; MCPrint.tppRules survivors;
@@ -121,11 +122,11 @@ let val _ = dbsays [">> decisionTree: andor ID = ", Int.toString (getId andor),
 			      val variantCandidates = APQ.merge(candidates, Q.accessible andor)
 				   (* add newly accessible OR nodes only under this variant,
 				    * OR nodes under other variants will be incompatible *)
-			   in dbsays ["** andorToDecTree: id = ", Int.toString (getId andor),
-				      "\n  path = ", pathToString variantPath,
-				      "\n  live = ", LS.layerSetToString variantLive,
-				      "\n  variantSurvivors = ", LS.layerSetToString variantSurvivors,
-				      "\n  variantCandidates = ", ORQueues.toString variantCandidates];
+			   in dbsays [">> andorToDecTree: id = ", Int.toString (getId andor),
+				      "\n   path = ", pathToString variantPath,
+				      "\n   live = ", LS.layerSetToString variantLive,
+				      "\n   variantSurvivors = ", LS.layerSetToString variantSurvivors,
+				      "\n   variantCandidates = ", ORQueues.pqToString variantCandidates];
 			      makeDecisionTree(variantCandidates, variantSurvivors,
 					       variantPath::dtrace)
 			  end
@@ -138,8 +139,8 @@ let val _ = dbsays [">> decisionTree: andor ID = ", Int.toString (getId andor),
 					   print "survivors: "; MCPrint.tppLayers survivors;
 					   print "live: "; MCPrint.tppLayers live)
 				     else (); *)
-				    dbsays ["defaultOp: id = ", Int.toString id, ", defaultSurvivors = ",
-				            LS.layerSetToString defaultSurvivors];
+				    dbsays ["** makeDecisionTree: defaultOp: id = ", Int.toString id,
+					    ", defaultSurvivors = ", LS.layerSetToString defaultSurvivors];
 				   SOME(makeDecisionTree(candidates, defaultSurvivors, path::dtrace))
 				   (* BUG? path added to dtrace does not reflect default _choice_.
 				    * Could this cause wrong svar choice in MCCode.genRHS? *)
@@ -153,7 +154,7 @@ let val _ = dbsays [">> decisionTree: andor ID = ", Int.toString (getId andor),
 		| NONE =>
 		  (* no relevant OR nodes; pick minimum rule *)
 		    (incrementRuleCount (L.toRule minSurvivor);
-		     dbsay "<< makeDecisionTree: NO relevant";
+		     dbsays ["<< makeDecisionTree: NO relevant, DLEAF ", L.layerToString minSurvivor];
 		     DLEAF (minSurvivor, rev dtrace))
 
 		| _ => bug "makeDecisionTree"))

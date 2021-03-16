@@ -70,6 +70,7 @@ fun insert (MapII m, key, x) = MapII (IntInfMap.insert (m, keyToIntInf key, (key
 	    case key
 	      of D (dcon,_) => Symbol.name(TU.dataconName dcon)
 	       | S s => s
+	       | _ => bug "insert"
      in MapS (StringMap.insert (m, s, (key, x)))
     end
 
@@ -104,12 +105,14 @@ fun numItems (MapII m) = IntInfMap.numItems m
   | numItems (MapS m) = StringMap.numItems m
 
 (* listItems' : 'a variants -> (Key.key * 'a) list *)
-fun listItems' variants =
+fun listItems' (variants : 'a variants) : (Key.key * 'a) list =
     (case variants
       of MapII m => IntInfMap.listItems m
        | MapI m => IntRedBlackMap.listItems m
        | MapS m => StringMap.listItems m)
 
+fun listItems (variants: 'a variants) : 'a list = 
+    List.map #2 (listItems' variants)
 
 (* ... etc. *)
 

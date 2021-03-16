@@ -139,9 +139,11 @@ fun ppAndor ppstrm =
 	     PP.break ppstrm {nsp=1,offset=0};
 	     ppLayerset ppstrm layers;
 	     PP.closeBox ppstrm)
-	  | ppNode ppstrm (LEAF{live,  ...}) =
+	  | ppNode ppstrm (LEAF{info = {id, ...}, live,  ...}) =
 	    (PP.openHBox ppstrm;
 	     PP.string ppstrm "LEAF";
+	     PP.break ppstrm {nsp=1,offset=0};
+	     PP.string ppstrm (Int.toString id);
 	     PP.break ppstrm {nsp=1,offset=0};
 	     ppLayerset ppstrm (LL.directs live);
 	     PP.break ppstrm {nsp=1,offset=0};
@@ -159,7 +161,7 @@ fun ppAndor ppstrm =
 	     PU.ppvseq ppstrm 0 "" ppVariant (Variants.listItems' variants);
 	     PP.closeBox ppstrm)
 	and ppVariant ppstrm (key, node) =
-	    (PP.openHOVBox ppstrm (PP.Abs 0);
+	    (PP.openHBox ppstrm (* (PP.Abs 0) *);
 	     PP.string ppstrm (K.keyToString key);
 	     PP.break ppstrm {nsp=1,offset=0};
 	     ppNode ppstrm node;

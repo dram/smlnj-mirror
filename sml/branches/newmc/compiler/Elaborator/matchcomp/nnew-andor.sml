@@ -77,8 +77,8 @@ fun addVarBindings (b, AND{info,andKind,children,live}) =
     SINGLE{info=addBind(b,info), variant=variant}
   | addVarBindings (b, VARS{info,layers}) =
     VARS{info=addBind(b,info), layers=layers}
-  | addVarBindings _ = bug "addVarBindings"
-    (* var-binding for a key LEAF will be attached to the parent OR node *)
+  | addVarBindings _ = bug "addVarBindings"  (* LEAF, INITIAL *)
+    (* var-bindings for a LEAF (constant) node will be attached to the parent OR node *)
 
 (* addAsBinding : varBindings * andor -> andor *)
 fun addAsBindings (b, AND{info,andKind,children,live}) =
@@ -89,16 +89,23 @@ fun addAsBindings (b, AND{info,andKind,children,live}) =
     SINGLE{info=addAsBind(b,info), variant=variant}
   | addAsBindings (b, VARS{info,layers}) = 
     VARS{info=addAsBind(b,info), layers=layers}
-  | addAsBindings _ = bug "addAsBindings"
-    (* as-binding for a (say) constant will be attached to the parent OR node *)
+  | addAsBindings _ = bug "addAsBindings"  (* LEAF, INITIAL *)
+    (* as-bindings for a LEAF (constant) node will be attached to the parent OR node *)
 				   
+(* mkLEAFinfo : path -> AOinfo *)
+(* make info record for a new LEAF node *)
+fun mkLEAFinfo (path: path): AOinfo =
+    {id = newId (), typ = BT.unitTy, path = path, vars = nil, asvars = nil}
+
 (* mergeConst: K.key * layer * path * variants -> variants *)
 fun mergeConst (key, layer, path, variants) = 
     (case Variants.find (variants, key)
       of NONE =>  (* new constant variant *)
-	 Variants.insert (variants, key, LEAF{path=extendPath(path, key), live=LL.newDirect layer})
-       | SOME (LEAF{path=path',live}) =>
-	 Variants.insert (variants, key, LEAF{path=path', live=LL.addDirect(layer, live)})
+	 Variants.insert (variants, key,
+			  LEAF{info=mkLEAFinfo (extendPath(path, key)),
+			       live=LL.newDirect layer})
+       | SOME (LEAF{info,live}) =>
+	 Variants.insert (variants, key, LEAF{info=info, live=LL.addDirect(layer, live)})
        | _ =>  bug "mergeConst")
 			  
 (* makeAndor : pat list * T.ty -> andor *)
@@ -138,9 +145,10 @@ let
 	          val defaults = LS.addList(outerDefaults, newLayers)
 	       in VARS{info=info, layers = defaults}
 	      end
-	  | LEAF{path,live} =>
-	      (* push defaults all the way down to LEAF nodes? Are defaults used here? *)
-	      LEAF{path=path, live=LL.addDefaults(outerDefaults, live)}
+	  | LEAF{info,live} =>
+	      (* push defaults all the way down to LEAF nodes? defaults are not relevant to LEAF!
+               * in fact, live field is probably not relevant! CHECK *)
+	      LEAF{info=info, live=LL.addDefaults(outerDefaults, live)}
 	  | _ => bug "pushDefaults(INITIAL)"
 
     (* initAnd : pat list * T.ty list * layer * rpath -> andor list
@@ -211,7 +219,7 @@ let
 	      val live = LL.newDirect layer
 	   in OR{info = {id = newId(), typ = ty, path = path, asvars = nil, vars = nil}, live = live,
 	         variants =
-		   Variants.insert (Variants.empty key, key, LEAF{path=newPath, live = live})}
+		   Variants.insert (Variants.empty key, key, LEAF{info = mkLEAFinfo newPath, live = live})}
 	  end
       | mergeAndor (STRINGpat s, ty, layer, rpath, INITIAL) =
 	  (* ASSERT: ty = BT.stringTy *)
@@ -220,7 +228,8 @@ let
 	      val newRPath = extendRPath(rpath,key)
 	      val live = LL.newDirect layer
 	  in OR{info = {id = newId(), typ = ty, path = path, asvars = nil, vars = nil}, live = live,
-		variants = Variants.insert (Variants.empty key, key, LEAF{path=reverseRPath newRPath, live=live})}
+		variants = Variants.insert (Variants.empty key, key,
+					    LEAF{info=mkLEAFinfo (reverseRPath newRPath), live=live})}
 	  end
       | mergeAndor (CHARpat c, ty, layer, rpath, INITIAL) =
 	  (* ASSERT: ty = BT.charTy *)
@@ -230,11 +239,12 @@ let
 	      val newPath = reverseRPath newRPath
 	      val live = LL.newDirect layer
 	  in OR{info = {id = newId(), typ = ty, path = path, asvars = nil, vars = nil}, live = live,
-		variants = Variants.insert (Variants.empty key, key, LEAF{path=newPath, live=live})}
+		variants = Variants.insert (Variants.empty key, key,
+					    LEAF{info=mkLEAFinfo newPath, live=live})}
 	  end
 
 (* QUESTION: In these constant key cases, we are adding the layer to _both_ the
- *    OR node and the descendent LEAF node? Is this necessary? *)
+ *    OR node and the descendent LEAF node? Is this necessary? Probably not: CHECK! *)
 
       | mergeAndor (pat as RECORDpat{fields,...}, ty, layer, rpath, INITIAL) =
 	  let val path = reverseRPath rpath
@@ -264,11 +274,12 @@ let
 	      val live = LL.newDirect layer
   	   in if TU.dataconWidth dcon = 1  (* single datacon *)
 	      then SINGLE{info = {id = newId(), typ = ty, path = path, asvars = nil, vars = nil},
-			  variant = (key, LEAF{path = newPath, live = live})}
+			  variant = (key, LEAF{info = mkLEAFinfo newPath, live = live})}
 	      else OR{info = {id = newId(), typ = ty, path = path, asvars = nil, vars = nil},
 		      live = live,
 		      variants =
-		        Variants.insert (Variants.empty key, key, LEAF{path = newPath, live = live})}
+		      Variants.insert (Variants.empty key, key,
+				       LEAF{info = mkLEAFinfo newPath, live = live})}
 	  end
 
       | mergeAndor (APPpat(dcon,tvs,pat), ty, layer, rpath, INITIAL) =
@@ -363,8 +374,8 @@ let
       | mergeAndor (CONpat (patDcon, tvs), _, layer, _,
 		    SINGLE {info, variant=(key, arg)}) =
 	  (case arg
-	    of LEAF {path, live} =>
-		 let val newArg = LEAF{path = path, live = LL.addDirect(layer,live)}
+	    of LEAF {info, live} =>
+		 let val newArg = LEAF{info = info, live = LL.addDirect(layer,live)}
 		  in SINGLE{info = info, variant = (key, newArg)}
 		 end
 	     | _ => bug "mergeAndor:CONpat:SINGLE:arg")
@@ -433,15 +444,15 @@ let
 	(case Variants.find (variants, key)
 	   of NONE => (* new variant *)
 		let val newpath = extendPath(path, key) (* path was the parent path *)
-		    val newVariant = LEAF{path=newpath, live=LL.newDirect layer}
+		    val newVariant = LEAF{info=mkLEAFinfo newpath, live=LL.newDirect layer}
 		 in Variants.insert (variants, key, newVariant)
 		end
 	    | SOME andor => (* variant key already occurs *)
 		let val modifiedVariant =
 				(* merge with existing variant for this dcon *)
 			case andor
-			 of LEAF{path,live} =>  (* constant dcon *)
-			      LEAF{path=path, live=LL.addDirect(layer,live)}
+			 of LEAF{info,live} =>  (* constant dcon *)
+			      LEAF{info=info, live=LL.addDirect(layer,live)}
 			  | _ => bug "mergeDataConst"
 		 in Variants.insert(variants, key, modifiedVariant)
 		end)

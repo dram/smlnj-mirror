@@ -219,7 +219,7 @@ fun genMatch (rules: AS.rule list, andor, decTree, ruleCounts, rhsTy, varenvAC, 
 	    val venv = map findSvar pvars
 	 in if !debugging
             then (say "<< bindSvars: venv = "; VarEnvAC.printVarEnvAC venv;
-		  say ", layer = "; say (L.toString layer); say "\n")
+		  say ", layer = "; say (L.layerToString layer); say "\n")
 	    else ();
 	    venv
 	end
@@ -277,12 +277,14 @@ fun genMatch (rules: AS.rule list, andor, decTree, ruleCounts, rhsTy, varenvAC, 
             (* genNode : andor * SE.svarenv * varenvMC * (exp -> exp) 
                          -> SE.svarenv * varenvMC * (exp -> exp)  *)
 	    and genNode (AND {info,children,andKind,...}, svarenv, varenvMC, k) =
-                (dbsays [">> genNode:AND: ", Int.toString (#id info), ", ", Int.toString (length (#vars info))];
+                (dbsays [">> genNode:AND: ", Int.toString (#id info), ", ",
+			 Int.toString (length (#vars info))];
 		 case SE.lookSvar (svarenv, #id info)
 		    of SOME thisSvar =>
 			 let fun collectChildSvars (childAndor, (svars, svarenv)) =
 				 let val childInfo = getInfo childAndor
-				     val svar = MU.infoToSvar (childInfo) (* was: info -- fix for vecpat bug *)
+				     val svar = MU.infoToSvar (childInfo)
+					 (* was: info -- fix for vecpat bug *)
 				  in (svar :: svars, SE.bindSvar(#id childInfo, svar, svarenv))
 				 end
 			     val (childrenSvars, svarenv') =
@@ -300,7 +302,8 @@ fun genMatch (rules: AS.rule list, andor, decTree, ruleCounts, rhsTy, varenvAC, 
 			 end
 		     | NONE => bug "genNode:AND: no svar")
 	      | genNode (SINGLE {info, variant = (key, arg)}, svarenv, varenvMC, k) =
-                (dbsays [">> genNode:SINGLE: ", Int.toString (#id info), ", ", Int.toString (length (#vars info))];
+                (dbsays [">> genNode:SINGLE: ", Int.toString (#id info), ", ",
+			 Int.toString (length (#vars info))];
 		  case SE.lookSvar (svarenv, #id info)
 		    of SOME thisSvar =>
 			 let val varenvMC' = bindPatVars (thisSvar, info, varenvMC)
@@ -321,7 +324,7 @@ fun genMatch (rules: AS.rule list, andor, decTree, ruleCounts, rhsTy, varenvAC, 
 				  end
 			 end
 		     | NONE => bug "genNode:SINGLE: no svar")
-	      | genNode (OR {info={id,vars,...},...}, svarenv, varenvMC, k) =
+	      | genNode (OR {info as {id,vars,...},...}, svarenv, varenvMC, k) =
                   (* this OR node is already accounted for in the dectree (if not redundant) *)
                 (dbsays [">> genNode:OR: ", Int.toString id, ", ", Int.toString (length vars)];
 		  case SE.lookSvar (svarenv, id)
@@ -330,7 +333,7 @@ fun genMatch (rules: AS.rule list, andor, decTree, ruleCounts, rhsTy, varenvAC, 
 			     in (svarenv, varenvMC', k)
 			    end
 		      | NONE => bug "genNode:OR: no svar")
-	      | genNode (VARS {info={id,vars,...}, ...}, svarenv, varenvMC, k) =
+	      | genNode (VARS {info as {id,vars,...}, ...}, svarenv, varenvMC, k) =
                 (dbsays [">> genNode:VARS: ", Int.toString id, ", ", Int.toString (length vars)];
 		   case SE.lookSvar (svarenv, id)
 		     of SOME thisSvar =>

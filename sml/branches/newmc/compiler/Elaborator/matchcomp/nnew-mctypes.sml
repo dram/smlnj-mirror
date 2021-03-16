@@ -31,13 +31,6 @@ type ruleno = R.ruleno    (* == int, the index number of a rule in the match, ze
 type ruleset = R.ruleset  (* == IntBinarySet.set *)
    (* a set of rule numbers (no duplicates) *)
 
-
-type binding = V.var * L.layer
-   (* a variable bound at some point in the given rule, either as a
-    * basic var pattern (VARpat) or through an "as" pattern (LAYEREDpat) *)
-type varBindings = binding list
-   (* variables bound by VARpat (info.vars) or LAYEREDpat (info.asvars) *)
-
 (* ================================================================================ *)
 (* paths:
    paths locate points in the "pattern space" determined by a sequence of patterns
@@ -114,6 +107,12 @@ as a phantom argument for nullary dcons. (?) *)
    the int value of the length.
  *)
 
+type binding = V.var * L.layer
+   (* a variable bound at some point in the given rule, either as a
+    * basic var pattern (VARpat) or through an "as" pattern (LAYEREDpat) *)
+type varBindings = binding list
+   (* variables bound by VARpat (info.vars) or LAYEREDpat (info.asvars) *)
+
 (* andKind: two flavors of AND nodes, one for record/tuples, and one for vector elements
  *  the andKind determines the selection operator for extracting elements *)
 datatype andKind
@@ -150,9 +149,9 @@ datatype andor
      layers : LS.set}     (* layers matching here by default *)
 
   | LEAF of   (* used as the andor of variants with constant keys, with live layers
-               * A LEAF node does not have an independent type; its type is determined
-	       * by the parent OR node's AOinfo. *)
-    {path: path,         (* path is the parent path extended by key *)
+               * A LEAF node does not have an independent type; its type defaults to unit.
+	       * The info is degenerate, as type, vars, and asvars will alwasy be unit, nil, nil *)
+    {info : AOinfo,
      live : LL.liveLayers}
 
   | INITIAL   (* initial empty andor into which initial pattern is merged
@@ -167,22 +166,20 @@ fun getInfo (AND{info,...}) = info
   | getInfo (OR{info,...}) = info
   | getInfo (SINGLE{info,...}) = info
   | getInfo (VARS{info,...}) = info
+  | getInfo (LEAF{info,...}) = info
   | getInfo _ = bug "getInfo"
 
+(* Following three "get" function fail (bug) for INITIAL *)
+
 (* getId : andor -> int *)
-(* fails (bug) for andor nodes without info: LEAF, INITIAL *)
-fun getId (LEAF _) = ~1
-  | getId andor = #id (getInfo andor)
+fun getId andor = #id (getInfo andor)
 
 (* getType : andor -> T.ty *)
 (* fails (bug) for andor nodes without info: LEAF, INITIAL *)
-fun getType (LEAF _) = T.UNDEFty
-  | getType andor = #typ (getInfo andor)
+fun getType andor = #typ (getInfo andor)
 
 (* getPath : andor -> path *)
-fun getPath (LEAF{path,...}) = path
-  | getPath INITIAL = bug "getPath:INITIAL"
-  | getPath andor = #path (getInfo andor)  (* otherwise, andor has info containing path *)
+fun getPath andor = #path (getInfo andor)
 
 (* getLive : andor -> LL.liveLayers
    live layers is union of direct and defaults *)
@@ -199,6 +196,8 @@ fun findKey (key, (key',node)::rest) =
     if K.eqKey(key,key') then SOME node
     else findKey(key, rest)
   | findKey (_, nil) = NONE
+
+fun andorToString andor = "N" ^ Int.toString(getId andor)
 
 (* ---------------------------------------------------------------------- *)
 (* decision trees *)

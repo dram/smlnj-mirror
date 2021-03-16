@@ -21,23 +21,37 @@ type layer = Rules.ruleno * hlpath
 fun layerEq ((r1,s1): layer, (r2,s2)) =
     r1 = r2 andalso ListPair.allEq (op =) (s1, s2)
 
+(* DEFN: two hlpaths p1 and p2 are compatible if one is a prefix of the
+ * other. So hlpath p = nil is compatible with any other hlpath *)
+
 (* two occurrences of a variable in a pattern must be separated by an "|", so
  * their layer paths must _differ_ at some point, with the path going left (0)
- * being less than the path going right. If one hlpath is a prefix of
- * another, they are considered "equal" because they do not diverge. *)
+ * being less than the path going right (1). If one hlpath is a prefix of
+ * another, they are considered "equal" because they do not diverge.
+ * hlpathLT (p1,p2) will return true iff there exists a point n such that
+ * 0 <= n <= min(length p1, length p2) and p1(n) = 0 and p2(n) = 1,
+ * i.e. p1(n) < p2(n). If p1 <= p2 or p2 <= p1 (prefix order), then 
+ * hlpathLT (p1, p2) = false. *)			       
 fun hlpathLT (nil, nil) = false
   | hlpathLT (nil, _) = false
   | hlpathLT (_, nil) = false
   | hlpathLT (b1::rest1, b2::rest2) =
     b1 < b2 orelse (b1 = b2 andalso hlpathLT (rest1,rest2))
 
-fun hlpathCompare (p1, p2) =
+(* hlpathCompare : hlpath * hlpath -> order
+ * If p1 <= p2 or p2 <= p1 (either is a prefix of the other) then
+ * hlpathCompare (p1, p2) = EQUAL *)   
+fun hlpathCompare (nil, nil) = EQUAL
+  | hlpathCompare (nil, p2) = EQUAL
+  | hlpathCompare (p1, nil) = EQUAL
+  | hlpathCompare (p1, p2) =
     if hlpathLT(p1,p2) then LESS
     else if hlpathLT(p2,p1) then GREATER
     else EQUAL
 
 datatype hlpOrder = EQUALHL | PREFIX1 | PREFIX2 | LEFT | RIGHT
 
+(* hlpathPrefixCompare : hlpath * hlpath -> hlpOrder *)
 fun hlpathPrefixCompare (p1,p2) =
     case (p1,p2)
      of (nil, nil) => EQUALHL
@@ -53,6 +67,7 @@ fun layerLT ((r1,p1): layer, (r2,p2)) =
     r1 < r2 orelse
     r1 = r2 andalso hlpathLT (p1,p2)
 
+(* layerCompare : layer * layer -> order *)
 fun layerCompare ((r1,p1), (r2,p2)) =
     case Int.compare(r1,r2)
      of LESS => LESS
@@ -70,32 +85,12 @@ fun hlpathToString nil = ""
     concat [Int.toString b, ".", hlpathToString rest]
 
 fun layerToString (r,s) =
-    concat (Int.toString r ::
-	    (if null s then nil else [".", hlpathToString s]))
+    concat [Int.toString r, ".", hlpathToString s]
 
-(*
-structure OrdKey =
-struct
-  type key = layer
-  val compare = layerCompare
-end
 
-structure Set = RedBlackSetFn (OrdKey)
- *)
-
-(* "sets" of layers.
- * In the case where there are no OR-patterns, all layers should be of the
- * form (r, nil) and should correspond to the simpler case where layer = ruleno
- * and set = Rules.set
- *
- * Layer sets are "fuzzy", in the sense that we equate (r,p) and (r,q) in the
- * case where one of p and q is a prefix of the other. But we give precedence
- * to the longer hlpath in that case, discarding the shorter one.  I.e. there
- * should not be two layers (r,p) and (r,q) in a layer set where p is a prefix
- * of q. Sets are therefor normalized to prefer the longest hlpath "available"
- * so far.
- *)
-
+(* --------------------------------------------------------------------------- *)
+(* loyer sets *)
+	   
 structure Set =
 struct
   type set = layer list (* sorted in "ascending" order *)
@@ -107,10 +102,10 @@ struct
 
   (* member: set * layer -> bool *)
   fun member (nil, _) = false
-    | member (layer0::rest, layer1) =
-      (case layerCompare (layer0, layer1)
+    | member (layer0::rest, layer) =
+      (case layerCompare (layer0, layer)
 	of EQUAL => true (* rules are equal, hlpaths are "compatible" *)
-	 | _ => false)
+	 | _ => member (rest, layer))
 
   (* singleton : layer -> set *)
   fun singleton layer = [layer]  (* == add(empty,layer) *)
@@ -161,6 +156,9 @@ struct
     | minItem (layer::_) = SOME layer
 
   fun numItems set = length set
+
+  (* isSubset : set * set -> bool *)
+  fun isSubset (set1, set2) = false
 
   fun listItems set = set
 
