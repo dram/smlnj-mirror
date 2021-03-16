@@ -1,6 +1,11 @@
-/* clib-list.h
+/*! \file clib-list.h
  *
- * COPYRIGHT (c) 1994 AT&T Bell Laboratories.
+ * \author John Reppy
+ */
+
+/*
+ * COPYRIGHT (c) 2021 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  */
 
 C_LIBRARY(SMLNJ_RunT_Library)

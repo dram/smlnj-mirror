@@ -296,7 +296,7 @@ MK_ARGS =		VERSION="$(VERSION)" \
 			CC="$(CC)" CFLAGS="$(CFLAGS)" DEFS="$(DEFS)" \
 			AR="$(AR)" ARFLAGS="$(ARFLAGS)" \
 			RANLIB="$(RANLIB)" \
-			INCLUDES="$(GC_INCLUDES) -I../bytecode"
+			INCLUDES="$(GC_INCLUDES)"
 
 #
 # memory management library
