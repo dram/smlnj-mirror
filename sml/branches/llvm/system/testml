@@ -65,5 +65,9 @@ LPC=${LIB_DIR}/local_pathconfig
 rm -f $LPC
 cp ../../config/extrapathconfig $LPC
 
+echo "CM_PATHCONFIG=$CM_PATHCONFIG"
+echo "CM_LOCAL_PATHCONFIG=$LPC"
+echo "$bindir/sml $SIZE_OPT @SMLload=$HEAP_IMAGE $@"
+
 CM_PATHCONFIG=$LIB_DIR/pathconfig CM_LOCAL_PATHCONFIG=$LPC \
     $bindir/sml $SIZE_OPT @SMLload=$HEAP_IMAGE "$@"

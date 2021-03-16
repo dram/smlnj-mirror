@@ -81,7 +81,11 @@ typedef long off_t;	/* Windows does not define a file offset type */
 
 #define PVT	static
 
-#define STATIC_INLINE	static inline
+#ifdef NDEBUG
+#  define STATIC_INLINE	static
+#else
+#  define STATIC_INLINE static inline
+#endif
 
 typedef Int32_t bool_t;
 #ifndef TRUE		/* Some systems already define TRUE and FALSE */
@@ -173,11 +177,11 @@ typedef struct {	/* a table of system constants. */
 
 
 /* run-time system messages */
-extern void Say (char *fmt, ...);
-extern void SayDebug (char *fmt, ...);
-extern void Error (char *, ...);
+extern void Say (const char *fmt, ...);
+extern void SayDebug (const char *fmt, ...);
+extern void Error (const char *, ...);
 extern void Exit (int code);
-extern void Die (char *, ...);
+extern void Die (const char *, ...);
 
 /* heap_params is an abstract type, whose representation depends on the
  * particular GC being used.
@@ -220,12 +224,6 @@ extern bool_t	UnlimitedHeap;
 /* The table of virtual processor ML states */
 extern vproc_state_t	*VProc[];
 extern int		NumVProcs;
-
-#ifdef NDEBUG
-#  define STATIC_INLINE	static
-#else
-#  define STATIC_INLINE static inline
-#endif
 
 #endif /* !_ASM_ */
 
