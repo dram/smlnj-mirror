@@ -36,13 +36,16 @@
 
 mc_gen::mc_gen (llvm::LLVMContext &context, target_info const *info)
 {
-  // lookup the target in the registry
-    llvm::Triple triple;
+  // get the LLVM target triple
+    llvm::Triple triple = info->getTriple();
+    
+  // lookup the target in the registry using the triple's string representation
     std::string errMsg;
-    auto *target = llvm::TargetRegistry::lookupTarget(info->name, triple, errMsg);
+    auto *target = llvm::TargetRegistry::lookupTarget(triple.str(), errMsg);
     if (target == nullptr) {
 	std::cerr << "**** Fatal error: unable to find target for \""
 	    << info->name << "\"\n";
+	std::cerr << "    [" << errMsg << "]\n";
         assert(false);
     }
 

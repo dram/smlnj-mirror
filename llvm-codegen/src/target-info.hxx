@@ -39,6 +39,7 @@ struct target_info {
   // GC roots are std-link, std-clos, std-cont, callee saves, std-arg
     int numGCRoots () const { return this->numCalleeSaves + 4; }
 
+    llvm::Triple getTriple() const;
 };
 
 #endif // !_TARGET_INFO_HXX_
