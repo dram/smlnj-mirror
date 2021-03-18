@@ -15,6 +15,17 @@ CXX_FLAGS =	-g $(LLVM_CXX_FLAGS)
 
 VPATH =		../src
 
+# determine the operating system
+#
+HOST_OS := $(shell uname -s)
+ifeq ($(HOST_OS),Darwin)
+TARGET_FLAGS += -DOPSYS_DARWIN
+else ifeq ($(HOST_OS),Linux)
+TARGET_FLAGS += -DOPSYS_LINUX
+endif
+
+# determine the supported targets
+#
 ifneq (,$(findstring AArch64,$(LLVM_TARGETS)))
 TARGET_FLAGS +=	-DENABLE_AARCH64
 endif

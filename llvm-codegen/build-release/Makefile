@@ -17,11 +17,22 @@ LLVM_CPP_FLAGS = $(shell $(LLVM_CONFIG) --cppflags)
 
 VPATH =		../src
 
+# determine the operating system
+#
+HOST_OS := $(shell uname -s)
+ifeq ($(HOST_OS),Darwin)
+TARGET_FLAGS += -DOPSYS_DARWIN
+else ifeq ($(HOST_OS),Linux)
+TARGET_FLAGS += -DOPSYS_LINUX
+endif
+
+# determine the supported targets
+#
 ifneq (,$(findstring AArch64,$(LLVM_TARGETS)))
-TARGET_FLAGS =	$(TARGET_FLAGS) -DENABLE_AARCH64
+TARGET_FLAGS +=	-DENABLE_AARCH64
 endif
 ifneq (,$(findstring X86,$(LLVM_TARGETS)))
-TARGET_FLAGS =	$(TARGET_FLAGS) -DENABLE_X86
+TARGET_FLAGS +=	-DENABLE_X86
 endif
 
 INCLS =		$(wildcard ../include/*hxx) $(wildcard ../../include/asdl/*hxx)
@@ -33,7 +44,7 @@ OBJS =		$(SRCS:%.cxx=%.o)
 llvm-codegen:	$(OBJS)
 
 %.o: %.cxx $(INCLS)
-	$(CXX) -c $(LLVM_CPP_FLAGS) $(CPP_FLAGS) $(CXX_FLAGS) $<
+	$(CXX) -c $(CPP_FLAGS) $(TARGET_FLAGS) $(CXX_FLAGS) $<
 
 .PHONY:		clean
 clean:
