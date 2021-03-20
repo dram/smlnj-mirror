@@ -23,6 +23,7 @@ struct target_info {
 					// naming conventions (see lib/Support/Triple.cpp).
     std::string dataLayout;		// LLVM data layout string
     std::string spName;			// the assembly name of the stack pointer register
+    llvm::Triple::ArchType arch;	// target architecture
     int wordSz;				// size in bits of ML word (should also be the
 					// same as the native pointer size)
     int numRegs;			// the number of SML registers used by the target

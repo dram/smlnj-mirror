@@ -35,10 +35,11 @@
 
 
 mc_gen::mc_gen (llvm::LLVMContext &context, target_info const *info)
+  : _tgtInfo(info)
 {
   // get the LLVM target triple
     llvm::Triple triple = info->getTriple();
-    
+
   // lookup the target in the registry using the triple's string representation
     std::string errMsg;
     auto *target = llvm::TargetRegistry::lookupTarget(triple.str(), errMsg);
@@ -131,7 +132,7 @@ void mc_gen::optimize (llvm::Module *module)
 
 // adopted from SimpleCompiler::operator() (CompileUtils.cpp)
 //
-llvm::Expected<std::unique_ptr<llvm::object::ObjectFile>> mc_gen::compile (llvm::Module *module)
+std::unique_ptr<CodeObject> mc_gen::compile (llvm::Module *module)
 {
     llvm::SmallVector<char, 0> objBufferSV;
     {
@@ -147,8 +148,7 @@ llvm::Expected<std::unique_ptr<llvm::object::ObjectFile>> mc_gen::compile (llvm:
     auto objBuffer = std::make_unique<llvm::SmallVectorMemoryBuffer>(
 	std::move(objBufferSV), module->getModuleIdentifier() + "-objectbuffer");
 
-  // convert the memory buffer to an object file
-    return llvm::object::ObjectFile::createObjectFile(objBuffer->getMemBufferRef());
+    return CodeObject::create (this->_tgtInfo, objBuffer->getMemBufferRef());
 
 }
 

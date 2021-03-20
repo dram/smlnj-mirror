@@ -740,7 +740,7 @@ llvm::Function *code_buffer::_getIntrinsic (llvm::Intrinsic::ID id, Type *ty) co
 	this->_module, id, llvm::ArrayRef<Type *>(ty));
 }
 
-llvm::Expected<std::unique_ptr<llvm::object::ObjectFile>> code_buffer::compile () const
+std::unique_ptr<CodeObject> code_buffer::compile () const
 {
     return this->_gen->compile (this->_module);
 }

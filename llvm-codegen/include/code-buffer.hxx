@@ -29,6 +29,7 @@
 
 #include "lambda-var.hxx"
 #include "sml-registers.hxx"
+#include "code-object.hxx"
 
 using Value = llvm::Value;
 using Type = llvm::Type;
@@ -693,7 +694,8 @@ class code_buffer {
   /***** Code generation *****/
 
   // compile to an in-memory code object
-    llvm::Expected<std::unique_ptr<llvm::object::ObjectFile>> compile () const;
+//    llvm::Expected<std::unique_ptr<llvm::object::ObjectFile>> compile () const;
+    std::unique_ptr<CodeObject> compile () const;
 
   // dump assembly code to stdout
     void dumpAsm () const;
