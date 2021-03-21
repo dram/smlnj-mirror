@@ -30,7 +30,7 @@ class CodeObject {
 
     CodeObject () = delete;
     CodeObject (CodeObject &) = delete;
-    virtual ~CodeObject ();
+    ~CodeObject ();
 
   //! create a code object.
     static std::unique_ptr<CodeObject> create (

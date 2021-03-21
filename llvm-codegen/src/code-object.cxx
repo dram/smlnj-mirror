@@ -39,8 +39,6 @@ class AArch64CodeObject : public CodeObject {
     ) : CodeObject(target, std::move(objFile))
     { }
 
-    ~AArch64CodeObject ();
-
   protected:
     bool _includeDataSect (llvm::object::SectionRef &sect);
     void _resolveRelocs (llvm::object::SectionRef &sect, uint8_t *code);
@@ -162,8 +160,6 @@ class AMD64CodeObject : public CodeObject {
     ) : CodeObject(target, std::move(objFile))
     { }
 
-    ~AMD64CodeObject ();
-
   protected:
     bool _includeDataSect (llvm::object::SectionRef &sect);
     void _resolveRelocs (llvm::object::SectionRef &sect, uint8_t *code);
@@ -240,6 +236,10 @@ std::unique_ptr<CodeObject> CodeObject::create (
 
 }
 
+CodeObject::~CodeObject ()
+{
+}
+
 // copy the code into the specified memory
 //
 void CodeObject::getCode (uint8_t *code)
@@ -252,7 +252,7 @@ void CodeObject::getCode (uint8_t *code)
 	}
 	else {
 	    auto szb = contents->size();
-	    assert (sect.getSize() == contents->size() && "inconsistent sizes");
+	    assert (sect.getSize() == szb && "inconsistent sizes");
 	  /* copy the code into the object */
 	    uint8_t *base = code + sect.getAddress();
 	    memcpy (base, contents->data(), szb);
