@@ -9,7 +9,7 @@ SHELL =		/bin/sh
 #
 UNAME_ARCH :=	$(shell uname -m)
 ifeq ($(UNAME_ARCH),x86_64)
-HOST_ARCH="x86-64"
+HOST_ARCH="x86_64"
 else ifeq ($(UNAME_ARCH),arm64)
 HOST_ARCH="aarch64"
 else

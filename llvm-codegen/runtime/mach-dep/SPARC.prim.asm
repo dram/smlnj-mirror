@@ -56,7 +56,7 @@
 #define  MISCREG0 %g2
 #define  MISCREG1 %g3
 #define  MISCREG2 %o0
-#define        PC %o7		/* ml_pc */
+#define        PC %o7		/* ml_pc (aka gc_link) */
 
 #define   ASMTMP  %o2		/* assembly temporary used in ML */
 #define   TMPREG1 ASMTMP

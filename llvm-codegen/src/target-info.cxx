@@ -33,7 +33,7 @@ static target_info AArch64Info = {
     };
 
 static target_info X86_64Info = {
-	"x86-64",			// official LLVM triple name
+	"x86_64",			// official LLVM triple name
 	"e-i64:64-n8:16:32:64-S128",	// LLVM data layout string
 	"rsp",				// stack-pointer name
 	llvm::Triple::x86_64,
