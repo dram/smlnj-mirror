@@ -20,9 +20,11 @@
 /* include the correct header file for relocation-record definitions */
 #if defined(OPSYS_DARWIN)
 /* macOS uses MachO as it object-file format */
+#define OBJFF_MACHO
 #include "llvm/BinaryFormat/MachO.h"
 #elif defined(OPSYS_LINUX)
-#include "llvm/BinaryFormat/MachO.h"
+#define OBJFF_ELF
+#include "llvm/BinaryFormat/ELF.h"
 #else
 #  error unknown operating system
 #endif
@@ -54,6 +56,52 @@ bool AArch64CodeObject::_includeDataSect (llvm::object::SectionRef &sect)
     return false;
 }
 
+// To support instruction patching, we define a union type for 32-bit words
+// that includes packed struct types that represent the layout of instructions
+// that we must patch with relocation information.
+class AArch64InsnWord {
+public:
+    AArch64InsnWord (uint32_t w) { this->_w.w32 = w; }
+
+    uint32_t value () { return this->_w.w32; }
+    
+    void patchHi21 (uint32_t v)
+    {
+	uint32_t hi21 = (v >> 11);  		// hi 21 bits of value
+	this->_w.hi21.immlo = hi21 & 3;		// low 2 bits of hi21
+	this->_w.hi21.immhi = hi21 >> 2;	// high 19 bits of hi21
+    }
+    
+    void patchLo12 (uint32_t v)
+    {
+	this->_w.lo12.imm12 = (v & 0xfff);
+    }
+    
+private:
+    union {
+        uint32_t w32;
+	// instructions with 21-bit immediate values that represent the high
+	// 21-bits of an offset.  (these are the "PC relative" instructions)
+	//
+	struct {
+	    uint32_t op1 : 1;		// opcode bit
+	    uint32_t immlo : 2;		// low two bits of immediate value
+	    uint32_t op2 : 6;		// more opcode bits
+	    uint32_t immhi : 19;	// high 19 bits of immediate value
+	    uint32_t rd : 5;
+	} hi21;
+	// instructions with as 12-bit immediate value that is used for the
+	// low bits of an offset.  (These include the add/sub immediate
+	// instructions that are used to compute addresses)
+	struct {
+	    uint32_t op1 : 10;		// opcode bits
+	    uint32_t imm12 : 12;	// 12-bit immediate value
+	    uint32_t rn : 5;		// source register
+	    uint32_t rd : 5;		// destination register
+	} lo12;
+    } _w;
+};
+
 // for the arm64, patching code is more challenging, because offsets are embedded
 // in the instruction encoding and and the patching depends on the relocation
 // type.
@@ -74,10 +122,27 @@ void AArch64CodeObject::_resolveRelocs (llvm::object::SectionRef &sect, uint8_t 
 	    int32_t value = (int32_t)symb->getValue() - ((int32_t)offset + 4);
 #endif
 	  // get the instruction to be patched
-	    uint32_t instr = *(uint32_t *)(code + offset);
-/* FIXME: patch the instruction */
+	    AArch64InsnWord instr(*(uint32_t *)(code + offset));
+	    switch (reloc.getType()) {
+#if defined(OBJFF_MACHO)
+	    case llvm::MachO::ARM64_RELOC_PAGE21:
+#elif defined(OBJFF_ELF)
+	    case llvm::ELF::R_AARCH64_ADR_PREL_PG_HI21:
+#endif
+		instr.patchHi21 (value);
+	    	break;
+#if defined(OBJFF_MACHO)
+	    case llvm::MachO::ARM64_RELOC_PAGEOFF12:
+#elif defined(OBJFF_ELF)
+	    case llvm::ELF::R_AARCH64_ADD_ABS_LO12_NC:
+#endif
+		instr.patchLo12 (value);
+	    	break;
+	    default:
+	    	break;
+	    }
 	  // update the instruction with the patched version
-	    *(uint32_t *)(code + offset) = instr;
+	    *(uint32_t *)(code + offset) = instr.value();
 	}
     }
 
@@ -161,10 +226,14 @@ std::unique_ptr<CodeObject> CodeObject::create (
     }
 
     switch (target->arch) {
+#ifdef ENABLE_AARCH64
     case llvm::Triple::aarch64:
 	return std::make_unique<AArch64CodeObject>(target, std::move(*objFile));
+#endif
+#ifdef ENABLE_X86
     case llvm::Triple::x86_64:
 	return std::make_unique<AMD64CodeObject>(target, std::move(*objFile));
+#endif
     default:
 	assert (false && "unsupported architecture");
     }
