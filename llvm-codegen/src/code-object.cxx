@@ -279,7 +279,7 @@ void CodeObject::dump (bool bits)
 size_t CodeObject::_computeSize ()
 {
   // iterate over the sections in the object file and identify which ones
-  // we hould include in the result.  We also compute the size of the
+  // we should include in the result.  We also compute the size of the
   // concatenation of the sections.
   //
     size_t codeSzb = 0;
