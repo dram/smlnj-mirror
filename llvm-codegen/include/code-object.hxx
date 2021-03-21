@@ -30,7 +30,8 @@ class CodeObject {
 
     CodeObject () = delete;
     CodeObject (CodeObject &) = delete;
-    ~CodeObject ();
+    
+    virtual ~CodeObject ();
 
   //! create a code object.
     static std::unique_ptr<CodeObject> create (
@@ -57,14 +58,15 @@ class CodeObject {
 	target_info const *target,
 	std::unique_ptr<llvm::object::ObjectFile> objFile
     ) : _tgt(target), _obj(std::move(objFile)), _szb(0)
-    {
-	this->_szb = this->_computeSize();
-    }
-
+    { }
+    
   //! helper function that determines which sections to include and computes
   //! the total size of the SML code object
+  // NOTE: because this function invokes the target-specific virtual method
+  // `_includeDataSect`, it must be called *after* the object has been
+  // constructed.
   //
-    size_t _computeSize ();
+    void _computeSize ();
 
   //! should a section be included in the SML data object?
   //

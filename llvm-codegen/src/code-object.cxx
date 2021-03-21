@@ -48,10 +48,10 @@ bool AArch64CodeObject::_includeDataSect (llvm::object::SectionRef &sect)
 {
     assert (sect.isData() && "expected data section");
 
-  // The ARM processor has hardware floating-point negation and absolute
-  // value instructions, so we do not expect any data sections will need
-  // to be included.
-    return false;
+    auto name = sect.getName();
+/* FIXME: the following is object-file-format dependent */
+  // the "__const" section is used for jump tables
+    return (name && name->equals("__const"));
 }
 
 // To support instruction patching, we define a union type for 32-bit words
@@ -215,30 +215,36 @@ std::unique_ptr<CodeObject> CodeObject::create (
     target_info const *target,
     llvm::MemoryBufferRef objBuf)
 {
+  // first we create the LLVM object file from the memory buffer
     auto objFile = llvm::object::ObjectFile::createObjectFile (objBuf);
     if (objFile.takeError()) {
 /* FIXME: error message */
 	return std::unique_ptr<CodeObject>(nullptr);
     }
 
+  // then wrap it in a target-specific subclass object
+    std::unique_ptr<CodeObject> p;
     switch (target->arch) {
 #ifdef ENABLE_AARCH64
     case llvm::Triple::aarch64:
-	return std::make_unique<AArch64CodeObject>(target, std::move(*objFile));
+	p = std::make_unique<AArch64CodeObject>(target, std::move(*objFile));
+	break;
 #endif
 #ifdef ENABLE_X86
     case llvm::Triple::x86_64:
-	return std::make_unique<AMD64CodeObject>(target, std::move(*objFile));
+	p = std::make_unique<AMD64CodeObject>(target, std::move(*objFile));
+	break;
 #endif
     default:
 	assert (false && "unsupported architecture");
+	return std::unique_ptr<CodeObject>(nullptr);
     }
 
+    p->_computeSize();
+    return p;
 }
 
-CodeObject::~CodeObject ()
-{
-}
+CodeObject::~CodeObject () { }
 
 // copy the code into the specified memory
 //
@@ -345,7 +351,7 @@ void CodeObject::dump (bool bits)
 //! internal helper function for computing the amount of memory required
 //! for the code object.
 //
-size_t CodeObject::_computeSize ()
+void CodeObject::_computeSize ()
 {
   // iterate over the sections in the object file and identify which ones
   // we should include in the result.  We also compute the size of the
@@ -365,5 +371,5 @@ size_t CodeObject::_computeSize ()
   // check that we actual got something
     assert (codeSzb > 0 && "no useful sections in object file");
 
-    return codeSzb;
+    this->_szb = codeSzb;
 }
