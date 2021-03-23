@@ -176,7 +176,9 @@ void mc_gen::dumpCode (llvm::Module *module, std::string const & stem, bool asmC
     llvm::initializeUnreachableBlockElimLegacyPassPass(*Registry);
     llvm::initializeConstantHoistingLegacyPassPass(*Registry);
     llvm::initializeScalarOpts(*Registry);
+/*
     llvm::initializeVectorization(*Registry);
+*/
     llvm::initializeScalarizeMaskedMemIntrinPass(*Registry);
     llvm::initializeExpandReductionsPass(*Registry);
     llvm::initializeHardwareLoopsPass(*Registry);
