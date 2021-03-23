@@ -254,13 +254,8 @@ llvm::FunctionType *code_buffer::createFnTy (frag_kind kind, std::vector<Type *>
 
 }
 
-std::vector<Type *> code_buffer::createParamTys (frag_kind kind, int n) const
+void code_buffer::_addExtraParamTys (std::vector<Type *> &tys, arg_info const &info) const
 {
-    std::vector<Type *> tys;
-    arg_info info = this->_getArgInfo (kind);
-
-    tys.reserve (info.numArgs(n));
-
   // the parameter list starts with the special registers (i.e., alloc ptr, ...),
   //
     for (int i = 0;  i < info.nExtra;  ++i) {
@@ -275,6 +270,19 @@ std::vector<Type *> code_buffer::createParamTys (frag_kind kind, int n) const
 	tys.push_back (this->intTy);
     }
 
+}
+
+std::vector<Type *> code_buffer::createParamTys (frag_kind kind, int n) const
+{
+    std::vector<Type *> tys;
+    arg_info info = this->_getArgInfo (kind);
+
+    tys.reserve (info.numArgs(n));
+
+  // the parameter list starts with the special registers (i.e., alloc ptr, ...),
+  //
+    this->_addExtraParamTys (tys, info);
+
   // we give the unused registers the ML value type
     for (int i = 0;  i < info.nUnused;  ++i) {
 	tys.push_back (this->mlValueTy);
@@ -284,13 +292,8 @@ std::vector<Type *> code_buffer::createParamTys (frag_kind kind, int n) const
 
 }
 
-Args_t code_buffer::createArgs (frag_kind kind, int n)
+void code_buffer::_addExtraArgs (Args_t &args, arg_info const &info) const
 {
-    Args_t args;
-    arg_info info = this->_getArgInfo (kind);
-
-    args.reserve (info.numArgs(n));
-
   // seed the args array with the extra arguments
     for (int i = 0;  i < info.nExtra;  ++i) {
 	args.push_back (this->_regState.get (this->_regInfo.machineReg(i)));
@@ -299,6 +302,16 @@ Args_t code_buffer::createArgs (frag_kind kind, int n)
     if (info.basePtr) {
 	args.push_back (this->_regState.getBasePtr());
     }
+}
+
+Args_t code_buffer::createArgs (frag_kind kind, int n)
+{
+    Args_t args;
+    arg_info info = this->_getArgInfo (kind);
+
+    args.reserve (info.numArgs(n));
+
+    this->_addExtraArgs (args, info);
 
   // we assign the unused argument registers the undefined value
     for (int i = 0;  i < info.nUnused;  ++i) {
@@ -644,7 +657,13 @@ llvm::BasicBlock *code_buffer::getOverflowBB ()
 } // code_buffer::getOverflowBB
 
 // create the per-module overflow function (if necessary).  This function has
-// just the special registers as arguments.
+// just the special registers as arguments.  Its implementation is roughly:
+//
+//    raiseOverflow ()
+//	overflowExn = sp[overflowExnSlot]
+//	exnHndlr = gethdlr()
+//	hndlrAddr = exnHndlr[0]
+//	apply hndlrAddr(hndlrAddr, exhHndlr, UNIT, UNIT, UNIT, UNIT, overflowExn)
 //
 void code_buffer::_createOverflowFn ()
 {
@@ -658,6 +677,7 @@ void code_buffer::_createOverflowFn ()
     auto bb = this->newBB ();
     this->_builder.SetInsertPoint (bb);
 
+#ifdef USE_OVERFLOW_TRAP
     std::vector<Type *> tys;
     Args_t args;
     tys.reserve (this->_regInfo.numMachineRegs());
@@ -687,6 +707,68 @@ void code_buffer::_createOverflowFn ()
     llvm::InlineAsm *trap = llvm::InlineAsm::get (fnTy, "int $$4", cs, true);
     this->_builder.CreateCall (fnTy, trap, args);
     this->_builder.CreateRetVoid ();
+
+#else
+
+  // set up the incoming parameters for the overflow function, which are just
+  // the hardware CMachine registers
+    for (int i = 0, hwIx = 0;  i < reg_info::NUM_REGS;  ++i) {
+	reg_info const *info = this->_regInfo.info(static_cast<sml_reg_id>(i));
+	if (info->isMachineReg()) {
+	    llvm::Argument *param = this->_curFn->getArg(hwIx++);
+#ifndef NO_NAMES
+	    param->setName (info->name());
+#endif
+	    this->_regState.set (info->id(), param);
+	}
+	else { // stack-allocated register
+	    this->_regState.set (info->id(), nullptr);
+	}
+    }
+
+  // fetch the overflow exception from the stack
+    Value *exn = _loadFromStack (this, this->_target->overflowExnOffset, "ovflwExn");
+
+  // get the exception handler
+    Value *exnHdlr = this->mlReg (sml_reg_id::EXN_HNDLR);
+
+  // get the handler's code address
+    Value *cp = this->createLoad (
+	this->mlValueTy,
+	this->createGEP (this->asObjPtr(exnHdlr), 0));
+
+  // the function type of the handler
+    int nArgs = this->_target->numCalleeSaves + 4; /* link, clos, cont, cs[], arg */
+    std::vector<Type *> argTys;
+    argTys.reserve (nArgs);
+    for (int i = 0;  i < nArgs;  ++i) {
+	argTys.push_back (this->mlValueTy);
+    }
+    auto handlerFnTy = this->createFnTy (frag_kind::STD_FUN, argTys);
+
+  // set up the vector of arguments: cp, exnHdlr, unit, unit, unit, unit,
+    Args_t args;
+    arg_info info = this->_getArgInfo (frag_kind::STD_FUN);
+    args.reserve (info.numArgs(1));
+    this->_addExtraArgs (args, info);
+    args.push_back (cp);
+    args.push_back (exnHdlr);
+
+  // the stdcont and callee-save registers are unused; we pass ML unit to avoid
+  // confusing the GC with stale values
+    for (int i = 0;  i < this->_target->numCalleeSaves + 1;  ++i) {
+	args.push_back (this->unitValue());
+    }
+    args.push_back (exn);
+    assert (args.size() == info.numArgs(nArgs) && "incorrect number of arguments");
+
+  // call the handler
+    this->createJWACall(
+	handlerFnTy,
+	this->build().CreateBitCast(cp, handlerFnTy->getPointerTo()),
+	args);
+    this->build().CreateRetVoid();
+#endif
 
 }
 

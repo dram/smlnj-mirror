@@ -256,6 +256,14 @@ class code_buffer {
   // types are _not_ equal!
     Value *castTy (Type *srcTy, Type *tgtTy, Value *v);
 
+  // SML unit value with ML Value type
+    Value *unitValue ()
+    {
+	return this->_builder.CreateIntToPtr(
+	    llvm::ConstantInt::getSigned (this->intTy, 1),
+	    this->mlValueTy);
+    }
+
 /** NOTE: we may be able to avoid needing the signed constants */
   // signed integer constant of specified bit size
     llvm::ConstantInt *iConst (int sz, int64_t c) const
@@ -763,6 +771,7 @@ class code_buffer {
   //
     llvm::Function *_getIntrinsic (llvm::Intrinsic::ID id, Type *ty) const;
 
+  // initialize the metadata needed to support reading the stack pointer
     void _initSPAccess ();
 
   // function for loading a special register from memory
@@ -784,6 +793,13 @@ class code_buffer {
 
   // get information about JWA arguments for a fragment in the current cluster
     arg_info _getArgInfo (frag_kind kind) const;
+
+  // add the types for the "extra" parameters (plus optional base pointer) to
+  // a vector of types.
+    void _addExtraParamTys (std::vector<Type *> &tys, arg_info const &info) const;
+
+  // add the "extra" arguments (plus optional base pointer) to an argument vector
+    void _addExtraArgs (Args_t &args, arg_info const &info) const;
 
   // create the overflow function for the module (if required)
     void _createOverflowFn ();
