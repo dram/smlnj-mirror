@@ -21,6 +21,8 @@
 #				[default: "debug" build in llvm-build-debug]
 #
 #	--targets <targets>	Specify the target architectures to support.
+#				An argument of "all" means all supported
+#				architectures.
 #
 
 FORCE=no
@@ -40,6 +42,7 @@ case `uname -s` in
   ;;
 esac
 
+ALL_TARGETS="AArch64;X86"
 case $(uname -m) in
   x86_64) TARGETS="X86" ;;
   arm64) TARGETS="AArch64" ;;
@@ -97,7 +100,11 @@ while [ "$#" != "0" ] ; do
       ;;
     --targets)
       if [ $# -ge 1 ] ; then
-	TARGETS=$1
+	if [ x"$1" = xall ] ; then
+	  TARGETS=$ALL_TARGETS
+	else
+	  TARGETS=$1
+	fi
 	shift
       else
 	usage 1
