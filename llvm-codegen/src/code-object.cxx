@@ -48,10 +48,13 @@ bool AArch64CodeObject::_includeDataSect (llvm::object::SectionRef &sect)
 {
     assert (sect.isData() && "expected data section");
 
+#if defined(OBJFF_MACHO)
     auto name = sect.getName();
-/* FIXME: the following is object-file-format dependent */
   // the "__const" section is used for jump tables
     return (name && name->equals("__const"));
+#else
+#  error only MachO supported for now
+#endif
 }
 
 // To support instruction patching, we define a union type for 32-bit words
@@ -169,11 +172,14 @@ bool AMD64CodeObject::_includeDataSect (llvm::object::SectionRef &sect)
 {
     assert (sect.isData() && "expected data section");
 
+#if defined(OBJFF_MACHO)
     auto name = sect.getName();
-/* FIXME: the following is object-file-format dependent */
   // the "__literal16" section has literals referenced by the code for
   // floating-point negation and absolute value
     return (name && name->equals("__literal16"));
+#else
+#  error only MachO supported for now
+#endif
 }
 
 // for the x86-64, patching the code is fairly easy, because the offset
