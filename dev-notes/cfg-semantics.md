@@ -43,15 +43,19 @@ The **CFG** IR has two main types:
 
 * `ARITH(p, args, (x, ty), stm)` performs integer arithmetic with overflow detection.
 
-    * `IADD`
+    * `IADD` -- integer addition
 
-    * `ISUB`
+    * `ISUB` -- integer subtraction
 
-    * `IMUL`
+    * `IMUL` -- integer multiplication
 
-    * `IDIV`
+    * `IDIV` -- integer division (rounds toward zero).  Note that this operation
+      should probably be moved to `PURE`, since we do explicit checks for
+      division by zero and overflow before this operation.
 
-    * `IREM`
+    * `IREM` -- integer remainder (rounds toward zero).  Note that this operation
+      should probably be moved to `PURE`, since we do explicit checks for
+      division by zero and overflow before this operation.
 
 * `SETTER(p, args, k)` updates memory as specified by the primop `p`.  The setter
   primops are
