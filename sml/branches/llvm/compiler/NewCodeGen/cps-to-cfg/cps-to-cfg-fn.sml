@@ -311,7 +311,7 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 		(* handle pure operators that are actually allocations *)
 		  | PURE(P.MAKEREF, [v], x, _, k) =>
 		      C.ALLOC(mutRecord D.desc_ref, [genV v], x, bindVarIn(x, k))
-		  | PURE(P.NEWARRAY0, [], x, _, k) => let
+		  | PURE(P.NEWARRAY0, [_], x, _, k) => let
 		      val dataP = LV.mkLvar()
 		      in
 			C.ALLOC(mutRecord D.desc_ref, [mlInt' 0], dataP,
