@@ -55,9 +55,13 @@ module CFG_Prim {
 
   -- These operations bump the allocation pointer
     alloc
+    -- allocates a one-word special object, there the descriptor value may
+    -- be computed by an expression (i.e., the first argument to the `ALLOC`
+    -- statement will be the descriptor value
+      = SPECIAL
     -- allocates an initialized record object with the given descriptor.
     -- The `mut` field is true for mutable objects
-      = RECORD(integer desc, bool mut)
+      | RECORD(integer desc, bool mut)
     -- allocates an initialized record of raw data with the given descriptor.
     -- The `fields`     -- The `fields` specify the kind and sizes of the components.
       | RAW_RECORD(integer desc, int align, raw_ty* fields)
@@ -343,6 +347,7 @@ view Cxx {
 -- exp
     { CFG.exp } <= public_code %%
         virtual Value *codegen (code_buffer *buf) = 0;
+	bool isLABEL () { return (this->_tag == _con_LABEL); }
 %%
     { CFG.exp.* } <= public_code %%
         Value *codegen (code_buffer *buf);
@@ -384,6 +389,7 @@ view Cxx {
         void init (code_buffer *buf, bool isFirst);
         void codegen (code_buffer *buf, bool isFirst);
 	llvm::Function *fn () const { return this->_fn; }
+	frag *entry () const { return this->_v_frags[0]; }
 %%
     { CFG.cluster } <= private_code %%
         llvm::Function *_fn;

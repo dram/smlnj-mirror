@@ -311,6 +311,19 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 		(* handle pure operators that are actually allocations *)
 		  | PURE(P.MAKEREF, [v], x, _, k) =>
 		      C.ALLOC(mutRecord D.desc_ref, [genV v], x, bindVarIn(x, k))
+		  | PURE(P.MKSPECIAL, [i, v], x, _, k) => let
+		      val desc = (case i
+			     of NUM{ty={tag=true, ...}, ival} =>
+				  num (D.makeDesc(ival, D.tag_special))
+			      | _ => (* desc = (i << tagWidth) | desc_special *)
+				pureOp (TP.ORB, ity, [
+				    pureOp (TP.LSHIFT, ity, [untagSigned i, num D.tagWidth]),
+				    num D.desc_special
+				  ])
+			    (* end case *))
+		      in
+			C.ALLOC(P.SPECIAL, [desc, genV v], x, bindVarIn(x, k))
+		      end
 		  | PURE(P.NEWARRAY0, [_], x, _, k) => let
 		      val dataP = LV.mkLvar()
 		      in

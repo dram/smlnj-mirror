@@ -17,7 +17,8 @@ structure CFG_Prim =
 
   (* allocation operations *)
     datatype alloc
-      = RECORD of {desc : IntInf.int, mut : bool}
+      = SPECIAL
+      | RECORD of {desc : IntInf.int, mut : bool}
       | RAW_RECORD of {desc : IntInf.int, align : int, fields : raw_ty list}
       | RAW_ALLOC of {desc : IntInf.int option, align : int, len : int}
 
