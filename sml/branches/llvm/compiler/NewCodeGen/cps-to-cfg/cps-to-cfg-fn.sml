@@ -317,12 +317,12 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 				  num (D.makeDesc(ival, D.tag_special))
 			      | _ => (* desc = (i << tagWidth) | desc_special *)
 				pureOp (TP.ORB, ity, [
-				    pureOp (TP.LSHIFT, ity, [untagSigned i, num D.tagWidth]),
+				    pureOp (TP.LSHIFT, ity, [untagSigned i, w2Num D.tagWidth]),
 				    num D.desc_special
 				  ])
 			    (* end case *))
 		      in
-			C.ALLOC(P.SPECIAL, [desc, genV v], x, bindVarIn(x, k))
+			C.ALLOC(TP.SPECIAL, [desc, genV v], x, bindVarIn(x, k))
 		      end
 		  | PURE(P.NEWARRAY0, [_], x, _, k) => let
 		      val dataP = LV.mkLvar()
@@ -439,14 +439,14 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 		      C.SETTER(TP.SET_HDLR, [genV v], k)
 		  | (P.SETVAR, [v]) =>
 		      C.SETTER(TP.SET_VAR, [genV v], k)
-		  | (P.SETSPECIAL, [v]) => let
+		  | (P.SETSPECIAL, [v, i]) => let
 		      fun set desc =
 			    C.SETTER(
 			      TP.RAW_STORE{kind=TP.INT, sz=ity},
 			      [genV v, num'(~ws), desc],
 			      k)
 		      in
-			case v
+			case i
 			 of NUM{ty={tag=true, ...}, ival} =>
 			      set (num (D.makeDesc(ival, D.tag_special)))
 			  | _ => set (pureOp(TP.ORB, ity, [
