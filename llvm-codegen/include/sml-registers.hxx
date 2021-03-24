@@ -74,7 +74,7 @@ class reg_info {
 
 };
 
-// collective information about the special CMachine for a given target
+// collective information about the special CMachine registers for a given target
 //
 class sml_registers {
   public:

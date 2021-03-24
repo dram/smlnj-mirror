@@ -11,7 +11,7 @@
 #ifndef _MC_GEN_HXX_
 #define _MC_GEN_HXX_
 
-#include <memory>
+#include "code-object.hxx"
 
 #include "llvm/IR/Module.h"
 #include "llvm/IR/LLVMContext.h"
@@ -22,7 +22,7 @@
 class mc_gen {
   public:
 
-    mc_gen (llvm::LLVMContext &context, struct target_info const *target);
+    mc_gen (llvm::LLVMContext &context, target_info const *target);
 
   // per-module initialization and finalization
     void beginModule (llvm::Module *module);
@@ -34,9 +34,11 @@ class mc_gen {
   // dump the code to an output file
     void dumpCode (llvm::Module *module, std::string const & stem, bool asmCode = true) const;
 
-    llvm::Expected<std::unique_ptr<llvm::object::ObjectFile>> compile (llvm::Module *module);
+  // compile the LLVM module to a SML code object
+    std::unique_ptr<CodeObject> compile (llvm::Module *module);
 
   private:
+    target_info const *_tgtInfo;
     std::unique_ptr<llvm::TargetMachine> _tgtMachine;
     std::unique_ptr<llvm::legacy::FunctionPassManager> _passMngr;
 

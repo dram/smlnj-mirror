@@ -19,9 +19,11 @@
 #include "sml-registers.hxx"
 
 struct target_info {
-    std::string name;			// the target's name
-    llvm::Triple::ArchType arch;	// LLVM's architecture specifier
+    std::string name;			// the target's name; this should agree with LLVM's
+					// naming conventions (see lib/Support/Triple.cpp).
     std::string dataLayout;		// LLVM data layout string
+    std::string spName;			// the assembly name of the stack pointer register
+    llvm::Triple::ArchType arch;	// target architecture
     int wordSz;				// size in bits of ML word (should also be the
 					// same as the native pointer size)
     int numRegs;			// the number of SML registers used by the target
@@ -29,8 +31,9 @@ struct target_info {
     bool hasPCRel;			// true if the target supports PC-relative addressing.
     int stkOffset[reg_info::NUM_REGS];	// byte offset from stack pointer to location where
 					// the value is stored.  Will be non-zero only
-					// for SML registers that are represented in memory.
+					// for CMachine registers that stack allocated
     int callGCOffset;			// stack offset of call-gc entry address
+    int overflowExnOffset;		// stack offset of overflow exception
     unsigned int allocSlopSzb;		// byte size of allocation slop
 
     static target_info const *InfoForTarget (std::string const &name);
@@ -38,6 +41,7 @@ struct target_info {
   // GC roots are std-link, std-clos, std-cont, callee saves, std-arg
     int numGCRoots () const { return this->numCalleeSaves + 4; }
 
+    llvm::Triple getTriple() const;
 };
 
 #endif // !_TARGET_INFO_HXX_

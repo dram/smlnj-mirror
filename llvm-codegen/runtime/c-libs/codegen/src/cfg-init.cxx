@@ -12,7 +12,7 @@
 #include "cfg.hxx"
 
 /* control the adding of symbolic names to some values for easier debugging */
-#ifdef NDEBUG
+#ifndef _DEBUG
 #  define NO_NAMES
 #endif
 

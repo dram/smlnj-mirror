@@ -29,6 +29,7 @@
 
 #include "lambda-var.hxx"
 #include "sml-registers.hxx"
+#include "code-object.hxx"
 
 using Value = llvm::Value;
 using Type = llvm::Type;
@@ -255,6 +256,14 @@ class code_buffer {
   // types are _not_ equal!
     Value *castTy (Type *srcTy, Type *tgtTy, Value *v);
 
+  // SML unit value with ML Value type
+    Value *unitValue ()
+    {
+	return this->_builder.CreateIntToPtr(
+	    llvm::ConstantInt::getSigned (this->intTy, 1),
+	    this->mlValueTy);
+    }
+
 /** NOTE: we may be able to avoid needing the signed constants */
   // signed integer constant of specified bit size
     llvm::ConstantInt *iConst (int sz, int64_t c) const
@@ -388,7 +397,14 @@ class code_buffer {
 
   // utility function for allocating a record of ML values (pointers or
   // tagged ints).
-    Value *allocRecord (uint64_t desc, Args_t const & args);
+    Value *allocRecord (Value *desc, Args_t const & args);
+
+  // utility function for allocating a record of ML values (pointers or
+  // tagged ints), where the descriptor is a known constant value.
+    Value *allocRecord (uint64_t desc, Args_t const & args)
+    {
+	return allocRecord (this->asMLValue(this->uConst(desc)), args);
+    }
 
   // call the garbage collector.
     void callGC (Args_t const & roots, std::vector<LambdaVar::lvar> const & newRoots);
@@ -693,7 +709,7 @@ class code_buffer {
   /***** Code generation *****/
 
   // compile to an in-memory code object
-    llvm::Expected<std::unique_ptr<llvm::object::ObjectFile>> compile () const;
+    std::unique_ptr<CodeObject> compile () const;
 
   // dump assembly code to stdout
     void dumpAsm () const;
@@ -761,6 +777,7 @@ class code_buffer {
   //
     llvm::Function *_getIntrinsic (llvm::Intrinsic::ID id, Type *ty) const;
 
+  // initialize the metadata needed to support reading the stack pointer
     void _initSPAccess ();
 
   // function for loading a special register from memory
@@ -771,8 +788,8 @@ class code_buffer {
 
   // information about JWA arguments
     struct arg_info {
-	int nExtra;	// number of extra args for special SML registers that
-			// are mapped to machine registers
+	int nExtra;	// number of extra args for special CMachine registers
+			// that are mapped to machine registers
 	int basePtr;	// == 1 if there is a base-pointer arg, 0 otherwise
 	int nUnused;	// unused args (for STD_CONT convention)
 
@@ -782,6 +799,13 @@ class code_buffer {
 
   // get information about JWA arguments for a fragment in the current cluster
     arg_info _getArgInfo (frag_kind kind) const;
+
+  // add the types for the "extra" parameters (plus optional base pointer) to
+  // a vector of types.
+    void _addExtraParamTys (std::vector<Type *> &tys, arg_info const &info) const;
+
+  // add the "extra" arguments (plus optional base pointer) to an argument vector
+    void _addExtraArgs (Args_t &args, arg_info const &info) const;
 
   // create the overflow function for the module (if required)
     void _createOverflowFn ();

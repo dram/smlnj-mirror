@@ -538,16 +538,13 @@ void code_buffer::_storeMemReg (sml_reg_id r, Value *v)
 // utility function for allocating a record of ML values (pointers or
 // tagged ints).
 //
-Value *code_buffer::allocRecord (uint64_t desc, Args_t const & args)
+Value *code_buffer::allocRecord (Value *desc, Args_t const & args)
 {
     int len = args.size();
     Value *allocPtr = this->mlReg (sml_reg_id::ALLOC_PTR);
 
   // write object descriptor
-    this->build().CreateAlignedStore (
-	this->createIntToPtr(this->uConst(desc), this->mlValueTy),
-	allocPtr,
-	llvm::MaybeAlign (this->_wordSzB));
+    this->build().CreateAlignedStore (desc, allocPtr, llvm::MaybeAlign (this->_wordSzB));
 
   // initialize the object's fields
     for (int i = 1;  i <= len;  ++i) {

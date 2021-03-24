@@ -25,14 +25,18 @@
 
 
 mc_gen::mc_gen (llvm::LLVMContext &context, target_info const *info)
+  : _tgtInfo(info)
 {
-    std::string triple = "x86_64-apple-macosx10.15.0";
+  // get the LLVM target triple
+    llvm::Triple triple = info->getTriple();
 
-  // lookup the target in the registry
+  // lookup the target in the registry using the triple's string representation
     std::string errMsg;
-    auto *target = llvm::TargetRegistry::lookupTarget(triple, errMsg);
+    auto *target = llvm::TargetRegistry::lookupTarget(triple.str(), errMsg);
     if (target == nullptr) {
-	std::cerr << "**** Fatal error: unable to find target\n";
+	std::cerr << "**** Fatal error: unable to find target for \""
+	    << info->name << "\"\n";
+	std::cerr << "    [" << errMsg << "]\n";
         assert(false);
     }
 
@@ -51,7 +55,7 @@ mc_gen::mc_gen (llvm::LLVMContext &context, target_info const *info)
 // see include/llvm/Support/*Parser.def for the various CPS and feature names
 // that are recognized
     std::unique_ptr<llvm::TargetMachine> tgtMachine(target->createTargetMachine(
-	triple,
+	triple.str(),
 	"generic",		/* CPU name */
 	"",			/* features string */
 	tgtOptions,
@@ -118,7 +122,7 @@ void mc_gen::optimize (llvm::Module *module)
 
 // adopted from SimpleCompiler::operator() (CompileUtils.cpp)
 //
-llvm::Expected<std::unique_ptr<llvm::object::ObjectFile>> mc_gen::compile (llvm::Module *module)
+std::unique_ptr<CodeObject> mc_gen::compile (llvm::Module *module)
 {
     llvm::SmallVector<char, 0> objBufferSV;
     {
@@ -134,8 +138,7 @@ llvm::Expected<std::unique_ptr<llvm::object::ObjectFile>> mc_gen::compile (llvm:
     auto objBuffer = std::make_unique<llvm::SmallVectorMemoryBuffer>(
 	std::move(objBufferSV), module->getModuleIdentifier() + "-objectbuffer");
 
-  // convert the memory buffer to an object file
-    return llvm::object::ObjectFile::createObjectFile(objBuffer->getMemBufferRef());
+    return CodeObject::create (this->_tgtInfo, objBuffer->getMemBufferRef());
 
 }
 
@@ -163,7 +166,9 @@ void mc_gen::dumpCode (llvm::Module *module, std::string const & stem, bool asmC
     llvm::initializeUnreachableBlockElimLegacyPassPass(*Registry);
     llvm::initializeConstantHoistingLegacyPassPass(*Registry);
     llvm::initializeScalarOpts(*Registry);
+/*
     llvm::initializeVectorization(*Registry);
+*/
     llvm::initializeScalarizeMaskedMemIntrinPass(*Registry);
     llvm::initializeExpandReductionsPass(*Registry);
     llvm::initializeHardwareLoopsPass(*Registry);

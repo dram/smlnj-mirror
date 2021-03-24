@@ -397,7 +397,14 @@ class code_buffer {
 
   // utility function for allocating a record of ML values (pointers or
   // tagged ints).
-    Value *allocRecord (uint64_t desc, Args_t const & args);
+    Value *allocRecord (Value *desc, Args_t const & args);
+
+  // utility function for allocating a record of ML values (pointers or
+  // tagged ints), where the descriptor is a known constant value.
+    Value *allocRecord (uint64_t desc, Args_t const & args)
+    {
+	return allocRecord (this->asMLValue(this->uConst(desc)), args);
+    }
 
   // call the garbage collector.
     void callGC (Args_t const & roots, std::vector<LambdaVar::lvar> const & newRoots);
@@ -702,7 +709,6 @@ class code_buffer {
   /***** Code generation *****/
 
   // compile to an in-memory code object
-//    llvm::Expected<std::unique_ptr<llvm::object::ObjectFile>> compile () const;
     std::unique_ptr<CodeObject> compile () const;
 
   // dump assembly code to stdout

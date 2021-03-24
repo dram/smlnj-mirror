@@ -19,11 +19,10 @@ extern "C" {
 
 #include "ml-objects.h"
 
-/* binary data paired with its length in bytes */
-typedef struct {
-    char *data;
-    size_t szb;
-} data_buffer_t;
+/*  set the target architecture.  This call returns `true` when there
+ * is an error and `false` otherwise.
+ */
+bool_t setTarget (const char *target);
 
 /* llvm_codegen:
  *

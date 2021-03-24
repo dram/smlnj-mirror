@@ -18,7 +18,6 @@
 #include "llvm/Transforms/Scalar/GVN.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/SmallVectorMemoryBuffer.h"
-#include "llvm/ExecutionEngine/Orc/JITTargetMachineBuilder.h"
 
 /* define DEBUG_MC to enable printing of the IR after every internal LLVM step.
  * Warning: this produces 1000's of lines of output for even the smallest

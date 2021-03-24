@@ -16,7 +16,7 @@
 enum class output { PrintAsm, AsmFile, ObjFile, Memory };
 
 // set the target architecture.  This call returns `true` when there
-// is an error and false otherwise.
+// is an error and `false` otherwise.
 //
 bool setTarget (std::string const &target);
 

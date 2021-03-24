@@ -36,6 +36,15 @@ namespace CFG_Prim {
     }
 
   /***** code generation for the `alloc` type *****/
+    Value *SPECIAL::codegen (code_buffer * buf, Args_t const &args)
+    {
+      // the first argument is the record's descriptor word and the second
+      // is the content of the special object.
+	assert (args.size() == 2 && "expected descriptor and content");
+	return buf->allocRecord (args[0], { args[1] });
+
+    }
+
     Value *RECORD::codegen (code_buffer * buf, Args_t const &args)
     {
 	return buf->allocRecord (this->_v_desc.toUInt64(), args);

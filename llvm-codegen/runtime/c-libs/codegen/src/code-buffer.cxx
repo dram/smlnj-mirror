@@ -254,13 +254,8 @@ llvm::FunctionType *code_buffer::createFnTy (frag_kind kind, std::vector<Type *>
 
 }
 
-std::vector<Type *> code_buffer::createParamTys (frag_kind kind, int n) const
+void code_buffer::_addExtraParamTys (std::vector<Type *> &tys, arg_info const &info) const
 {
-    std::vector<Type *> tys;
-    arg_info info = this->_getArgInfo (kind);
-
-    tys.reserve (info.numArgs(n));
-
   // the parameter list starts with the special registers (i.e., alloc ptr, ...),
   //
     for (int i = 0;  i < info.nExtra;  ++i) {
@@ -275,6 +270,19 @@ std::vector<Type *> code_buffer::createParamTys (frag_kind kind, int n) const
 	tys.push_back (this->intTy);
     }
 
+}
+
+std::vector<Type *> code_buffer::createParamTys (frag_kind kind, int n) const
+{
+    std::vector<Type *> tys;
+    arg_info info = this->_getArgInfo (kind);
+
+    tys.reserve (info.numArgs(n));
+
+  // the parameter list starts with the special registers (i.e., alloc ptr, ...),
+  //
+    this->_addExtraParamTys (tys, info);
+
   // we give the unused registers the ML value type
     for (int i = 0;  i < info.nUnused;  ++i) {
 	tys.push_back (this->mlValueTy);
@@ -284,13 +292,8 @@ std::vector<Type *> code_buffer::createParamTys (frag_kind kind, int n) const
 
 }
 
-Args_t code_buffer::createArgs (frag_kind kind, int n)
+void code_buffer::_addExtraArgs (Args_t &args, arg_info const &info) const
 {
-    Args_t args;
-    arg_info info = this->_getArgInfo (kind);
-
-    args.reserve (info.numArgs(n));
-
   // seed the args array with the extra arguments
     for (int i = 0;  i < info.nExtra;  ++i) {
 	args.push_back (this->_regState.get (this->_regInfo.machineReg(i)));
@@ -299,6 +302,16 @@ Args_t code_buffer::createArgs (frag_kind kind, int n)
     if (info.basePtr) {
 	args.push_back (this->_regState.getBasePtr());
     }
+}
+
+Args_t code_buffer::createArgs (frag_kind kind, int n)
+{
+    Args_t args;
+    arg_info info = this->_getArgInfo (kind);
+
+    args.reserve (info.numArgs(n));
+
+    this->_addExtraArgs (args, info);
 
   // we assign the unused argument registers the undefined value
     for (int i = 0;  i < info.nUnused;  ++i) {
@@ -489,7 +502,7 @@ void code_buffer::_initSPAccess ()
     this->_readReg = _getIntrinsic (llvm::Intrinsic::read_register, this->intTy);
     this->_spRegMD = llvm::MDNode::get (
 	this->_context,
-	llvm::MDString::get(this->_context, "rsp"));
+	llvm::MDString::get(this->_context, this->_target->spName));
 
 }
 
@@ -525,16 +538,13 @@ void code_buffer::_storeMemReg (sml_reg_id r, Value *v)
 // utility function for allocating a record of ML values (pointers or
 // tagged ints).
 //
-Value *code_buffer::allocRecord (uint64_t desc, Args_t const & args)
+Value *code_buffer::allocRecord (Value *desc, Args_t const & args)
 {
     int len = args.size();
     Value *allocPtr = this->mlReg (sml_reg_id::ALLOC_PTR);
 
   // write object descriptor
-    this->build().CreateAlignedStore (
-	this->createIntToPtr(this->uConst(desc), this->mlValueTy),
-	allocPtr,
-	llvm::MaybeAlign (this->_wordSzB));
+    this->build().CreateAlignedStore (desc, allocPtr, llvm::MaybeAlign (this->_wordSzB));
 
   // initialize the object's fields
     for (int i = 1;  i <= len;  ++i) {
@@ -740,7 +750,7 @@ llvm::Function *code_buffer::_getIntrinsic (llvm::Intrinsic::ID id, Type *ty) co
 	this->_module, id, llvm::ArrayRef<Type *>(ty));
 }
 
-llvm::Expected<std::unique_ptr<llvm::object::ObjectFile>> code_buffer::compile () const
+std::unique_ptr<CodeObject> code_buffer::compile () const
 {
     return this->_gen->compile (this->_module);
 }

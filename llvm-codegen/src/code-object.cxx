@@ -13,20 +13,27 @@
 #include "code-object.hxx"
 #include "llvm/Support/Error.h"
 
+/* determine the object-file format that we use on this platform */
+#if defined(OPSYS_DARWIN)
+/* macOS uses MachO as it object-file format */
+#define OBJFF_MACHO
+#elif defined(OPSYS_LINUX)
+#define OBJFF_ELF
+#else
+#  error unknown operating system
+#endif
+
 //==============================================================================
 
 #ifdef ENABLE_AARCH64
 
 /* include the correct header file for relocation-record definitions */
-#if defined(OPSYS_DARWIN)
-/* macOS uses MachO as it object-file format */
-#define OBJFF_MACHO
+#if defined(OBJFF_MACHO)
 #include "llvm/BinaryFormat/MachO.h"
-#elif defined(OPSYS_LINUX)
-#define OBJFF_ELF
+#elif defined(OBJFF_ELF)
 #include "llvm/BinaryFormat/ELF.h"
 #else
-#  error unknown operating system
+#  error unknown object-file format
 #endif
 
 //! specialized CodeObject class for AMD64 target
@@ -65,19 +72,19 @@ public:
     AArch64InsnWord (uint32_t w) { this->_w.w32 = w; }
 
     uint32_t value () { return this->_w.w32; }
-    
+
     void patchHi21 (uint32_t v)
     {
 	uint32_t hi21 = (v >> 11);  		// hi 21 bits of value
 	this->_w.hi21.immlo = hi21 & 3;		// low 2 bits of hi21
 	this->_w.hi21.immhi = hi21 >> 2;	// high 19 bits of hi21
     }
-    
+
     void patchLo12 (uint32_t v)
     {
 	this->_w.lo12.imm12 = (v & 0xfff);
     }
-    
+
 private:
     union {
         uint32_t w32;
