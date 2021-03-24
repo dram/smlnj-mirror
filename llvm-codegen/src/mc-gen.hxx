@@ -19,11 +19,6 @@
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/Object/ObjectFile.h"
 
-//! a code-object is container for the parts of an object file that are needed to
-//! create the SML code object in the heap.  Its purpose is to abstract from
-//! target architecture and object-file format dependencies.
-//
-
 class mc_gen {
   public:
 
