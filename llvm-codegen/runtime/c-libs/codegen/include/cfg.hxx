@@ -179,7 +179,6 @@ namespace CTypes {
     class c_proto {
       public:
         c_proto (calling_convention p_conv, c_type * p_retTy, std::vector<c_type *> p_paramTys)
-
             : _v_conv(p_conv), _v_retTy(p_retTy), _v_paramTys(p_paramTys)
         { }
         ~c_proto ();
@@ -273,11 +272,20 @@ namespace CFG_Prim {
         virtual Value *codegen (code_buffer *buf, Args_t const &args) = 0;
 
       protected:
-        enum _tag_t {_con_RECORD = 1, _con_RAW_RECORD, _con_RAW_ALLOC};
+        enum _tag_t {_con_SPECIAL = 1, _con_RECORD, _con_RAW_RECORD, _con_RAW_ALLOC};
         alloc (_tag_t tag)
             : _tag(tag)
         { }
         _tag_t _tag;
+    };
+    struct SPECIAL : public alloc {
+        SPECIAL ()
+            : alloc(alloc::_con_SPECIAL)
+        { }
+        ~SPECIAL ();
+        // pickler method suppressed
+        Value *codegen (code_buffer *buf, Args_t const &args);
+
     };
     class RECORD : public alloc {
       public:

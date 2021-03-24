@@ -117,6 +117,8 @@ namespace CFG_Prim {
     {
         _tag_t tag = static_cast<_tag_t>(asdl::read_tag8(is));
         switch (tag) {
+          case _con_SPECIAL:
+            return new SPECIAL;
           case _con_RECORD:
             {
                 auto fdesc = asdl::read_integer(is);
@@ -140,6 +142,7 @@ namespace CFG_Prim {
         }
     }
     alloc::~alloc () { }
+    SPECIAL::~SPECIAL () { }
     RECORD::~RECORD () { }
     RAW_RECORD::~RAW_RECORD () { }
     RAW_ALLOC::~RAW_ALLOC () { }

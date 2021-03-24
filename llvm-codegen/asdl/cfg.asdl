@@ -55,9 +55,13 @@ module CFG_Prim {
 
   -- These operations bump the allocation pointer
     alloc
+    -- allocates a one-word special object, there the descriptor value may
+    -- be computed by an expression (i.e., the first argument to the `ALLOC`
+    -- statement will be the descriptor value
+      = SPECIAL
     -- allocates an initialized record object with the given descriptor.
     -- The `mut` field is true for mutable objects
-      = RECORD(integer desc, bool mut)
+      | RECORD(integer desc, bool mut)
     -- allocates an initialized record of raw data with the given descriptor.
     -- The `fields`     -- The `fields` specify the kind and sizes of the components.
       | RAW_RECORD(integer desc, int align, raw_ty* fields)
