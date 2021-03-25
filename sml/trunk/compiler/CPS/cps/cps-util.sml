@@ -140,7 +140,7 @@ structure CPSUtil : sig
     fun ctyc tc = LT.tcw_prim (tc,
 	  fn pt => (case PT.numSize pt
 	       of SOME 0 => BOGt
-		| SOME sz => CPS.NUMt{sz = sz, tag = (Target.defaultIntSz = sz)}
+		| SOME sz => CPS.NUMt{sz = sz, tag = (sz <= Target.defaultIntSz)}
 		| NONE => (case PT.realSize pt
 		     of SOME sz => CPS.FLTt sz
 		      | NONE => BOGt
