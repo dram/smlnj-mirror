@@ -99,6 +99,14 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Version 1021.1; 2021/??/??
 
 //--------------------------------------------------------------------
+[2021/03/25]::
++
+Fixed a bug with how *FLINT* numeric types were being translated to *CPS*
+types.  Specifically, types that were smaller than the default integer
+size (_e.g._, `word8`) should have been marked as having a tagged
+representation.
+
+//--------------------------------------------------------------------
 [2021/02/12]::
 +
 Fix for bug bugref:280[] (110.99 `config/install.sh -64` fails on macOS 10.15.7).
