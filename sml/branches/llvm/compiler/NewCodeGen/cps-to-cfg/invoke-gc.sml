@@ -260,7 +260,8 @@ fun prRoots roots = Control.Print.say (concat["Roots = ", roots2s roots, "\n"])
 		      end
 		val align = if (n64 > 0) then 8 else 4
 		in
-		  C.ALLOC(P.RAW_RECORD{desc=desc, align=align, fields=flds}, args, tpl, k (var tpl))
+		  C.ALLOC(P.RAW_RECORD{desc=desc, align=align, fields=flds}, args, tpl,
+		    k (var tpl))
 		end
 	  val code = pack (roots, [])
 	  in
