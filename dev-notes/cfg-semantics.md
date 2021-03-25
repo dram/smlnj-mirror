@@ -6,8 +6,58 @@ description of the semantics of the **CFG** IR in terms of the abstract
 machine model for **SML/NJ**.
 
 
-## The SML/NJ Abstract Machine
+## The CMachine
 
+**SML/NJ**'s execution model is described by an abstract machine called
+the **CMachine** (for *Continuation Machine*).  The state of the **CMachine**
+is defined by registers, which can be divided into four groups.
+
+### CMachine State Registers
+
+The state registers are implicit in the **CFG** and are used to support
+heap allocation and garbage collection.
+
+* The allocation pointer specifies the next word in the nursery to allocated.
+
+* The limit pointer points to an address a fixed distance below the end of
+  the nursery.  The distance between the limit pointer and the end of the
+  nursery is called the *allocation slop* and is used to make most heap-limit
+  checks a simple pointer comparison.
+
+* The store pointer points to a list of store records, which are used to
+  track updates to older mutable objects that might create inter-generational
+  references from older generations to younger ones.
+
+### Global SML State Registers
+
+The global **SML** registers are accessed via special instructions in the **CFG**.
+
+* The exception-handler register holds the closure of the current exception
+  handler.  For various reasons, this is represented as a *function* closure,
+  instead of as a *continuation*.
+
+* The var pointer register is a register that can be used to hold a pointer
+  to thread-local storage.
+
+### Parameter and Miscelleaneous Registers
+
+The remaining registers are general-purpose registers that are used to
+pass function arguments and for intermediate results.  The number of
+registers available depends on the target hardware.  In the **CFG**
+representation, the registers correspond to variables that have integer
+or pointer type.  If there are more live variables than available
+registers, the native code generator is responsible for register allocating and
+spilling.  At function applications, however, we are guaranteed that the
+number of arguments will be no greater than the number of registers.
+
+The registers have names that reflect their role in the calling conventions,
+but those names have no impact on the *CFG* IR.
+
+### Floating-point registers
+
+Finally, floating-point registers are used for floating-point function arguments
+and intermediate results.  There are currently no callee-save floating-point
+registers.
 
 ## The CFG IR
 
@@ -28,6 +78,11 @@ The **CFG** IR has two main types:
 * `ALLOC(p, args, x, stm)` allocates memory as specified by the allocation primop
   `p` and binds a pointer to the object to `x` in the continuation `stm`.  The
   allocation primops are
+
+    * `SPECIAL` allocates a special object, which is an one-word object where
+      additional information is stored in the object's length field.  The `args`
+      list will have two values; the first is an untagged integer that is stored in
+      the length field and the second is the contents of the object.
 
     * `RECORD{desc, mut}` allocates a record of ML values initialized to the
       results of evaluating `args` list.  The `desc` value is the object's descriptor
