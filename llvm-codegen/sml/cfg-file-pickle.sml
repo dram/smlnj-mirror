@@ -499,35 +499,37 @@ structure CFG_PrimFilePickle : CFG__PRIM_PICKLE
               {kind = kind, sz = sz}
           end
     fun write_alloc (outS, obj) = (case obj
-           of CFG_Prim.RECORD{desc, mut} => (
-              ASDLFilePickle.writeTag8 (outS, 0w1);
+           of CFG_Prim.SPECIAL => ASDLFilePickle.writeTag8 (outS, 0w1)
+            | CFG_Prim.RECORD{desc, mut} => (
+              ASDLFilePickle.writeTag8 (outS, 0w2);
               ASDLFilePickle.writeInteger (outS, desc);
               ASDLFilePickle.writeBool (outS, mut))
             | CFG_Prim.RAW_RECORD{desc, align, fields} => (
-              ASDLFilePickle.writeTag8 (outS, 0w2);
+              ASDLFilePickle.writeTag8 (outS, 0w3);
               ASDLFilePickle.writeInteger (outS, desc);
               ASDLFilePickle.writeInt (outS, align);
               writeSeq write_raw_ty (outS, fields))
             | CFG_Prim.RAW_ALLOC{desc, align, len} => (
-              ASDLFilePickle.writeTag8 (outS, 0w3);
+              ASDLFilePickle.writeTag8 (outS, 0w4);
               writeOption ASDLFilePickle.writeInteger (outS, desc);
               ASDLFilePickle.writeInt (outS, align);
               ASDLFilePickle.writeInt (outS, len)))
     fun read_alloc inS = (case ASDLFilePickle.readTag8 inS
-           of 0w1 => let
+           of 0w1 => CFG_Prim.SPECIAL
+            | 0w2 => let
               val desc = ASDLFilePickle.readInteger inS
               val mut = ASDLFilePickle.readBool inS
               in
                   CFG_Prim.RECORD {desc = desc, mut = mut}
               end
-            | 0w2 => let
+            | 0w3 => let
               val desc = ASDLFilePickle.readInteger inS
               val align = ASDLFilePickle.readInt inS
               val fields = readSeq read_raw_ty inS
               in
                   CFG_Prim.RAW_RECORD {desc = desc, align = align, fields = fields}
               end
-            | 0w3 => let
+            | 0w4 => let
               val desc = readOption ASDLFilePickle.readInteger inS
               val align = ASDLFilePickle.readInt inS
               val len = ASDLFilePickle.readInt inS

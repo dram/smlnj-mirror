@@ -10,6 +10,7 @@ Library
   structure Dump
   structure Load
 
+  structure Triv	(* id function w/o linking code or GC test *)
   structure Ex0		(* id function w/o linking code *)
   structure Ex1		(* id function *)
   structure Ex2		(* list rev *)
@@ -18,6 +19,7 @@ Library
   structure Ex5		(* try wrapper *)
   structure Ex6		(* switch *)
   structure Ex8		(* example for paper *)
+  structure Ex9		(* test fneg and fabs *)
 
 is
 
@@ -29,6 +31,7 @@ is
 
   cfg.cm
 
+  triv.sml
   ex0.sml
   ex1.sml
   ex2.sml
@@ -37,6 +40,7 @@ is
   ex5.sml
   ex6.sml
   ex8.sml
+  ex9.sml
   dump.sml
   load.sml
   obj-desc.sml

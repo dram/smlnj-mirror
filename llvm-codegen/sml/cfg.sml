@@ -120,7 +120,8 @@ structure CFG_Prim = struct
       | REAL_TO_INT of {mode : rounding_mode, from : int, to : int}
     type raw_ty = {kind : numkind, sz : int}
     datatype alloc
-      = RECORD of {desc : IntInf.int, mut : bool}
+      = SPECIAL
+      | RECORD of {desc : IntInf.int, mut : bool}
       | RAW_RECORD of {desc : IntInf.int, align : int, fields : raw_ty list}
       | RAW_ALLOC of {desc : IntInf.int option, align : int, len : int}
   end
