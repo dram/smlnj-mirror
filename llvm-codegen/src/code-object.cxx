@@ -181,13 +181,15 @@ bool AMD64CodeObject::_includeDataSect (llvm::object::SectionRef &sect)
 {
     assert (sect.isData() && "expected data section");
 
-#if defined(OBJFF_MACHO)
     auto name = sect.getName();
+#if defined(OBJFF_MACHO)
   // the "__literal16" section has literals referenced by the code for
   // floating-point negation and absolute value
     return (name && name->equals("__literal16"));
 #else
-#  error only MachO supported for now
+  // the section ".rodata.cst16" has literals referenced by the code for
+  // floating-point negation and absolute value
+    return (name && name->equals(".rodata.cst16"));
 #endif
 }
 
@@ -380,7 +382,9 @@ void CodeObject::_computeSize ()
 	    this->_sects.push_back (sect);
 	    uint64_t addr = sect.getAddress();
 	    uint64_t szb = sect.getSize();
+#ifndef OBJFF_ELF
 	    assert (codeSzb <= addr && "overlapping sections");
+#endif
 	    codeSzb = addr + szb;
 	}
     }
