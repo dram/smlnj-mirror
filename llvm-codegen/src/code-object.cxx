@@ -23,6 +23,8 @@
 #  error unknown operating system
 #endif
 
+static llvm::ExitOnError exitOnErr;
+
 //==============================================================================
 
 #ifdef ENABLE_AARCH64
@@ -283,8 +285,6 @@ void CodeObject::getCode (uint8_t *code)
     }
 }
 
-static llvm::ExitOnError exitOnErr;
-
 void CodeObject::dump (bool bits)
 {
   // print info about the sections
@@ -346,7 +346,11 @@ void CodeObject::dump (bool bits)
 		if (! name.takeError()) {
 		    llvm::dbgs () << "  " << *name
 			<< ": addr = " << llvm::format_hex(exitOnErr(symb.getAddress()), 10)
+#if (LLVM_VERSION_MAJOR > 10) /* getValue returns an Expected<> value as of LLVM 11.x */
+			<< "; value = "  << llvm::format_hex(exitOnErr(symb.getValue()), 10)
+#else
 			<< "; value = "  << llvm::format_hex(symb.getValue(), 10)
+#endif
 			<< "; offset = " << llvm::format_hex(offset, 10)
 // TODO: get the name associated with the type
 			<< "; type = " << reloc.getType() << "\n";
