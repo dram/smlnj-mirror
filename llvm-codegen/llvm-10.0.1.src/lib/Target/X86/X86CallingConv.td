@@ -265,7 +265,7 @@ def CC_X86_64_JWA : CallingConv<[
   // Promote i8/i16/i32 arguments to i64.
   CCIfType<[i8, i16, i32], CCPromoteToType<i64>>,
 
-  // The only registers we skip are RBP and RSP.
+  // The only registers we skip are RAX and RSP
 
   // registers are ordered according to SML/NJ convention as follows:
   // alloc, limit, store, link, clos, cont, arg, misc0, ... misc6
