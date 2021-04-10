@@ -437,6 +437,9 @@ structure GenericInstall : sig
 	      (* path to the final heap image *)
 		val finalheaploc = P.concat (heapdir, heapname)
 		val alreadyExists = U.fexists finalheaploc
+		fun finish () = (
+		      instcmd target;
+		      #set (CM.Anchor.anchor target) (SOME bindir))
 		in
 		  if alreadyExists
 		    then say ["Target ", target, " already exists; will rebuild.\n"]
@@ -448,6 +451,22 @@ structure GenericInstall : sig
 		    else (
 		      say ["Building ", target, ".\n"];
 		      F.chDir treedir;
+		      if OS.Process.system buildcmd <> OS.Process.success
+			then fail ["Building ", target, " failed.\n"]
+		      else if not alreadyExists
+		      andalso not(U.fexists targetheaploc)
+		      andalso U.fexists finalheaploc
+		        (* the build script already put the heap image where it belongs *)
+			then finish ()
+		      else if U.fexists targetheaploc
+			then (
+			  if alreadyExists
+			    then U.rmfile finalheaploc
+			    else ();
+			  U.rename { old = targetheaploc, new = finalheaploc };
+			  finish ())
+			else fail ["Built ", target, "; ", heapname, " still missing.\n"]
+(* old version
 		      if OS.Process.system buildcmd = OS.Process.success
 			then if U.fexists targetheaploc
 			  then (
@@ -459,6 +478,7 @@ structure GenericInstall : sig
 			    #set (CM.Anchor.anchor target) (SOME bindir))
 			  else fail ["Built ", target, "; ", heapname, " still missing.\n"]
 			else fail ["Building ", target, " failed.\n"];
+*)
 		      command_pathconfig target;
 		      F.chDir smlnjroot)
 		end (* standalone *)
