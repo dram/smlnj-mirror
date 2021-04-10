@@ -93,10 +93,31 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //////////////////////////////////////////////////////////////////////
 
 //====================================================================
-== Recent updates
+//== Recent updates
 
 //====================================================================
 //== Version 1021.1; 2021/??/??
+
+//====================================================================
+== Version 110.99.1; 2021/04/12
+
+//--------------------------------------------------------------------
+[2021/04/10]::
++
+Added support for running *SML/NJ* on *M1* Macs via the *Rosetta2*
+emulator.  The change is to identify the *arm* processor as *amd64*
+in the `config/_arch-n-opsys` script.  Note that while the system
+basically seems to work okay under rosetta, trying to run the `makeml`
+command after having compiled the complier caused a crash.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2021/04/10]::
++
+Some minor restructuring of the logic in the generic installer.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
 
 //--------------------------------------------------------------------
 [2021/03/25]::
@@ -105,6 +126,8 @@ Fixed a bug with how *FLINT* numeric types were being translated to *CPS*
 types.  Specifically, types that were smaller than the default integer
 size (_e.g._, `word8`) should have been marked as having a tagged
 representation.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
 
 //--------------------------------------------------------------------
 [2021/02/12]::
