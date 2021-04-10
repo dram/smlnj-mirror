@@ -41,7 +41,7 @@ struct ml_state {
     ml_val_t	ml_closure;
     ml_val_t	ml_linkReg;
     ml_val_t	ml_pc;		    /* Address of ML code to execute; when */
-				    /* calling an ML frunction from C, this */
+				    /* calling an ML function from C, this */
 				    /* holds the same value as the linkReg. */
     ml_val_t	ml_exnCont;
     ml_val_t	ml_varReg;
