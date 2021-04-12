@@ -115,6 +115,45 @@ before the first target-specific code (which will be `64`).
     JWA = 20,
 ```
 
+### Supporting `jwacc` in LLVM Assembler
+
+To support using the symbolic name `jwacc` for the calling convention
+in LLVM assembler (useful for debugging the code generator, but not
+required for the *SML/NJ* compiler), we must modify the parser and
+pretty printer for LLVM assembly code.
+
+#### `AsmParser/LLLexer.cpp`
+
+Add the following keyword definition
+
+``` c++
+  KEYWORD(jwacc);
+```
+
+to the file `$LLVM/AsmParser/LLLexer.cpp`.
+
+#### `AsmParser/LLParser.cpp`
+
+Add the following case
+
+``` c++
+  case lltok::kw_jwacc:          CC = CallingConv::JWA; break;
+```
+
+to the function `LLParser::ParseOptionalCallingConv`
+in the file `$LLVM/AsmParser/LLLexer.cpp`.
+
+#### `IR/AsmWriter.cpp`
+
+The file `$LLVM/lib/IR/AsmWriter.cpp` implements printing of the
+LLVM assembly code.  Modify it by adding the case
+
+``` c++
+  case CallingConv::JWA:           Out << "jwacc"; break;
+```
+
+to the function `PrintCallingConv`.
+
 ### `Target/X86`
 
 To support the **JWA** convention on the `X86`, we need to modify a number
