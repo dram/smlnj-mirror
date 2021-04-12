@@ -40,6 +40,11 @@ working on a native *Arm64* port that we hope to release this summer.
 
 == Details
 
+=== Runtime System
+
+Modified the stack frame layout on **AMD64** to better support the **LLVM**
+backend (currently under development).
+
 === SML/NJ Library
 
 The `ListMergeSort.sort` function is now stable (as claimed by the documantation).

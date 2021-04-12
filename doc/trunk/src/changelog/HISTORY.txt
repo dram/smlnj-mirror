@@ -104,6 +104,15 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //--------------------------------------------------------------------
 [2021/04/10]::
 +
+Changed the *AMD64* frame layout to include a word to hold the
+`Overflow` exception.  This value is used by the *LLVM* backend
+to generate the exception for checked arithmetic operations.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2021/04/10]::
++
 Added support for running *SML/NJ* on *M1* Macs via the *Rosetta2*
 emulator.  The change is to identify the *arm* processor as *amd64*
 in the `config/_arch-n-opsys` script.  Note that while the system
