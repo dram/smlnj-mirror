@@ -23,6 +23,9 @@ structure Cluster : sig
     val map : (CPS.function -> CPS.function) -> cluster list -> cluster list
     val app : (CPS.function -> unit) -> cluster list -> unit
 
+(*+DEBUG*)
+val print : cluster list -> cluster list
+(*-DEBUG*)
   end = struct
 
     fun error msg = ErrorMsg.impossible ("Cluster." ^ msg)

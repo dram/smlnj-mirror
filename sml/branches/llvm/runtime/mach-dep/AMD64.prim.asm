@@ -62,21 +62,22 @@
  */
 #ifdef LLVM_LAYOUT
 
-#define tempmem0	REGOFF(8192,RSP)
-#define mlStatePtr	REGOFF(8200,RSP)
-#define signBit		REGOFF(8248,RSP)
-#define negateSignBit	REGOFF(8256,RSP)
-#define pc		REGOFF(8208,RSP)	/* gcLink */
-#define baseptr		REGOFF(8216,RSP)	/* start address of module */
-#define exncont		REGOFF(8224,RSP)
-#define varptr		REGOFF(8232,RSP)
+#define negateSignBit	REGOFF(8264,RSP)
+#define signBit		REGOFF(8256,RSP)
+#define overflowExn	REGOFF(8248,RSP)
 #define start_gc	REGOFF(8240,RSP)	/* holds address of saveregs */
+#define varptr		REGOFF(8232,RSP)
+#define exncont		REGOFF(8224,RSP)
+#define baseptr		REGOFF(8216,RSP)	/* start address of module */
+#define tempmem0	REGOFF(8192,RSP)
+#define pc		REGOFF(8208,RSP)	/* gcLink */
+#define mlStatePtr	REGOFF(8200,RSP)
 
 /* space reserved for spilling registers */
 #define ML_SPILL_SIZE	8192
 
 /* size of stack-frame region where ML stuff is stored. */
-#define ML_AREA_SIZE	72
+#define ML_AREA_SIZE	80
 
 /* the amount to bump up the frame after the callee save registers have been
  * pushed onto the stack.
@@ -289,8 +290,19 @@ ALIGNED_ENTRY(restoreregs)
 	LEA	(CODEADDR(CSYM(saveregs)), temp2)
 	MOV	(temp2, start_gc)
 	MOV	(temp, mlStatePtr)
-
-/* unclear what the following are being used for */
+      /* Store address of "Overflow" exception in stack */
+#if defined(OPSYS_DARWIN)
+	MOV	(CSYM(_Overflow_id0)@GOTPCREL(%rip), temp2)
+	ADD	(IM(8), temp2)
+	MOV	(temp2, overflowExn)
+#elif defined(OPSYS_LINUX)
+	LEA	(CODEADDR(8+CSYM(_Overflow_id0)), temp2)
+	MOV	(temp2, overflowExn)
+#else
+    /* for now we do nothing, since we do not have LLVM support for this system */
+#endif
+      /* Store bitmasks to support floating-point "neg" and "abs" in stack */
+/* NOTE: the bitmasks will go away once we completely switch to LLVM */
 	MOV	($0x8000000000000000, temp2)
 	MOV	(temp2, signBit)
 	MOV	($0x7fffffffffffffff, temp2)

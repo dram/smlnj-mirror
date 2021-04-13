@@ -111,31 +111,6 @@ void RunML (ml_state_t *msp)
 		vsp->vp_inSigHandler	= TRUE;
 		vsp->vp_handlerPending	= FALSE;
 	    }
-#ifdef SOFT_POLL
-	    else if (msp->ml_pollPending && !msp->ml_inPollHandler) {
-	      /* this is a poll event */
-#if defined(MP_SUPPORT) && defined(MP_GCPOLL)
-	      /* Note: under MP, polling is used for GC only */
-#ifdef POLL_DEBUG
-SayDebug ("run-ml: poll event\n");
-#endif
-	        msp->ml_pollPending = FALSE;
-	        InvokeGC (msp,0);
-#else
-	      /* check for GC */
-		if (NeedGC (msp, 4*ONE_K))
-		    InvokeGC (msp, 0);
-		msp->ml_arg		= MakeResumeCont(msp, pollh_resume);
-		msp->ml_cont		= PTR_CtoML(pollh_return_c);
-		msp->ml_exnCont		= PTR_CtoML(handle_v+1);
-		msp->ml_closure		= DEREF(MLPollHandler);
-		msp->ml_pc		=
-		msp->ml_linkReg		= GET_CODE_ADDR(msp->ml_closure);
-		msp->ml_inPollHandler	= TRUE;
-		msp->ml_pollPending	= FALSE;
-#endif /* MP_SUPPORT */
-	    }
-#endif /* SOFT_POLL */
 	    else
 	        InvokeGC (msp, 0);
 	}
@@ -236,19 +211,6 @@ vsp->vp_totalSigCount.nHandled, vsp->vp_totalSigCount.nReceived);
 		vsp->vp_inSigHandler = FALSE;
 		break;
 
-#ifdef SOFT_POLL
-	      case REQ_POLL_RETURN:
-	      /* throw to the continuation */
-		SETUP_THROW(msp, msp->ml_arg, ML_unit);
-	      /* note that we are exiting the handler */
-		msp->ml_inPollHandler = FALSE;
-		ResetPollLimit (msp);
-		break;
-#endif
-
-#ifdef SOFT_POLL
-	      case REQ_POLL_RESUME:
-#endif
 	      case REQ_SIG_RESUME:
 #ifdef SIGNAL_DEBUG
 SayDebug("REQ_SIG_RESUME: arg = %#x\n", msp->ml_arg);

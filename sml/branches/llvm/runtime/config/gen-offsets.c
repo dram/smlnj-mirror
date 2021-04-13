@@ -44,21 +44,16 @@ int main (void)
     PMOFFSET("AllocPtr", ml_allocPtr);
     PMOFFSET("LimitPtr", ml_limitPtr);
     PMOFFSET("StorePtr", ml_storePtr);
-    PMOFFSET("StdArg", ml_arg);
-    PMOFFSET("StdCont", ml_cont);
-    PMOFFSET("StdClos", ml_closure);
-    PMOFFSET("LinkReg", ml_linkReg);
-    PMOFFSET("PC", ml_pc);
     PMOFFSET("ExnPtr", ml_exnCont);
     PMOFFSET("VarPtr", ml_varReg);
+    PMOFFSET("LinkReg", ml_linkReg);
+    PMOFFSET("StdClos", ml_closure);
+    PMOFFSET("StdCont", ml_cont);
     PMOFFSET("Misc0", ml_calleeSave[0]);
     PMOFFSET("Misc1", ml_calleeSave[1]);
     PMOFFSET("Misc2", ml_calleeSave[2]);
-#ifdef SOFT_POLL
-    PMOFFSET("RealLimit", ml_realLimit);
-    PMOFFSET("PollPending", ml_pollPending);
-    PMOFFSET("InPollHandler", ml_inPollHandler);
-#endif
+    PMOFFSET("StdArg", ml_arg);
+    PMOFFSET("PC", ml_pc);
     PVOFFSET("InML", vp_inMLFlag);
     PVOFFSET("HandlerPending", vp_handlerPending);
     PVOFFSET("InSigHandler", vp_inSigHandler);

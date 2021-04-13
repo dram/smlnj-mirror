@@ -1,11 +1,11 @@
 (* amd64-frame-layout.sml
  *
- * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2021 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
  * This module defines symbolic names for the stack-pointer offsets
  * used to access various bits of information from the SML stack
- * frame.  See dev-notes/amd64-stack-frame.numbers for the layout.
+ * frame.  See dev-notes/stack-frame.numbers for the layout.
  *)
 
 structure AMD64FrameLayout =
@@ -36,9 +36,12 @@ structure AMD64FrameLayout =
     val gcLinkOffset = 8208	(* was 48 *)
 
   (* location of double-precision sign-bit mask *)
-    val signBitOffset = 8248	(* was 16 *)
+    val signBitOffset = 8256	(* was 16 *)
 
   (* location of double-precision negated sign-bit mask *)
-    val negSignBitOffset = 8256	(* was 24 *)
+    val negSignBitOffset = 8264	(* was 24 *)
+
+  (* location of Overflow exception (used by LLVM backend) *)
+    val overflowExnOffset = 8248
 
   end

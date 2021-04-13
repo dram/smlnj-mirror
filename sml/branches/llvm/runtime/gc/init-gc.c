@@ -309,11 +309,7 @@ void InitHeap (ml_state_t *msp, bool_t isBoot, heap_params_t *params)
   /* initialize the GC related parts of the ML state */
     msp->ml_heap	= heap;
     msp->ml_allocPtr	= (ml_val_t *)(msp->ml_allocArena);
-#ifdef SOFT_POLL
-    ResetPollLimit (msp);
-#else
     msp->ml_limitPtr	= HEAP_LIMIT(heap);
-#endif
 
 #ifdef CHECK_HEAP
     CheckBIBOP (heap);

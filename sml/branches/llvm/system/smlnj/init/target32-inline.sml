@@ -444,9 +444,6 @@ structure InlineT =
  *)
  	val newArray0 : unit -> array = InLine.newArray0
         val length    : array -> int = InLine.seq_length
-    (* BUG: using "ordof" for W8A.sub is dangerous, because ordof is
-     (technically) fetching from immutable things.  A fancy optimizer might
-     someday be confused. *)
         val sub       : array * int -> word8 = InLine.word8_arr_unsafe_sub
         val chkSub    : array * int -> word8 = InLine.word8_arr_sub
         val update    : array * int * word8 -> unit = InLine.word8_arr_unsafe_update

@@ -30,7 +30,21 @@
 #  define CSYM(ID)	ID
 #endif
 
-#if defined(ARCH_SPARC)
+#if defined(ARCH_AARCH64)
+#  if defined(OPSYS_DARWIN)
+#    define CFUNSYM(ID) CSYM(ID)
+#   define GLOBAL(ID)	.globl	ID
+#   define LABEL(ID)	ID:
+#   define IM(N)	CONCAT(#,N)
+#   define ALIGN4	.p2align 2
+#   define ALIGN8	.p2align 3
+#   define TEXT		.section __TEXT,__text,regular,pure_instructions
+
+#  else
+#    unsupported operating system for AARCH64
+#  endif
+
+#elif defined(ARCH_SPARC)
 #  if defined(OPSYS_SOLARIS)
 #    define _ASM
 #    include <sys/stack.h>
@@ -97,7 +111,6 @@
     .globl CFUNSYM(ID) __SC__	\
     LABEL(CFUNSYM(ID))
 
-/* FIXME: move these definitions to the x86-prim.h file */
 #elif defined(ARCH_X86) || defined(ARCH_AMD64)
 #  error use x86-syntax.h instead if ml-base.h
 
@@ -110,17 +123,20 @@
 #  define __SC__ 	;
 #endif
 
+#ifndef ALIGN_CODE
+#  define ALIGN_CODE	ALIGN4
+#endif
+
 #  define CGLOBAL(ID)	GLOBAL(CSYM(ID))
 
 #define ENTRY(ID)				\
     CGLOBAL(ID) __SC__				\
     LABEL(CSYM(ID))
 
-#define ML_CODE_HDR(name)			\
+#define ALIGNED_ENTRY(name)			\
 	    CGLOBAL(name) __SC__		\
 	    ALIGN4 __SC__			\
     LABEL(CSYM(name))
-#define IMMED(x) CONST(x)
 
 #endif /* !_ASM_BASE_ */
 

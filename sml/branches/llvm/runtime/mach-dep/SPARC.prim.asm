@@ -138,7 +138,7 @@
 /* sigh_return_a:
  * The return continuation for the ML signal handler.
  */
-ML_CODE_HDR(sigh_return_a)
+ALIGNED_ENTRY(sigh_return_a)
 	set	ML_unit,STDLINK
 	set	ML_unit,STDCLOS
 	set	ML_unit,PC
@@ -157,7 +157,7 @@ ENTRY(sigh_resume)
 /* pollh_return_a:
  * The return continuation for the ML poll handler.
  */
-ML_CODE_HDR(pollh_return_a)
+ALIGNED_ENTRY(pollh_return_a)
 	set	ML_unit,STDLINK
 	set	ML_unit,STDCLOS
 	set	ML_unit,PC
@@ -172,12 +172,12 @@ ENTRY(pollh_resume)
 	ba	set_request
 	set	REQ_POLL_RESUME,TMPREG3	/* (delay slot) */
 
-ML_CODE_HDR(handle_a)
+ALIGNED_ENTRY(handle_a)
 	mov	STDLINK,PC
 	ba	set_request
 	set	REQ_EXN,TMPREG3		/* (delay slot) */
 
-ML_CODE_HDR(return_a)
+ALIGNED_ENTRY(return_a)
 	set	ML_unit,STDLINK
 	set	ML_unit,STDCLOS
 	set	ML_unit,PC
@@ -191,17 +191,17 @@ ENTRY(request_fault)
 
 /* bind_cfun : (string * string) -> c_function
  */
-ML_CODE_HDR(bind_cfun_a)
+ALIGNED_ENTRY(bind_cfun_a)
 	CHECKLIMIT(bind_cfun_v_limit)
 	ba	set_request
 	set	REQ_BIND_CFUN,TMPREG3		/* (delay slot) */
 
-ML_CODE_HDR(build_literals_a)
+ALIGNED_ENTRY(build_literals_a)
 	CHECKLIMIT(build_literals_a_limit)
 	ba	set_request
 	set	REQ_BUILD_LITERALS,TMPREG3	/* (delay slot) */
 
-ML_CODE_HDR(callc_a)
+ALIGNED_ENTRY(callc_a)
 	CHECKLIMIT(callc_a_limit)
 	ba	set_request
 	set	REQ_CALLC,TMPREG3		/* (delay slot) */
@@ -294,7 +294,7 @@ pending_sigs:	/* there are pending signals */
 /* array : (int * 'a) -> 'a array
  * Allocate and initialize a new array.	 This can cause GC.
  */
-ML_CODE_HDR(array_a)
+ALIGNED_ENTRY(array_a)
 	CHECKLIMIT(array_a_limit)
 	ld	[STDARG],TMPREG1		/* tmp1 = length in words */
 	sra	TMPREG1,1,TMPREG2		/* tmp2 = length (untagged) */
@@ -332,7 +332,7 @@ ML_CODE_HDR(array_a)
 /* create_r : int -> realarray
  * Create a new realarray.
  */
-ML_CODE_HDR(create_r_a)
+ALIGNED_ENTRY(create_r_a)
 	CHECKLIMIT(create_r_a_limit)
 	sra	STDARG,1,TMPREG2		/* tmp2 = length (untagged int) */
 	sll	TMPREG2,1,TMPREG2		/* tmp2 = length in words */
@@ -368,7 +368,7 @@ ML_CODE_HDR(create_r_a)
 /* create_b : int -> bytearray
  * Create a bytearray of the given length.
  */
-ML_CODE_HDR(create_b_a)
+ALIGNED_ENTRY(create_b_a)
 	CHECKLIMIT(create_b_a_limit)
 	sra	STDARG,1,TMPREG2		/* tmp2 = length (sparc int) */
 	add	TMPREG2,3,TMPREG2		/* tmp2 = length in words */
@@ -402,7 +402,7 @@ ML_CODE_HDR(create_b_a)
 /* create_s : int -> string
  * Create a string of the given length (> 0).
  */
-ML_CODE_HDR(create_s_a)
+ALIGNED_ENTRY(create_s_a)
 	CHECKLIMIT(create_s_a_limit)
 	sra	STDARG,1,TMPREG2		/* tmp2 = length (sparc int) */
 	add	TMPREG2,4,TMPREG2		/* tmp2 = length in words */
@@ -439,7 +439,7 @@ ML_CODE_HDR(create_s_a)
  * Create a vector with elements taken from a list.
  * NOTE: the front-end ensures that list cannot be nil.
  */
-ML_CODE_HDR(create_v_a)
+ALIGNED_ENTRY(create_v_a)
 	CHECKLIMIT(create_v_a_limit)
 	ld	[STDARG],TMPREG1		/* tmp1 = length (tagged int) */
 	sra	TMPREG1,1,TMPREG2		/* tmp2 = length (untagged int) */
@@ -480,7 +480,7 @@ ML_CODE_HDR(create_v_a)
 /* floor : real -> int
  * Return the floor of the argument ; do not check for out-of-range (it's
  * the ML code's responsibility to check before calling. */
-ML_CODE_HDR(floor_a)
+ALIGNED_ENTRY(floor_a)
 	ld	[STDARG],%f0	    /* fetch arg into %f0, %f1. */
 	ld	[STDARG+4],%f1
 	ld	[STDARG],TMPREG2	    /* tmpreg2 gets high word. */
@@ -513,7 +513,7 @@ ML_CODE_HDR(floor_a)
  * Extract and unbias the exponent.
  * The IEEE bias is 1023.
  */
-ML_CODE_HDR(logb_a)
+ALIGNED_ENTRY(logb_a)
 	ld	[STDARG],TMPREG2		/* extract exponent. */
 	srl	TMPREG2,19,TMPREG2
 	and	TMPREG2,2047*2,TMPREG2		/* unbias and cvt to ML int. */
@@ -525,7 +525,7 @@ ML_CODE_HDR(logb_a)
  * Scale the first argument by 2 raised to the second argument.	 Raise
  * Float("underflow") or Float("overflow") as appropriate.
  */
-ML_CODE_HDR(scalb_a)
+ALIGNED_ENTRY(scalb_a)
 	CHECKLIMIT(scalb_a_limit)
 	ld	[STDARG+4],TMPREG1   /* tmpreg1 gets scale (second arg) */
 	sra	TMPREG1,1,TMPREG1	    /* cvt scale to sparc int */
@@ -572,7 +572,7 @@ under:				/* handle underflow */
  * low-level test-and-set style primitive for mutual-exclusion among
  * processors.
  */
-ML_CODE_HDR(try_lock_a)
+ALIGNED_ENTRY(try_lock_a)
 #if (MAX_PROCS > 1)
 	???
 #else (MAX_PROCS == 1)
@@ -585,7 +585,7 @@ ML_CODE_HDR(try_lock_a)
 
 /* unlock : releases a spin lock
  */
-ML_CODE_HDR(unlock_a)
+ALIGNED_ENTRY(unlock_a)
 #if (MAX_PROCS > 1)
 	???
 #else (MAX_PROCS == 1)

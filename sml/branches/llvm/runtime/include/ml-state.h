@@ -33,30 +33,29 @@ struct ml_state {
 #   define	ml_allocArenaSzB  ml_heap->allocSzB
     vproc_state_t *ml_vproc;	    /* the VProc that this is running on */
 
-				/* ML registers */
+				/* The CMachine and ML state registers that must be
+				 * preserved across calls to the runtime.  These
+				 * are given in the "JWA" calliong convention order
+				 * that is used in the LLVM backend.
+				 */
     ml_val_t	*ml_allocPtr;
     ml_val_t	*ml_limitPtr;
-    ml_val_t	ml_arg;
-    ml_val_t	ml_cont;
-    ml_val_t	ml_closure;
+    ml_val_t	ml_storePtr;	    /* the list of store operations */
+    ml_val_t	ml_exnCont;
+    ml_val_t	ml_varReg;
     ml_val_t	ml_linkReg;
+    ml_val_t	ml_closure;
+    ml_val_t	ml_cont;
+    ml_val_t	ml_calleeSave[CALLEESAVE];
+    ml_val_t	ml_arg;
     ml_val_t	ml_pc;		    /* Address of ML code to execute; when */
 				    /* calling an ML frunction from C, this */
 				    /* holds the same value as the linkReg. */
-    ml_val_t	ml_exnCont;
-    ml_val_t	ml_varReg;
-    ml_val_t	ml_calleeSave[CALLEESAVE];
 
-    ml_val_t	ml_storePtr;	    /* the list of store operations */
 
 				  /* Linkage information */
     ml_val_t	ml_faultExn;		/* The exception packet for a hardware fault. */
     Word_t	ml_faultPC;		/* the PC of the faulting instruction */
-#ifdef SOFT_POLL
-    ml_val_t    *ml_realLimit;          /* real heap limit */
-    bool_t      ml_pollPending;         /* poll event pending? */
-    bool_t      ml_inPollHandler;       /* handling a poll event? */
-#endif
 }; /* struct ml_state */
 
 

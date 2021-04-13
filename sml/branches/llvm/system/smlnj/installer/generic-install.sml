@@ -466,7 +466,7 @@ structure GenericInstall : sig
 			  U.rename { old = targetheaploc, new = finalheaploc };
 			  finish ())
 			else fail ["Built ", target, "; ", heapname, " still missing.\n"]
-(*
+(* old version
 		      if OS.Process.system buildcmd = OS.Process.success
 			then if U.fexists targetheaploc
 			  then (

@@ -143,10 +143,6 @@ PVT void InitVProcState (vproc_state_t *vsp)
 void InitMLState (ml_state_t *msp)
 {
     msp->ml_storePtr		= ML_unit;
-#ifdef SOFT_POLL
-    msp->ml_pollPending		= FALSE;
-    msp->ml_inPollHandler	= FALSE;
-#endif
 
 } /* end of InitMLState. */
 

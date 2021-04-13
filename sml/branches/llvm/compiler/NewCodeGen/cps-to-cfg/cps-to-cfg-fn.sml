@@ -216,8 +216,10 @@ C.NUMt{sz=sz}
 		  | RECORD(_, flds, x, k) => allocRecord (
 		      D.makeDesc' (length flds, D.tag_record),
 		      flds, x, bindVarIn(x, k))
+(*
 		  | SELECT(i, v, x, ty as CPS.NUMt{sz, ...}, k) =>
 		      genCont (rawSelect(TP.INT, normSz sz, i, genV v), x, ty, k)
+*)
 		  | SELECT(i, v, x, ty as CPS.FLTt sz, k) =>
 		      genCont (rawSelect(TP.FLT, sz, i, genV v), x, ty, k)
 		  | SELECT(i, v, x, ty, k) =>
