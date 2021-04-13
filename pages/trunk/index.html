@@ -1,4 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML>
 <html>
 <head>
 
@@ -49,6 +49,9 @@ compiler and programming system">
   </tbody>
 </table>
 
+</blockquote>
+
+
 <hr>
 
 <p><a href="smlnj.html"><strong>Standard ML of New Jersey</strong></a>
@@ -60,21 +63,30 @@ tools, and documentation.
 SML/NJ is <a href="license.html">free, open source</a> software.
 </p>
 
-<a href="new.html">
-<h3>What's New</h3>
-</a>
+
+<h3><a href="new.html">What's New</a></h3>
 
 <ul>
+  <li>[2021-04-12] Version <a href="dist/working/110.99.1/index.html">110.99.1</a> is
+    released.  The main purpose of this patch release is to support installing and running
+    <strong>SML/NJ</strong> on M1 Macs under the
+    <a href="https://developer.apple.com/documentation/apple-silicon/about-the-rosetta-translation-environment">
+    <strong>Rosetta2</strong></a> translator.
+    The release also contains a couple of bug fixes; see the
+    <a href="dist/working/110.99.1/110.99.1-README.html">README</a>
+    for details. <br />
+  </li>
   <li>[2020-12-24] Version <a href="dist/working/110.99/index.html">110.99</a> is
     released.  This release fixes additional pretty-printing regressions as well
     as some other bugs.
     See the <a href="dist/working/110.99/110.99-README.html">README</a>
-    for details. <br/>
+    for details. <br />
+  </li>
   <li>[2020-08-25] Version <a href="dist/working/110.98.1/index.html">110.98.1</a> is
     released.  This patch release fixes a number of pretty-printing regressions that
     were introduced in 110.98.
     See the <a href="dist/working/110.98/110.98.1-README.html">README</a>
-    for details. <br/>
+    for details. <br />
   </li>
   <li>[2020-07-17] In conjunction with the release of
     Version <a href="dist/working/110.98/index.html">110.98</a>, there is
@@ -85,7 +97,7 @@ SML/NJ is <a href="license.html">free, open source</a> software.
     released.  This release includes substantial improvements to the documentation
     as well as other improvements and bug fixes.
     See the <a href="dist/working/110.98/110.98-README.html">README</a>
-    for details. <br/>
+    for details. <br />
   </li>
   <li>[2020-04-21] Version <a href="dist/working/110.97/index.html">110.97</a> is
     released.
@@ -93,47 +105,7 @@ SML/NJ is <a href="license.html">free, open source</a> software.
     documentation, and a large number of changes and additions to the
     <strong>SML/NJ Library</strong>.
     See the <a href="dist/working/110.97/110.97-README.html">README</a>
-    for details. <br/>
-  </li>
-  <li>[2019-12-13] Version <a href="dist/working/110.96/index.html">110.96</a> is
-    released.
-    This release fixes a number of issues with the 64-bit version; see the
-    See the <a href="dist/working/110.96/110.96-README.html">README</a>
-    for details. <br/>
-  </li>
-  <li>[2019-11-09] Version <a href="dist/working/110.95/index.html">110.95</a> is
-    released.
-    This release fixes some critical bugs.
-    See the <a href="dist/working/110.95/110.95-README.html">README</a>
-    for details. <br/>
-  </li>
-  <li>[2019-11-02] New versions of both the <b>macOS</b> and <b>Windows</b>
-    installers for the <a href="dist/working/110.94/index.html">110.94</a>
-     have been posted.  The <b>macOS</b> installers fix an issue where the
-     scripts were looking for a 32-bit version when a 64-bit version had
-    been installed.  The Windows installer includes a fix for bug #225 that
-    was inadvertently omitted. <br/>
-  </li>
-  <li>[2019-11-01] New versions of the <a href="dist/working/110.94/index.html">110.94</a>
-    installers for <b>macOS</b> were released.  These fix a problem with the wrapper
-    scripts having an incorrect path for the installation. <br/>
-  </li>
-  <li>[2019-10-31] Version <a href="dist/working/110.94/index.html">110.94</a> is
-    released.
-    This version is the first to support 64-bit platforms; specifically
-    64-bit executables on <b>macOS</b> and <b>Linux</b>.
-    See the <a href="dist/working/110.94/110.94-README.html">README</a>
-    for details. <br/>
-  </li>
-  <li>[2019-09-05] Version <a href="dist/working/110.93/index.html">110.93</a> is
-    released.
-    See the <a href="dist/working/110.93/110.93-README.html">README</a>
-    for details. <br/>
-  </li>
-  <li>[2019-08-10] Version <a href="dist/working/110.92/index.html">110.92</a> is
-    released.
-    See the <a href="dist/working/110.92/110.92-README.html">README</a>
-    for details. <br/>
+    for details. <br />
   </li>
   <li><a href="old-news.html">Older news</a></li>
 </ul>
@@ -153,16 +125,15 @@ will be the first release of 2021.
 
 <h3>Support for 64-bit architectures</h3>
 <p>
-The latest version (<a href="dist/working/110.99/index.html">110.99</a>)
+The latest version (<a href="dist/working/110.99.1/index.html">110.99.1</a>)
 supports 64-bit executables on <b>macOS</b> and <b>Linux</b>.
 </p>
 
-<a href="dist/working/index.html">
-<h3>Downloads</h3>
-</a>
+<h3><a href="dist/working/index.html">Downloads</a></h3>
+
 <ul>
   <li><p>
-    The latest release is  <a href="dist/working/110.99/index.html">110.99</a>;
+    The latest release is  <a href="dist/working/110.99.1/index.html">110.99.1</a>;
     we believe that this version is stable, but there have been a lot of low-level
     changes that might have introduced bugs, so if you have any problems with the
     system you should report them and then revert to
@@ -172,7 +143,7 @@ supports 64-bit executables on <b>macOS</b> and <b>Linux</b>.
     Previous versions are also available through our
     <a href="dist/working/index.html">release history</a> page.
     A history of the changes to the system is also
-    <a href="dist/working/110.99/HISTORY.html">available</a>.
+    <a href="dist/working/110.99.1/HISTORY.html">available</a>.
   </p></li>
   <li><p>
     Signed installers for macOS are available, which install the system
@@ -180,11 +151,11 @@ supports 64-bit executables on <b>macOS</b> and <b>Linux</b>.
     </p>
     <ul>
       <li>
-	<a href="dist/working/110.99/smlnj-x86-110.99.pkg">smlnj-x86-110.99.pkg</a>
+	<a href="dist/working/110.99.1/smlnj-x86-110.99.1.pkg">smlnj-x86-110.99.1.pkg</a>
 	(32 bit)
       </li>
       <li>
-	<a href="dist/working/110.99/smlnj-amd64-110.99.pkg">smlnj-amd64-110.99.pkg</a>
+	<a href="dist/working/110.99.1/smlnj-amd64-110.99.1.pkg">smlnj-amd64-110.99.1.pkg</a>
 	(64 bit)
       </li>
     </ul>
@@ -194,15 +165,13 @@ supports 64-bit executables on <b>macOS</b> and <b>Linux</b>.
     box.  Click on the <b>Open</b> button to run the installer.
     </p>
   </li>
-  <li></p>
+  <li><p>
     A Windows <strong>msi installer</strong> for Windows 7+
-    is available (<a href="dist/working/110.99/smlnj-110.99.msi">smlnj-110.99.msi</a>).
+    is available (<a href="dist/working/110.99.1/smlnj-110.99.1.msi">smlnj-110.99.1.msi</a>).
   </p></li>
 </ul>
 
-<a href="svn.html">
-<h3>Subversion access</h3>
-</a>
+<h3><a href="svn.html">Subversion access</a></h3>
 
 Our master source repository is kept on a <a
 href="https://www.fusionforge.org">FusionForge</a> server (a successor
@@ -254,16 +223,14 @@ download a snapshot of the most recent sources at any time.
 <li>Bugs can be reported online using our
     <a href="https://smlnj-gforge.cs.uchicago.edu/bugform.php">PHP bug form</a>.</li>
 <li>You can also submit bug reports by email to
-    <img src="images/smlnj-list-logo.png" align=center> using the
+    <img src="images/smlnj-list-logo.png" alt="SML/NJ Logo" align=middle> using the
     <a href="bugs/bug-report-form">bug report form</a>.</li>
-<li>A legacy record of known bugs and the bug history</a> for
+<li>A legacy record of known bugs and the bug history for
 SML/NJ are available via the <a href="bugs/index.html">bugs web page</a>.</li>
 <li>Recent submissions should appear in the <a href="https://smlnj-gforge.cs.uchicago.edu/tracker/?atid=215&group_id=33">GForge tracker</a> .</li>
 </ul>
 
-<a href="links.html">
-<h3>Links</h3>
-</a>
+<h3><a href="links.html">Links</a></h3>
 
 <ul>
 <li>Pointers to programming resources (libraries, tools, example code),
@@ -273,9 +240,7 @@ SML/NJ are available via the <a href="bugs/index.html">bugs web page</a>.</li>
     page of their own.</li>
 </ul>
 
-<a href="people.html">
-<h3>People</h3>
-</a>
+<h3><a href="people.html">People</a></h3>
 
 <ul>
 <li>Picture of current cast of people involved in the project.</li>
