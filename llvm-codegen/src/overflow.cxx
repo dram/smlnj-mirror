@@ -178,7 +178,7 @@ void code_buffer::_createOverflowFn ()
 
   // generate code to allocate the exception packet
     Value *exn = this->allocRecord (
-	this->uConst(0x182), // triple object
+	0x182, // triple object
 	{ exnId, this->uConst(1), traceList });
 
   // get the exception handler
