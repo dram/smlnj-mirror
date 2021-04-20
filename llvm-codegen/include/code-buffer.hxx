@@ -780,6 +780,15 @@ class code_buffer {
   // initialize the metadata needed to support reading the stack pointer
     void _initSPAccess ();
 
+  // utility function for loading a value from the stack
+    Value *_loadFromStack (int offset, std::string const &name)
+    {
+	return this->build().CreateAlignedLoad (
+	    this->stkAddr (this->objPtrTy, offset),
+	    llvm::MaybeAlign (this->wordSzInBytes()),
+	    name);
+    }
+
   // function for loading a special register from memory
     Value *_loadMemReg (sml_reg_id r);
 

@@ -23,7 +23,7 @@ static target_info AArch64Info = {
 	"e-m:o-i64:64-i128:128-n32:64-S128", // LLVM data layout string
 	"sp",				// stack-pointer name
 	llvm::Triple::aarch64,
-	64,				// wordSz
+	8, 64,				// word size in bytes and bits
 	29,				// numRegs
 	3,				// numCalleeSaves
 	true,				// hasPCRel
@@ -38,7 +38,7 @@ static target_info X86_64Info = {
 	"e-i64:64-n8:16:32:64-S128",	// LLVM data layout string
 	"rsp",				// stack-pointer name
 	llvm::Triple::x86_64,
-	64,				// wordSz
+	8, 64,				// word size in bytes and bits
 	18,				// numRegs
 	3,				// numCalleeSaves
 	true,				// hasPCRel

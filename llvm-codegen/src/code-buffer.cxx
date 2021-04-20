@@ -15,10 +15,7 @@
 
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/GlobalValue.h"
-#include "llvm/IR/InlineAsm.h"
 #include "llvm/IR/Verifier.h"
-
-#include <exception>
 
 /* control the adding of symbolic names to some values for easier debugging */
 #ifndef _DEBUG
@@ -506,20 +503,11 @@ void code_buffer::_initSPAccess ()
 
 }
 
-// utility function for loading a value from the stack
-inline Value *_loadFromStack (code_buffer *buf, int offset, std::string const &name)
-{
-    return buf->build().CreateAlignedLoad (
-	buf->stkAddr (buf->objPtrTy, offset),
-	llvm::MaybeAlign (buf->wordSzInBytes()),
-	name);
-}
-
 // private function for loading a special register from memory
 Value *code_buffer::_loadMemReg (sml_reg_id r)
 {
     auto info = this->_regInfo.info(r);
-    return _loadFromStack (this, info->offset(), info->name());
+    return this->_loadFromStack (info->offset(), info->name());
 
 } // code_buffer::_loadMemReg
 
@@ -571,7 +559,7 @@ void code_buffer::callGC (
 	&& "arity mismatch in GC call");
 
   // get the address of the "call-gc" entry
-    Value *callGCFn = _loadFromStack (this, this->_target->callGCOffset, "callGC");
+    Value *callGCFn = this->_loadFromStack (this->_target->callGCOffset, "callGC");
 
   // call the garbage collector.  The return type of the GC is a struct
   // that contains the post-GC values of the argument registers
@@ -600,175 +588,6 @@ void code_buffer::callGC (
 
 } // code_buffer::callGC
 
-// return the basic-block that contains the Overflow trap generator
-// We also update the PHI nodes for the overflow basic block.
-//
-llvm::BasicBlock *code_buffer::getOverflowBB ()
-{
-    auto srcBB = this->_builder.GetInsertBlock ();
-    int nArgs = this->_regInfo.numMachineRegs();
-
-    if (this->_overflowBB == nullptr) {
-      // if this is the first overflow BB for the module, then we need to define
-      // the overflow function name
-	if (this->_overflowFn == nullptr) {
-	    this->_overflowFn = this->newFunction (
-		this->_overflowFnTy, "raiseOverflow", false);
-	}
-
-	this->_overflowBB = this->newBB ("trap");
-	this->_builder.SetInsertPoint (this->_overflowBB);
-      // allocate PHI nodes for the SML special registers.  This is necessary
-      // to ensure that any changes to the ML state (e.g., allocation) that
-      // happened before the arithmetic operation are correctly recorded
-        this->_overflowPhiNodes.reserve (nArgs);
-    	Args_t args;
-	args.reserve (nArgs);
-	for (int i = 0;  i < nArgs;  ++i) {
-	    llvm::Type *ty;
-	    if (this->_regInfo.machineReg(i)->id() <= sml_reg_id::STORE_PTR) {
-		ty = this->objPtrTy;
-	    } else {
-		ty = this->mlValueTy;
-	    }
-	    auto phi = this->_builder.CreatePHI(ty, 0);
-	    this->_overflowPhiNodes.push_back(phi);
-	    args.push_back(phi);
-	}
-      // create a call to the per-module overflow function
-	this->createJWACall(this->_overflowFnTy, this->_overflowFn, args);
-	this->_builder.CreateRetVoid ();
-
-      // restore current basic block
-	this->_builder.SetInsertPoint (srcBB);
-    }
-
-  // add PHI-node dependencies
-    for (int i = 0;  i < nArgs;  ++i) {
-	reg_info const *rInfo = this->_regInfo.machineReg(i);
-	this->_overflowPhiNodes[i]->addIncoming(this->_regState.get (rInfo->id()), srcBB);
-    }
-
-    return this->_overflowBB;
-
-} // code_buffer::getOverflowBB
-
-// create the per-module overflow function (if necessary).  This function has
-// just the special registers as arguments.  Its implementation is roughly:
-//
-//    raiseOverflow ()
-//	overflowExn = sp[overflowExnSlot]
-//	exnHndlr = gethdlr()
-//	hndlrAddr = exnHndlr[0]
-//	apply hndlrAddr(hndlrAddr, exhHndlr, UNIT, UNIT, UNIT, UNIT, overflowExn)
-//
-void code_buffer::_createOverflowFn ()
-{
-    if (this->_overflowFn == nullptr) {
-      // the module does not need an overflow function
-	return;
-    }
-
-    this->_curFn = this->_overflowFn;
-
-    auto bb = this->newBB ();
-    this->_builder.SetInsertPoint (bb);
-
-#ifdef USE_OVERFLOW_TRAP
-    std::vector<Type *> tys;
-    Args_t args;
-    tys.reserve (this->_regInfo.numMachineRegs());
-    args.reserve (this->_regInfo.numMachineRegs());
-
-  // initialize the arguments, which are the hardware CMachine registers
-    for (int i = 0, hwIx = 0;  i < reg_info::NUM_REGS;  ++i) {
-	reg_info const *info = this->_regInfo.info(static_cast<sml_reg_id>(i));
-	if (info->isMachineReg()) {
-	    llvm::Argument *arg = this->_curFn->getArg(hwIx++);
-	    tys.push_back(arg->getType());
-	    args.push_back(arg);
-#ifndef NO_NAMES
-	    arg->setName (info->name());
-#endif
-	}
-    }
-
-  // initialize the constraint string for the inline assembly
-    std::string cs = "r";
-    for (int i = 1;  i < args.size();  ++i) {
-	cs = cs + ",r";
-    }
-
-  // create the trap instruction; we give it the special registers as arguments
-    auto fnTy = llvm::FunctionType::get (this->voidTy, tys, false);
-    llvm::InlineAsm *trap = llvm::InlineAsm::get (fnTy, "int $$4", cs, true);
-    this->_builder.CreateCall (fnTy, trap, args);
-    this->_builder.CreateRetVoid ();
-
-#else
-
-  // set up the incoming parameters for the overflow function, which are just
-  // the hardware CMachine registers
-    for (int i = 0, hwIx = 0;  i < reg_info::NUM_REGS;  ++i) {
-	reg_info const *info = this->_regInfo.info(static_cast<sml_reg_id>(i));
-	if (info->isMachineReg()) {
-	    llvm::Argument *param = this->_curFn->getArg(hwIx++);
-#ifndef NO_NAMES
-	    param->setName (info->name());
-#endif
-	    this->_regState.set (info->id(), param);
-	}
-	else { // stack-allocated register
-	    this->_regState.set (info->id(), nullptr);
-	}
-    }
-
-  // fetch the overflow exception from the stack
-    Value *exn = _loadFromStack (this, this->_target->overflowExnOffset, "ovflwExn");
-
-  // get the exception handler
-    Value *exnHdlr = this->mlReg (sml_reg_id::EXN_HNDLR);
-
-  // get the handler's code address
-    Value *cp = this->createLoad (
-	this->mlValueTy,
-	this->createGEP (this->asObjPtr(exnHdlr), 0));
-
-  // the function type of the handler
-    int nArgs = this->_target->numCalleeSaves + 4; /* link, clos, cont, cs[], arg */
-    std::vector<Type *> argTys;
-    argTys.reserve (nArgs);
-    for (int i = 0;  i < nArgs;  ++i) {
-	argTys.push_back (this->mlValueTy);
-    }
-    auto handlerFnTy = this->createFnTy (frag_kind::STD_FUN, argTys);
-
-  // set up the vector of arguments: cp, exnHdlr, unit, unit, unit, unit,
-    Args_t args;
-    arg_info info = this->_getArgInfo (frag_kind::STD_FUN);
-    args.reserve (info.numArgs(1));
-    this->_addExtraArgs (args, info);
-    args.push_back (cp);
-    args.push_back (exnHdlr);
-
-  // the stdcont and callee-save registers are unused; we pass ML unit to avoid
-  // confusing the GC with stale values
-    for (int i = 0;  i < this->_target->numCalleeSaves + 1;  ++i) {
-	args.push_back (this->unitValue());
-    }
-    args.push_back (exn);
-    assert (args.size() == info.numArgs(nArgs) && "incorrect number of arguments");
-
-  // call the handler
-    this->createJWACall(
-	handlerFnTy,
-	this->build().CreateBitCast(cp, handlerFnTy->getPointerTo()),
-	args);
-    this->build().CreateRetVoid();
-#endif
-
-}
-
 // return branch-weight meta data, where `prob` represents the probability of
 // the true branch and is in the range 1..999.
 llvm::MDNode *code_buffer::branchProb (int prob)
@@ -781,15 +600,6 @@ llvm::MDNode *code_buffer::branchProb (int prob)
     return tpl;
 
 } // code_buffer::branchProb
-
-// get the branch-weight meta data for overflow-trap branches
-//
-llvm::MDNode *code_buffer::overflowWeights ()
-{
-  // we use 1/1000 as the probability of an overflow
-    return this->branchProb(1);
-
-} // code_buffer::overflowWeights
 
 // generate a type cast for an actual to formal transfer.
 //

@@ -13,6 +13,7 @@
 #include <cstdlib>
 
 #include "llvm/Support/TargetSelect.h"
+#include "llvm/IR/Value.h"
 
 #include "codegen.hxx"
 
@@ -66,6 +67,32 @@ int main (int argc, char **argv)
 	    src = argv[i];
 	}
     }
+
+std::cout << "FunctionVal = " << llvm::Value::FunctionVal << "\n";
+std::cout << "GlobalAliasVal = " << llvm::Value::GlobalAliasVal << "\n";
+std::cout << "GlobalIFuncVal = " << llvm::Value::GlobalIFuncVal << "\n";
+std::cout << "GlobalVariableVal = " << llvm::Value::GlobalVariableVal << "\n";
+std::cout << "BlockAddressVal = " << llvm::Value::BlockAddressVal << "\n";
+std::cout << "ConstantExprVal = " << llvm::Value::ConstantExprVal << "\n";
+std::cout << "ConstantArrayVal = " << llvm::Value::ConstantArrayVal << "\n";
+std::cout << "ConstantStructVal = " << llvm::Value::ConstantStructVal << "\n";
+std::cout << "ConstantVectorVal = " << llvm::Value::ConstantVectorVal << "\n";
+std::cout << "UndefValueVal = " << llvm::Value::UndefValueVal << "\n";
+std::cout << "ConstantAggregateZeroVal = " << llvm::Value::ConstantAggregateZeroVal << "\n";
+std::cout << "ConstantDataArrayVal = " << llvm::Value::ConstantDataArrayVal << "\n";
+std::cout << "ConstantDataVectorVal = " << llvm::Value::ConstantDataVectorVal << "\n";
+std::cout << "ConstantIntVal = " << llvm::Value::ConstantIntVal << "\n";
+std::cout << "ConstantFPVal = " << llvm::Value::ConstantFPVal << "\n";
+std::cout << "ConstantPointerNullVal = " << llvm::Value::ConstantPointerNullVal << "\n";
+std::cout << "ConstantTokenNoneVal = " << llvm::Value::ConstantTokenNoneVal << "\n";
+std::cout << "ArgumentVal = " << llvm::Value::ArgumentVal << "\n";
+std::cout << "BasicBlockVal = " << llvm::Value::BasicBlockVal << "\n";
+std::cout << "MetadataAsValueVal = " << llvm::Value::MetadataAsValueVal << "\n";
+std::cout << "InlineAsmVal = " << llvm::Value::InlineAsmVal << "\n";
+std::cout << "MemoryUseVal = " << llvm::Value::MemoryUseVal << "\n";
+std::cout << "MemoryDefVal = " << llvm::Value::MemoryDefVal << "\n";
+std::cout << "MemoryPhiVal = " << llvm::Value::MemoryPhiVal << "\n";
+std::cout << "InstructionVal = " << llvm::Value::InstructionVal << "\n";
 
     llvm::InitializeAllTargetInfos();
     llvm::InitializeAllTargets();
