@@ -129,6 +129,7 @@ void code_buffer::_createOverflowFn ()
     }
   // the global that holds the traceback message for the exception
     auto msgGV = new llvm::GlobalVariable (
+	*(this->_module),
 	llvm::ArrayType::get(this->i8Ty, strLen),
 	true,
 	llvm::GlobalValue::PrivateLinkage,
@@ -148,6 +149,7 @@ void code_buffer::_createOverflowFn ()
     elts.push_back (llvm::ConstantExpr::getPtrToInt (msgGV, this->intTy));
     elts.push_back (llvm::ConstantInt::get (this->intTy, 2*msg.size()+1));
     auto msgHdrObj = new llvm::GlobalVariable (
+	*(this->_module),
 	pairObjTy,
 	true,
 	llvm::GlobalValue::PrivateLinkage,
@@ -167,6 +169,7 @@ void code_buffer::_createOverflowFn ()
 	    this->intTy));
     elts.push_back (llvm::ConstantInt::get (this->intTy, 1)); // nil
     auto traceList = new llvm::GlobalVariable (
+	*(this->_module),
 	pairObjTy,
 	true,
 	llvm::GlobalValue::PrivateLinkage,

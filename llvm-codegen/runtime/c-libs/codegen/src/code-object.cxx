@@ -23,6 +23,8 @@
 #  error unknown operating system
 #endif
 
+static llvm::ExitOnError exitOnErr;
+
 //==============================================================================
 
 #ifdef ENABLE_AARCH64
@@ -179,13 +181,15 @@ bool AMD64CodeObject::_includeDataSect (llvm::object::SectionRef &sect)
 {
     assert (sect.isData() && "expected data section");
 
-#if defined(OBJFF_MACHO)
     auto name = sect.getName();
+#if defined(OBJFF_MACHO)
   // the "__literal16" section has literals referenced by the code for
   // floating-point negation and absolute value
     return (name && name->equals("__literal16"));
 #else
-#  error only MachO supported for now
+  // the section ".rodata.cst16" has literals referenced by the code for
+  // floating-point negation and absolute value
+    return (name && name->equals(".rodata.cst16"));
 #endif
 }
 
@@ -283,8 +287,6 @@ void CodeObject::getCode (uint8_t *code)
     }
 }
 
-static llvm::ExitOnError exitOnErr;
-
 void CodeObject::dump (bool bits)
 {
   // print info about the sections
@@ -346,7 +348,11 @@ void CodeObject::dump (bool bits)
 		if (! name.takeError()) {
 		    llvm::dbgs () << "  " << *name
 			<< ": addr = " << llvm::format_hex(exitOnErr(symb.getAddress()), 10)
+#if (LLVM_VERSION_MAJOR > 10) /* getValue returns an Expected<> value as of LLVM 11.x */
+			<< "; value = "  << llvm::format_hex(exitOnErr(symb.getValue()), 10)
+#else
 			<< "; value = "  << llvm::format_hex(symb.getValue(), 10)
+#endif
 			<< "; offset = " << llvm::format_hex(offset, 10)
 // TODO: get the name associated with the type
 			<< "; type = " << reloc.getType() << "\n";
@@ -376,7 +382,9 @@ void CodeObject::_computeSize ()
 	    this->_sects.push_back (sect);
 	    uint64_t addr = sect.getAddress();
 	    uint64_t szb = sect.getSize();
+#ifndef OBJFF_ELF
 	    assert (codeSzb <= addr && "overlapping sections");
+#endif
 	    codeSzb = addr + szb;
 	}
     }

@@ -47,7 +47,7 @@ static target_info X86_64Info = {
 	    8224, 8232		   	// EXN_HNDLR, VAR_PTR
 	},
 	8240,				// call-gc offset
-	-1,				// overflow exception offset *** FIXME ***
+	8248,				// overflow exception offset
 	8*1024				// allocation slop
     };
 

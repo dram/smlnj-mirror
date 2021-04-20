@@ -24,8 +24,9 @@ struct target_info {
     std::string dataLayout;		// LLVM data layout string
     std::string spName;			// the assembly name of the stack pointer register
     llvm::Triple::ArchType arch;	// target architecture
-    int wordSz;				// size in bits of ML word (should also be the
-					// same as the native pointer size)
+    int wordSzB;			// size in bytes of ML word (should also be the
+                                        // same as the native pointer size)
+    int wordSz;				// size in bits of ML word (== 8*wordSzB)
     int numRegs;			// the number of SML registers used by the target
     int numCalleeSaves;			// the number of registers used for callee-save values
     bool hasPCRel;			// true if the target supports PC-relative addressing.
@@ -42,6 +43,14 @@ struct target_info {
     int numGCRoots () const { return this->numCalleeSaves + 4; }
 
     llvm::Triple getTriple() const;
+
+  /// given a number of bytes, round it up to the next multiple of the
+  /// target's word size
+    uint64_t roundToWordSz (uint64_t nBytes) const
+    {
+	uint64_t mask = this->wordSzB - 1;
+	return (nBytes + mask) & ~mask;
+    }
 };
 
 #endif // !_TARGET_INFO_HXX_
