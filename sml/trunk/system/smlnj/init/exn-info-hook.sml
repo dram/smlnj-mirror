@@ -6,6 +6,11 @@
 
 structure ExnInfoHook =
   struct
+
+  (* an exception value is represented as a triple, where the first component is a string ref.
+   * The ref cell serves as the unique id for the exception constructor and the string is
+   * the exception's name.
+   *)
     val exnName : PrimTypes.exn -> PrimTypes.string =
 	  InlineT.cast (fn (PrimTypes.ref s, _, _) => s)
 
