@@ -186,8 +186,9 @@ bool AMD64CodeObject::_includeDataSect (llvm::object::SectionRef &sect)
     auto name = sect.getName();
 #if defined(OBJFF_MACHO)
   // the "__literal16" section has literals referenced by the code for
-  // floating-point negation and absolute value
-    return (name && name->equals("__literal16"));
+  // floating-point negation and absolute value, and the "__const" section
+  // has the literals created for the Overflow exception packet
+    return (name && (name->equals("__literal16") || name->equals("__const")));
 #else
   // the section ".rodata.cst16" has literals referenced by the code for
   // floating-point negation and absolute value
@@ -379,6 +380,7 @@ void CodeObject::_dumpRelocs (llvm::object::SectionRef &sect)
 	    }
 	}
     }
+
 }
 
 //! internal helper function for computing the amount of memory required

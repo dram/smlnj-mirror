@@ -30,7 +30,7 @@ class CodeObject {
 
     CodeObject () = delete;
     CodeObject (CodeObject &) = delete;
-    
+
     virtual ~CodeObject ();
 
   //! create a code object.
@@ -59,7 +59,7 @@ class CodeObject {
 	std::unique_ptr<llvm::object::ObjectFile> objFile
     ) : _tgt(target), _obj(std::move(objFile)), _szb(0)
     { }
-    
+
   //! helper function that determines which sections to include and computes
   //! the total size of the SML code object
   // NOTE: because this function invokes the target-specific virtual method
@@ -84,7 +84,10 @@ class CodeObject {
   //
     virtual void _resolveRelocs (llvm::object::SectionRef &sect, uint8_t *code) = 0;
 
+  /// dump the relocation info for a section
+  //
+    void _dumpRelocs (llvm::object::SectionRef &sect);
+
 }; // CodeObject
 
 #endif //! _CODE_OBJECT_HXX_
-

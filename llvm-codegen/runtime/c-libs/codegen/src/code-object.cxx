@@ -1,5 +1,7 @@
 /*! \file code-object.cxx
  *
+ * The CodeObject class abstracts the system-dependent object-file format.
+ *
  * \author John Reppy
  */
 
@@ -184,8 +186,9 @@ bool AMD64CodeObject::_includeDataSect (llvm::object::SectionRef &sect)
     auto name = sect.getName();
 #if defined(OBJFF_MACHO)
   // the "__literal16" section has literals referenced by the code for
-  // floating-point negation and absolute value
-    return (name && name->equals("__literal16"));
+  // floating-point negation and absolute value, and the "__const" section
+  // has the literals created for the Overflow exception packet
+    return (name && (name->equals("__literal16") || name->equals("__const")));
 #else
   // the section ".rodata.cst16" has literals referenced by the code for
   // floating-point negation and absolute value
@@ -338,29 +341,42 @@ void CodeObject::dump (bool bits)
 	    }
 	    llvm::dbgs () << "\n";
 	}
-      // dump relocation info
-	llvm::dbgs () << "RELOCATION INFO\n";
-	for (auto reloc : textSect.relocations()) {
-	    auto offset = reloc.getOffset();
-	    if (reloc.getSymbol() != this->_obj->symbols().end()) {
-		auto symb = *(reloc.getSymbol());
-		auto name = symb.getName();
-		if (! name.takeError()) {
-		    llvm::dbgs () << "  " << *name
-			<< ": addr = " << llvm::format_hex(exitOnErr(symb.getAddress()), 10)
+    }
+
+   // dump relocation info
+    for (auto sect : this->_obj->sections()) {
+	this->_dumpRelocs (sect);
+    }
+
+}
+
+void CodeObject::_dumpRelocs (llvm::object::SectionRef &sect)
+{
+    auto sectName = sect.getName();
+
+    llvm::dbgs () << "RELOCATION INFO FOR "
+	<< (sectName ? *sectName : "<unknown section>") << "\n";
+
+    for (auto reloc : sect.relocations()) {
+	auto offset = reloc.getOffset();
+	if (reloc.getSymbol() != this->_obj->symbols().end()) {
+	    auto symb = *(reloc.getSymbol());
+	    auto name = symb.getName();
+	    if (! name.takeError()) {
+		llvm::dbgs () << "  " << *name
+		    << ": addr = " << llvm::format_hex(exitOnErr(symb.getAddress()), 10)
 #if (LLVM_VERSION_MAJOR > 10) /* getValue returns an Expected<> value as of LLVM 11.x */
-			<< "; value = "  << llvm::format_hex(exitOnErr(symb.getValue()), 10)
+		    << "; value = "  << llvm::format_hex(exitOnErr(symb.getValue()), 10)
 #else
-			<< "; value = "  << llvm::format_hex(symb.getValue(), 10)
+		    << "; value = "  << llvm::format_hex(symb.getValue(), 10)
 #endif
-			<< "; offset = " << llvm::format_hex(offset, 10)
+		    << "; offset = " << llvm::format_hex(offset, 10)
 // TODO: get the name associated with the type
-			<< "; type = " << reloc.getType() << "\n";
-		} else {
-		    llvm::dbgs () << "  <unknown>: offset = "
-			<< llvm::format_hex(offset, 10)
-			<< "; type = " << reloc.getType() << "\n";
-		}
+		    << "; type = " << reloc.getType() << "\n";
+	    } else {
+		llvm::dbgs () << "  <unknown>: offset = "
+		    << llvm::format_hex(offset, 10)
+		    << "; type = " << reloc.getType() << "\n";
 	    }
 	}
     }
