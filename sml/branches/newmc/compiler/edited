@@ -1,0 +1,18 @@
+M       Elaborator/elaborate.cm
+M       Elaborator/matchcomp/decisiontree.sml
+M       Elaborator/matchcomp/key.sml
+M       Elaborator/matchcomp/layers.sml
+M       Elaborator/matchcomp/matchcomp.sml
+M       Elaborator/matchcomp/mcutil.sml
+M       Elaborator/matchcomp/new-andor.sml
+M       Elaborator/matchcomp/new-decisiontree.sml
+M       Elaborator/matchcomp/new-matchcomp.sml
+?       Elaborator/matchcomp/new-mcprint.sml
+M       Elaborator/matchcomp/new-mctypes.sml
+M       Elaborator/matchcomp/new-or-queues.sml
+?       Elaborator/matchcomp/new-varenvmc.sml
+A       Elaborator/matchcomp/new-vmcexp.sml
+D       Elaborator/matchcomp/variant-maps.sml
+        > moved to Elaborator/matchcomp/variants.sml
+A  +    Elaborator/matchcomp/variants.sml
+        > moved from Elaborator/matchcomp/variant-maps.sml

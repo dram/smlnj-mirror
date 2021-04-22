@@ -8,6 +8,7 @@
 signature MCCONTROL =
   sig
     val debugging : bool ref
+    val stats : bool ref
     val printArgs : bool ref
     val printRet : bool ref
     val bindNoVariableWarn : bool ref
@@ -76,6 +77,7 @@ signature CONTROL =
     structure FLINT : FLINTCONTROL
     structure CG : CGCONTROL
     structure MLRISC : MLRISC_CONTROL
+    val sourceName : string ref
     val debugging : bool ref
     val printAst : bool ref
     val printAbsyn : bool ref

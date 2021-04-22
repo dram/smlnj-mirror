@@ -21,7 +21,12 @@ end = struct
     fun bug s = ErrorMsg.impossible ("FLINTOpt:" ^ s)
     val say = Control_Print.say
 
-    (* flintkind : FLINT "variants" -- four flavors of FLINT lexps *)
+    (* flintkind : FLINT "variants" -- four flavors of FLINT lexps
+     *   FK_DEBRUIJN : expression-bound type variables use deBruijn representation
+     *   FK_NAMED : expression-bound type variables use "named" (lvar-like) representation
+     *   FK_WRAP : FK_NAMED representation that has had "wrapping" applied
+     *   FK_REIFY : FK_NAMED (and FK_WRAP?) that has had types and type parameters lowered
+     *      to value level *)
     datatype flintkind = FK_DEBRUIJN | FK_NAMED | FK_WRAP | FK_REIFY
 
     (* phase mapping of flintkind:
@@ -56,7 +61,7 @@ end = struct
 	* flintkind       (* the prog's flint "flavor" *)
 	* string)         (* name of previous phase that produced the prog *)
        (* [DBM]: a fi: prog option ("inlineable approximation"), was previously
-        * produced by the split phase, which has been eliminated. *)
+        * produced by the split phase, which has been eliminated because it was not used. *)
 
     fun phase x = Stats.doPhase (Stats.makePhase x)
 

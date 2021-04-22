@@ -25,7 +25,7 @@ structure Absyn : ABSYN =
     datatype exp
       = VARexp of VarCon.var ref * T.tyvar list
 	(* the 2nd arg is a type metavar list used to capture the instantiation
-	   parameters for this occurence of VarCon.var when its type is polymorphic.
+	   parameters for this occurence of V.var when its type is polymorphic.
 	   FLINT will use these to provide explicit type parameters for VarCon.var
            if VarCon.var is bound to a primop, which will be used to specialize
 	   the primop. *)
@@ -47,7 +47,8 @@ structure Absyn : ABSYN =
       | CASEexp of exp * fnrules
       | SWITCHexp of VarCon.var * rule list * exp option
       | VSWITCHexp of VarCon.var * rule list * exp
-          (* SWITCHexp, VSWITCH created only by match compiler, VSWITCH for vector length *)
+          (* SWITCHexp, VSWITCHexp created only by match compiler,
+           * VSWITCHexp for vector length *)
       | RAISEexp of exp * T.ty
       | IFexp of { test: exp, thenCase: exp, elseCase: exp }
       | ANDALSOexp of exp * exp

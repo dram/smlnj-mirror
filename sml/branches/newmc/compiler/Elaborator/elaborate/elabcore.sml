@@ -616,7 +616,7 @@ let
                     union(tv1,tv2,error region), updt)
 	       end
 	   | FnExp rules =>
-	       let val (rules',tyv,updt) = elabMatch(rules,env,region)
+	       let val (rules', tyv, updt) = elabMatch (rules, env, region)
 		in (FNexp (rules', UNDEFty, UNDEFty), tyv, updt)
 	       end
 	   | MarkExp (exp,region) =>
@@ -625,8 +625,8 @@ let
 	       end
 	   | SelectorExp s =>
 	        let val var = newVALvar s
-		    val pat = RECORDpat{fields=[(s,VARpat var)], flex=true,
-					  typ= ref UNDEFty}
+		    val pat = RECORDpat{fields = [(s,VARpat var)], flex = true,
+					typ = ref UNDEFty}
 		 in (FNexp([RULE(pat, cMARKexp(VARexp(ref var, []), region))],
 			   UNDEFty, UNDEFty),
 		     TS.empty, no_updt)

@@ -48,7 +48,7 @@ functor EvalLoopF (Compile: TOP_COMPILE) : EVALLOOP =
   (* to wrap exceptions that are raised during the execution of a top-level transaction *)
     exception ExnDuringExecution of exn
 
-  (*
+  (* evalLoop: Source.inputSource -> unit?
    * The baseEnv and localEnv are purposely refs so that a top-level command
    * can re-assign either one of them, and the next iteration of the loop
    * will see the new value. It's also important that the toplevelenv
@@ -59,6 +59,7 @@ functor EvalLoopF (Compile: TOP_COMPILE) : EVALLOOP =
     fun evalLoop source = let
 	  val parser = SmlFile.parseOne source
 	  val cinfo = C.mkCompInfo { source = source, transform = fn x => x }
+	  val _ = Control.sourceName := Source.sourceName source
 
 	  fun checkErrors (s: string) =
 		if CompInfo.anyErrors cinfo

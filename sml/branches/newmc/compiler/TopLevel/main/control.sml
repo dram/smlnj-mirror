@@ -20,14 +20,14 @@ struct
 
     val nextpri = ref 0
 
-    fun flag (n, h, d) = let
-	  val r = ref d
+    fun flag (name: string, help: string, default) = let
+	  val r = ref default
 	  val p = !nextpri
 	  val ctl = Controls.control {
-		  name = n,
+		  name = name,
 		  pri = [p],
 		  obscurity = obscurity,
-		  help = h,
+		  help = help,
 		  ctl = r
 		}
 	  in
@@ -35,11 +35,12 @@ struct
 	    ControlRegistry.register
 		registry
 		{ ctl = Controls.stringControl bool_cvt ctl,
-		  envName = SOME (ControlUtil.EnvName.toUpper "COMPILER_MC_" n) };
+		  envName = SOME (ControlUtil.EnvName.toUpper "COMPILER_MC_" name) };
 	    r
 	  end
 
     val debugging = flag ("debugging", "general match compiler debugging", false)
+    val stats = flag ("stats", "match compiler timing and stats", false)
     val printArgs = flag ("print-args", "arguments print mode", false)
     val printRet = flag ("print-ret", "return print mode", false)
 
@@ -170,35 +171,32 @@ structure Control : CONTROL =
       val _ = BasicControl.nest (prefix, registry, priority)
 
       val bool_cvt = ControlUtil.Cvt.bool
+      val string_cvt = ControlUtil.Cvt.string
 
       val nextpri = ref 0
 
-      fun register (n, h, r) = let
+      fun register (cvt_fn, name, help, defaultRef) = let
 	    val p = !nextpri
 	    val ctl = Controls.control {
-		    name = n,
+		    name = name,
 		    pri = [p],
 		    obscurity = obscurity,
-		    help = h,
-		    ctl = r
+		    help = help,
+		    ctl = defaultRef
 		  }
 	    in
 	      nextpri := p + 1;
               ControlRegistry.register registry {
-		  ctl = Controls.stringControl bool_cvt ctl,
-		  envName = SOME (ControlUtil.EnvName.toUpper "CONTROL_" n)
+		  ctl = Controls.stringControl cvt_fn ctl,
+		  envName = SOME (ControlUtil.EnvName.toUpper "CONTROL_" name)
 		};
-	      r
+	      defaultRef
 	    end
 
-    (* `new (n, h, d)` defines new control reference with default value `d` and registers
+    (* `flag (n, h, d)` defines new boolean control reference with default value `d` and registers
      * it with name `n` and help message `h`.
      *)
-      fun new (n, h, d) = let
-	    val r = ref d
-	    in
-	      register (n, h, r)
-	    end
+      fun flag (name, help, default) = register (bool_cvt, name, help, ref default)
 
     in
 
@@ -228,20 +226,22 @@ structure Control : CONTROL =
                  val setSuccML : bool -> unit
      *)
 
-    val debugging = new ("debugging", "?", false)
-    val printAst = new ("printAst", "whether to print Ast representation", false)
-    val printAbsyn = register ("printAbsyn", "whether to print Absyn representation", ElabControl.printAbsyn)
-    val interp = new ("interp", "?", false)
+    val sourceName = register(string_cvt, "source", "source file or stream", ref "")
+    val debugging = flag ("debugging", "?", false)
+    val printAst = flag ("printAst", "whether to print Ast representation", false)
+    val printAbsyn = register (bool_cvt, "printAbsyn", "whether to print Absyn representation",
+			       ElabControl.printAbsyn)
+    val interp = flag ("interp", "?", false)
 
-    val progressMsgs = new ("progressMsgs", "whether to print a message after each phase is completed", false)
+    val progressMsgs = flag ("progressMsgs", "whether to print a message after each phase is completed", false)
     val trackExn =
-	new ("track-exn",
+	flag ("track-exn",
 	     "whether to generate code that tracks exceptions", true)
     (* warning message when call of polyEqual compiled: *)
     val polyEqWarn =
-	new ("poly-eq-warn", "whether to warn about calls of polyEqual", true)
+	flag ("poly-eq-warn", "whether to warn about calls of polyEqual", true)
 
-    val preserveLvarNames = new ("preserve-names", "?", false)
+    val preserveLvarNames = flag ("preserve-names", "?", false)
     (* these are really all the same ref cell: *)
     val saveit : bool ref = ElabData.saveLvarNames
     val saveAbsyn : bool ref = saveit

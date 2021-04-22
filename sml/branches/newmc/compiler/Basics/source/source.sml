@@ -61,4 +61,8 @@ struct
 	    in SOME(content, wideregion, line)
 	   end
 
+  (* sourceName : inputSource -> string *)
+  (* returns contents of fileOpened field *)
+  fun sourceName ({fileOpened,...}: inputSource) = fileOpened
+
 end (* structure Source *)
