@@ -15,6 +15,7 @@ local
   structure BT = BasicTypes
   structure SV = SVar  (* simplified (virtual) variables *)
   structure V = VarCon
+  structure K = Key
   structure MT = MCTypes
   structure MU = MCUtil
   open Absyn
@@ -24,7 +25,7 @@ in
 
 type mcexp = AS.exp
 
-type caseVariant = MT.key * SV.svar option * mcexp
+type caseVariant = K.key * SV.svar option * mcexp
 
 (* mkVarExp : SV.svar -> AS.exp *)
 fun mkVarExp svar =
@@ -57,18 +58,18 @@ fun mkLetSvar (svar: SV.svar, defexp, body) =
 
 fun numLitToString ({ival,...} : num_lit) = IntInf.toString ival
 
-(* keyToPat : MT.key * SV.svar option -> AS.pat *)
+(* keyToPat : K.key * SV.svar option -> AS.pat *)
 (* svarOp is SOME sv if key is D dcon where dcon is not constant *)
 fun keyToPat (key, svarOp) =
     (case key
-      of (MT.D (dcon,tvs)) =>
+      of (K.D (dcon,tvs)) =>
 	   (case svarOp
 	     of NONE => CONpat(dcon, tvs)  (* => dcon is constant *)
 	      | SOME sv => APPpat(dcon, tvs, VARpat(SV.svarToVar sv)))
-       | MT.I num => NUMpat (numLitToString num, num)
-       | MT.W num => NUMpat (numLitToString num, num)
-       | MT.S s => STRINGpat s
-       | MT.C c =>  (* character constant patterns mapped to int patterns *)
+       | K.I num => NUMpat (numLitToString num, num)
+       | K.W num => NUMpat (numLitToString num, num)
+       | K.S s => STRINGpat s
+       | K.C c =>  (* character constant patterns mapped to int patterns *)
 	 let val c_ord = Char.ord c
 	     val src = Int.toString c_ord
 	  in NUMpat (src, {ival = IntInf.fromInt c_ord, ty = BT.intTy})
@@ -106,12 +107,12 @@ fun Letf (svar, funexp, body) = mkLetSvar (svar, funexp, body)
 fun Switch (svar: SV.svar, cases, defaultOp) =
     (case cases  (* distinguish vector switch special case by key = V _ *)
        of nil => bug "Switch: empty cases"
-        | ((MT.V _, _, _) :: _) => (* vector length switch *)
+        | ((K.V _, _, _) :: _) => (* vector length switch *)
 	    (* "let val len = Vector.length svar in <<switch over int values of len>>"
              * where "len" is a fresh internal variable -- this is generated in 
              * the VSWITCHexp case of Translate.mkExp0 to avoid the problem of
 	     * accessing the vector length primop in absyn. *)
-	    let fun docase (MT.V n, _, rhsexp) =
+	    let fun docase (K.V n, _, rhsexp) =
 		      RULE (NUMpat("", MU.intToIntLiteral n), rhsexp)
 		  | docase _ = bug "Switch:vector case: key not V"
 	     in AS.VSWITCHexp (SV.svarToVar svar, map docase cases, Option.valOf defaultOp)
@@ -132,7 +133,7 @@ fun Switch (svar: SV.svar, cases, defaultOp) =
  * unique? (fcontract problem). *)
 fun Sfun (pvars, body, rhsTy) =
     (case pvars
-       of nil => (* pattern was WILDpat, hence no bound variables *)
+       of nil => (* pattern contained no bound variables *)
 	  let val dummyVar = V.newVALvar (S.varSymbol "sarg", BT.unitTy)
 	      val rule = RULE (AS.VARpat dummyVar, body)
 	     in AS.FNexp([rule], BT.unitTy, rhsTy)
@@ -166,7 +167,7 @@ fun Sapp (funsvar, argsvars) =
  * raised if match fails, with the "result" type resTy. *)
 fun Failure (matchExn, resTy) = RAISEexp(CONexp(matchExn, nil), resTy)
 (* FIX: T.UNDEFty won't do. The type arg of RAISEexp defined by the
- * type checker is a metatype variable that is unified with the context type.
+ * type checker is a meta-type-variable that is unified with the context type.
  * In this case, that context type should be the "result" type of the match,
  * which is passed as the resTy parameter. *)
 

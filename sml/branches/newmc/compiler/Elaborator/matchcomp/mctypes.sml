@@ -1,8 +1,9 @@
-(* mctypes-new.sml *)
+(* nnew-mctypes-new.sml *)
 (* types for the match compiler
  * replaces older versions of the file named mccommon.sml *)
 
 (* new version where andor nodes do not have svars *)
+(* new new version introducing "layers" *)
 
 structure MCTypes =
 struct
@@ -15,6 +16,10 @@ local
   structure R = Rules
   structure V = VarCon
   structure SV = SVar
+  structure K = Key
+  structure L = Layers
+  structure LS = Layers.Set
+  structure LL = LiveLayers
   open Absyn
   (* also used/mentioned: IntConst, ListPair *)
 in
@@ -26,67 +31,19 @@ type ruleno = R.ruleno    (* == int, the index number of a rule in the match, ze
 type ruleset = R.ruleset  (* == IntBinarySet.set *)
    (* a set of rule numbers (no duplicates) *)
 
-type binding = V.var * ruleno
-   (* a variable bound at some point in the given rule, either as a
-    * basic var pattern (VARpat) or through an "as" pattern (LAYEREDpat) *)
-type varBindings = binding list  (* variables bound by VARpat *)
-type asBindings = binding list   (* variables bound by LAYEREDpat, i.e. an "as" pattern *)
-
-(* keys: most keys (D,V,I,W,C,S) are used to discriminate choices in the "variants"
- *   field of OR nodes and the decVariants of decision trees. These key values
- *   (appearing in variants) determine the different flavors of OR nodes
- *   (data, vector length, and 4 varieties of constants).
- *   There is an extra R (for record) key representing record/product selection.
- *   R keys appear only in paths to indicate product projections. *)
-datatype key
-  = D of T.datacon * T.tyvar list
-     (* datacon key, possibly constant, with instantiation tyvars *)
-  | V of int              (* vector length; ASSERT int >= 0 *)
-
-  (* following constant keys supercede previous constCon constructors *)
-  | I of T.ty IntConst.t  (* int constant, as determined by ty *)
-  | W of T.ty IntConst.t  (* word constant, as determined by ty *)
-  | C of char             (* char constant (span depends on charwidth) *)
-  | S of string           (* string constant *)
-
-  (* record selection: not a choice discriminator, but a selection key for products,
-   * Will only appear in paths, never in variants. ASSERT: int >= 0 *)
-  | R of int
-
-(* eqKey : key * key -> bool
- * type info disregarded when comparing Dkeys and Vkeys *)
-fun eqKey (D (dcon1,_), D (dcon2,_)) = TU.eqDatacon(dcon1,dcon2)
-      (* we can ignore type instantiation tyvars, which are guaranteed to be 
-       * equivalent at the same pattern node. *)
-  | eqKey (V l1, V l2) = l1 = l2
-  | eqKey (I c1, I c2) = IntConst.same(c1,c2)
-  | eqKey (W c1, W c2) = IntConst.same(c1,c2)
-  | eqKey (C c1, C c2) = c1 = c2  (* character keys *)
-  | eqKey (S s1, S s2) = s1 = s2
-  | eqKey (R i1, R i2) = i1 = i2
-  | eqKey _ = false  (* mismatching key constructors *)
-
-fun keyToString (D (dcon,_)) = Symbol.name(TU.dataconName dcon)
-  | keyToString (V n) = "V"^(Int.toString n)
-  | keyToString (I{ival,ty}) = "I"^(IntInf.toString ival)
-  | keyToString (W{ival,ty}) = "W"^(IntInf.toString ival)
-  | keyToString (C c) = "C"^(Char.toString c)
-  | keyToString (S s) = "S["^ s ^ "]"
-  | keyToString (R i) = Int.toString i
-
 (* ================================================================================ *)
 (* paths:
    paths locate points in the "pattern space" determined by a sequence of patterns
       (a finite subtree of the complete pattern tree determined by the common type of
       the patterns). Points in the pattern space correspond to andor nodes, which
-      therefore have a unique identifying path.
+      have a unique identifying path.
 *)
 
 (* a path is well formed only if its links are well formed *)
-type path  = key list (* keys ordered from root to node *)
-type rpath = key list (* keys are in reverse order from node to root *)
+type path  = K.key list (* keys ordered from root to node *)
+type rpath = K.key list (* keys are in reverse order from node to root *)
 
-val pathEq = ListPair.allEq eqKey
+val pathEq = ListPair.allEq K.eqKey
 
 val rootPath : path = []
 val rootRPath : rpath = []
@@ -105,14 +62,14 @@ fun pathToString path =
     let fun ts [] = []
 	  | ts [s] = [s]
 	  | ts (s::ss) = s :: "." :: ts ss
-     in concat("<":: ts (map keyToString path) @ [">"])
+     in concat("<":: ts (map K.keyToString path) @ [">"])
     end
 
 type trace = path list
 
 (* potentially useful functions on paths:
-  pathPrefix: path * path -> bool  (* prefix ordering *)
-  pathAppend: path * path -> path
+     pathPrefix: path * path -> bool  (* prefix ordering *)
+     pathAppend: path * path -> path
  *)
 
 (* INVARIANT: In any variant (key, andor), getPath(andor) ends with that key. *)
@@ -130,7 +87,7 @@ as a phantom argument for nullary dcons. (?) *)
  * How would we use such types?
  *   Could also maintain a mapping from paths to types of the nodes designated
  * by those paths.
- *   Do we need defaults fields for VARS and LEAF nodes?  Yes (probably).
+ *   Do we need live fields for VARS and LEAF nodes?  Yes (probably?).
  * LEAF nodes appear only in variants with constant keys (including constant dcons).
  *   Any var or as-var bindings at their position will be associated with the parent
  *   OR node. This is clearly right for vars occurring at the position, but what
@@ -150,6 +107,12 @@ as a phantom argument for nullary dcons. (?) *)
    the int value of the length.
  *)
 
+type binding = V.var * L.layer
+   (* a variable bound at some point in the given rule, either as a
+    * basic var pattern (VARpat) or through an "as" pattern (LAYEREDpat) *)
+type varBindings = binding list
+   (* variables bound by VARpat (info.vars) or LAYEREDpat (info.asvars) *)
+
 (* andKind: two flavors of AND nodes, one for record/tuples, and one for vector elements
  *  the andKind determines the selection operator for extracting elements *)
 datatype andKind
@@ -157,77 +120,58 @@ datatype andKind
   | VECTOR
 
 type AOinfo =
-     {id : int,              (* unique identity of node, for efficient maps on nodes *)
-      typ : T.ty,            (* type of node value *)
-      path : path,           (* path to this node; serves as node name, secondary unique identifier *)
-      vars : varBindings,    (* primary variable bindings at node *)
-      asvars : varBindings}  (* secondary (as) variable bindings at node *)
+     {id : int,              (* unique identity of the node, for efficient maps on nodes *)
+      typ : T.ty,            (* type of a value matching at the node *)
+      path : path,           (* path to this node; serves as the node name & secondary unique identifier *)
+      vars : varBindings,    (* primary variable bindings at the node, cause rule defaultings *)
+      asvars : varBindings}  (* secondary (as) variable bindings at the node, no defaulting *)
 
 datatype andor
   = AND of   (* product patterns and contents of vectors *)
     {info : AOinfo,
-     andKind : andKind,        (* a record/tuple, or a vector; could split AND constr instead *)
-     direct : ruleset,         (* direct rules: rules with product pats at this pattern point; needed? *)
-     defaults : ruleset,       (* rules matching here because of (primary) variables along the path *)
-     children : andor list}    (* tuple components as children -- AND node *)
+     andKind : andKind,      (* a record/tuple, or a vector [could split AND constr instead] *)
+     live : LL.liveLayers,
+     children : andor list}  (* tuple components as children -- AND node *)
 
   | OR of (* datatype, vector, or constant pattern/type *)
     {info : AOinfo,
-     direct : ruleset,         (* rules matching one of the variant keys at this point *)
-     defaults: ruleset,        (* ditto *)
-     variants: variant list}   (* the branches/choices of the OR node; always non-null *)
+     live : LL.liveLayers,
+     variants : variants} (* the branches/choices of the OR node; always non-null *)
 
   | SINGLE of  (* singular datacon (const or applied); a kind of no-op for pattern matching,
 		* but it needs to be destructed if not constant *)
     {info : AOinfo,
-     variant: variant}         (* key (the dcon) and its arg andor, LEAF if constant *)
+     variant : variant}   (* key (the dcon) and its arg andor, LEAF if constant *)
 
   | VARS of  (* a node occupied only by variables;
-              * VIRTUAL field : direct = map #2 vars = rules having _a_ variable at this point *)
+              * VIRTUAL field : defaults = map #2 vars = layers having _a_ variable at this point *)
     {info : AOinfo,
-     defaults: ruleset}        (* rules matching here by default *)
+     layers : LS.set}     (* layers matching here by default *)
 
-  | LEAF of   (* used as the andor of variants with constant keys, with direct and default rules
-               * but no svar, since the svar is bound at the parent OR node. A LEAF
-	       * node also does not have an independent type; its type is determined
-	       * by the parent OR node (through its svar). Similarly, any var bindings are
-	       * associated with the parent OR node. *)
-    {path: path,               (* path is parent path extended by key *)
-     direct: ruleset,          (* rules having _this_ key (= last of path) at this pattern point *)
-     defaults: ruleset}
+  | LEAF of   (* used as the andor of variants with constant keys, with live layers
+               * A LEAF node does not have an independent type; its type defaults to unit.
+	       * The info is degenerate, as type, vars, and asvars will alwasy be unit, nil, nil *)
+    {info : AOinfo,
+     live : LL.liveLayers}
 
   | INITIAL   (* initial empty andor into which initial pattern is merged
                * to begin the construction of an AND-OR tree *)
 
-withtype variant = key * andor
-(* this pushes the discrimination of the OR-kind into the keys of the variants. *)
-
-
-(* potentially useful functions:
-
-eqNode : andor * andor -> bool
-(two nodes are equal if their path component is equal, needed only for OR nodes?)
-
-followPath : path * andor -> andor
-(the andor subtree located at path in the given andor tree)
-
-pathToType : path * ty -> ty  (* don't need a node, path suffices *)
-
-andorBreadth : andor -> int option
-(number of children of an OR node, NONE for non-OR nodes; == SOME(length variants) )
-
-*)
+withtype variant = K.key * andor
+and variants = andor Variants.variants
+(* the discrimination of the OR-kind is based on the keys of the variants. *)
 
 (* getInfo : andor -> AOinfo *)
-fun getInfo(AND{info,...}) = info
-  | getInfo(OR{info,...}) = info
-  | getInfo(SINGLE{info,...}) = info
-  | getInfo(VARS{info,...}) = info
-  | getInfo(LEAF{path,...}) = bug "getInfo(LEAF)"
-  | getInfo INITIAL = bug "getInfo(INITIAL)"
+fun getInfo (AND{info,...}) = info
+  | getInfo (OR{info,...}) = info
+  | getInfo (SINGLE{info,...}) = info
+  | getInfo (VARS{info,...}) = info
+  | getInfo (LEAF{info,...}) = info
+  | getInfo _ = bug "getInfo"
+
+(* Following three "get" function fail (bug) for INITIAL *)
 
 (* getId : andor -> int *)
-(* fails (bug) for andor nodes without info: LEAF, INITIAL *)
 fun getId andor = #id (getInfo andor)
 
 (* getType : andor -> T.ty *)
@@ -235,79 +179,32 @@ fun getId andor = #id (getInfo andor)
 fun getType andor = #typ (getInfo andor)
 
 (* getPath : andor -> path *)
-fun getPath (LEAF{path,...}) = path
-  | getPath INITIAL = bug "getPath:INITIAL"
-  | getPath andor = #path (getInfo andor)  (* otherwise, andor has info *)
+fun getPath andor = #path (getInfo andor)
 
-(* getDirect : andor -> ruleset *)
-(* getDirect is never called *)
-fun getDirect(AND{direct,...}) = direct
-  | getDirect(OR{direct,...}) = direct
-  | getDirect(SINGLE{variant,...}) = getDirect (#2 variant)
-  | getDirect(VARS{info, ...}) = R.fromList(map #2 (#vars info))
-  | getDirect(LEAF{direct,...}) = direct
-  | getDirect INITIAL = bug "getDirect(INITIAL)"
-
-(* getDefaults : andor -> ruleset *)
-(* not called: was called once in DecisionTree.decisionTree, but that call was redundant *)
-fun getDefaults(AND{defaults,...}) = defaults
-  | getDefaults(OR{defaults,...}) = defaults
-  | getDefaults(SINGLE{variant,...}) = getDefaults (#2 variant)
-  | getDefaults(VARS{defaults,...}) = defaults
-  | getDefaults(LEAF{defaults,...}) = defaults
-  | getDefaults INITIAL = bug "getDefaults(INITIAL)"
-
-(* getLive : andor -> ruleset
-   live rules is union of direct and defaults *)
-fun getLive(AND{direct,defaults,...}) = R.union(direct,defaults)
-  | getLive(OR{direct,defaults,...}) = R.union(direct,defaults)
-  | getLive(SINGLE{variant,...}) = getLive (#2 variant)
-  | getLive(VARS{defaults,...}) = defaults  (* direct subset defaults *)
-  | getLive(LEAF{direct,defaults,...}) = R.union(direct,defaults)
+(* getLive : andor -> LL.liveLayers
+   live layers is union of direct and defaults *)
+fun getLive (AND{live,...}) = LL.all live
+  | getLive (OR{live,...}) = LL.all live
+  | getLive (LEAF{live,...}) = LL.all live
+  | getLive (SINGLE{variant,...}) = getLive (#2 variant)
+  | getLive (VARS{layers,...}) = layers
   | getLive INITIAL = bug "getLive(INITIAL)"
-
 
 (* findKey : key * variant list -> andor option *)
 (* search for a variant with the given key *)
 fun findKey (key, (key',node)::rest) =
-    if eqKey(key,key') then SOME node
+    if K.eqKey(key,key') then SOME node
     else findKey(key, rest)
   | findKey (_, nil) = NONE
 
-(* FIX: getNode and parentNode not used *)
-
-(* getNode : andor * path * int -> andor *)
-(* REQUIRE: for getNode(andor,path,depth): depth <= length path *)
-fun getNode(andor, _, 0) = andor
-  | getNode(andor, nil, _) = andor
-  | getNode(andor, key::path, depth) =
-    (case (andor,key)
-      of (AND{children,...}, R i) =>
-	   getNode(List.nth(children, i),path,depth-1)
-       | (OR{variants,...},key) =>
-	   (case findKey(key,variants)
-	      of NONE => bug "getNode"
-	       | SOME node => getNode(node, path, depth-1))
-       | (SINGLE{variant,...}, key) =>
-	   getNode(#2 variant, path, depth-1)
-       | ((VARS _ | LEAF _),_) => bug "getNode(VARS|LEAF)"
-       | _ => bug "getNode arg")
-
-(* parentNode: andor * andor -> andor *)
-fun parent (andor, rootAndor) =
-    let val path = getPath(andor)
-        val d = length(path) - 1
-     in getNode(rootAndor, path, d)
-    end
-
+fun andorToString andor = "N" ^ Int.toString(getId andor)
 
 (* ---------------------------------------------------------------------- *)
 (* decision trees *)
 
 datatype decTree
-  = DLEAF of ruleno * trace
-      (* bind variables consistent with trace and dispatch
-       * to RHS(ruleno) *)
+  = DLEAF of L.layer * trace
+      (* bind variables consistent with layer and dispatch to RHS for layer's ruleno *)
   | DMATCH of trace (* trace of decision ponts in leading to this DMATCH node *)
       (* generate a match exception.
        * would be redundant if we were adding a final default rule with wildcard pat
@@ -315,14 +212,14 @@ datatype decTree
        * but the trace argument should allow us to construct a counterexample *)
   | CHOICE of
     {node : andor,  (* an OR node used for dispatching *)
-     choices : decVariant list,  (* corresponding to the (OR) node variants *)
+     choices : decVariants,  (* corresponding to the (OR) node variants *)
      default : decTree option}
        (* + a default if node is partial and there are defaults (vars on the path),
         * BUT, if the node is partial and there are no natural defaults from
         * variables, a default producing MATCH will be supplied. So the default
         * will always be SOME dt unless it is not needed because the choices are
         * exhaustive. If the default leads to a MATCH, it will be SOME DMATCH *)
-withtype decVariant = key * decTree
+withtype decVariants = decTree Variants.variants
 
 fun getNode (CHOICE {node, ...}) = node
   | getNode _ = bug "getNode"

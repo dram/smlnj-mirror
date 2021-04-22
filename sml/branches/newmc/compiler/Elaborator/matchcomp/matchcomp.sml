@@ -30,8 +30,10 @@ local
   structure R = Rules
   structure SV = SVar
   structure SE = SVarEnv
+  structure K = Key
   structure MT = MCTypes
   structure MU = MCUtil
+  structure L = Layers
   structure DT = DecisionTree
   structure C = VMCexp
   structure PP = PrettyPrint
@@ -45,6 +47,18 @@ local
   val printDecisionTree = ElabControl.printDecisionTree
   val printMatchAbsyn = ElabControl.printMatchAbsyn
   val debugging = ElabControl.mcdebugging
+
+  val say = Control_Print.say
+  fun newline () = say "\n"
+  fun saynl msg = (say msg; newline())
+  fun dbsay msg =
+      if !debugging
+      then (say msg; newline())
+      else ()
+  fun dbsays msgs = dbsay (concat msgs)
+  fun says strings = saynl (concat strings)
+
+  fun bug msg = ErrorMsg.impossible ("MatchComp: " ^ msg)
 
   fun ppAndor andor =
       PP.with_default_pp
@@ -84,14 +98,6 @@ local
       PP.with_default_pp
 	(fn ppstrm => (PP.string ppstrm (msg^": "); PPType.ppType StaticEnv.empty ppstrm ty))
 
-  val say = Control_Print.say
-  fun newline () = say "\n"
-  fun dbsay msg =
-      if !debugging
-      then say msg
-      else ()
-
-  fun bug msg = ErrorMsg.impossible ("MatchComp: " ^ msg)
 
 in
 
@@ -116,19 +122,28 @@ fun simpleVALdec (var, exp, boundtvs) =
 	       typ = V.varType var, boundtvs = boundtvs, tyvars = ref nil}]
 
 
-(* genMatch : R.rules * MT.andor * DT.decTree * int vector * T.ty * T.datacon -> AS.exp * V.var *)
-(* top level code generating function (formerly MCCode.genCode) *)
+(* genMatch : AS.rules * MT.andor * DT.decTree * int vector * T.ty * varenvAC * T.datacon -> AS.exp * V.var *)
+(* top level code generating function for matches (formerly MCCode.genCode) *)
 fun genMatch (rules: AS.rule list, andor, decTree, ruleCounts, rhsTy, varenvAC, matchExn) =
-let val rules = map (fn AS.RULE r => r) rules
+    let val _ = dbsay ">> genMatch"
+	val rules = map (fn AS.RULE r => r) rules
 	  (* rules : (AS.pat * AS.exp) list -- the RULE constructor is stripped *)
 
     val numberOfRules = length rules
 
     (* isMultiple : ruleno -> bool *)
-    fun isMultiple ruleno = Vector.sub(ruleCounts, ruleno) > 1
+    fun isMultiple ruleno = Vector.sub (ruleCounts, ruleno) > 1
 
     val multirules = List.filter isMultiple (List.tabulate (numberOfRules, (fn n => n)))
         (* list of rule numbers that have multiple uses, in ascending order *)
+
+    val ruleCountsList = Vector.foldr (op ::) nil ruleCounts
+    val _ = dbsays ["** genMatch: ruleCounts: ",
+		    (PrintUtil.listToString ("[", ",", "]") Int.toString ruleCountsList),
+		    ", length rules: ", Int.toString (length rules)]
+	     
+    val _ = dbsays ["multirules = ",
+		    (PrintUtil.listToString ("[", ",", "]") Int.toString multirules)]
 
     (* rulePat : ruleno -> AS.pat *)
     fun rulePat n = #1 (List.nth (rules, n))
@@ -156,9 +171,9 @@ let val rules = map (fn AS.RULE r => r) rules
 	then let val pat = rulePat ruleno
 		 val boundVars = ruleBoundVars ruleno
 		 val rhs = ruleRHS ruleno
-	      in if (null boundVars andalso not(AU.isWild pat))
-		     orelse (length boundVars = 1 andalso sameVar (hd boundVars, rhs))
-		 then NONE (* rhs fn would take unit or is identity, don't wrap *)
+	      in if (* (null boundVars andalso not (AU.isWild pat)) orelse *)
+		    (length boundVars = 1 andalso sameVar (hd boundVars, rhs))
+		 then NONE (* rhs fn <<would take unit>> or is identity, don't wrap <- WRONG! scc/t2.sml *)
 		 else (* wrap rhs fun binding while alpha-converting boundVars in rhs *)
 		     let val venv = VarEnvAC.alphaEnv boundVars
 		         (* varenvAC for alpha-converting boundVars, empty if WILDpat *)
@@ -188,59 +203,38 @@ let val rules = map (fn AS.RULE r => r) rules
     fun genPrelude exp = (* foldr wrapFn exp multirules *)
 	let fun wrap (0, base) = wrapFn (0, base)
 	      | wrap (n, base) = wrap (n-1, wrapFn (n, base))       
-	in wrap (numberOfRules - 1, exp)
+	 in wrap (numberOfRules - 1, exp)
 	end
 
-    (* allConsistent : path * path list -> bool *)
-    fun allConsistent (varpath, dtrace: path list) =
-	List.all (MU.consistentPath varpath) dtrace
-
-    (* bindSVars : var list * ruleno * varenvMC * trace -> VarEnvAC.varenvAC *)
-    (* pvars will be the source pattern variables for the rule (ruleno). bindSVars will
+    (* bindSVars : var list * layer * varenvMC -> VarEnvAC.varenvAC *)
+    (* pvars will be the source pattern variables for the layer. bindSVars will
      * determine the right svar (match administrative variable) to bind each pattern variable
      * to, producing an varenvAC environment. The varenvAC is computed from the varenvMC
      * based on the rule and (possibly) consistency with the decision tree trace. This
      * is because a pattern variable that is duplicated in OR patterns may be associated
-     * with multiple svars. We choose the right one based on the ruleno parameter, (possibly)
-     * checking for consistency of rhsTrace with the path in the varenvMC bindings for the var.  *)
-    fun bindSVars (pvars, ruleno, varenvMC, rhsTrace) =
-	let val _ = dbsay ">>>bindSVars\n";
-	    fun findSvar (var: V.var) =
-		(case VarEnvMC.lookVar (varenvMC, var)
-		  of SOME bindings =>
-		       let fun scan (ruleno', path, svar) =
-			       if ruleno' = ruleno
-			       then if allConsistent (path, rhsTrace) (* CONJ: always true? *)
-				    then (dbsay (concat ["bindSVars:\n  ", V.toString var, " -> ",
-							V.toString svar, "\n"]);
-					  SOME (var, svar))
-				    else (print "@@@@ bindSVars: inconsistent path\n"; NONE)
-			       else NONE
-		        in case List.mapPartial scan bindings
-			     of nil => bug "bindSVars: no binding for svar"
-			      | _::_::_ => bug "bindSVars: multiple consistent bindings for svar"
-			      | [b] => b  (* there should be a unique svar for this var, rule, path *)
-		       end
-		   | NONE => bug ("bindSVars: unbound pattern var: " ^ S.name(V.varName var)))
+     * with multiple svars. We choose the right one based on the layer argument. *)
+    fun bindSVars (pvars, layer, varenvMC) =
+	let val _ = dbsay ">> bindSVars";
+	    fun findSvar (var: V.var) = (var, VarEnvMC.lookVar (varenvMC, var, layer))
 	    val venv = map findSvar pvars
 	 in if !debugging
-            then (say "bindSvars: venv = "; VarEnvAC.printVarEnvAC venv;
-		  say "\n<<<bindSvar\n")
+            then (say "<< bindSvars: venv = "; VarEnvAC.printVarEnvAC venv;
+		  say ", layer = "; say (L.layerToString layer); say "\n")
 	    else ();
 	    venv
 	end
 
     (* genRHS : ruleno * varenvMC * path list * varenvAC -> AS.exp *)
-    fun genRHS (ruleno, varenvMC, rhsTrace, externVarenvAC) =
-	let val patvars = ruleBoundVars ruleno
-	    val localVarenvAC = bindSVars (patvars, ruleno, varenvMC, rhsTrace)
+    fun genRHS (layer, varenvMC: VarEnvMC.varenvMC, externVarenvAC) =
+	let val ruleno = L.toRule layer
+	    val patvars = ruleBoundVars ruleno
+	    val localVarenvAC = bindSVars (patvars, layer, varenvMC)
 	    val svars = VarEnvAC.range localVarenvAC
-	    val rhsExp = ruleRHS ruleno
 	    val venv = VarEnvAC.append (localVarenvAC, externVarenvAC)
 	    (* val _ = (print "genRHS:venv = "; VarEnvAC.printVarEnvAC venv; print "\n") *)
 	 in case Array.sub(rhsFuns, ruleno)
 	      of SOME (fvar, _) => C.Sapp (fvar, svars)  (* applies the rhs fun *)
-	       | NONE => transExp (rhsExp, venv)
+	       | NONE => transExp (ruleRHS ruleno, venv)
 	          (* match svars substituted for source vars directly into a single-use rhs *)
 	end
 
@@ -250,18 +244,21 @@ let val rules = map (fn AS.RULE r => r) rules
     val savedTraces = ref (nil : path list list)
     fun saveTrace dtrace = (savedTraces := dtrace :: !savedTraces)
 
-    (* bindPatVars: svar * info * varenvMC -> varenvMC *)
-    (* add bindings var |-> (rule,path,svar) to the argument varenvMC for all vars bound at
-     * an andor node (represented by info and svar). First the (primary) vars, and then the
+    (* bindPatVars: svar * AOinfo * varenvMC -> varenvMC *)
+    (* add bindings pvar |-> (layer, svar) to the environment varenvMC for all pvars bound at
+     * an AndOr node (represented by info and svar). First the (primary) vars, and then the
      * (secondary) asvars are bound.
      * [Note: could use one foldl after appending vars to asvars.] *)
-    fun bindPatVars (svar, {id,path,vars,asvars,...} : AOinfo, varenvMC) =
-	foldl (fn ((v,r), env) => VarEnvMC.bindVar(v, (r, path, svar), env))
-	   (foldl (fn ((v,r),env) => VarEnvMC.bindVar(v, (r, path, svar), env)) varenvMC vars)
-	   asvars
+    fun bindPatVars (svar, {vars,asvars,...} : AOinfo, varenvMC) =
+	(dbsays [">> bindPatVars: |vars| = ", Int.toString (length vars), ", |asvars| = ",
+		 Int.toString (length asvars)];
+	foldl (fn ((pvar,layer), env) => VarEnvMC.bindVar(pvar, layer, svar, env))
+	   (foldl (fn ((pvar,layer), env) => VarEnvMC.bindVar(pvar, layer, svar, env)) varenvMC vars)
+	   asvars)
 
-    (* genAndor: andor * SE.svarenv * VE.varenv * (exp -> exp)
-                 -> (svarenv * varenv) * (exp -> exp) *)
+
+    (* genAndor: andor * SE.svarenv * VarEnvMC.varenvMC * (exp -> exp)
+                 -> SE.svarenv * VarEnvMC.varenvMC * (exp -> exp) *)
     (* Translates top non-OR structure, i.e. AND structure, (if any) into nested let
      * expressions to be wrapped around a body expression (generated by a decision tree.
      * The wrapped let expressions are accumulated in a "continuation", k: exp -> exp
@@ -277,12 +274,17 @@ let val rules = map (fn AS.RULE r => r) rules
 			    genNode (node, svarenv0, varenvMC0, k0)
 		   in foldr genf (svarenv, varenvMC, k) nodes
 		  end
+            (* genNode : andor * SE.svarenv * varenvMC * (exp -> exp) 
+                         -> SE.svarenv * varenvMC * (exp -> exp)  *)
 	    and genNode (AND {info,children,andKind,...}, svarenv, varenvMC, k) =
-                  (case SE.lookSvar (svarenv, #id info)
+                (dbsays [">> genNode:AND: ", Int.toString (#id info), ", ",
+			 Int.toString (length (#vars info))];
+		 case SE.lookSvar (svarenv, #id info)
 		    of SOME thisSvar =>
 			 let fun collectChildSvars (childAndor, (svars, svarenv)) =
 				 let val childInfo = getInfo childAndor
-				     val svar = MU.infoToSvar (childInfo) (* was: info -- fix for vecpat bug *)
+				     val svar = MU.infoToSvar (childInfo)
+					 (* was: info -- fix for vecpat bug *)
 				  in (svar :: svars, SE.bindSvar(#id childInfo, svar, svarenv))
 				 end
 			     val (childrenSvars, svarenv') =
@@ -300,11 +302,14 @@ let val rules = map (fn AS.RULE r => r) rules
 			 end
 		     | NONE => bug "genNode:AND: no svar")
 	      | genNode (SINGLE {info, variant = (key, arg)}, svarenv, varenvMC, k) =
-		  (case SE.lookSvar (svarenv, #id info)
+                (dbsays [">> genNode:SINGLE: ", Int.toString (#id info), ", ",
+			 Int.toString (length (#vars info))];
+		  case SE.lookSvar (svarenv, #id info)
 		    of SOME thisSvar =>
 			 let val varenvMC' = bindPatVars (thisSvar, info, varenvMC)
 			  in case arg
 			       of LEAF _ => (svarenv, varenvMC', k)
+				| INITIAL => bug "genAndor: SINGLE: arg = INITIAL"
 				| _ =>  (* neither LEAF nor INITIAL *)
 				  let val argInfo = getInfo arg (* defined -- not LEAF, INITIAL *)
 				      val argSvar = MU.infoToSvar argInfo
@@ -319,44 +324,51 @@ let val rules = map (fn AS.RULE r => r) rules
 				  end
 			 end
 		     | NONE => bug "genNode:SINGLE: no svar")
-	      | genNode (OR {info,...}, svarenv, varenvMC, k) =
+	      | genNode (OR {info as {id,vars,...},...}, svarenv, varenvMC, k) =
                   (* this OR node is already accounted for in the dectree (if not redundant) *)
-		  (case SE.lookSvar (svarenv, #id info)
-		    of SOME thisSvar =>
+                (dbsays [">> genNode:OR: ", Int.toString id, ", ", Int.toString (length vars)];
+		  case SE.lookSvar (svarenv, id)
+		     of SOME thisSvar =>
 			    let val varenvMC' = bindPatVars (thisSvar, info, varenvMC)
 			     in (svarenv, varenvMC', k)
 			    end
-		    | NONE => bug "genNode:OR: no svar")
-	      | genNode (VARS {info, defaults,...}, svarenv, varenvMC, k) =
-		  (case SE.lookSvar (svarenv, #id info)
-		    of SOME thisSvar =>
+		      | NONE => bug "genNode:OR: no svar")
+	      | genNode (VARS {info as {id,vars,...}, ...}, svarenv, varenvMC, k) =
+                (dbsays [">> genNode:VARS: ", Int.toString id, ", ", Int.toString (length vars)];
+		   case SE.lookSvar (svarenv, id)
+		     of SOME thisSvar =>
 		         let val varenvMC' = bindPatVars (thisSvar, info, varenvMC)
 			  in (svarenv, varenvMC', k)
 			 end
-		       | NONE => bug "genNode:VARS: no svar")
+		      | NONE => bug "genNode:VARS: no svar")
 	      | genNode (LEAF _, _, _, _) = bug "genNode: LEAF"
-	          (* should not happen! LEAF is found only in an OR variant *)
+	          (* should not happen! LEAF is found only in an OR variant; genNode stops at OR *)
 	      | genNode (INITIAL, _, _, _) = bug "genNode: INITIAL"
 	 in genNode (andor, svarenv, varenvMC, k)
 	end (* genAndor *)
 
-    (* genDecTree: decTree * svarenv * varenvMC -> AS.exp *)
+    (* genDecTree: decTree * svarenv * varenvMC -> varenvMC * AS.exp *)
+    (* need to thread a varenvMC through or some varenvMC bindings will become inaccessible (t6.sml) *) 
     fun genDecTree (decTree, svarenv, varenvMC) =
 	(case decTree
 	   of MT.CHOICE{node, choices, default} =>
 		(case node    (* ASSERT: node must be OR *)
 		  of OR{info, variants,...} =>
-		     (* ASSERT: choices and variants are "congruent" (same keys
-		      * in same order), hence same length *)
+		     (* choices and variants should be "congruent", since choices is
+		      * created as a Variants.map of variants, but we insure coordination
+		      * by defining aoVariants and dtVariants bellow, which will be
+		      * guaranteed to have keys in the same order. *)
 		     (case SE.lookSvar (svarenv, #id info)
 		       of SOME svar =>
-			  let (* val _ = (ppType "MatchComp.genDecTree: svar type: " (SVar.svarType svar); newline()) *)
+			  let (* val _ = (ppType "MatchComp.genDecTree: svar type: "
+				          (SVar.svarType svar); newline()) *)
 			      fun switchBody ((key,node0)::nrest, (key',decTree0)::drest, sbody) =
 				    (* ASSERT: key = key' *)
-				    let val _ = if not(eqKey(key,key'))  (* verifying ASSERT above *)
+				    let val _ = if not(K.eqKey(key,key'))  (* verifying ASSERT above *)
 						then bug "genDecTree:CHOICE:keys disagree"
 						else ()
-					(* val _ = say (concat ["genDecTree.switchBody:key = ", keyToString key, "\n"]) *)
+					(* val _ = say (concat ["genDecTree.switchBody:key = ",
+					                        keyToString key, "\n"]) *)
 					val (svarOp, decExp) =  (* argument svar + subtree *)
 					    (case node0
 					      of LEAF _ =>
@@ -378,14 +390,20 @@ let val rules = map (fn AS.RULE r => r) rules
 				    end
 				  | switchBody (nil,nil,sbody) = rev sbody
 				  | switchBody _ = bug "code.genDecTree.switchBody"
-				val sbody = switchBody(variants, choices, nil)
+			        val aoVariants = Variants.listItems' variants
+				fun getDecTrees (k,_) =
+				    (case Variants.find' (choices,k)
+			               of SOME x => x
+				        | NONE => bug "getDecTrees")
+				val dtVariants = map getDecTrees aoVariants
+				val sbody = switchBody(aoVariants, dtVariants, nil)
 				val default = Option.map (fn t => genDecTree(t,svarenv,varenvMC)) default
 			     in C.Switch (svar, sbody, default)
 			    end
 			  | NONE => bug "genDecTree:CHOICE: no svar")
 		   | _ => bug "genDecTree: CHOICE node not an OR node")
             | MT.DMATCH dtrace => (saveTrace dtrace; C.Failure (matchExn, rhsTy))  (* match failure *)
-	    | MT.DLEAF (rule, dtrace) => genRHS(rule, varenvMC, dtrace, varenvAC))
+	    | MT.DLEAF (layer, dtrace) => genRHS(layer, varenvMC, varenvAC)) (* dispatch to rhs *)
 
     val svarTop = MU.andorToSvar andor
     val svarenv0 = SE.bindSvar (getId andor, svarTop, SE.empty)
@@ -402,23 +420,26 @@ end (* fun genMatch *)
  * Called by transMatch.  fillPat will have been applied to rule patterns. *)
 and matchComp (rules: AS.rule list, lhsTy: T.ty, rhsTy: T.ty, varenvAC,
 	       matchFailExn: T.datacon) =
-    let val _ = if !debugging then print ">>> matchComp\n" else (); (* -- debugging *)
+    let val _ = dbsay ">> matchComp";
 	val numRules = length rules
 	val patterns = map (fn (AS.RULE(pat,_)) => pat) rules (* strip RULE constructor *)
 	val andor = AndOr.makeAndor(patterns, lhsTy)
+	val _ = dbsay "<< makeAndor"
 	val _ = if !printAndor
 		then ppAndor andor
 		else ()
 	val (dectree,ruleCounts) = DecisionTree.decisionTree (andor, numRules)
+	val _ = dbsay "<< decisionTree"
 	val _ = if !printDecisionTree
 		then ppDecisionTree dectree
 		else ()
         val (matchExp, matchVar) =
 	    genMatch (rules, andor, dectree, ruleCounts, rhsTy, varenvAC, matchFailExn)
+	val _ = dbsay "<< genMatch"
 	val _ = if !printMatchAbsyn
 		then ED.withInternals (fn () => ppExp (matchExp, "matchComp:matchExp: \n"))
 		else ()
-    in if !debugging then say "<<< matchComp\n" else ();  (* -- debugging *)
+    in dbsay "<< matchComp";  (* -- debugging *)
        (matchExp, SVar.svarToVar matchVar)
     end
 
@@ -428,7 +449,7 @@ and matchComp (rules: AS.rule list, lhsTy: T.ty, rhsTy: T.ty, varenvAC,
 
 (* transExp : AS.exp * varenvAC -> AS.exp *)
 and transExp (exp, venv: VarEnvAC.varenvAC) =
-    let val transRules =  (* just do fillPat on pattern *)
+    let val transRules =  (* just do fillPat on rule patterns *)
 	    map (fn RULE(pat,exp) => RULE(EU.fillPat pat, exp))
         fun trans exp =
             (case exp
@@ -452,7 +473,7 @@ and transExp (exp, venv: VarEnvAC.varenvAC) =
 		    end
 		| RAISEexp (exp, ty) => RAISEexp (trans exp, ty) (* original source raise *)
 		| CASEexp (scrutinee, (rules, scrutTy, resTy)) =>
-		    let (* val _ = print ">>> transExp: CASEexp\n" *)
+		    let val _ = dbsay ">> transExp: CASEexp"
 			val (caseBody, matchVar) =
 			    matchComp(transRules rules, scrutTy, resTy, venv, EU.getMatchExn())
 		    in LETexp(VALdec[VB{pat = VARpat matchVar,
