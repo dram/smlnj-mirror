@@ -1,47 +1,92 @@
-1. SML/NJ started Spring 1986 (soon after Andrew Appel arrived at Princeton)
-   decades of accumulated cruft, kludges, some written by PhD students and BL summer interns
+             Match Compilation Revisited: OR Patterns
+  	         A Tale of Compiler Restoration
 
-   Project: rewrite and take ownership of components that have become "unmaintainable"
+		       Dave MacQueen
+		        WG 2.8 2021
 
-   First component: match compiler
 
-2. Some history
+-------------------------------------------------------------------------------- 
+
+1. SML/NJ started Spring 1986 (soon after Andrew Appel arrived at Princeton);
+   decades of accumulated cruft, kludges, code written by PhD students and
+   BTL summer interns.
+
+   Challenges of keeping it working:
+
+     (1) changes in the environment e.g.
+
+     	 * 32 bit --> 64 bit  [macOS Catalina]
+	 * new architectures
+	   [VAX + M68000 -> SPARC + MIPS + POWERPC + HPPA + Alpha -> x86 -> ARM]
+
+     (2) orphan, unmaintainable code
+
+   Project:
+
+     * rewrite and take ownership of compiler components that have become "unmaintainable"
+
+   First component (for DBM): match compiler
+
+-------------------------------------------------------------------------------- 
+
+2. Some history of the SML/NJ match compiler
 
    1980, 1981 POP2 and Lisp implementations of HOPE
      first implementation of datatypes and pattern matching
      naive approach to pattern matching?
 
    May, 1984.  First working note on optimizing pattern matching. Analysis in terms
-     of rows and columns
+     of rows and columns (excerpts)
 
    Summer, 1985. Work with BTL summer intern Marianne Baudinet on optimized pattern
      matching.
      AndOr trees -> Decision trees -> code
-     Paper: ...  (never published)
+     Paper: Tree Pattern Matching for ML (extended abstract) [never published]
 
    1986. Start of work on SML/NJ compiler with Andrew Appel.
      First implementation of the match compiler for SML/NJ (first version distributed, 0.22)
 
-   1989?. Bruce Duba visiting Bell Labs, Makes some minor modifications of the
-     match compiler (SML/NJ 0.33?)
+   1988. Bruce Duba visited Bell Labs; made some minor modifications of the
+     match compiler heuristics (SML/NJ 0.33, March 1989)
 
-   1992. Bill Aiken BTL summer intern working with John Reppy.
-     completely rewrites match compiler adding two major features
-     1) pattern macros
-     2) OR patterns  (eliminated through a preprocessing pass)
-     match compiler part of the translation from Front End abstract syntax to
+   1992. Bill Aiken BTL summer intern working with John Reppy,
+     completely rewrote the match compiler while adding two major features:
+
+       (1) pattern macros
+       
+       (2) OR patterns  (eliminated through a preprocessing pass before match compilation)
+
+     Match compiler is part of the translation from Front End abstract syntax to
      FLINT intermediate language.
 
    2006? DBM does a partial simplification and cleanup of Aiken's code,
      removing pattern macros but retaining OR patterns
 
-   2008? DBM, while teaching a compiler course develops a simple implementation
+   2008? DBM, while teaching a compiler course developed a simple model implementation
      of the AndOr tree approach.
 
    May, 2020. DBM begins full overhaul of match compiler, based on "first principles"
 
+--------------------------------------------------------------------------------
 
-3. Main ideas of match compilation
+3.  Goals and Methods of the Match Compiler rewrite:
+
+   * reconstruct the match compiler from first principles, based on original design ideas
+     - one addition is OR patterns (Aiken, Reppy 
+
+   * match compilation : abstract syntax -> abstract syntax
+     - in contrast to Aiken's version : abstract syntax -> FLINT IR approach)
+     - subgoal: self-contained front-end
+
+   * Put off mining literature for improvements until later.
+     - E.g. Maranget, "Compiling Pattern Matching to Good Decision Trees", ML Workshop, 2008
+
+   * Not adding "new" (to SML/NJ) functionality.
+     - E.g. pattern guards
+
+--------------------------------------------------------------------------------
+
+4. Main ideas of match compilation
 
    Assumptions:
    1) call by value language, so value being matched is fully evaluated
@@ -59,19 +104,132 @@
      *) constants (for certain primitive types, e.g. ints but not reals)
      *) variables (& the related case of wildcard patterns)
 
+--------------------------------------------------------------------------------
+   
+5. Basics:
 
-   Very naive approach.  Match each pattern sequentially until a match is found.
+    * patterns
 
-   1st improvement.  Preserve the results of partial maps so they don't need to
-   be repeated in subsequent matches.
+       p ::= c
+         |   x
+	 |   (p1, ..., pn)
+	 |   C p
+
+    * matching
+    
+       value >> pattern      (value matches pattern) 
+       value >> pattern*     (value matches one of a sequence of patterns)
+
+       v >> pi   (some i in [1 .. n])
+       ------------------------------
+            v >> [p1, ..., pn]
+
+    * constants
+
+       3 >> 3
+       "abc" >> "abc"
+       true >> true
+       nil >> nil
+
+    * variables
+
+       ------      [type v = type x]
+       v >> x
+
+    * products (AND)  -- records and tuples
+
+       v1 >> p1,  v2 >> p2,  v3 >> p3
+       ------------------------------
+        (v1, v2, v3) >> (p1, p2, p3)
+
+    * constructors (OR)
+
+         v >> p
+       ----------      [type v = type p = domain C]
+       C v >> C p
+	
+
+--------------------------------------------------------------------------------
+
+6. Variable bindings: matching produces an environment or substitution
+
+   Assume a variable can occur at most once in a pattern (linearity):
+
+     value >> pattern  -->  environment
+
+   Rule evaluation:
+
+                v >> p --> env
+      --------------------------------------
+      [[ pat => exp ]] v  -->  [[ exp ]] env
+
+
+    v >> x  -->  {(x,v)}
+
+    v >> c  -->  {}
+
+    (v1, v2, v3) >> (p1, p2, p3)  -->  v1 >> p1  +  v2 >> p2  +  v3 >> p3
+       where + is the usual environment composition       
+
+    C v >> C p  -->  v >> p
+
+    v >> p  -->  nothing, if v does not match p  [ denoted "v />> p" ]
+
+
+--------------------------------------------------------------------------------
+
+7. AS patterns ("layered" patterns)
+
+      p ::= ... | x "as" p
+
+      v >> x as p  -->  {(x,v)} + (v >> p)
+
+--------------------------------------------------------------------------------
+   
+8.  OR patterns
+
+        p ::= ... | p1 "|" p2
+
+	Require: vars (p1) = vars (p2)
+
+    Two alternatives for the semantics of "|"
+
+    (1) "commutative" OR
+
+        p1 | p2  ==  p2 | p1
+
+	       v >> p1 --> env            v >> p2 --> env
+            --------------------        --------------------
+	    v >> p1 | p2 --> env        v >> p1 | p2 --> env
+
+        BAD: This is nondeterministic if p1 and p2 are not "disjoint" (roughly).
+	Could fix by requiring the operands of "|" be disjoint.
+
+    (2) "sequential" OR
+
+          v >> p1  -->  env1              v \>> p    v >> p2 --> env2
+	----------------------           ------------------------------
+	v >> p1 | p2  --> env1 	             v >> p1 | p2  --> env2
+
+
+    If p1 and p2 are disjoint, then (1) and (2) agree.  So just use (2).
+
+
+--------------------------------------------------------------------------------
+
+   Very naive approach: Match each pattern sequentially until a match is found.
+
+   1st improvement.  Preserve the results of partially successful matches so
+   they don't need to be repeated in subsequent matches.
+
      * any "node" in the value needs to be examined at most once
 
-   2nd improvement.  (enabled by purity of matching).  Examine the value being
-   matched in a clever order that
-     1) avoids examinging irrelevant parts of the value being matched
+   2nd improvement.  (enabled by purity of matching). Examine the value being
+   matched in a clever order that we
+     1) avoid examinging irrelevant parts of the value being matched
         E.g. x; (true, false)  
      2) minimize code size of matcher
+     3) match any value with a minimum number of tests
 
-
-   Baudinet showed that "optimal" matching is NP-hard (NP-complete?), so have
+   M. Baudinet showed that "optimal" matching is NP-hard (NP-complete?), so have
    to fall back on "heuristics" to find "good" matching algorithm

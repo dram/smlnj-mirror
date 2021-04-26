@@ -3925,6 +3925,47 @@ The maximal hlpath should also be used when calculating the "least" element
 for a layer set, i.e. the least element should have the least rule and for that
 rule the least, maximal hlpath.
 
+--------------------------------------------------
+37.15 Layers vs or-expansion ramification of rules 
+--------------------------------------------------
+[April 25/2021]
+Terminology: revmc refers to the revised version of the "old" (Aiken) match compiler
+where a preprocessing phase "or-expands" or "ramifies" the patterns (and consequently
+the rules of the match).
+
+After much effort at "simplifying" the management of layers to achieve something
+like the ramified rules produced in the revmc verion, it looks like the ramified
+patterns/rules approach of revmc already achieves the desired simplification of
+the layer encoding, i.e. the interpolation of horizontal (or=pattern) layers between
+the vertical rule layers determined by the sequencing of rules in the match.
+
+Therefore it seems that the correct coarse is to abandon the layer idea and its
+complications and stick with the revmc approach, but adapting it to the newmc
+framework of translating matches at the absyn level, pre-translation phase.
+
+The andor and decisiontree phases are based solely on the (ramified) patterns,
+so there is no necessary difference in those phases between translating to
+absyn or translating to PLambda.lexp.  But note that revmc can do without tracking
+types in the andor and decisiontree data structures.  The necessary types in the
+lexp translation amount to (a) the pattern, i.e. lhs type, (b) the result, i.e. rhs type,
+and vector element types for vector patterns (why?, how are these used?).  The lhs
+and rhs types can be treated as "global" type parameters for a given match and passed
+as parameters to the top-level match compile function (matchComp).  These types are
+provided in the abstract syntax via the revised "fnrules" type, which supplies lhs
+and rhs types for the rules.
+
+-------------------
+Note: Actually, the revmc version only depends on the rhs (result or return) type,
+which is only needed when translating to (or introducing) RAISE lexps that indicate
+match mailure (raising a Match or Bind exn, or reraising a non-matched exception in
+an exception handler match.
+
+If we do andor and decision tree construction without detailed types (i.e. types at
+each andor node, then when generating absyn code from the decision tree we will need
+to reconstruct the detailed types (i.e. the types for the administrative variables
+bound to intermediate values during matching).
+
+
 ================================================================================
 [38] polymorphism, bound type variables
 ================================================================================
@@ -4059,6 +4100,43 @@ function to ft type argument indices.
 See function transRVBs in FLINT/trans/translate-new.sml for the new implementation that
 wraps VALRECdec rvbs to avoid explicit polymorphism in the rvb bindings after
 translation.
+
+
+================================================================================
+[39] Different approaches to calculating "defaults" rule sets
+================================================================================
+Terminology: _revmc_ refers to the revised "old" (Aiken) match compiler.
+
+The revmc approach to calculating defaults rule sets, which are associated only with
+OR nodes, is "subtractive".  The set of "live" rules is maintained while building
+the andor tree and at each OR node, all of the "direct" rules associated with
+variants (the rules component in the (con, rules, subcase) structure of a variant)
+are subtracted from the inherited live set to produce the defaults set.
+
+The newmc approach is variable binding based and is "additive".  It requires distinguishing
+"primary" variable bindings at and andor node from "scondary" (or "as-bound") variables,
+and it uses only the primary variable bindings.  In a second phase of andor tree construction
+(the pushDefaults function), it propagates a "defaults" rule set down
+through the andor construction, adding the rules for primary variable bindings at each node.
+
+CLAIM: These two approaches produce the same set of default rules at each OR node.
+
+This has been verified by hand construction of andor trees for a couple of non-trivial
+examples, but it would be good to produce at least an intuitive argument or proof sketch
+for the claim.  A stronger empirical support would be to implement a combined andor
+phase that used both approaches and compared the results. This could be used to compile
+the compiler to a fixed point, which would thoroughly test the claim.
+
+To get such an implementation starting with the revmc andor phase, one would need to
+separate the varbindings in the simpleAndor representation into primary and secondary
+(AS-bound) lists of varbindings, or add constructors to distinguish the type of the
+individual (var, rule) bindings, so that the "additive" approach could distinguish
+the primary bindings. For example,
+
+    datatype varbinding = PRIMARY of (var * ruleno) | SECONDARY of (var * ruleno)
+    type varbindings = varbinding list
+
+
 
 
 ================================================================================
