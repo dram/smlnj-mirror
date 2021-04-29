@@ -98,6 +98,19 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 //== Version 1021.1; 2021/??/??
 
+//--------------------------------------------------------------------
+[2021/04/29]::
++
+In the translation from Absyn to PLambda, there was a function (`inlops`)
+that was used to build the primop and type data structures for numeric
+types.  This function was being called for every primitive operator,
+even though its results only depended on the numeric type.  I added
+a hash table to cache the results indexed numeric kind.  This change
+speeds up the compiler by about 3% (__e.g.__, compiling the compiler
+went from 58s to 55s on a MacBookPro with a 2.4GHz Intel i9 processor).
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
 //====================================================================
 == Version 110.99.1; 2021/04/12
 
