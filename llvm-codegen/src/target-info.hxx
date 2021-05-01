@@ -34,7 +34,7 @@ struct target_info {
 					// the value is stored.  Will be non-zero only
 					// for CMachine registers that stack allocated
     int callGCOffset;			// stack offset of call-gc entry address
-    int overflowExnOffset;		// stack offset of overflow exception
+    int raiseOvflwOffset;		// stack offset of raise_overflow entry address
     unsigned int allocSlopSzb;		// byte size of allocation slop
 
     static target_info const *InfoForTarget (std::string const &name);

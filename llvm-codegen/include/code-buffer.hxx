@@ -742,12 +742,11 @@ class code_buffer {
 
   // more cached types (these are internal to the code_buffer class)
     llvm::FunctionType *_gcFnTy; 		// type of call-gc function
-    llvm::FunctionType *_overflowFnTy;		// type of overflow function
+    llvm::FunctionType *_raiseOverflowFnTy;	// type of raise_overflow function
 
-  // a basic block for the current cluster that will force an Overflow trap
+  // a basic block for the current cluster that will raise the Overflow exception
     llvm::BasicBlock		*_overflowBB;
     std::vector<llvm::PHINode *> _overflowPhiNodes;
-    llvm::Function		*_overflowFn;	// per-module overflow function
 
   // tracking the state of the SML registers
     sml_registers		_regInfo;	// target-specific register info
@@ -815,9 +814,6 @@ class code_buffer {
 
   // add the "extra" arguments (plus optional base pointer) to an argument vector
     void _addExtraArgs (Args_t &args, arg_info const &info) const;
-
-  // create the overflow function for the module (if required)
-    void _createOverflowFn ();
 
   // constructor
     code_buffer (struct target_info const *target);
