@@ -177,5 +177,47 @@ let val _ = dbsays [">> decisionTree: andor ID = ", Int.toString (getId andor),
     (dectree, ruleCountsVector)
 end (* function decisionTree *)
 
+(* =========================================================================== *)
+(* collecting decision tree stats *)
+	      
+structure NodeMap = IntRedBlackMap
+
+type decTreeStats =
+     {rulesUsed : R.ruleset,
+      failures : int,
+      choiceTotal : int,
+      choiceDist : int NodeMap.map}
+
+(* decTreeStats : dectree * int -> decTreeStats
+ *  returns the set of all rules used in the dectree, maintaining ordering
+ *  (because union operation does). The boolean value indicates presence of FAIL,
+ *  signalling that the rules are non-exhaustive. *)
+fun decTreeStats (dectree: decTree): decTreeStats =
+    let val rules = ref R.empty
+	val failures = ref 0
+	val choiceTotal = ref 0
+	val choiceDist = ref NodeMap.empty
+	fun scanTree (DLEAF (layer, _)) = (rules := R.add (!rules, L.toRule layer))
+	  | scanTree (DMATCH _) = (failures := !failures + 1)
+	  | scanTree (CHOICE {node, choices, default}) =
+	    (choiceTotal := !choiceTotal + 1;
+	     choiceDist :=
+		let val nmap = !choiceDist
+		    val nodeId = getId node
+		    val newcount =
+			case NodeMap.find (nmap, nodeId)
+			 of NONE => 1
+			  | SOME k => k+1
+		in NodeMap.insert(nmap, nodeId, newcount)
+		end;
+	     Variants.app' (fn (_, dt) => scanTree dt) choices;
+	     Option.app scanTree default)
+    in scanTree dectree;
+       {rulesUsed = !rules,
+	failures = !failures,
+	choiceTotal = !choiceTotal,
+	choiceDist = !choiceDist}
+    end
+
 end (* local *)
 end (* structure DecisionTree *)

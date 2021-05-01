@@ -1,19 +1,23 @@
+(* matchcomp/generate.sml *)
+
+(* generating absyn "code" for a match *)
 (* matchcomp.sml *)
 
-(* This is the "unified" match compiler, where match compilation is embeded in an absyn to
- * absyn translation, which drives the process (andor tree, decision tree, "code" gen).
- * The "code" (Absyn.exp) for a match is generated from the decision tree and information
- * from the original andor (used for record/vector destruction and variable bindings (and types).
+(* This is the "code-generation" phase of match compiler as modelled on the revmc version.
+ * The "code" (Absyn.exp) for a match is generated from the decision tree and its associated andor
+ * (used for record/vector destruction and variable bindings).
  * This code performs pattern dispatching and destruction and then invokes the appropriate
- * RHS expressions with the necessary variable bindings.
+ * RHS expressions with the necessary variable bindings. Types are needed for the "administrative"
+ * mvars that are introduced.  These are computed by deconstructing the pattern type of the match.
  *
  * The "code" is in the form of an Absyn.exp.  Absyn.exp has been augmented with two new
  * expression forms: SWITCHexp and VSWITCHexp, which are created only by the match
- * compilation. Match compilation is invoked (on absyn decs) type checking, so it is
- * responsible for "maintaining" the correct type information in the translated absyn.
+ * compilation (i.e. never by direct elaboration of source code). Match compilation is
+ * invoked (on "typed" absyn decs) after type checking, so it is responsible for "maintaining"
+ * the correct type information in the translated absyn, which should remain well-typed.
  *)
 
-structure MatchComp =
+structure Generate =
 struct
 
 local
@@ -43,7 +47,7 @@ local
 
   (* printing for matchComp *)
 
-  fun bug msg = ErrorMsg.impossible ("MatchComp: " ^ msg)
+  fun bug msg = ErrorMsg.impossible ("Generate: " ^ msg)
 
   val printAndor = ElabControl.printAndor
   val printDecisionTree = ElabControl.printDecisionTree
@@ -104,29 +108,78 @@ local
 
 in
 
-(* How should we treat SINGLE constructor patterns, and in particular the
- * "special" ones like *ref* (and *susp* )?  We generate a special single
- * datacon "deconstructor" (expressed as a single-variant SWITCHexp) in these cases.
- * The special cases (ref,susp) are detected and handled in Translate
- * (FLINT/trans/translate.sml).
+(* new absyn-generator based on revmc version of generate.sml
+ *  1. new approach: assume rhs of rules are processed _before_ the match is translated,
+ *  so we are only concerned with the patterns (as in revmc and oldmc).
+ *  2. match information is passed in the form of pvarmap and ruleMap parameters.
+ *     pvarmap maps bound pattern variables (pvar) to list of ruleno * nodeId pairs
+ *        that determine the "locations" where the variable occurs (there can be
+ *        multiple occurrences because of the ramification of or-patterns
+ *        [it is assumed that pattern variables occurring in different (original) rules
+ *        are distinct, even if they have the same "name" symbol.]
+ *     ruleMap: maps rulenos (expanded) to 
+ *        a) list of pvars bound in that rule's pattern (shared by all rules in a ramified family)
+ *        b) variable to which the rhs function will be bound (also shared)
+ *        c) original ruleno (before expansion)
+ *  3. _all_ rhs expressions are abstracted to rhs functions, the defns of these functions
+ *     are wrapped around the match expression itself. So no rhs expressions are "inlined".
+ *     this should insure that alpha-conversion of pattern variables is not required -- they
+ *     will only be bound once in the abstraction of the corresponding rhs exp.
+ *)
+
+(* Singleton constructors are not treated in any special way. They still need to be destructed,
+ * and the general case handles them -- they just have a single variant case in the switch.
+ * Special constructors like ref and susp are handled by Translate, so they don't need to be
+ * treated specially here (check?).
  * SWITCHexp translates almost directly to Plambda.SWITCH.
  *
- * Also need to deconstruct AND and SINGLE _below_ a terminal OR/Decision node,
+ * Also need to deconstruct AND-structure _below_ a terminal OR/Decision node,
  * since variables may occur below the node. This is done by the call of
  * genAndor within the body of genDecTree.
  *)
 
-fun k_ident (x: AS.exp) = x
+(* fun k_ident (x: AS.exp) = x  -- not using exp-continuations *)
 
 val choiceTotalThreshold = 10
 
 fun reportStats (nodeCount: int, {rulesUsed, failures, choiceTotal, choiceDist}: DT.decTreeStats) =
-    if !stats andalso choiceTotal > choiceTotalThreshold
+    if !stats andalso choiceTotal > choiceTotalThreshold  (* don't report stats for smallish matches *)
     then (say "decTree Stats: \n";
 	  says ["  nodeCount =   ", Int.toString nodeCount];
 	  says ["  choiceTotal = ", Int.toString choiceTotal];
 	  newline())
     else ()
+
+
+(* lvar analogue of mvarenv *)
+structure M = IntBinaryMap
+
+(* mvarenv: a finite mapping from AndOr node id numbers (andor.info.id) to
+ * "mvars", which are lvars used as "administrative" variables in the match compiler
+ * to represent values produced during value destruction. The do not derive from the pattern variables,
+ * but in the end each pattern varialbe (for a given rule) will be associated with some mvar, which
+ * in turn will be bound do the pattern variable's "matching value". *)
+type mvarenv = LV.lvar M.map
+
+val emptyMvarenv = M.empty
+
+(* bindMvar : nodeId * LV.lvar * mvarenv -> mvarenv *)
+fun bindMvar (id: int, mvar: LV.lvar, env: mvarenv) =
+    M.insert(env, id, mvar)
+
+(* lookMvar : mvarenv * nodeId -> LV.lvar option *)
+fun lookMvar (env: mvarenv, id: nodeId) = M.find (env, id)
+
+(* lookMvar' : mvarenv * nodeId -> LV.lvar *)
+(* a version of lookMvar that is expecting to succeed *)
+fun lookMvar' (env: mvarenv, id: nodeId) =
+    case M.find (env, id)
+      of NONE => bug "lookMvar'"
+       | SOME mvar => mvar
+
+fun andorMvar (mvarenv, andor) =
+    lookMvar' (mvarenv, getId andor)
+
 
 (* simpleVALdec : V.var * AS.exp * T.tyvar list -> AS.dec *)
 (* used in Translate.transDec/transVB *)
@@ -135,50 +188,46 @@ fun simpleVALdec (var, exp, boundtvs) =
 	       typ = V.varType var, boundtvs = boundtvs, tyvars = ref nil}]
 
 
-(* genMatch : AS.rules * MT.andor * DT.decTree * int vector * T.ty * varenvAC * T.datacon -> AS.exp * V.var *)
+type failInfo = T.datacon * T.ty  (* exception datacon and "result" type *)
+
+(* genMatch : MT.andor * DT.decTree * pvarmap * ruleMap * failInfo -> AS.exp * V.var *)
 (* top level code generating function for matches (formerly MCCode.genCode) *)
-fun genMatch (rules: AS.rule list, andor, decTree, ruleCounts, rhsTy, varenvAC, matchExn) =
+fun genMatch (andor, decTree, pvarmap, ruleMap, fail) =
     let val _ = dbsay ">> genMatch"
-	val rules = map (fn AS.RULE r => r) rules
-	  (* rules : (AS.pat * AS.exp) list -- the RULE constructor is stripped *)
-
-    val numberOfRules = length rules
-
-    (* isMultiple : ruleno -> bool *)
-    fun isMultiple ruleno = Vector.sub (ruleCounts, ruleno) > 1
-
-    val multirules = List.filter isMultiple (List.tabulate (numberOfRules, (fn n => n)))
-        (* list of rule numbers that have multiple uses, in ascending order *)
-
-    val ruleCountsList = Vector.foldr (op ::) nil ruleCounts
-    val _ = dbsays ["** genMatch: ruleCounts: ",
-		    (PrintUtil.listToString ("[", ",", "]") Int.toString ruleCountsList),
-		    ", length rules: ", Int.toString (length rules)]
-	     
-    val _ = dbsays ["multirules = ",
-		    (PrintUtil.listToString ("[", ",", "]") Int.toString multirules)]
-
-    (* rulePat : ruleno -> AS.pat *)
-    fun rulePat n = #1 (List.nth (rules, n))
-
-    (* rulePatVars : V.ar list list *)
-    (* note! WILDpat will produce _no_ bound variables, but corresponding rhs should
-     * be functionalized *) 
-    val rulePatVars: V.var list list = map (AU.patternVars o #1) rules
-
-    (* ruleBoundVars : ruleno -> V.var list *)
-    fun ruleBoundVars n = List.nth (rulePatVars, n)
-
-    (* ruleRHS : ruleno -> AS.exp *)
-    fun ruleRHS n = #2 (List.nth (rules, n))
-          (* : AS.exp -- rhs expression of rule n, already match translated *)
 
     fun sameVar (var : V.var, AS.VARexp(ref var',_)) = V.eqVar (var, var')
       | sameVar _ = false
 
-    (* makeRHSfun : ruleno -> AS.exp option *)
-    (* part of the need to alpha-convert vars is to ensure that the FLINT invariant of
-     * lvars only being bound once is maintained (in particular, use of VarEnvAC.alphaEnv). *)
+     (* findId : Andor.pvarmap * V.var * ruleno -> nodeId option *)
+     fun findId (pvarmap: Andor.pvarmap, pvar, ruleno) =
+	 (* pvar, ruleno --pvarmap--> nodeId --mvarenv--> mvar *)
+	 (case Andor.pvarFind (pvarmap, V.varToLvar pvar)
+	    of NONE => NONE
+	     | SOME rule_ids => 
+	       let fun look ((ruleno',id)::rest) =
+		       if ruleno' = ruleno then SOME id
+		       else look rest
+		     | look nil = NONE
+	       in look rule_ids
+	       end)
+
+     (* genRHS : ruleno * mvarenv * pvarmap -> AS.exp
+      *  invoking the rule RHS function (abstracted rhs) on pattern variable mvars *)
+     fun genRHS (ruleno, pvarmap, mvarenv) =
+	   let val (pvars, fvar, _) = ruleMap ruleno
+	       fun lookupPvar (pvar: V.var) : AS.lexp = 
+		    (case findId (pvarmap, pvar, ruleno)
+		       of NONE => bug "lookupPvar: (pvar, ruleno) not found in pvarmap"
+			| SOME id => AS.VARexp (lookMvar' (mvarenv, id)))
+	    in case pvars
+	         of [pvar] => AS.APPexp (AS.VARexp fvar, lookupPvar pvar)
+		  | pvars =>  (* multiple bound pvars, including none *)
+		      PL.APP(PL.VAR fvar, AU.mkTupleExp (map lookupPvar pvars))
+	   end
+
+    (* makeRHSfun : ruleno -> AS.exp option
+     *  part of the need to alpha-convert vars is to ensure that the FLINT invariant of
+     *  lvars only being bound once is maintained (in particular, use of VarEnvAC.alphaEnv). *)
     fun makeRHSfun ruleno =
         if isMultiple ruleno
 	then let val pat = rulePat ruleno
@@ -258,6 +307,7 @@ fun genMatch (rules: AS.rule list, andor, decTree, ruleCounts, rhsTy, varenvAC, 
     val savedTraces = ref (nil : path list list)
     fun saveTrace dtrace = (savedTraces := dtrace :: !savedTraces)
 
+(* this is done in makeAndor as it produces the pvarmap 
     (* bindPatVars: svar * AOinfo * varenvMC -> varenvMC *)
     (* add bindings pvar |-> (layer, svar) to the environment varenvMC for all pvars bound at
      * an AndOr node (represented by info and svar). First the (primary) vars, and then the
@@ -269,7 +319,7 @@ fun genMatch (rules: AS.rule list, andor, decTree, ruleCounts, rhsTy, varenvAC, 
 	foldl (fn ((pvar,layer), env) => VarEnvMC.bindVar(pvar, layer, svar, env))
 	   (foldl (fn ((pvar,layer), env) => VarEnvMC.bindVar(pvar, layer, svar, env)) varenvMC vars)
 	   asvars)
-
+*)
 
     (* genAndor: andor * SE.svarenv * VarEnvMC.varenvMC * (exp -> exp)
                  -> SE.svarenv * VarEnvMC.varenvMC * (exp -> exp) *)
@@ -428,227 +478,4 @@ fun genMatch (rules: AS.rule list, andor, decTree, ruleCounts, rhsTy, varenvAC, 
  in (genPrelude mainExp, svarTop)
 end (* fun genMatch *)
 
-(* ================================================================================ *)
-(* matchComp: AS.rule list * T.ty * T.datacon -> AS.exp * VarCon.var *)
-(* lhsTy is the type of the patterns (i.e. the domain or lhs) of the match
- * Called by transMatch.  fillPat will have been applied to rule patterns. *)
-and matchComp (rules: AS.rule list, lhsTy: T.ty, rhsTy: T.ty, varenvAC,
-	       matchFailExn: T.datacon) =
-    let val numRules = length rules
-	val _ = says [">> matchComp[", Int.toString numRules,"]"]
-	val patterns = map (fn (AS.RULE(pat,_)) => pat) rules (* strip RULE constructor *)
-	val (andor, nodeCount) = (* AndOr.makeAndor(patterns, lhsTy) *)
-              timeIt ("makeAndor", "no location", AndOr.makeAndor, (patterns, lhsTy))
-	val _ = saynl "<< makeAndor"
-	val _ = if !printAndor
-		then ppAndor andor
-		else ()
-	val (dectree,ruleCounts) = (* DecisionTree.decisionTree (andor, numRules) *)
-	      timeIt ("decisionTree", "no location", DT.decisionTree, (andor, numRules))
-	val decTreeStats = DT.decTreeStats dectree
-	val _ = saynl "<< decisionTree"
-	val _ = if !printDecisionTree
-		then ppDecisionTree dectree
-		else ()
-	val _ = reportStats (nodeCount, decTreeStats)
-        val (matchExp, matchRootVar) =
-	    (* genMatch (rules, andor, dectree, ruleCounts, rhsTy, varenvAC, matchFailExn) *)
-	    timeIt ("genMatch", "no location",
-		    genMatch, (rules, andor, dectree, ruleCounts, rhsTy, varenvAC, matchFailExn))
-	val _ = saynl "<< genMatch"
-	val _ = if !printMatchAbsyn
-		then ED.withInternals (fn () => ppExp (matchExp, "matchComp:matchExp: \n"))
-		else ()
-    in saynl "<< matchComp";  (* -- debugging *)
-       (matchExp, SVar.svarToVar matchRootVar)
-    end
-
-
-(* ================================================================================ *)
-
-(* translation functions: translate AS.exp and AS.dec while compiling matches and
- * alpha-converting source pattern variables:
- *     transExp : AS.exp * varenvAC -> AS.exp  -- varenvAC is an "Alpha-Conversion" env
- *     transDec : AS.dec * varenvAC -> AS.dec
- *)
-
-(* transExp : AS.exp * varenvAC -> AS.exp *)
-and transExp (calledFrom: string, exp, venv: VarEnvAC.varenvAC) =
-    let val _ = says [">> transExp: from ", calledFrom]
-	val transRules =  (* just do fillPat on rule patterns *)
-	    map (fn RULE(pat,exp) => RULE(EU.fillPat pat, exp))
-        fun trans exp =
-            (case exp
-	       of RECORDexp fields =>
-		    RECORDexp (map (fn (numberedLabel, exp) => (numberedLabel, trans exp))
-				   fields)
-		| VECTORexp (exps,ty) => VECTORexp(map trans exps, TU.prune ty)
-		| APPexp (rator, rand) => APPexp (trans rator, trans rand)
-		| FNexp (rules, argTy, resTy) =>
-		    let val RULE(pat1,exp1)::_ = rules (* debugging *)
-			val _ = (say "transExp:FNexp:pat1 = "; ppPat pat1; newline() (* debugging *))
-			val (bodyExp, matchVar) =
-			    matchComp (transRules rules, argTy, resTy, venv, EU.getMatchExn())
-		     in FNexp ([RULE(VARpat matchVar, bodyExp)], TU.prune argTy, TU.prune resTy)
-		    end
-		| HANDLEexp (baseExp, (rules, argTy, resTy)) =>
-		    let val (handlerBody, matchVar) =
-			    matchComp (transRules rules, argTy, resTy, venv, EU.getMatchExn())
-			val matchRule = RULE(VARpat matchVar, handlerBody)
-		     in HANDLEexp(trans baseExp, ([matchRule], TU.prune argTy, TU.prune resTy))
-		    end
-		| CASEexp (scrutinee, (rules, scrutTy, resTy)) =>
-		    let val RULE(pat1,exp1)::_ = rules (* debugging *)
-			val _ = (say "transExp:CASEexp:pat1 = "; ppPat pat1; newline() (* debugging *))
-			val (caseBody, matchVar) =
-			    matchComp(transRules rules, scrutTy, resTy, venv, EU.getMatchExn())
-		    in LETexp(VALdec[VB{pat = VARpat matchVar,
-					exp = trans scrutinee,
-					typ = scrutTy,
-					boundtvs = nil,
-					tyvars = ref nil}],
-			      caseBody)
-		    end
-		| RAISEexp (exp, ty) => RAISEexp (trans exp, ty) (* original source raise *)
-		| IFexp {test, thenCase, elseCase} =>
-		  IFexp {test = trans test, thenCase = trans thenCase, elseCase = trans elseCase}
-		| ANDALSOexp (exp1, exp2) => ANDALSOexp (trans exp1, trans exp2)
-		| ORELSEexp (exp1, exp2) => ORELSEexp (trans exp1, trans exp2)
-		| WHILEexp { test, expr } => WHILEexp{ test = trans test, expr = trans expr}
-		| LETexp (dec, exp) => LETexp(transDec (dec, venv), trans exp)
-		| SEQexp exps => SEQexp (map trans exps)
-		| CONSTRAINTexp (exp, ty) => CONSTRAINTexp (trans exp, ty)
-		| MARKexp (exp, region) => MARKexp (trans exp, region)
-		| VARexp (vref, tvs) =>
-		    (case VarEnvAC.look (venv, !vref)
-		       of NONE => exp
-			| SOME var => (VARexp (ref var, tvs)))
-		| _ => exp)
-		  (* (CONexp _ | NUMexp _ | REALexp _ | STRINGexp _  | CHARexp _ |
-		   *  RSELECTexp _ | VSELECTexp _ | SWITCHexp _ | VSWITCHexp) => exp *)
-     in trans exp
-    end (* transExp *)
-
-(* transDec : AS.dec * VarEnvAC.varenvAC -> dec *)
-and transDec (dec: AS.dec, venv: VarEnvAC.varenvAC) : AS.dec =
-    let fun transDec0 (dec: AS.dec) : AS.dec =
-            (case dec
-	      of VALdec vbs => transVBs vbs
-	       | VALRECdec rvbs => VALRECdec (map transRVB rvbs)
-	       | DOdec exp => DOdec (transExp("transDec:DOdec", exp, venv))
-	       | LOCALdec (innerDec, outerDec) =>
-		   LOCALdec (transDec0 innerDec, transDec0 outerDec)
-	       | SEQdec decs => SEQdec (map transDec0 decs)
-	       | ABSTYPEdec {abstycs, withtycs, body} =>
-		   ABSTYPEdec {abstycs = abstycs, withtycs = withtycs, body = transDec0 body}
-	       | MARKdec (dec, region) => MARKdec (transDec0 dec, region)
-	       | _ => dec) (* transDec called locally for LETSTR, LETFCT, STRdec, FCTdec *)
-
-	    (* transvb : A.vb -> A.dec *)
-	    (* translation of vb to dec
-	     * -- We can get away without a d (DB depth) parameter, leaving it to Translate.
-	     * -- Looks like we can get away with never dealing with an internal svar in the match.
-	     * -- we need to access or (re)construct the type of the pat.
-	     *      Could store this as a field of VB.
-	     * -- do we need an absyn equivalent to mkPE, say transPolyExp? We don't have an equivalent
-	     *      to TFN in absyn -- yet! *)
-	    and transVB (VB{pat, exp, typ, boundtvs, tyvars}) =
-		(* match compile [(pat,exp)] if pat is nontrivial (not a var);
-		 * -- check what the match compiler does with (single) irrefutable patterns
-		 *    DONE -- it does the right thing. *)
-		(if !debugging
-		 then (say "transVB:pat = "; ppPat pat; ppExp (exp, "transVB:exp = "))
-		 else ();
-		 case EU.fillPat(AU.stripPatMarks pat)   (* does fillPat strip MARKpats? *)
-		   of (WILDpat | CONSTRAINTpat(WILDpat, _)) =>  (* WILDpat pattern *)
-		      let val exp' = transExp ("transVB:WILDpat", exp, venv)
-	               (* val _ = (print "transVB:exp' = "; ppExp exp') *)
-		       in VALdec([VB{pat = WILDpat, exp = exp', typ = typ,
-				     boundtvs = boundtvs, tyvars = tyvars}])
-		      end
-		    | (VARpat var | CONSTRAINTpat(VARpat var, _)) =>
-		      (* simple single variable pattern *)
-		      let val exp' = transExp ("transVB:VARpat", exp, venv)
-	              (* val _ = (print "transVB:exp' = "; ppExp exp') *)
-		      in VALdec([VB{pat = VARpat var, exp = exp',
-				    typ = typ, boundtvs = boundtvs, tyvars = tyvars}])
-		      end
-		    | pat =>  (* compound, possibly refutable, pattern. Does this work for constants? *)
-		      let val patvars = AU.patternVars pat
-			  val bindExn = EU.getBindExn()
-		      in case patvars
-			   of nil =>   (* "constant" pattern, no pattern variables *)
-			      let val (matchExp, matchVar) =
-				       matchComp ([RULE (pat, AU.unitExp)], typ, BT.unitTy, venv, bindExn)
-				  val resultDec =
-				      LOCALdec(simpleVALdec(matchVar,
-							    transExp ("transVB: null patvars", exp, venv), nil),
-						VALdec([VB{pat=WILDpat, exp = matchExp,
-							   typ=typ, boundtvs=nil, tyvars = ref nil}]))
-			       in if !debugging then ppDec (resultDec, "transVB (no var): \n") else ();
-				  resultDec
-			      end
-			    | [pvar] =>     (* single pattern variable *)
-			      let val pvarTy = V.varType pvar
-				  val (matchExp, matchVar) =
-				       matchComp ([RULE (pat, VARexp(ref pvar, nil))], typ, pvarTy, venv,
-						   bindExn)
-				  val resultDec =
-				       LOCALdec(simpleVALdec(matchVar, transExp ("transVB: single patvar", exp, venv), nil),
-						simpleVALdec(pvar, matchExp, boundtvs))
-			       in if !debugging then ppDec (resultDec, "transVB (single var): \n") else ();
-                                  resultDec
-			      end
-			    | patvars =>
-			      let val patvarstupleExp =
-			              EU.TUPLEexp (map (fn var => VARexp(ref var, nil)) patvars)
-				  val patvarstupleTy = Tuples.mkTUPLEtype (map V.varType patvars)
-				  val (matchExp, matchVar) =
-				      matchComp ([RULE (pat, patvarstupleExp)], typ, patvarstupleTy, venv,
-						 bindExn)
-				      (* matchVar will be bound to MC-translation of exp *)
-				  val ptupleVar = V.VALvar{path = SP.SPATH [S.varSymbol "<ptupleVar>"],
-							   typ = ref(patvarstupleTy),
-							   btvs = ref(boundtvs),  (* possibly polymorphic *)
-							   access = A.LVAR(LambdaVar.mkLvar()),
-							   prim = PrimopId.NonPrim}
-				  fun selectVBs([], _) = []
-				    | selectVBs (pvar::pvars, n) = (* non-polymorphic *)
-					simpleVALdec(pvar, RSELECTexp (ptupleVar,n), nil)
-					  :: selectVBs(pvars, n+1)
-					(* defining a pattern var by (record) selection from a
-					 * var (ptupleVar) bound to the tuple of all the pattern
-					 * var values; the btvs of each pattern var is a subset
-					 * of the btvs of ptupleVar. *)
-				  val resultDec =
-				      LOCALdec(SEQdec [simpleVALdec(matchVar, transExp ("transVB: general", exp, venv), nil),
-						       simpleVALdec(ptupleVar, matchExp, boundtvs)],
-					       SEQdec (selectVBs(patvars, 0)))
-					      (* rebinding orig pattern variables *)
-			       in if !debugging then ppDec (resultDec, "transVB (multiple vars): \n") else ();
-				  resultDec
-			      end
-		      end (* pat case *)
-		)
-
-
-	    (* NOTE: Given the way Translate.transDec deals with LOCALdec (i.e. not
-             * hiding the local decls), we use a single SEQ encompassing all the
-             * declarations. *)
-
-	    (* transVBs : AS.vb list -> AS.dec *)
-	    and transVBs nil = bug "transVBs: nil"  (* expect at least one *)
-	      | transVBs [vb] = transVB vb
-	      | transVBs vbs = SEQdec (map transVB vbs)
-
-	    and transRVB (RVB{var: V.var, exp: exp, resultty: T.ty option, tyvars: T.tyvar list ref}) =
-		(says [">> transRVB:var = ", Symbol.name (V.varName var)];
-		RVB {var = var, exp = transExp ("transRVB", exp,venv), resultty = resultty, tyvars = tyvars})
-
-	in transDec0 dec
-    end (* transDec *)
-
-fun transMatchDec dec = transDec (dec, VarEnvAC.empty)
-
-end (* local *)
-end (* structure MatchComp *)
+end (* structure Generate *)

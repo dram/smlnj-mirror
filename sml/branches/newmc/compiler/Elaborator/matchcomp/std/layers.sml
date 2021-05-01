@@ -21,8 +21,11 @@ type layer = Rules.ruleno * hlpath
 fun layerEq ((r1,s1): layer, (r2,s2)) =
     r1 = r2 andalso ListPair.allEq (op =) (s1, s2)
 
-(* DEFN: two hlpaths p1 and p2 are compatible if one is a prefix of the
- * other. So hlpath p = nil is compatible with any other hlpath *)
+(* DEFN: prefix (p1, p2) <=> p1 is a prefix of p2, including p1 = p2. *)
+
+(* DEFN: two hlpaths p1 and p2 are _compatible_ if one is a prefix of the
+ * other, i.e. prefix (p1,p2) or prefix (p2,p1).
+ * So hlpath nil is compatible with all hlpaths *)
 
 (* two occurrences of a variable in a pattern must be separated by an "|", so
  * their layer paths must _differ_ at some point, with the path going left (0)
@@ -55,8 +58,8 @@ datatype hlpOrder = EQUALHL | PREFIX1 | PREFIX2 | LEFT | RIGHT
 fun hlpathPrefixCompare (p1,p2) =
     case (p1,p2)
      of (nil, nil) => EQUALHL
-      | (x::_, nil) => PREFIX2
-      | (nil, x::_) => PREFIX1
+      | (x::_, nil) => PREFIX2  (* prefix (p2, p1) *)
+      | (nil, x::_) => PREFIX1  (* prefix (p1, p2) *)
       | (b1::rest1, b2::rest2) =>
 	(case Int.compare (b1,b2)
 	  of LESS => LEFT
@@ -119,8 +122,8 @@ struct
 	 | EQUAL =>
 	   (case hlpathPrefixCompare (p0,p1)
 	     of EQUALHL => set
-	      | PREFIX1 => set  (* p0 a prefix of p1 *)
-	      | PREFIX2 => layer0 :: rest  (* p1 a prefix of p0 *)
+	      | PREFIX1 => set             (* prefix (p0, p1) *)
+	      | PREFIX2 => layer0 :: rest  (* prefix (p1, p0) *)
 	      | LEFT => layer0 :: set
 	      | RIGHT => layer1 :: add (rest, layer0)))
 
