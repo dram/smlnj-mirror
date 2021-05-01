@@ -204,10 +204,6 @@ extern void RunML (ml_state_t *msp);
 extern void RaiseMLExn (ml_state_t *msp, ml_val_t exn);
 extern void InitFaultHandlers ();
 
-#ifdef SOFT_POLL
-extern void ResetPollLimit (ml_state_t *msp);
-#endif
-
 
 /* These are two views of the command line arguments; RawArgs is essentially
  * argv[].  CmdLineArgs is argv[] with runtime system arguments stripped

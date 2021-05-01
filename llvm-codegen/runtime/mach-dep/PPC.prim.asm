@@ -253,7 +253,7 @@ cvti2d_CONST:
 	TEXT
 /* sig_return : ('a cont * 'a) -> 'b
  */
-ML_CODE_HDR(sigh_return_a)
+ALIGNED_ENTRY(sigh_return_a)
 	li 	atmp4,REQ_SIG_RETURN
 	li	stdlink, ML_unit
 	li	stdclos, ML_unit
@@ -267,7 +267,7 @@ ENTRY(sigh_resume)
 /* pollh_return_a:
  * The return continuation for the ML poll handler.
  */
-ML_CODE_HDR(pollh_return_a)
+ALIGNED_ENTRY(pollh_return_a)
 	li	atmp4,REQ_POLL_RETURN
 	li	stdlink, ML_unit
 	li	stdclos, ML_unit
@@ -282,14 +282,14 @@ ENTRY(pollh_resume)
 	b	set_request
 
 		 /* exception handler for ML functions called from C */
-ML_CODE_HDR(handle_a)
+ALIGNED_ENTRY(handle_a)
 	li	atmp4,REQ_EXN
 	addi	pc, stdlink, 0
 	b	set_request
 
 
 		/* continuation for ML functions called from C */
-ML_CODE_HDR(return_a)
+ALIGNED_ENTRY(return_a)
 	li	atmp4,REQ_RETURN
 	li	stdlink, ML_unit
 	li	stdclos, ML_unit
@@ -305,17 +305,17 @@ ENTRY(request_fault)
 
 /* bind_cfun : (string * string) -> c_function
  */
-ML_CODE_HDR(bind_cfun_a)
+ALIGNED_ENTRY(bind_cfun_a)
 	CHECKLIMIT(bind_cfun_v_limit)
 	li	atmp4,REQ_BIND_CFUN
 	b	set_request
 
-ML_CODE_HDR(build_literals_a)
+ALIGNED_ENTRY(build_literals_a)
 	CHECKLIMIT(build_literals_v_limit)
 	li	atmp4,REQ_BUILD_LITERALS
 	b	set_request
 
-ML_CODE_HDR(callc_a)
+ALIGNED_ENTRY(callc_a)
 	CHECKLIMIT(callc_v_limit)
 	li	atmp4,REQ_CALLC
 	b	set_request
@@ -480,7 +480,7 @@ pending_sigs:				/* there are pending signals */
 /* array : (int * 'a) -> 'a array
  * Allocate and initialize a new array.	 This can cause GC.
  */
-ML_CODE_HDR(array_a)
+ALIGNED_ENTRY(array_a)
 	CHECKLIMIT(array_a_limit)
 
 	lwz	atmp1,0(stdarg)		/* atmp1 := length in words */
@@ -519,7 +519,7 @@ array_a_large:				/* off-line allocation */
 /* create_b : int -> bytearray
  * Create a bytearray of the given length.
  */
-ML_CODE_HDR(create_b_a)
+ALIGNED_ENTRY(create_b_a)
 	CHECKLIMIT(create_b_a_limit)
 
 	srawi	atmp2,stdarg,1		/* atmp2 = length (untagged int) */
@@ -556,7 +556,7 @@ create_b_a_large:			/* off-line allocation */
 /*
 ** create_s_a: int -> string
 */
-ML_CODE_HDR(create_s_a)
+ALIGNED_ENTRY(create_s_a)
 	CHECKLIMIT(create_s_a_limit)
 
 	srawi	atmp2,stdarg,1		/* atmp2 = length(untagged int) */
@@ -591,7 +591,7 @@ create_s_a_large:			/* off-line allocation */
 
 
 
-ML_CODE_HDR(create_r_a)
+ALIGNED_ENTRY(create_r_a)
 	CHECKLIMIT(create_r_a_limit)
 
 	srawi	atmp2,stdarg,1		/* atmp2 = length (untagged int) */
@@ -630,7 +630,7 @@ create_r_a_large:			/* offline allocation */
  * Create a vector with elements taken from a list.
  * NOTE: the front-end ensures that list cannot be nil.
  */
-ML_CODE_HDR(create_v_a)
+ALIGNED_ENTRY(create_v_a)
 	CHECKLIMIT(create_v_a_limit)
 
 	lwz	atmp1,0(stdarg)		/* atmp1 = tagged length */
@@ -690,7 +690,7 @@ floor_CONST:
 	**	perform an exponent alignment, which will
 	**	bring the required bits into the mantissa.
 	*/
-ML_CODE_HDR(floor_a)
+ALIGNED_ENTRY(floor_a)
 	lfd	f1, 0(stdarg)
 	/*
 	** Neat thing here is that this code works for
@@ -719,7 +719,7 @@ ML_CODE_HDR(floor_a)
 	CONTINUE
 
 
-ML_CODE_HDR(logb_a)
+ALIGNED_ENTRY(logb_a)
 	lwz	stdarg,0(stdarg)  	/* most significant part */
 	srawi 	stdarg,stdarg,20	/* throw out 20 low bits */
 	andi.	stdarg,stdarg,0x07ff	/* clear all but 11 low bits */
@@ -733,7 +733,7 @@ ML_CODE_HDR(logb_a)
 ** scalb : real * int -> real
 **	scalb(x,y) = x * 2^y
 */
-ML_CODE_HDR(scalb_a)
+ALIGNED_ENTRY(scalb_a)
 	CHECKLIMIT(scalb_v_limit)
 	lwz	atmp1,4(stdarg)		/* atmp1 := y */
 	srawi	atmp1,atmp1,1		/* atmp1 := machine int y */
@@ -777,7 +777,7 @@ LABEL(scalb_overflow)
 
 
 
-ML_CODE_HDR(try_lock_a)
+ALIGNED_ENTRY(try_lock_a)
 	lwz	atmp1,0(stdarg)
 	li	atmp2,1			/* ML_false */
 	stw	atmp2,0(stdarg)
@@ -785,7 +785,7 @@ ML_CODE_HDR(try_lock_a)
 	CONTINUE
 
 
-ML_CODE_HDR(unlock_a)
+ALIGNED_ENTRY(unlock_a)
 	li	atmp1,3			/* ML_true */
 	stw	atmp1,0(stdarg)
 	li	stdarg,1		/* just return unit */

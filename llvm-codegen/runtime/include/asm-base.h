@@ -97,7 +97,6 @@
     .globl CFUNSYM(ID) __SC__	\
     LABEL(CFUNSYM(ID))
 
-/* FIXME: move these definitions to the x86-prim.h file */
 #elif defined(ARCH_X86) || defined(ARCH_AMD64)
 #  error use x86-syntax.h instead if ml-base.h
 
@@ -110,13 +109,17 @@
 #  define __SC__ 	;
 #endif
 
+#ifndef ALIGN_CODE
+#  define ALIGN_CODE	ALIGN4
+#endif
+
 #  define CGLOBAL(ID)	GLOBAL(CSYM(ID))
 
 #define ENTRY(ID)				\
     CGLOBAL(ID) __SC__				\
     LABEL(CSYM(ID))
 
-#define ML_CODE_HDR(name)			\
+#define ALIGNED_ENTRY(name)			\
 	    CGLOBAL(name) __SC__		\
 	    ALIGN4 __SC__			\
     LABEL(CSYM(name))

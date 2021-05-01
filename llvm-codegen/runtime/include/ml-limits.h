@@ -101,11 +101,5 @@
 	ROUNDUP(MAX_NUM_PROCS*(MAX_C_ROOTS+NROOTS+N_PSEUDO_ROOTS)+1, 8)
 #endif
 
-#ifdef SOFT_POLL
-/* limits for polling */
-#define POLL_GRAIN_CPSI 1024     /* power of 2, in cps instructions */
-#define POLL_GRAIN_BITS 10       /* log_2 POLL_GRAIN_CPSI */
-#endif
-
 #endif /* !_ML_DEFAULTS_ */
 
