@@ -64,7 +64,7 @@
 
 #define negateSignBit	REGOFF(8264,RSP)
 #define signBit		REGOFF(8256,RSP)
-#define overflowExn	REGOFF(8248,RSP)
+#define overflowFn	REGOFF(8248,RSP)
 #define start_gc	REGOFF(8240,RSP)	/* holds address of saveregs */
 #define varptr		REGOFF(8232,RSP)
 #define exncont		REGOFF(8224,RSP)
@@ -178,6 +178,12 @@ ALIGNED_ENTRY(request_fault)
 	MOVE	(stdlink,temp,pc)
 	JMP	(CSYM(set_request))
 
+/* Raise the Overflow exception */
+ALIGNED_ENTRY(raise_overflow)
+	MOV	(IM(REQ_RAISE_OVERFLOW), request_w)
+	POP	(pc)			/* a PC in the raising code object */
+	JMP	(CSYM(set_request))
+
 /* bind_cfun : (string * string) -> c_function
  */
 ALIGNED_ENTRY(bind_cfun_a)
@@ -287,22 +293,12 @@ ALIGNED_ENTRY(restoreregs)
 	MOVE	(REGOFF(ExnPtrOffMSP, temp), temp2, exncont)
 	MOVE	(REGOFF(VarPtrOffMSP, temp), temp2, varptr)
 	MOVE    (REGOFF(PCOffMSP, temp),     temp2, pc)
+      /* Store address of "Overflow" exception in stack */
 	LEA	(CODEADDR(CSYM(saveregs)), temp2)
 	MOV	(temp2, start_gc)
-	MOV	(temp, mlStatePtr)
-      /* Store address of "Overflow" exception in stack */
-#if defined(OPSYS_DARWIN)
-	MOV	(CSYM(_Overflow_id0)@GOTPCREL(%rip), temp2)
-	ADD	(IM(8), temp2)
-	MOV	(temp2, overflowExn)
-#elif defined(OPSYS_LINUX)
-	LEA	(CODEADDR(8+CSYM(_Overflow_id0)), temp2)
-	MOV	(temp2, overflowExn)
-#else
-    /* for now we do nothing, since we do not have LLVM support for this system */
-#endif
+	LEA	(CODEADDR(CSYM(raise_overflow)),temp2)
+	MOV	(temp2, overflowFn)
       /* Store bitmasks to support floating-point "neg" and "abs" in stack */
-/* NOTE: the bitmasks will go away once we completely switch to LLVM */
 	MOV	($0x8000000000000000, temp2)
 	MOV	(temp2, signBit)
 	MOV	($0x7fffffffffffffff, temp2)
@@ -310,6 +306,7 @@ ALIGNED_ENTRY(restoreregs)
 #undef	temp2
 
 	/* Load ML registers. */
+	MOV	(temp, mlStatePtr)
 	MOV	(REGOFF(AllocPtrOffMSP, temp), allocptr)
 	MOV	(REGOFF(LimitPtrOffMSP, temp), limitptr)
 	MOV	(REGOFF(StorePtrOffMSP, temp), storeptr)
@@ -373,11 +370,9 @@ ALIGNED_ENTRY(array_a)
 	SAR	(IM(1),temp)			/* temp := length untagged */
 	CMP	(IM(SMALL_OBJ_SZW),temp)	/* small object? */
 	JGE	(L_array_large)
-	/* use misc0 and misc1 as temporary registers */
-#define temp1 misc0
-#define temp2 misc1
-	PUSH	(misc0)
-	PUSH	(misc1)
+	/* use misc5 and misc6 as temporary registers */
+#define temp1 misc5
+#define temp2 misc6
 	/* build data object descriptor in temp1 */
 	MOV	(temp,temp1)
 	SAL	(IM(TAG_SHIFTW),temp1)
@@ -401,9 +396,6 @@ LABEL(L_array_lp)
 	MOV	(temp1, REGIND(allocptr))	/* store pointer to data */
 	MOV	(temp, REGOFF(8,allocptr))	/* store length */
 	ADD	(IM(16),allocptr)
-	/* restore misc0 and misc1 */
-	POP	(misc1)
-	POP	(misc0)
 	CONTINUE
 #undef temp1
 #undef temp2

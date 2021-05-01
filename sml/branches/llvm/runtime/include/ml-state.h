@@ -49,12 +49,11 @@ struct ml_state {
     ml_val_t	ml_calleeSave[CALLEESAVE];
     ml_val_t	ml_arg;
     ml_val_t	ml_pc;		    /* Address of ML code to execute; when */
-				    /* calling an ML frunction from C, this */
+				    /* calling an ML function from C, this */
 				    /* holds the same value as the linkReg. */
 
 
 				  /* Linkage information */
-    ml_val_t	ml_faultExn;		/* The exception packet for a hardware fault. */
     Word_t	ml_faultPC;		/* the PC of the faulting instruction */
 }; /* struct ml_state */
 

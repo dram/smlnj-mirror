@@ -226,7 +226,6 @@ PVT int page_fault_handler
 	 * generates code to check for divide by zero.
 	 */
          /* Say("Overflow at %p\n", pc); */
-	msp->ml_faultExn = OverflowId;
 	msp->ml_faultPC  = pc;
 	c->Eip = (DWORD)request_fault;
 	break;

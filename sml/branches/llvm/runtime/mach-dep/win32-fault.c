@@ -158,8 +158,6 @@ PVT bool_t fault_handler (int code, Addr_t pc)
         Die ("win32:fault_handler: bogus fault not in ML: %#x\n", code);
     }
 
-  /* Map the signal to Overflow. */
-    msp->ml_faultExn = OverflowId;
     msp->ml_faultPC = pc;
 
     return TRUE;

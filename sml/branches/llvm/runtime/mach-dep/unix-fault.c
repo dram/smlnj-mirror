@@ -95,16 +95,9 @@ PVT SigReturn_t FaultHandler (int signal, siginfo_t *si, void *uc)
     }
 #endif
 
-   /* Map the signal to Overflow */
-    msp->ml_faultExn = OverflowId;
     msp->ml_faultPC = pc;
 
     SIG_SetPC (scp, request_fault);
-
-  /* I don't think that this call is still necessary, since we are only
-   * dealing with integer overflow here! -- JHR (2019-10-10)
-    SIG_ResetFPE (scp);
-   */
 
 } /* end of FaultHandler */
 
@@ -132,9 +125,6 @@ PVT SigReturn_t FaultHandler (
 	Die ("bogus fault not in ML: sig = %d, code = %#x, pc = %#x)\n",
 	    signal, SIG_GetCode(info, scp), SIG_GetPC(scp));
 
-   /* Map the signal to the appropriate ML exception. */
-   /* Map the signal to Overflow */
-    msp->ml_faultExn = OverflowId;
     msp->ml_faultPC = (Word_t)SIG_GetPC(scp);
 
     SIG_SetPC (scp, request_fault);

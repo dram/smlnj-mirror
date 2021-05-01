@@ -15,32 +15,15 @@
 
 /* AArch64 register usage and C function calling conventions:
  *
-<<<<<<< .mine
- *	x0-x7		-- argument/result registers
- *	x8		-- indirect result location register
- *	x19-x28		-- callee-save registers
- *	x29		-- frame pointer
- *	x30		-- link register
- *	sp		-- stack pointer (x31)
-||||||| .r7023
  *	r0-r7		-- argument/result registers
  *	r8		-- indirect result location register
+ *	r9-r15		-- temporary registers
+ *	r16,r17		-- intra-procedure-call temporaries (IP0,IP1)
+ *	r18		-- reserved for platform-specific use
  *	r19-r28		-- callee-save registers
  *	r29		-- frame pointer
  *	r30		-- link register
  *	sp		-- stack pointer (r31)
-=======
- *	x0-x7		-- argument/result registers
- *	x8		-- indirect result location register
- *	x19-x28		-- callee-save registers
- *	x29		-- frame pointer (aka fp)
- *	x30		-- link register (aka lr)
- *	sp		-- stack pointer (aka x31)
->>>>>>> .r7086
- *
- *	x9-x15		-- temporary registers
- *	x16,x17		-- intra-procedure-call temporaries (IP0,IP1)
- *	x18		-- reserved for platform-specific use
  *
  * The stack pointer must be 16-byte aligned.
  */
