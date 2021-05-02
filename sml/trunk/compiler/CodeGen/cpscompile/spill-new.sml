@@ -824,14 +824,15 @@ struct
       (*
        * Generate code to create a record.
        *)
-      fun createRecord(record, rk, len, consts, e) =
-      let val e = emitSpill(record, e)
+      fun createRecord (record, rk, len, consts, e) = let
+(* FIXME: note that `rk` can be RK_RECORD or RK_CONT, which is kind of bogus. *)
+          val e = emitSpill(record, e)
           val p = P.RAWUPDATE(rkToCty rk)
           fun init((i, c),e) = CPS.SETTER(p,[CPS.VAR record, tagInt i, c], e)
           val e = foldr init e consts
-          val e = CPS.PURE(P.RAWRECORD(SOME rk),[tagInt len],record,U.BOGt,e)
-      in  e
-      end
+	  in
+	    CPS.PURE(P.RAWRECORD(SOME rk), [tagInt len], record, U.BOGt, e)
+	  end
 
       (*
        * It is the definition of lvar v.
