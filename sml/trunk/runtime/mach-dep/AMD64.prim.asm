@@ -372,11 +372,9 @@ ALIGNED_ENTRY(array_a)
 	SAR	(IM(1),temp)			/* temp := length untagged */
 	CMP	(IM(SMALL_OBJ_SZW),temp)	/* small object? */
 	JGE	(L_array_large)
-	/* use misc0 and misc1 as temporary registers */
-#define temp1 misc0
-#define temp2 misc1
-	PUSH	(misc0)
-	PUSH	(misc1)
+	/* use misc5 and misc6 as temporary registers */
+#define temp1 misc5
+#define temp2 misc6
 	/* build data object descriptor in temp1 */
 	MOV	(temp,temp1)
 	SAL	(IM(TAG_SHIFTW),temp1)
@@ -400,9 +398,6 @@ LABEL(L_array_lp)
 	MOV	(temp1, REGIND(allocptr))	/* store pointer to data */
 	MOV	(temp, REGOFF(8,allocptr))	/* store length */
 	ADD	(IM(16),allocptr)
-	/* restore misc0 and misc1 */
-	POP	(misc1)
-	POP	(misc0)
 	CONTINUE
 #undef temp1
 #undef temp2
