@@ -825,7 +825,7 @@ struct
        * Generate code to create a record.
        *)
       fun createRecord (record, rk, len, consts, e) = let
-(* FIXME: note that `rk` can be RK_RECORD, which is kind of bogus. *)
+(* FIXME: note that `rk` can be RK_RECORD or RK_CONT, which is kind of bogus. *)
           val e = emitSpill(record, e)
           val p = P.RAWUPDATE(rkToCty rk)
           fun init((i, c),e) = CPS.SETTER(p,[CPS.VAR record, tagInt i, c], e)
