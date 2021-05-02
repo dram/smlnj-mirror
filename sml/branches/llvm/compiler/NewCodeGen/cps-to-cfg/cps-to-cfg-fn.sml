@@ -53,7 +53,7 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
     fun isTaggedInt sz = (sz <= defaultIntSz)
 
   (* normalize an integer size to a native machine-size *)
-    fun normSz sz = if sz = defaultIntSz then ity else sz
+    fun normSz sz = if isTaggedInt sz then ity else sz
 
   (* pointers to unknown objects *)
     val BOGty = CPSUtil.BOGt
@@ -370,7 +370,9 @@ C.NUMt{sz=sz}
 				  (mkDesc(wordsPerDbl * n, D.tag_raw64), MS.realSize)
 			      | SOME CPS.RK_RAWBLOCK =>
 				  (mkDesc(n, D.tag_raw), MS.valueSize)
-			      | _ => error ["bogus raw record kind"]
+			      | SOME rk => error [
+				    "bogus raw record kind ", PPCps.rkToString rk
+				  ]
 			    (* end case *))
 		      val len = n * scale
 		      val oper = TP.RAW_ALLOC{desc = desc, align = scale, len = len}
