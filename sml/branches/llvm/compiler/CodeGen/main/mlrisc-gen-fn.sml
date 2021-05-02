@@ -996,7 +996,10 @@ functor MLRiscGen (
 		      gen (e, 0)
 (*+DEBUG*)
 			handle ex => (
-			  print(concat["***** MLRiscGen.genCPSFunction: exception (", exnMessage ex, ")\n"]);
+			  print(concat[
+			      "***** MLRiscGen.genCPSFunction: exception (",
+			      exnMessage ex, ")\n"
+			    ]);
 			  printCPSFun(kind, f, params, tys, e);
 			  raise ex)
 (*-DEBUG*)
@@ -1652,7 +1655,7 @@ functor MLRiscGen (
 		      else defINT(x, M.SUBT(ity, zero, regbind v), e, 0))
 		| gen (C.ARITH(P.IARITH{sz=sz, oper}, [v, w], x, _, e), hp) = (
 		    updtHeapPtr hp; (* because of potential exception *)
-		    if (sz <= Target.defaultIntSz)
+		    if isTaggedInt sz
 		      then (case oper
 			 of P.IADD => defTAGINT(x, tagIntAdd(M.ADDT, v, w), e, 0)
 			  | P.ISUB => defTAGINT(x, tagIntSub(M.SUBT, v, w), e, 0)
