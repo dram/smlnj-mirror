@@ -259,7 +259,15 @@ structure CPSInfo : sig
 		(* end case *))
 	  end
 
-    fun modeOf (LInfo{modes, ...}) = Tbl.lookup modes
+    fun modeOf (LInfo{modes, ...}) = let val find = Tbl.find modes
+	  in
+	    fn lv => (case find lv
+		 of SOME m => m
+		  | NONE => raise Fail(concat[
+			"modeOf(", LambdaVar.lvarName lv, "): unknown variable"
+		      ])
+		(* end case *))
+	  end
 
     fun numVars (LInfo{modes, ...}) = Tbl.numItems modes
 
