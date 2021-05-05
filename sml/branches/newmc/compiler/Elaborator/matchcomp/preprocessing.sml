@@ -11,6 +11,7 @@ local
   structure V = VarCon		       
   structure LT = PLambdaType
   structure MT = MCCommon
+  structure MU = MCUtil
   structure PL = PLambda
   open Absyn MCCommon PLambda
 
@@ -55,38 +56,38 @@ fun orExpand (ORpat(pat1,pat2)) =
  *  preProcessPat is applied to each hybrid rule in the match. All the patterns
  *  in the ramifiedLHS are derived from the original single pattern by OR expansion.
  *)
-fun expandPats toLty rules =
+fun expandPats (rules, argTy, resTy) =
 let
     fun processRule ((pat, rhs), (expandedRuleno, originalRuleno, ruleTable, pats, rhsBinders)) =
 	 let val pat = AbsynUtil.stripPatMarks pat
 	     val patVariables = AbsynUtil.patVariables pat (* works even with OR patterns *)
 
-	     (* abstractRHS : V.var list * PL.lexp -> PL.lexp *)
-	     fun abstractRHS ([], rhs) = FN(mkv(), LT.ltc_unit, rhs)
-	       | abstractRHS ([var], rhs) =
-		   let val argLvar = V.varToLvar var
-		       val argLty = toLty (V.varToType var)
-		    in FN (argLvar, argLty, rhs)
-		   end
-	       | abstractRHS (vars, rhs) =
-		   let val argLvar = mkv () (* one lvars "bound to" tuple of pat variables *)
-		       fun wrapLet (nil, n) = (rhs, nil)
-			 | wrapLet (v::rest, n) =
-			     let val lv  = V.varToLvar v
-				 val lt = toLty (V.varToType v)
-				 val (le, tt) = wrapLet (rest, n+1)
-			      in (LET(lv, SELECT(n, VAR argLvar), le), lt :: tt)
-			     end
-		       val (body, tt) = wrapLet (vars, 0)
-		    in FN (argLvar, LT.ltc_tuple tt, body)
-		   end
+	     (* abstractRHS : V.var list * AS.exp -> AS.exp *)
+	     fun abstractRHS (pvars, rhs) =
+		 (case pvars
+		   of nil =>
+		        AS.FNexp ([RULE(AU.unitPat, rhs)], BT.unitTy, resTy)
+		    | [var] =>
+		        let val varTy = V.varType var
+			in FN ([RULE(var, rhs)], varTy, resTy)
+			end
+		    | vars =>
+			let val argTy = TU.mkTupleTy (map V.varType vars)
+			    val argVar = V.newVar (argTy)
+			    val argVarExp = AS.VARexp (argVar, nil)
+			    fun wrapLet (nil, n) = rhs
+			      | wrapLet (v::rest, n) =
+				  MU.mkLetVar(v, AS.RSELECTexp (argVarExp, n), wrapLet (rest, n+1))
+			    val body = wrapLet (vars, 0)
+			 in FN ([RULE (AS.VARpat(argVar), body)], argTy, resTy)
+			end)
 
 	     val rhsFun = abstractRHS (patVariables, rhs)
 
-	     val fvar: LambdaVar.lvar = mkv ()  (* lvar to which rhs function is bound *)
+	     val fvar: V.var = V.newVar (BT.--> (argTy, resTy))  (* lvar to which rhs function is bound *)
 
-             (* rhsFunBinder : PL.lexp -> PL.lexp *)
-	     val rhsFunBinder = fn (body: PL.lexp) => PL.LET (fvar, rhsFun, body)
+             (* rhsFunBinder : AS.exp -> AS.exp *)
+	     val rhsFunBinder = fn (body: AS.exp) => MU.mkLetVar (fvar, rhsFun, body)
 
 	     (* list of pats produced by or-expansion of pat (ramification of pat)
               *  all pats in this ramified family share the same bound pvars fvar *)

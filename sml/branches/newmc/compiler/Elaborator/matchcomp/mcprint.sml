@@ -33,7 +33,7 @@ local
 in
 
 fun bug msg = ErrorMsg.impossible ("MCPrint: " ^ msg)
-val debugging = FLINT_Control.mcdebugging
+val debugging = MCControl.mcdebugging
 
 fun debugMsg (msg: string) =
     if (!debugging)

@@ -22,12 +22,10 @@ Group
 	structure ElabMod
 	structure ElabTop
 
-	structure MCTypes
-	structure AndOr
-	structure ORQueues
+	structure MCCommon
+	structure Andor
 	structure DecisionTree
         structure MCUtil
-	structure VMCexp
 	structure MatchComp
 
 	structure BasicTypes
@@ -40,6 +38,10 @@ is
 
 	control/elabcontrol.sig
 	control/elabcontrol.sml
+	control/mccontrol.sig
+	control/mccontrol.sml
+
+        elaborate/control/timeit.sml
 
 	types/unify.sml
 	types/overloadclasses.sml
@@ -65,25 +67,14 @@ is
 	elaborate/elabtop.sml
 	elaborate/check-unused.sml
 
-        matchcomp/svar.sig
-        matchcomp/svar.sml
-        matchcomp/rules.sig
-        matchcomp/rules.sml
-	matchcomp/key.sml
-        matchcomp/variants.sml
-	matchcomp/layers.sml
-	matchcomp/livelayers.sml
-        matchcomp/mctypes.sml
+        matchcomp/mccommon.sml
 	matchcomp/mcutil.sml
         matchcomp/mcprint.sml
-	matchcomp/ORinfo.sml
+        matchcomp/protoandor.sml
         matchcomp/andor.sml
-        matchcomp/or-queues.sml
         matchcomp/decisiontree.sml
-        matchcomp/vmcexp.sml
-	matchcomp/svarenv.sml
-        matchcomp/varenvmc.sml
-        matchcomp/varenvac.sml
+        matchcomp/generate.sml
+        matchcomp/preprocessing.sml
         matchcomp/matchcomp.sml
 
 	$smlnj/viscomp/elabdata.cm

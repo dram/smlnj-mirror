@@ -21,7 +21,7 @@ local
   open MCCommon
   structure RS = RuleSet
 
-  val debugging = Control.MC.debugging
+  val debugging = MCControl.mcdebugging
 
   fun bug msg = ErrorMsg.impossible ("Andor: " ^ msg)
 
@@ -39,7 +39,7 @@ local
   fun ppCon con =
       PP.with_default_pp (fn ppstrm => MCPrint.ppCon ppstrm con)
 
-  fun ppRules rules =
+  fun ppRules (rules: ruleset) =
       PP.with_default_pp (fn ppstrm => MCPrint.ppRuleset ppstrm rules)
 
 in
@@ -81,7 +81,7 @@ fun mapVarBindings (id: nodeId, varBindings: varBindings): unit =
 fun pvarFind (pvarmap: pvarmap, lvar : LV.lvar) =
     M.find (pvarmap, lvar)
 
-(* translateAndor : andor0 * path * ruleset -> andor
+(* translateAndor : protoAndor * path * ruleset * ty -> andor
    Traverses the andor tree accumulating a bindenv binding all generated paths
    (starting with path as the root) to the associated "live" rules from
    the bindings fields in all the andor tree's nodes.
@@ -102,20 +102,22 @@ fun pvarFind (pvarmap: pvarmap, lvar : LV.lvar) =
    vector OR node itself terminates in a VLEN link.
 *)
 
-(* translateAndor : protoandor * ruleset -> andor *)
-fun translateAndor (ANDs {bindings, children}, live) =
+(* translateAndor : protoAndor * ruleset * T.ty -> andor *)
+fun translateAndor (ANDs {bindings, children}, live, ty) =
       let val id = newId ()
+	  val childrenTys = TU.destructRecordTy ty
+	  val children' = ListPair.map (fn (pa, ty) => translateAndor (pa, live, ty))
+				       (children, childrenTys)
        in mapVarBindings (id, bindings);
-          AND {id = id,
-	       children = map (fn pa => translateAndor (pa, live)) children}
+          AND {id = id, children = children'}
       end
-  | translateAndor (ORs {bindings, cases, sign}, live) =
+  | translateAndor (ORs {bindings, cases, sign}, live, ty) =
       let val id = newId ()
 	  fun getDefaults (nil, live) = live
 	    | getDefaults ((_,rules,_)::rest, live)  =
 	        getDefaults (rest, RS.difference (live, rules))
 	  val defaults = getDefaults (cases, live) (* subset of live *)
-	  fun transCase scase = translateCase (scase, live, defaults)
+	  fun transCase scase = translateCase (scase, live, defaults, ty)
 	  val cases' = map transCase cases
 	  val _ = if !debugging
 		  then (say ("translateAndor: id = " ^ Int.toString id);
@@ -127,15 +129,15 @@ fun translateAndor (ANDs {bindings, children}, live) =
        in mapVarBindings (id, bindings);
 	  OR {id = id, sign = sign, defaults = defaults, cases = cases'}
       end
-  | translateAndor (VARs {bindings}, live) =
+  | translateAndor (VARs {bindings}, live, ty) =
       let val id = newId ()
        in mapVarBindings (id, bindings);
-	  VAR {id = id}
+	  VAR {id = id, ty = ty}
       end
 
-(* translateCase : variant0 * ruleset * ruleset -> variant *)
-and translateCase ((con, caserules, subcase), live, defaults) =
-    let val caseLive = RS.intersection(caserules, live)
+(* translateCase : protoVariant * ruleset * ruleset * T.ty -> variant *)
+and translateCase ((con, caserules, subcase), live, defaults, ty) =
+    let val caseLive = RS.intersection (caserules, live)
 	val stillLive = RS.intersection (RS.union (caserules, defaults), live)
 	val _ =  if !debugging
 		 then (say "translateCase: con = ";
@@ -144,22 +146,23 @@ and translateCase ((con, caserules, subcase), live, defaults) =
 		       say "  stillLive = "; ppRules stillLive)
 		 else ()
       in case (con, subcase)
-	  of (VLENcon (k, ty), VEC elements) =>
-	     let val elements' = map (fn pa => translateAndor (pa, stillLive)) elements
+	  of (VLENcon (k, elemty), VEC elements) =>
+	     let val elements' = map (fn pa => translateAndor (pa, stillLive, elemty)) elements
 	      in (con, caseLive, VEC elements')
 	     end
-	   | (DATAcon _, DCON pandor) => (* non-constant datacon *)
-             (con, caseLive, DCON (translateAndor (pandor, stillLive)))
+	   | (DATAcon (dcon, _), DCON pandor) => (* non-constant datacon *)
+             (con, caseLive,
+	      DCON (translateAndor (pandor, stillLive, TU.destructDataconTy (ty, dcon))))
 	   | (_, CONST) => (* con should be constant, not checked *)
 	     (con, caseLive, CONST)
 	   | _ => bug "translateCase: inconsistent cases"
       end
 
 (* makeAndor : andor * ruleset -> andor *)
-fun makeAndor (andor, allRules) =
+fun makeAndor (andor, patty, allRules) =
       (pvarmapRef := M.empty;  (* reset pvarmap *)
        idcount := 0;           (* reset idcount *)
-       (translateAndor (andor, allRules), !pvarmapRef, !idcount))
+       (translateAndor (andor, allRules, patty), !pvarmapRef, !idcount))
 
 end (* local *)
 end (* structure Andor2 *)

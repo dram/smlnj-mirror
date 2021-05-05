@@ -75,7 +75,9 @@ structure ElabControl : ELAB_CONTROL =
     val markabsyn = onew ("markabsyn", "mark abstract syntax", true)
         (* ElabCore, ElabTop, ElabUtil, Control_MC *)
 
-    val printAbsyn = ref false
+    val printAbsyn = onew ("printAbsyn", "absyn print mode", false)
+    val stats = onew ("stats", "match compiler timings and stats", false)
+
 
   (***** Controls for warning messages *****)
 

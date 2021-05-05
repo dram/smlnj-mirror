@@ -1244,7 +1244,7 @@ let
 
          in showDec("elabFUNdec: ", funsDec, funsEnv);
 	    (funsDec, funsEnv, TS.empty, updt)
-	end
+	end (* fun elabFUNdec *)
 
     and elabSEQdec(ds,env,rpath:IP.path,region) =
 	let val (ds1,env1,tv1,updt1) =

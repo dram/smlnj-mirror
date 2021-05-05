@@ -188,8 +188,8 @@ sig
    * in body *)
 
   val destructDataconTy : Types.ty * Types.datacon -> Types.ty
-  (* given the range (ty) of an instance of the type of a dcon, returns corresponding instance
-   * of the domain of the dcon *)
+  (* given an instance, ty, of the range of a dcon, returns corresponding
+   * instance of the domain of the dcon *)
 
   val destructRecordTy : Types.ty -> Types.ty list
   (* returns the field types (in canonical order) of a record type *)

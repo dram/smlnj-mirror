@@ -4,22 +4,6 @@
  * All rights reserved.
  *)
 
-(* match compiler controls *)
-signature MCCONTROL =
-  sig
-    val debugging : bool ref
-    val stats : bool ref
-    val printArgs : bool ref
-    val printRet : bool ref
-    val bindNoVariableWarn : bool ref
-    val bindNonExhaustiveWarn : bool ref
-    val bindNonExhaustiveError : bool ref
-    val matchNonExhaustiveWarn : bool ref
-    val matchNonExhaustiveError : bool ref
-    val matchRedundantWarn : bool ref
-    val matchRedundantError : bool ref
-  end (* signature MCCONTROL *)
-
 (* general code-generation controls *)
 signature CGCONTROL =
   sig

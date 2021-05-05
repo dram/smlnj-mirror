@@ -4,71 +4,6 @@
  * All rights reserved.
  *)
 
-(* Match compiler controls *)
-structure Control_MC : MCCONTROL =
-struct
-
-    val priority = [10, 10, 4]
-    val obscurity = 2
-    val prefix = "compiler-mc"
-
-    val registry = ControlRegistry.new { help = "match compiler settings" }
-
-    val _ = BasicControl.nest (prefix, registry, priority)
-
-    val bool_cvt = ControlUtil.Cvt.bool
-
-    val nextpri = ref 0
-
-    fun flag (name: string, help: string, default) = let
-	  val r = ref default
-	  val p = !nextpri
-	  val ctl = Controls.control {
-		  name = name,
-		  pri = [p],
-		  obscurity = obscurity,
-		  help = help,
-		  ctl = r
-		}
-	  in
-	    nextpri := p + 1;
-	    ControlRegistry.register
-		registry
-		{ ctl = Controls.stringControl bool_cvt ctl,
-		  envName = SOME (ControlUtil.EnvName.toUpper "COMPILER_MC_" name) };
-	    r
-	  end
-
-    val debugging = flag ("debugging", "general match compiler debugging", false)
-    val stats = flag ("stats", "match compiler timing and stats", false)
-    val printArgs = flag ("print-args", "arguments print mode", false)
-    val printRet = flag ("print-ret", "return print mode", false)
-
-    val bindNoVariableWarn =
-	flag ("nobind-warn", "whether to warn if no variables get bound",
-	      false)
-    val bindNonExhaustiveWarn =
-	flag ("warn-non-exhaustive-bind",
-	      "whether to warn on non-exhaustive bind", true)
-    val bindNonExhaustiveError =
-	flag ("error-non-exhaustive-bind",
-	      "whether non-exhaustive bind is an error", false)
-    val matchNonExhaustiveWarn =
-	flag ("warn-non-exhaustive-match",
-	      "whether to warn on non-exhaustive match", true)
-    val matchNonExhaustiveError =
-	flag ("error-non-exhaustive-match",
-	      "whether non-exhaustive match is an error", false)
-    (* matchExhaustiveError overrides matchExhaustiveWarn *)
-    val matchRedundantWarn =
-	flag ("warn-redundant", "whether to warn on redundant matches", true)
-    val matchRedundantError =
-	flag ("error-redundant", "whether a redundant match is an error", true)
-    (* matchRedundantError overrides matchRedundantWarn *)
-
-end (* structure Control_MC *)
-
-
 (* Code generation controls (including some used in FLINT?) *)
 structure Control_CG : CGCONTROL =
   struct
@@ -204,9 +139,11 @@ structure Control : CONTROL =
 
     structure ElabData : ELABDATA_CONTROL = ElabDataControl
 
-    structure Elab : ELAB_CONTROL = ElabControl
+    (* elaborator controls *)
+    structure Elab : ELAB_CONTROL = ElabControl (* Elaborator/control/elabcontrol.{sml,sig} *)
 
-    structure MC : MCCONTROL = Control_MC
+    (* match compiler controls *)
+    structure MC : MC_CONTROL = MCControl (* Elaborator/control/mccontrol.{sml,sig} *)
 
     structure FLINT = FLINT_Control
 
@@ -217,6 +154,7 @@ structure Control : CONTROL =
     open BasicControl
     (* provides: val printWarnings = ref true
      *)
+
     open ParserControl
     (* provides: val primaryPrompt = ref "- "
 		 val secondaryPrompt = ref "= "
