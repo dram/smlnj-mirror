@@ -41,7 +41,7 @@ namespace CFG_Prim {
       // the first argument is the record's descriptor word and the second
       // is the content of the special object.
 	assert (args.size() == 2 && "expected descriptor and content");
-	return buf->allocRecord (args[0], { args[1] });
+	return buf->allocRecord (buf->asMLValue(args[0]), { args[1] });
 
     }
 
