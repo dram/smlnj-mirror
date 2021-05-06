@@ -127,6 +127,8 @@ void code_buffer::beginModule (std::string const & src, int nClusters)
     this->_fabs64 = nullptr;
     this->_sqrt32 = nullptr;
     this->_sqrt64 = nullptr;
+    this->_copysign32 = nullptr;
+    this->_copysign64 = nullptr;
     this->_readReg = nullptr;
     this->_spRegMD = nullptr;
 

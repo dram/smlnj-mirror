@@ -254,6 +254,10 @@ namespace CFG_Prim {
 		 return buf->build().CreateCall(
 		    (this->get_sz() == 32) ? buf->sqrt32() : buf->sqrt64(),
 		    args);
+	    case pureop::FCOPYSIGN:
+		 return buf->build().CreateCall(
+		    (this->get_sz() == 32) ? buf->sqrt32() : buf->sqrt64(),
+		    args);
 	} // switch
 
     } // PURE_ARITH::codegen

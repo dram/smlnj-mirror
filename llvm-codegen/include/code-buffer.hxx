@@ -514,6 +514,20 @@ class code_buffer {
 	}
 	return this->_sqrt64;
     }
+    llvm::Function *copysign32 () const
+    {
+	if (this->_copysign32 == nullptr) {
+	    this->_copysign32 = _getIntrinsic (llvm::Intrinsic::copysign, this->f32Ty);
+	}
+	return this->_copysign32;
+    }
+    llvm::Function *copysign64 () const
+    {
+	if (this->_copysign64 == nullptr) {
+	    this->_copysign64 = _getIntrinsic (llvm::Intrinsic::copysign, this->f64Ty);
+	}
+	return this->_copysign64;
+    }
 
   /***** shorthand for LLVM integer instructions (with argument coercions) *****/
 /* FIXME: Note that for now, we assume that all arithmetic is in the native integer size! */
@@ -766,6 +780,8 @@ class code_buffer {
     mutable llvm::Function *_fabs64;		// @llvm.fabs.f64
     mutable llvm::Function *_sqrt32;		// @llvm.sqrt.f32
     mutable llvm::Function *_sqrt64;		// @llvm.sqrt.f64
+    mutable llvm::Function *_copysign32;	// @llvm.copysign.f32
+    mutable llvm::Function *_copysign64;	// @llvm.copysign.f64
 
   // cached @llvm.read_register + meta data to access stack
     llvm::Function *_readReg;
