@@ -32,34 +32,34 @@ namespace CTypes {
             _con_C_UNION
         };
         c_type (_tag_t tag)
-            : _tag(tag)
+          : _tag(tag)
         { }
         _tag_t _tag;
     };
     struct C_void : public c_type {
         C_void ()
-            : c_type(c_type::_con_C_void)
+          : c_type(c_type::_con_C_void)
         { }
         ~C_void ();
         // pickler method suppressed
     };
     struct C_float : public c_type {
         C_float ()
-            : c_type(c_type::_con_C_float)
+          : c_type(c_type::_con_C_float)
         { }
         ~C_float ();
         // pickler method suppressed
     };
     struct C_double : public c_type {
         C_double ()
-            : c_type(c_type::_con_C_double)
+          : c_type(c_type::_con_C_double)
         { }
         ~C_double ();
         // pickler method suppressed
     };
     struct C_long_double : public c_type {
         C_long_double ()
-            : c_type(c_type::_con_C_long_double)
+          : c_type(c_type::_con_C_long_double)
         { }
         ~C_long_double ();
         // pickler method suppressed
@@ -67,7 +67,7 @@ namespace CTypes {
     class C_unsigned : public c_type {
       public:
         C_unsigned (c_int p0)
-            : c_type(c_type::_con_C_unsigned), _v0(p0)
+          : c_type(c_type::_con_C_unsigned), _v0(p0)
         { }
         ~C_unsigned ();
         // pickler method suppressed
@@ -85,7 +85,7 @@ namespace CTypes {
     class C_signed : public c_type {
       public:
         C_signed (c_int p0)
-            : c_type(c_type::_con_C_signed), _v0(p0)
+          : c_type(c_type::_con_C_signed), _v0(p0)
         { }
         ~C_signed ();
         // pickler method suppressed
@@ -102,7 +102,7 @@ namespace CTypes {
     };
     struct C_PTR : public c_type {
         C_PTR ()
-            : c_type(c_type::_con_C_PTR)
+          : c_type(c_type::_con_C_PTR)
         { }
         ~C_PTR ();
         // pickler method suppressed
@@ -110,7 +110,7 @@ namespace CTypes {
     class C_ARRAY : public c_type {
       public:
         C_ARRAY (c_type * p0, int p1)
-            : c_type(c_type::_con_C_ARRAY), _v0(p0), _v1(p1)
+          : c_type(c_type::_con_C_ARRAY), _v0(p0), _v1(p1)
         { }
         ~C_ARRAY ();
         // pickler method suppressed
@@ -137,7 +137,7 @@ namespace CTypes {
     class C_STRUCT : public c_type {
       public:
         C_STRUCT (std::vector<c_type *> p0)
-            : c_type(c_type::_con_C_STRUCT), _v0(p0)
+          : c_type(c_type::_con_C_STRUCT), _v0(p0)
         { }
         ~C_STRUCT ();
         // pickler method suppressed
@@ -155,7 +155,7 @@ namespace CTypes {
     class C_UNION : public c_type {
       public:
         C_UNION (std::vector<c_type *> p0)
-            : c_type(c_type::_con_C_UNION), _v0(p0)
+          : c_type(c_type::_con_C_UNION), _v0(p0)
         { }
         ~C_UNION ();
         // pickler method suppressed
@@ -179,7 +179,7 @@ namespace CTypes {
     class c_proto {
       public:
         c_proto (calling_convention p_conv, c_type * p_retTy, std::vector<c_type *> p_paramTys)
-            : _v_conv(p_conv), _v_retTy(p_retTy), _v_paramTys(p_paramTys)
+          : _v_conv(p_conv), _v_retTy(p_retTy), _v_paramTys(p_paramTys)
         { }
         ~c_proto ();
         // pickler method suppressed
@@ -237,7 +237,7 @@ namespace CFG_Prim {
     class raw_ty {
       public:
         raw_ty (numkind p_kind, int p_sz)
-            : _v_kind(p_kind), _v_sz(p_sz)
+          : _v_kind(p_kind), _v_sz(p_sz)
         { }
         ~raw_ty ();
         // pickler method suppressed
@@ -274,13 +274,13 @@ namespace CFG_Prim {
       protected:
         enum _tag_t {_con_SPECIAL = 1, _con_RECORD, _con_RAW_RECORD, _con_RAW_ALLOC};
         alloc (_tag_t tag)
-            : _tag(tag)
+          : _tag(tag)
         { }
         _tag_t _tag;
     };
     struct SPECIAL : public alloc {
         SPECIAL ()
-            : alloc(alloc::_con_SPECIAL)
+          : alloc(alloc::_con_SPECIAL)
         { }
         ~SPECIAL ();
         // pickler method suppressed
@@ -290,7 +290,7 @@ namespace CFG_Prim {
     class RECORD : public alloc {
       public:
         RECORD (asdl::integer p_desc, bool p_mut)
-            : alloc(alloc::_con_RECORD), _v_desc(p_desc), _v_mut(p_mut)
+          : alloc(alloc::_con_RECORD), _v_desc(p_desc), _v_mut(p_mut)
         { }
         ~RECORD ();
         // pickler method suppressed
@@ -319,8 +319,8 @@ namespace CFG_Prim {
     class RAW_RECORD : public alloc {
       public:
         RAW_RECORD (asdl::integer p_desc, int p_align, std::vector<raw_ty *> p_fields)
-            : alloc(alloc::_con_RAW_RECORD), _v_desc(p_desc), _v_align(p_align),
-            _v_fields(p_fields)
+          : alloc(alloc::_con_RAW_RECORD), _v_desc(p_desc), _v_align(p_align),
+              _v_fields(p_fields)
         { }
         ~RAW_RECORD ();
         // pickler method suppressed
@@ -358,8 +358,8 @@ namespace CFG_Prim {
     class RAW_ALLOC : public alloc {
       public:
         RAW_ALLOC (asdl::option<asdl::integer> p_desc, int p_align, int p_len)
-            : alloc(alloc::_con_RAW_ALLOC), _v_desc(p_desc), _v_align(p_align),
-            _v_len(p_len)
+          : alloc(alloc::_con_RAW_ALLOC), _v_desc(p_desc), _v_align(p_align),
+              _v_len(p_len)
         { }
         ~RAW_ALLOC ();
         // pickler method suppressed
@@ -407,14 +407,14 @@ namespace CFG_Prim {
       protected:
         enum _tag_t {_con_ARITH = 1, _con_REAL_TO_INT};
         arith (_tag_t tag)
-            : _tag(tag)
+          : _tag(tag)
         { }
         _tag_t _tag;
     };
     class ARITH : public arith {
       public:
         ARITH (arithop p_oper, int p_sz)
-            : arith(arith::_con_ARITH), _v_oper(p_oper), _v_sz(p_sz)
+          : arith(arith::_con_ARITH), _v_oper(p_oper), _v_sz(p_sz)
         { }
         ~ARITH ();
         // pickler method suppressed
@@ -443,8 +443,7 @@ namespace CFG_Prim {
     class REAL_TO_INT : public arith {
       public:
         REAL_TO_INT (rounding_mode p_mode, int p_from, int p_to)
-            : arith(arith::_con_REAL_TO_INT), _v_mode(p_mode), _v_from(p_from),
-            _v_to(p_to)
+          : arith(arith::_con_REAL_TO_INT), _v_mode(p_mode), _v_from(p_from), _v_to(p_to)
         { }
         ~REAL_TO_INT ();
         // pickler method suppressed
@@ -500,7 +499,8 @@ namespace CFG_Prim {
         FDIV,
         FNEG,
         FABS,
-        FSQRT
+        FSQRT,
+        FCOPYSIGN
     };
     // pickler suppressed for pureop
     pureop read_pureop (asdl::instream & is);
@@ -522,14 +522,14 @@ namespace CFG_Prim {
             _con_RAW_SELECT
         };
         pure (_tag_t tag)
-            : _tag(tag)
+          : _tag(tag)
         { }
         _tag_t _tag;
     };
     class PURE_ARITH : public pure {
       public:
         PURE_ARITH (pureop p_oper, int p_sz)
-            : pure(pure::_con_PURE_ARITH), _v_oper(p_oper), _v_sz(p_sz)
+          : pure(pure::_con_PURE_ARITH), _v_oper(p_oper), _v_sz(p_sz)
         { }
         ~PURE_ARITH ();
         // pickler method suppressed
@@ -558,7 +558,7 @@ namespace CFG_Prim {
     class EXTEND : public pure {
       public:
         EXTEND (bool p_signed, int p_from, int p_to)
-            : pure(pure::_con_EXTEND), _v_signed(p_signed), _v_from(p_from), _v_to(p_to)
+          : pure(pure::_con_EXTEND), _v_signed(p_signed), _v_from(p_from), _v_to(p_to)
         { }
         ~EXTEND ();
         // pickler method suppressed
@@ -596,7 +596,7 @@ namespace CFG_Prim {
     class TRUNC : public pure {
       public:
         TRUNC (int p_from, int p_to)
-            : pure(pure::_con_TRUNC), _v_from(p_from), _v_to(p_to)
+          : pure(pure::_con_TRUNC), _v_from(p_from), _v_to(p_to)
         { }
         ~TRUNC ();
         // pickler method suppressed
@@ -625,7 +625,7 @@ namespace CFG_Prim {
     class INT_TO_REAL : public pure {
       public:
         INT_TO_REAL (int p_from, int p_to)
-            : pure(pure::_con_INT_TO_REAL), _v_from(p_from), _v_to(p_to)
+          : pure(pure::_con_INT_TO_REAL), _v_from(p_from), _v_to(p_to)
         { }
         ~INT_TO_REAL ();
         // pickler method suppressed
@@ -653,7 +653,7 @@ namespace CFG_Prim {
     };
     struct PURE_SUBSCRIPT : public pure {
         PURE_SUBSCRIPT ()
-            : pure(pure::_con_PURE_SUBSCRIPT)
+          : pure(pure::_con_PURE_SUBSCRIPT)
         { }
         ~PURE_SUBSCRIPT ();
         // pickler method suppressed
@@ -663,7 +663,7 @@ namespace CFG_Prim {
     class PURE_RAW_SUBSCRIPT : public pure {
       public:
         PURE_RAW_SUBSCRIPT (numkind p_kind, int p_sz)
-            : pure(pure::_con_PURE_RAW_SUBSCRIPT), _v_kind(p_kind), _v_sz(p_sz)
+          : pure(pure::_con_PURE_RAW_SUBSCRIPT), _v_kind(p_kind), _v_sz(p_sz)
         { }
         ~PURE_RAW_SUBSCRIPT ();
         // pickler method suppressed
@@ -692,8 +692,8 @@ namespace CFG_Prim {
     class RAW_SELECT : public pure {
       public:
         RAW_SELECT (numkind p_kind, int p_sz, int p_offset)
-            : pure(pure::_con_RAW_SELECT), _v_kind(p_kind), _v_sz(p_sz),
-            _v_offset(p_offset)
+          : pure(pure::_con_RAW_SELECT), _v_kind(p_kind), _v_sz(p_sz),
+              _v_offset(p_offset)
         { }
         ~RAW_SELECT ();
         // pickler method suppressed
@@ -745,13 +745,13 @@ namespace CFG_Prim {
             _con_GET_VAR
         };
         looker (_tag_t tag)
-            : _tag(tag)
+          : _tag(tag)
         { }
         _tag_t _tag;
     };
     struct DEREF : public looker {
         DEREF ()
-            : looker(looker::_con_DEREF)
+          : looker(looker::_con_DEREF)
         { }
         ~DEREF ();
         // pickler method suppressed
@@ -760,7 +760,7 @@ namespace CFG_Prim {
     };
     struct SUBSCRIPT : public looker {
         SUBSCRIPT ()
-            : looker(looker::_con_SUBSCRIPT)
+          : looker(looker::_con_SUBSCRIPT)
         { }
         ~SUBSCRIPT ();
         // pickler method suppressed
@@ -770,7 +770,7 @@ namespace CFG_Prim {
     class RAW_SUBSCRIPT : public looker {
       public:
         RAW_SUBSCRIPT (numkind p_kind, int p_sz)
-            : looker(looker::_con_RAW_SUBSCRIPT), _v_kind(p_kind), _v_sz(p_sz)
+          : looker(looker::_con_RAW_SUBSCRIPT), _v_kind(p_kind), _v_sz(p_sz)
         { }
         ~RAW_SUBSCRIPT ();
         // pickler method suppressed
@@ -799,7 +799,7 @@ namespace CFG_Prim {
     class RAW_LOAD : public looker {
       public:
         RAW_LOAD (numkind p_kind, int p_sz)
-            : looker(looker::_con_RAW_LOAD), _v_kind(p_kind), _v_sz(p_sz)
+          : looker(looker::_con_RAW_LOAD), _v_kind(p_kind), _v_sz(p_sz)
         { }
         ~RAW_LOAD ();
         // pickler method suppressed
@@ -827,7 +827,7 @@ namespace CFG_Prim {
     };
     struct GET_HDLR : public looker {
         GET_HDLR ()
-            : looker(looker::_con_GET_HDLR)
+          : looker(looker::_con_GET_HDLR)
         { }
         ~GET_HDLR ();
         // pickler method suppressed
@@ -836,7 +836,7 @@ namespace CFG_Prim {
     };
     struct GET_VAR : public looker {
         GET_VAR ()
-            : looker(looker::_con_GET_VAR)
+          : looker(looker::_con_GET_VAR)
         { }
         ~GET_VAR ();
         // pickler method suppressed
@@ -862,13 +862,13 @@ namespace CFG_Prim {
             _con_SET_VAR
         };
         setter (_tag_t tag)
-            : _tag(tag)
+          : _tag(tag)
         { }
         _tag_t _tag;
     };
     struct UNBOXED_UPDATE : public setter {
         UNBOXED_UPDATE ()
-            : setter(setter::_con_UNBOXED_UPDATE)
+          : setter(setter::_con_UNBOXED_UPDATE)
         { }
         ~UNBOXED_UPDATE ();
         // pickler method suppressed
@@ -877,7 +877,7 @@ namespace CFG_Prim {
     };
     struct UPDATE : public setter {
         UPDATE ()
-            : setter(setter::_con_UPDATE)
+          : setter(setter::_con_UPDATE)
         { }
         ~UPDATE ();
         // pickler method suppressed
@@ -886,7 +886,7 @@ namespace CFG_Prim {
     };
     struct UNBOXED_ASSIGN : public setter {
         UNBOXED_ASSIGN ()
-            : setter(setter::_con_UNBOXED_ASSIGN)
+          : setter(setter::_con_UNBOXED_ASSIGN)
         { }
         ~UNBOXED_ASSIGN ();
         // pickler method suppressed
@@ -895,7 +895,7 @@ namespace CFG_Prim {
     };
     struct ASSIGN : public setter {
         ASSIGN ()
-            : setter(setter::_con_ASSIGN)
+          : setter(setter::_con_ASSIGN)
         { }
         ~ASSIGN ();
         // pickler method suppressed
@@ -905,7 +905,7 @@ namespace CFG_Prim {
     class RAW_UPDATE : public setter {
       public:
         RAW_UPDATE (numkind p_kind, int p_sz)
-            : setter(setter::_con_RAW_UPDATE), _v_kind(p_kind), _v_sz(p_sz)
+          : setter(setter::_con_RAW_UPDATE), _v_kind(p_kind), _v_sz(p_sz)
         { }
         ~RAW_UPDATE ();
         // pickler method suppressed
@@ -934,7 +934,7 @@ namespace CFG_Prim {
     class RAW_STORE : public setter {
       public:
         RAW_STORE (numkind p_kind, int p_sz)
-            : setter(setter::_con_RAW_STORE), _v_kind(p_kind), _v_sz(p_sz)
+          : setter(setter::_con_RAW_STORE), _v_kind(p_kind), _v_sz(p_sz)
         { }
         ~RAW_STORE ();
         // pickler method suppressed
@@ -962,7 +962,7 @@ namespace CFG_Prim {
     };
     struct SET_HDLR : public setter {
         SET_HDLR ()
-            : setter(setter::_con_SET_HDLR)
+          : setter(setter::_con_SET_HDLR)
         { }
         ~SET_HDLR ();
         // pickler method suppressed
@@ -971,7 +971,7 @@ namespace CFG_Prim {
     };
     struct SET_VAR : public setter {
         SET_VAR ()
-            : setter(setter::_con_SET_VAR)
+          : setter(setter::_con_SET_VAR)
         { }
         ~SET_VAR ();
         // pickler method suppressed
@@ -1010,14 +1010,14 @@ namespace CFG_Prim {
         enum _tag_t {_con_CMP = 1, _con_FCMP, _con_FSGN, _con_PEQL, _con_PNEQ, _con_LIMIT
         };
         branch (_tag_t tag)
-            : _tag(tag)
+          : _tag(tag)
         { }
         _tag_t _tag;
     };
     class CMP : public branch {
       public:
         CMP (cmpop p_oper, bool p_signed, int p_sz)
-            : branch(branch::_con_CMP), _v_oper(p_oper), _v_signed(p_signed), _v_sz(p_sz)
+          : branch(branch::_con_CMP), _v_oper(p_oper), _v_signed(p_signed), _v_sz(p_sz)
         { }
         ~CMP ();
         // pickler method suppressed
@@ -1055,7 +1055,7 @@ namespace CFG_Prim {
     class FCMP : public branch {
       public:
         FCMP (fcmpop p_oper, int p_sz)
-            : branch(branch::_con_FCMP), _v_oper(p_oper), _v_sz(p_sz)
+          : branch(branch::_con_FCMP), _v_oper(p_oper), _v_sz(p_sz)
         { }
         ~FCMP ();
         // pickler method suppressed
@@ -1084,7 +1084,7 @@ namespace CFG_Prim {
     class FSGN : public branch {
       public:
         FSGN (int p0)
-            : branch(branch::_con_FSGN), _v0(p0)
+          : branch(branch::_con_FSGN), _v0(p0)
         { }
         ~FSGN ();
         // pickler method suppressed
@@ -1103,7 +1103,7 @@ namespace CFG_Prim {
     };
     struct PEQL : public branch {
         PEQL ()
-            : branch(branch::_con_PEQL)
+          : branch(branch::_con_PEQL)
         { }
         ~PEQL ();
         // pickler method suppressed
@@ -1112,7 +1112,7 @@ namespace CFG_Prim {
     };
     struct PNEQ : public branch {
         PNEQ ()
-            : branch(branch::_con_PNEQ)
+          : branch(branch::_con_PNEQ)
         { }
         ~PNEQ ();
         // pickler method suppressed
@@ -1122,7 +1122,7 @@ namespace CFG_Prim {
     class LIMIT : public branch {
       public:
         LIMIT (unsigned int p0)
-            : branch(branch::_con_LIMIT), _v0(p0)
+          : branch(branch::_con_LIMIT), _v0(p0)
         { }
         ~LIMIT ();
         // pickler method suppressed
@@ -1159,17 +1159,17 @@ namespace CFG {
 	bool isNUMt () { return this->_tag == _con_NUMt; }
 	bool isFLTt () { return this->_tag == _con_FLTt; }
 
-
+    
       protected:
         enum _tag_t {_con_LABt = 1, _con_PTRt, _con_TAGt, _con_NUMt, _con_FLTt};
         ty (_tag_t tag)
-            : _tag(tag)
+          : _tag(tag)
         { }
         _tag_t _tag;
     };
     struct LABt : public ty {
         LABt ()
-            : ty(ty::_con_LABt)
+          : ty(ty::_con_LABt)
         { }
         ~LABt ();
         // pickler method suppressed
@@ -1178,7 +1178,7 @@ namespace CFG {
     };
     struct PTRt : public ty {
         PTRt ()
-            : ty(ty::_con_PTRt)
+          : ty(ty::_con_PTRt)
         { }
         ~PTRt ();
         // pickler method suppressed
@@ -1187,7 +1187,7 @@ namespace CFG {
     };
     struct TAGt : public ty {
         TAGt ()
-            : ty(ty::_con_TAGt)
+          : ty(ty::_con_TAGt)
         { }
         ~TAGt ();
         // pickler method suppressed
@@ -1197,7 +1197,7 @@ namespace CFG {
     class NUMt : public ty {
       public:
         NUMt (int p_sz)
-            : ty(ty::_con_NUMt), _v_sz(p_sz)
+          : ty(ty::_con_NUMt), _v_sz(p_sz)
         { }
         ~NUMt ();
         // pickler method suppressed
@@ -1217,7 +1217,7 @@ namespace CFG {
     class FLTt : public ty {
       public:
         FLTt (int p_sz)
-            : ty(ty::_con_FLTt), _v_sz(p_sz)
+          : ty(ty::_con_FLTt), _v_sz(p_sz)
         { }
         ~FLTt ();
         // pickler method suppressed
@@ -1244,6 +1244,7 @@ namespace CFG {
         virtual Value *codegen (code_buffer *buf) = 0;
 	bool isLABEL () { return (this->_tag == _con_LABEL); }
 
+    
       protected:
         enum _tag_t {
             _con_VAR = 1,
@@ -1255,14 +1256,14 @@ namespace CFG {
             _con_OFFSET
         };
         exp (_tag_t tag)
-            : _tag(tag)
+          : _tag(tag)
         { }
         _tag_t _tag;
     };
     class VAR : public exp {
       public:
         VAR (LambdaVar::lvar p_name)
-            : exp(exp::_con_VAR), _v_name(p_name)
+          : exp(exp::_con_VAR), _v_name(p_name)
         { }
         ~VAR ();
         // pickler method suppressed
@@ -1282,7 +1283,7 @@ namespace CFG {
     class LABEL : public exp {
       public:
         LABEL (LambdaVar::lvar p_name)
-            : exp(exp::_con_LABEL), _v_name(p_name)
+          : exp(exp::_con_LABEL), _v_name(p_name)
         { }
         ~LABEL ();
         // pickler method suppressed
@@ -1302,7 +1303,7 @@ namespace CFG {
     class NUM : public exp {
       public:
         NUM (asdl::integer p_iv, int p_sz)
-            : exp(exp::_con_NUM), _v_iv(p_iv), _v_sz(p_sz)
+          : exp(exp::_con_NUM), _v_iv(p_iv), _v_sz(p_sz)
         { }
         ~NUM ();
         // pickler method suppressed
@@ -1331,7 +1332,7 @@ namespace CFG {
     class LOOKER : public exp {
       public:
         LOOKER (CFG_Prim::looker * p_oper, std::vector<exp *> p_args)
-            : exp(exp::_con_LOOKER), _v_oper(p_oper), _v_args(p_args)
+          : exp(exp::_con_LOOKER), _v_oper(p_oper), _v_args(p_args)
         { }
         ~LOOKER ();
         // pickler method suppressed
@@ -1360,7 +1361,7 @@ namespace CFG {
     class PURE : public exp {
       public:
         PURE (CFG_Prim::pure * p_oper, std::vector<exp *> p_args)
-            : exp(exp::_con_PURE), _v_oper(p_oper), _v_args(p_args)
+          : exp(exp::_con_PURE), _v_oper(p_oper), _v_args(p_args)
         { }
         ~PURE ();
         // pickler method suppressed
@@ -1389,7 +1390,7 @@ namespace CFG {
     class SELECT : public exp {
       public:
         SELECT (int p_idx, exp * p_arg)
-            : exp(exp::_con_SELECT), _v_idx(p_idx), _v_arg(p_arg)
+          : exp(exp::_con_SELECT), _v_idx(p_idx), _v_arg(p_arg)
         { }
         ~SELECT ();
         // pickler method suppressed
@@ -1418,7 +1419,7 @@ namespace CFG {
     class OFFSET : public exp {
       public:
         OFFSET (int p_idx, exp * p_arg)
-            : exp(exp::_con_OFFSET), _v_idx(p_idx), _v_arg(p_arg)
+          : exp(exp::_con_OFFSET), _v_idx(p_idx), _v_arg(p_arg)
         { }
         ~OFFSET ();
         // pickler method suppressed
@@ -1449,7 +1450,7 @@ namespace CFG {
     class param {
       public:
         param (LambdaVar::lvar p_name, ty * p_ty)
-            : _v_name(p_name), _v_ty(p_ty)
+          : _v_name(p_name), _v_ty(p_ty)
         { }
         ~param ();
         // pickler method suppressed
@@ -1488,7 +1489,7 @@ namespace CFG {
         virtual void codegen (code_buffer *buf) = 0;
         llvm::BasicBlock *bb () { return this->_bb; }
 
-
+    
       protected:
         enum _tag_t {
             _con_LET = 1,
@@ -1504,7 +1505,7 @@ namespace CFG {
             _con_RCC
         };
         stm (_tag_t tag)
-            : _tag(tag)
+          : _tag(tag)
         { }
         _tag_t _tag;
         llvm::BasicBlock *_bb;  // for the first stm in a block
@@ -1514,7 +1515,7 @@ namespace CFG {
     class LET : public stm {
       public:
         LET (exp * p0, param * p1, stm * p2)
-            : stm(stm::_con_LET), _v0(p0), _v1(p1), _v2(p2)
+          : stm(stm::_con_LET), _v0(p0), _v1(p1), _v2(p2)
         { }
         ~LET ();
         // pickler method suppressed
@@ -1545,7 +1546,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-
+    
       private:
         exp * _v0;
         param * _v1;
@@ -1554,7 +1555,7 @@ namespace CFG {
     class ALLOC : public stm {
       public:
         ALLOC (CFG_Prim::alloc * p0, std::vector<exp *> p1, LambdaVar::lvar p2, stm * p3)
-            : stm(stm::_con_ALLOC), _v0(p0), _v1(p1), _v2(p2), _v3(p3)
+          : stm(stm::_con_ALLOC), _v0(p0), _v1(p1), _v2(p2), _v3(p3)
         { }
         ~ALLOC ();
         // pickler method suppressed
@@ -1593,7 +1594,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-
+    
       private:
         CFG_Prim::alloc * _v0;
         std::vector<exp *> _v1;
@@ -1603,7 +1604,7 @@ namespace CFG {
     class APPLY : public stm {
       public:
         APPLY (exp * p0, std::vector<exp *> p1, std::vector<ty *> p2)
-            : stm(stm::_con_APPLY), _v0(p0), _v1(p1), _v2(p2)
+          : stm(stm::_con_APPLY), _v0(p0), _v1(p1), _v2(p2)
         { }
         ~APPLY ();
         // pickler method suppressed
@@ -1634,7 +1635,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-
+    
       private:
         exp * _v0;
         std::vector<exp *> _v1;
@@ -1643,7 +1644,7 @@ namespace CFG {
     class THROW : public stm {
       public:
         THROW (exp * p0, std::vector<exp *> p1, std::vector<ty *> p2)
-            : stm(stm::_con_THROW), _v0(p0), _v1(p1), _v2(p2)
+          : stm(stm::_con_THROW), _v0(p0), _v1(p1), _v2(p2)
         { }
         ~THROW ();
         // pickler method suppressed
@@ -1674,7 +1675,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-
+    
       private:
         exp * _v0;
         std::vector<exp *> _v1;
@@ -1683,7 +1684,7 @@ namespace CFG {
     class GOTO : public stm {
       public:
         GOTO (LambdaVar::lvar p0, std::vector<exp *> p1)
-            : stm(stm::_con_GOTO), _v0(p0), _v1(p1)
+          : stm(stm::_con_GOTO), _v0(p0), _v1(p1)
         { }
         ~GOTO ();
         // pickler method suppressed
@@ -1706,7 +1707,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-
+    
       private:
         LambdaVar::lvar _v0;
         std::vector<exp *> _v1;
@@ -1714,7 +1715,7 @@ namespace CFG {
     class SWITCH : public stm {
       public:
         SWITCH (exp * p0, std::vector<stm *> p1)
-            : stm(stm::_con_SWITCH), _v0(p0), _v1(p1)
+          : stm(stm::_con_SWITCH), _v0(p0), _v1(p1)
         { }
         ~SWITCH ();
         // pickler method suppressed
@@ -1737,7 +1738,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-
+    
       private:
         exp * _v0;
         std::vector<stm *> _v1;
@@ -1745,8 +1746,7 @@ namespace CFG {
     class BRANCH : public stm {
       public:
         BRANCH (CFG_Prim::branch * p0, std::vector<exp *> p1, probability p2, stm * p3, stm * p4)
-
-            : stm(stm::_con_BRANCH), _v0(p0), _v1(p1), _v2(p2), _v3(p3), _v4(p4)
+          : stm(stm::_con_BRANCH), _v0(p0), _v1(p1), _v2(p2), _v3(p3), _v4(p4)
         { }
         ~BRANCH ();
         // pickler method suppressed
@@ -1793,7 +1793,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-
+    
       private:
         CFG_Prim::branch * _v0;
         std::vector<exp *> _v1;
@@ -1804,7 +1804,7 @@ namespace CFG {
     class ARITH : public stm {
       public:
         ARITH (CFG_Prim::arith * p0, std::vector<exp *> p1, param * p2, stm * p3)
-            : stm(stm::_con_ARITH), _v0(p0), _v1(p1), _v2(p2), _v3(p3)
+          : stm(stm::_con_ARITH), _v0(p0), _v1(p1), _v2(p2), _v3(p3)
         { }
         ~ARITH ();
         // pickler method suppressed
@@ -1843,7 +1843,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-
+    
       private:
         CFG_Prim::arith * _v0;
         std::vector<exp *> _v1;
@@ -1853,7 +1853,7 @@ namespace CFG {
     class SETTER : public stm {
       public:
         SETTER (CFG_Prim::setter * p0, std::vector<exp *> p1, stm * p2)
-            : stm(stm::_con_SETTER), _v0(p0), _v1(p1), _v2(p2)
+          : stm(stm::_con_SETTER), _v0(p0), _v1(p1), _v2(p2)
         { }
         ~SETTER ();
         // pickler method suppressed
@@ -1884,7 +1884,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-
+    
       private:
         CFG_Prim::setter * _v0;
         std::vector<exp *> _v1;
@@ -1893,7 +1893,7 @@ namespace CFG {
     class CALLGC : public stm {
       public:
         CALLGC (std::vector<exp *> p0, std::vector<LambdaVar::lvar> p1, stm * p2)
-            : stm(stm::_con_CALLGC), _v0(p0), _v1(p1), _v2(p2)
+          : stm(stm::_con_CALLGC), _v0(p0), _v1(p1), _v2(p2)
         { }
         ~CALLGC ();
         // pickler method suppressed
@@ -1924,7 +1924,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-
+    
       private:
         std::vector<exp *> _v0;
         std::vector<LambdaVar::lvar> _v1;
@@ -1933,10 +1933,9 @@ namespace CFG {
     class RCC : public stm {
       public:
         RCC (bool p_reentrant, std::string p_linkage, CTypes::c_proto * p_proto, std::vector<exp *> p_args, std::vector<param *> p_results, std::vector<param *> p_live, stm * p_k)
-
-            : stm(stm::_con_RCC), _v_reentrant(p_reentrant), _v_linkage(p_linkage),
-            _v_proto(p_proto), _v_args(p_args), _v_results(p_results), _v_live(p_live),
-            _v_k(p_k)
+          : stm(stm::_con_RCC), _v_reentrant(p_reentrant), _v_linkage(p_linkage),
+              _v_proto(p_proto), _v_args(p_args), _v_results(p_results), _v_live(p_live),
+              _v_k(p_k)
         { }
         ~RCC ();
         // pickler method suppressed
@@ -1999,7 +1998,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-
+    
       private:
         bool _v_reentrant;
         std::string _v_linkage;
@@ -2017,8 +2016,7 @@ namespace CFG {
     class frag {
       public:
         frag (frag_kind p_kind, LambdaVar::lvar p_lab, std::vector<param *> p_params, stm * p_body)
-
-            : _v_kind(p_kind), _v_lab(p_lab), _v_params(p_params), _v_body(p_body)
+          : _v_kind(p_kind), _v_lab(p_lab), _v_params(p_params), _v_body(p_body)
         { }
         ~frag ();
         // pickler method suppressed
@@ -2064,7 +2062,7 @@ namespace CFG {
 	    this->_phiNodes[i]->addIncoming(v, bblk);
 	}
 
-
+    
       private:
         frag_kind _v_kind;
         LambdaVar::lvar _v_lab;
@@ -2078,8 +2076,8 @@ namespace CFG {
     class attrs {
       public:
         attrs (int p_alignHP, bool p_needsBasePtr, bool p_hasTrapArith, bool p_hasRCC)
-            : _v_alignHP(p_alignHP), _v_needsBasePtr(p_needsBasePtr),
-            _v_hasTrapArith(p_hasTrapArith), _v_hasRCC(p_hasRCC)
+          : _v_alignHP(p_alignHP), _v_needsBasePtr(p_needsBasePtr),
+              _v_hasTrapArith(p_hasTrapArith), _v_hasRCC(p_hasRCC)
         { }
         ~attrs ();
         // pickler method suppressed
@@ -2125,7 +2123,7 @@ namespace CFG {
     class cluster {
       public:
         cluster (attrs * p_attrs, std::vector<frag *> p_frags)
-            : _v_attrs(p_attrs), _v_frags(p_frags)
+          : _v_attrs(p_attrs), _v_frags(p_frags)
         { }
         ~cluster ();
         // pickler method suppressed
@@ -2151,7 +2149,7 @@ namespace CFG {
 	llvm::Function *fn () const { return this->_fn; }
 	frag *entry () const { return this->_v_frags[0]; }
 
-
+    
       private:
         attrs * _v_attrs;
         std::vector<frag *> _v_frags;
@@ -2163,8 +2161,7 @@ namespace CFG {
     class comp_unit {
       public:
         comp_unit (std::string p_srcFile, cluster * p_entry, std::vector<cluster *> p_fns)
-
-            : _v_srcFile(p_srcFile), _v_entry(p_entry), _v_fns(p_fns)
+          : _v_srcFile(p_srcFile), _v_entry(p_entry), _v_fns(p_fns)
         { }
         ~comp_unit ();
         // pickler method suppressed

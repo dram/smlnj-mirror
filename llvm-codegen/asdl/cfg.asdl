@@ -97,6 +97,7 @@ module CFG_Prim {
       | ORB | XORB | ANDB
       | FADD | FSUB | FMUL | FDIV
       | FNEG | FABS | FSQRT
+      | FCOPYSIGN
 
   -- These operations do not raise exceptions and do not access mutable memory.
     pure
