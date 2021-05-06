@@ -273,6 +273,9 @@ or raise exceptions.
 
 	  * `FSQRT` -- floating-point square root
 
+          * `FCOPYSIGN` -- floating-point copysign operation: returns its first argument with
+            the sign set to the sign of its second argument.
+
     * `EXTEND{signed, from, to}` -- extend a smaller integer representation
       (`from` bits) to a larger size (`to` bits); if `signed` is `true`, then
       the extension uses the sign bit, otherwise it uses zero to extend the value.
