@@ -263,9 +263,7 @@ structure CPSInfo : sig
 	  in
 	    fn lv => (case find lv
 		 of SOME m => m
-		  | NONE => raise Fail(concat[
-			"modeOf(", LambdaVar.lvarName lv, "): unknown variable"
-		      ])
+		  | NONE => TREE (* an unused variable that somehow snuck through!! *)
 		(* end case *))
 	  end
 
