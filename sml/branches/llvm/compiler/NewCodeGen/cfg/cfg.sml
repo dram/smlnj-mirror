@@ -53,6 +53,7 @@ structure CFG_Prim =
       | ORB | XORB | ANDB
       | FADD | FSUB | FMUL | FDIV
       | FNEG | FABS | FSQRT
+      | FCOPYSIGN
 
     datatype pure
       = PURE_ARITH of {oper : pureop, sz : int}

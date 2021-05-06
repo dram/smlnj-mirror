@@ -137,6 +137,7 @@ structure PPCfg : sig
 	    | P.FNEG => "fneg"
 	    | P.FABS => "fabs"
 	    | P.FSQRT => "fsqrt"
+	    | P.FCOPYSIGN => "fcopysign"
 	  (* end case *))
 
     fun pureToString (P.PURE_ARITH{oper, sz}) = pureopToString oper ^ i2s sz
