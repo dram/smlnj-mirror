@@ -523,6 +523,8 @@ void code_buffer::_storeMemReg (sml_reg_id r, Value *v)
 //
 Value *code_buffer::allocRecord (Value *desc, Args_t const & args)
 {
+    assert (desc->getType() == this->mlValueTy && "descriptor should be ML Value");
+
     int len = args.size();
     Value *allocPtr = this->mlReg (sml_reg_id::ALLOC_PTR);
 
