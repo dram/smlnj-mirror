@@ -130,7 +130,7 @@ Add the following keyword definition
   KEYWORD(jwacc);
 ```
 
-to the file `$LLVM/AsmParser/LLLexer.cpp`.
+to the file `$LLVM/lib/AsmParser/LLLexer.cpp`.
 
 #### `AsmParser/LLParser.cpp`
 
@@ -141,7 +141,7 @@ Add the following case
 ```
 
 to the function `LLParser::ParseOptionalCallingConv`
-in the file `$LLVM/AsmParser/LLLexer.cpp`.
+in the file `$LLVM/lib/AsmParser/LLLexer.cpp`.
 
 #### `IR/AsmWriter.cpp`
 
