@@ -317,6 +317,7 @@ At the end of the file, add the following code:
 // compiler.  The convention is described in the paper "Compiling with Continuations
 // and LLVM" (https://arxiv.org/abs/1805.08842v1).
 //
+let Entry = 1 in
 def CC_AArch64_JWA : CallingConv<[
   CCIfType<[iPTR], CCBitConvertToType<i64>>,
   CCIfType<[i1, i8, i16, i32], CCPromoteToType<i64>>,
