@@ -442,7 +442,7 @@ static bool canGuaranteeTCO(CallingConv::ID CC) {
 }
 ```
 
-There are a number of fucntions where the return calling-convention function is
+In LLVM 11 and earlier, there are a number of functions where the return calling-convention function is
 computed by testing the calling convention:
 `AArch64TargetLowering::LowerCallResult`,
 `AArch64TargetLowering::CanLowerReturn`, and
@@ -456,6 +456,7 @@ should be replaced by
 ``` c++
   CCAssignFn *RetCC = CCAssignFnForReturn (CallConv);
 ```
+This change is not necessary for LLVM 12+.
 
 ### `AArch64FrameLowering.cpp`
 

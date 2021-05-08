@@ -37,7 +37,7 @@ With the exception of pairs in the Pair Arena, every object in the heap has
 a one-word descriptor (or header) word that immediately precedes the first
 word of the object.
 
-On object descriptor word is partitioned into three fixed-size fields.
+An object descriptor word is partitioned into three fixed-size fields.
 The lowest two bits (*i.e.*, the tag bits) are always `10`.  The next five
 bits are the **descriptor-tag**, which specifies the basic kind of object.
 The remaining bits are the **length** field; for most kinds of objects, the
@@ -81,7 +81,9 @@ The descriptor tags are as follows:
 
 ### Sequence Kinds
 
-For vector and array headers, we
+For vector and array headers, we use the following values for the length field
+of the descriptor word.
+
 * `0x0` -- polymorphic sequence
 * `0x1` -- 8-bit integer/word sequence
 * `0x2` -- 16-bit integer/word sequence (unused)
