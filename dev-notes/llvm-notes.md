@@ -122,6 +122,11 @@ in LLVM assembler (useful for debugging the code generator, but not
 required for the *SML/NJ* compiler), we must modify the parser and
 pretty printer for LLVM assembly code.
 
+#### `AsmParser/LLTToken.h`
+
+Add `kw_jwacc` as a token in `$LLVM/lib/AsmParser/LLTToken.h` (I added it following
+`kw_tailcc`.
+
 #### `AsmParser/LLLexer.cpp`
 
 Add the following keyword definition
