@@ -287,10 +287,10 @@ ALIGNED_ENTRY(restoreregs)
 	MOVE	(REGOFF(ExnPtrOffMSP, temp), temp2, exncont)
 	MOVE	(REGOFF(VarPtrOffMSP, temp), temp2, varptr)
 	MOVE    (REGOFF(PCOffMSP, temp),     temp2, pc)
-      /* Store address of "Overflow" exception in stack */
 	LEA	(CODEADDR(CSYM(saveregs)), temp2)
 	MOV	(temp2, start_gc)
 	MOV	(temp, mlStatePtr)
+      /* Store address of "Overflow" exception in stack */
 #if defined(OPSYS_DARWIN)
 	MOV	(CSYM(_Overflow_id0)@GOTPCREL(%rip), temp2)
 	ADD	(IM(8), temp2)
