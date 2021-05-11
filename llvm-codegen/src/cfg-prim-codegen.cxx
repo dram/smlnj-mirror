@@ -196,11 +196,11 @@ namespace CFG_Prim {
 
     } // ARITH::codegen
 
-    Value *REAL_TO_INT::codegen (code_buffer * buf, Args_t const &args)
+    Value *FLOAT_TO_INT::codegen (code_buffer * buf, Args_t const &args)
     {
 	return buf->createFPToSI (args[0], buf->iType (this->_v_to));
 
-    } // REAL_TO_INT::codegen
+    } // FLOAT_TO_INT::codegen
 
 
   /***** code generation for the `pure` type *****/
@@ -278,11 +278,23 @@ namespace CFG_Prim {
 
     } // TRUNC::codegen
 
-    Value *INT_TO_REAL::codegen (code_buffer * buf, Args_t const &args)
+    Value *INT_TO_FLOAT::codegen (code_buffer * buf, Args_t const &args)
     {
 	return buf->createSIToFP (args[0], buf->fType(this->_v_to));
 
-    } // INT_TO_REAL::codegen
+    } // INT_TO_FLOAT::codegen
+
+    Value *FLOAT_TO_BITS::codegen (code_buffer * buf, Args_t const &args)
+    {
+	return buf->createBitCast (args[0], buf->iType(this->_v_sz));
+
+    } // FLOAT_TO_BITS::codegen
+
+    Value *BITS_TO_FLOAT::codegen (code_buffer * buf, Args_t const &args)
+    {
+	return buf->createBitCast (args[0], buf->fType(this->_v_sz));
+
+    } // BITS_TO_FLOAT::codegen
 
     Value *PURE_SUBSCRIPT::codegen (code_buffer * buf, Args_t const &args)
     {

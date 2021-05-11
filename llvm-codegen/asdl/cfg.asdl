@@ -82,7 +82,7 @@ module CFG_Prim {
   -- These operations might raise exceptions and do not access mutable memory.
     arith
       = ARITH (arithop oper, int sz)
-      | REAL_TO_INT (rounding_mode mode, int from, int to)
+      | FLOAT_TO_INT (rounding_mode mode, int from, int to)
 
   -- arithmetic operations that do not overflow; for the division operators,
   -- we assume that the second argument is never zero (i.e., an explicit
@@ -107,7 +107,9 @@ module CFG_Prim {
 						-- false) or the sign (signed is true)
       | TRUNC (int from, int to)		-- truncate a larger value to a smaller
 						-- one (from > to).
-      | INT_TO_REAL (int from, int to)		-- int to float conversion
+      | INT_TO_FLOAT (int from, int to)		-- int to float conversion
+      | FLOAT_TO_BITS (int sz)			-- bitcast a float to the same-sized word
+      | BITS_TO_FLOAT (int sz)			-- bitcast a word to the same-sized float
       | PURE_SUBSCRIPT				-- indexed load of ML value
       | PURE_RAW_SUBSCRIPT (numkind kind, int sz)
 						-- indexed load of raw value from

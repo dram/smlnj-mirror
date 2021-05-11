@@ -161,18 +161,18 @@ namespace CFG_Prim {
                 auto fsz = asdl::read_int(is);
                 return new ARITH(foper, fsz);
             }
-          case _con_REAL_TO_INT:
+          case _con_FLOAT_TO_INT:
             {
                 auto fmode = read_rounding_mode(is);
                 auto ffrom = asdl::read_int(is);
                 auto fto = asdl::read_int(is);
-                return new REAL_TO_INT(fmode, ffrom, fto);
+                return new FLOAT_TO_INT(fmode, ffrom, fto);
             }
         }
     }
     arith::~arith () { }
     ARITH::~ARITH () { }
-    REAL_TO_INT::~REAL_TO_INT () { }
+    FLOAT_TO_INT::~FLOAT_TO_INT () { }
     // pickler suppressed for pureop
     pureop read_pureop (asdl::instream & is)
     {
@@ -201,11 +201,21 @@ namespace CFG_Prim {
                 auto fto = asdl::read_int(is);
                 return new TRUNC(ffrom, fto);
             }
-          case _con_INT_TO_REAL:
+          case _con_INT_TO_FLOAT:
             {
                 auto ffrom = asdl::read_int(is);
                 auto fto = asdl::read_int(is);
-                return new INT_TO_REAL(ffrom, fto);
+                return new INT_TO_FLOAT(ffrom, fto);
+            }
+          case _con_FLOAT_TO_BITS:
+            {
+                auto fsz = asdl::read_int(is);
+                return new FLOAT_TO_BITS(fsz);
+            }
+          case _con_BITS_TO_FLOAT:
+            {
+                auto fsz = asdl::read_int(is);
+                return new BITS_TO_FLOAT(fsz);
             }
           case _con_PURE_SUBSCRIPT:
             return new PURE_SUBSCRIPT;
@@ -228,7 +238,9 @@ namespace CFG_Prim {
     PURE_ARITH::~PURE_ARITH () { }
     EXTEND::~EXTEND () { }
     TRUNC::~TRUNC () { }
-    INT_TO_REAL::~INT_TO_REAL () { }
+    INT_TO_FLOAT::~INT_TO_FLOAT () { }
+    FLOAT_TO_BITS::~FLOAT_TO_BITS () { }
+    BITS_TO_FLOAT::~BITS_TO_FLOAT () { }
     PURE_SUBSCRIPT::~PURE_SUBSCRIPT () { }
     PURE_RAW_SUBSCRIPT::~PURE_RAW_SUBSCRIPT () { }
     RAW_SELECT::~RAW_SELECT () { }
