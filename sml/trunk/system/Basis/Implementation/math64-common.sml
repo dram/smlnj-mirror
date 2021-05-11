@@ -99,7 +99,7 @@ structure Math64Common : sig
 	  in
 	    if (biasedExp = 0)
 	      then scalb(x * two_to_the_54, I.-(k, 54))			(*2*)
-	    else if I.<(biasedExp, 2047)
+	    else if I.ltu(I.+(k, biasedExp), 2047)
 	      then Assembly.A.scalb(x,k)				(*1*)
 	      else let
 	      (* unbias exponent and add to k *)
