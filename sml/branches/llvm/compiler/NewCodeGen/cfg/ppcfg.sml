@@ -104,7 +104,7 @@ structure PPCfg : sig
 	  concat[prefix, "_", i2s from, "_to_", i2s to]
 
     fun arithToString (P.ARITH{oper, sz}) = arithopToString oper ^ i2s sz
-      | arithToString (P.REAL_TO_INT{mode, from, to}) = let
+      | arithToString (P.FLOAT_TO_INT{mode, from, to}) = let
 	  fun toS prefix = concat[prefix, i2s from, "_i", i2s to]
 	  in
 	    case mode
@@ -146,7 +146,11 @@ structure PPCfg : sig
       | pureToString (P.EXTEND{signed=false, from, to}) =
 	  cvtParams ("zero_extend_", from, to)
       | pureToString (P.TRUNC{from, to}) = cvtParams ("trunc", from, to)
-      | pureToString (P.INT_TO_REAL{from, to}) = cvtParams ("real", from, to)
+      | pureToString (P.INT_TO_FLOAT{from, to}) = concat [
+	    "f", Int.toString from, "_to_i", Int.toString to
+	  ]
+      | pureToString (P.FLOAT_TO_BITS{sz}) = concat ["f", Int.toString sz, "_to_bits"]
+      | pureToString (P.BITS_TO_FLOAT{sz}) = concat ["f", Int.toString sz, "_from_bits"]
       | pureToString P.PURE_SUBSCRIPT = "vector_sub"
       | pureToString (P.PURE_RAW_SUBSCRIPT{kind, sz}) =
 	  concat("vector_sub_" :: numkind2s(kind, sz))

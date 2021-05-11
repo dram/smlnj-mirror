@@ -616,7 +616,7 @@ C.NUMt{sz=sz}
 			    then untagSigned v
 			    else genV v
 		      in
-			pure(TP.INT_TO_REAL{from=ity, to=to}, [e])
+			pure(TP.INT_TO_FLOAT{from=ity, to=to}, [e])
 		      end
 		  | (P.SUBSCRIPTV, [v1, v2]) =>
 		      pure(TP.PURE_SUBSCRIPT, [
