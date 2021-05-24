@@ -123,14 +123,12 @@ dnl
 dnl ******************** get SML/NJ info (for generation tools) ********************
 dnl
 
-dnl ***** TODO: once it is released, the version number should be 110.98 to avoid
-dnl ***** a bug in the JSON library
-
-dnl check that we have a compatible version of SML/NJ
+dnl check that we have a compatible version of SML/NJ; we need at least 110.98 because
+dnl of a bug in earlier versions of the JSON library.
 dnl
 CHECK_SMLNJ([AC_MSG_ERROR([unable to find SML/NJ installation; please add it to your PATH or set SML_CMD])])
 if test $SMLNJ_MAJOR_VERSION -lt 110 \
-  -o $SMLNJ_MINOR_VERSION -lt 97
+  -o $SMLNJ_MINOR_VERSION -lt 98
 then
   AC_MSG_ERROR([installation requires SML/NJ version 110.97+ (available from smlnj.org)])
 fi
