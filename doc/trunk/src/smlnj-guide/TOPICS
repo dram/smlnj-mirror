@@ -9,8 +9,11 @@ Programming Resources
 How to report bugs
 
 Using the REPL
+  - use
 
 Using CM
+  - CM files
+  - CM.make
 
 Building applications
   - exportML

@@ -74,6 +74,15 @@ is well formed, since the end-of-line comment comments out the first "++*)++":
 *)
 ------------
 
+On the other hand, the following code is ill formed, since the opening "++(*++"
+is commented out by the end-of-line comment:
+
+[source,sml]
+------------
+  fun f x = x (*) my identity function (*
+*)
+------------
+
 === Underscores in Numeric Literals
 
 The syntax of numeric literals is extended to allow the use of the underscore
@@ -138,6 +147,25 @@ datatype t =
   | BAR of int
   | BAZ of t * t
 ------------
+
+=== Extra Semicolons
+
+Successor ML is more lenient about extra semicolons in expression sequences
+than SML.  Specifically, you can include a terminating semicolon in a sequence
+of expressions.
+For example, the following code is syntqctically well formed in Successor ML:
+
+[source,sml]
+------------
+let fun f x = (print "hello world\n"; x;)
+in
+  f 1; f 2;
+end
+------------
+
+The extra semicolon has no semantic significance.
+
+=== If-then Expressions
 
 
 == Core Language Features
