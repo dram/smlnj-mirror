@@ -13,11 +13,13 @@ This guide gives an overview and introduction to using the
 
 * xref:intro.adoc[1. Introduction]
 
-* xref:extensions.adoc[2. Language Extensions]
+* xref:usage.adoc[2. Basic Usage]
 
-* xref:successor-ml.adoc[3. Successor ML]
+* xref:extensions.adoc[3. Language Extensions]
 
-* xref:error-messages.adoc[4. Understanding Error Messages]
+* xref:successor-ml.adoc[4. Successor ML]
+
+* xref:error-messages.adoc[5. Understanding Error Messages]
 
 ifdef::backend-pdf[]
 
