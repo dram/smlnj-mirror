@@ -11,15 +11,15 @@ This guide gives an overview and introduction to using the
 
 == Table of Contents
 
-* xref:intro.adoc[1. Introduction]
+* xref:intro.adoc[Introduction]
 
-* xref:usage.adoc[2. Basic Usage]
+* xref:usage.adoc[Basic Usage]
 
-* xref:extensions.adoc[3. Language Extensions]
+* xref:extensions.adoc[Language Extensions]
 
-* xref:successor-ml.adoc[4. Successor ML]
+* xref:successor-ml.adoc[Successor ML]
 
-* xref:error-messages.adoc[5. Understanding Error Messages]
+* xref:error-messages.adoc[Understanding Error Messages]
 
 ifdef::backend-pdf[]
 
@@ -27,6 +27,8 @@ ifdef::backend-pdf[]
 :leveloffset: 1
 
 include:intro.adoc[]
+
+include:usage.adoc[]
 
 include:extensions.adoc[]
 

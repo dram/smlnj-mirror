@@ -22,9 +22,9 @@ ATTRS =		-a stylesheet=release-notes.css -a stylesdir=../conf
 
 CONF =		-r ../conf/changelog-macros.rb
 
-ADOC_FILES =	intro.adoc
+ADOC_FILES =	$(wildcard *.adoc)
 
-HTML_FILES =	index.html $(ADOC_FILES:.adoc=.html)
+HTML_FILES =	$(ADOC_FILES:.adoc=.html)
 
 # build rule for generating the distribution documentation
 #
@@ -36,7 +36,7 @@ doc:		html
 .PHONY:	html
 html:		$(HTML_FILES)
 
-%.html : %.txt
+%.html : %.adoc
 	$(ASCIIDOCTOR) $(ATTRS) $(CONF) -b html5 $<
 
 smlnj-guide.pdf:	smlnj-guide.adoc $(ADOC_FILES)

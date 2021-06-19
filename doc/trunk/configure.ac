@@ -7,8 +7,8 @@ dnl This the configuration script for autoconf version 2.60+.
 
 AC_INIT([smlnj-doc],[1.0],[],[],[http://smlnj.org])
 
-AC_PREREQ(2.60)
-AC_COPYRIGHT([[COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)]])
+AC_PREREQ(2.70)
+AC_COPYRIGHT([[COPYRIGHT (c) 2021 The Fellowship of SML/NJ (http://www.smlnj.org)]])
 AC_CONFIG_SRCDIR(src/man/smlnj.7.adoc)
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR(config)
@@ -55,7 +55,7 @@ dnl
 SMLNJ_DATE=`date "+%B %d, %Y"`
 
 AC_ARG_WITH([version],
-  AC_HELP_STRING([--with-version], ["specify the SML/NJ release version"]),
+  AS_HELP_STRING([--with-version], ["specify the SML/NJ release version"]),
   [SMLNJ_VERSION=$withval],
   [SMLNJ_VERSION=none])
 if test x"$SMLNJ_VERSION" = xnone ; then
@@ -70,7 +70,7 @@ fi
 AC_SUBST(SMLNJ_VERSION)
 
 AC_ARG_WITH([date],
-  AC_HELP_STRING([--with-date], ["specify the SML/NJ release date"]),
+  AS_HELP_STRING([--with-date], ["specify the SML/NJ release date"]),
   [SMLNJ_DATE=$withval],
   [SMLNJ_DATE=none])
 if test x"$SMLNJ_DATE" = xnone ; then
@@ -129,6 +129,7 @@ dnl ***** Makefiles *****
   src/man/Makefile
   src/manuals/Makefile
   src/release-notes/Makefile
+  src/smlnj-guide/Makefile
 )
 
 AC_OUTPUT
