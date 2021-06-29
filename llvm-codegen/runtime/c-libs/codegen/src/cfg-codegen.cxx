@@ -270,60 +270,26 @@ namespace CFG {
       // evaluate the argument and truncate to 32 bits
 	Value *arg = buf->createTrunc(buf->asInt(this->_v0->codegen(buf)), buf->i32Ty);
 
-//#define EXPLICIT_JUMP_TABLE
-#ifdef EXPLICIT_JUMP_TABLE
+      // the number of non-default cases
 	int nCases = this->_v1.size();
 
-	std::vector<llvm::BasicBlock *>blks;
-	blks.reserve(nCases);
-	std::vector<llvm::Constant *>offsets;
-	offsets.reserve(nCases);
-	for (auto it = this->_v1.begin();  it != this->_v1.end();  ++it) {
-	    blks.push_back ((*it)->bb());
-	    auto offset = llvm::ConstantExpr::getPtrToInt(
-		buf->blockDiff ((*it)->bb()),
-		buf->i32Ty)
-	    offsets.push_back (offset);
-	}
-      // allocate the array of offsets
-	auto jmpTblTy = llvm::ArrayType::get(buf->i32Ty, nCases);
-	auto jmpTbl = new llvm::GlobalVariable(
-	    jmpTblTy,
-	    true,
-	    llvm::GlobalValue::PrivateLinkage,
-	    llvm::ConstantArray::get (jmpTblTy, offsets));
-      // put the table in the text segment
-	jmpTbl->setSection ("text");
-      // compute the jump address
-	auto jmpAdr = buf->createAdd (
-	    buf->basePtr(),
-	    buf->createSExt(
-		buf->build().CreateAlignedLoad(
-		    buf->build().CreateInBoundsGEP(
-			buf->createBitCast(jmpTbl, jmpTblTy->getPointerTo()),
-			{buf->i32Const(0), arg}),
-		    4),
-		buf->intTy));
-      // create the jump instruction
-	auto jmp = buf->build().CreateIndirectBr (jmpAdr, nCases);
-	for (auto it = this->_v1.begin();  it != this->_v1.end();  ++it) {
-	    jmp->addDestination ((*it)->bb());
-	}
-#else
-      // the number of non-default cases; we use the last case as the default
-	int nCases = this->_v1.size() - 1;
+      // save the current block
+	auto curBlk = buf->getCurBB();
 
-      // create the switch; note that we use the last case as the default
-	llvm::SwitchInst *sw = buf->build().CreateSwitch(
-	    arg,
-	    this->_v1[nCases]->bb(),
-	    nCases);
+      // as suggested by Matthew Fluet, we mark the default case as unreachable,
+      // which has the effect of getting LLVM to treat the switch as being exhaustive.
+	auto dfltBlk = buf->newBB("impossible");
+	buf->setInsertPoint (dfltBlk);
+	buf->build().CreateUnreachable();
+
+      // create the switch in the current block
+	buf->setInsertPoint (curBlk);
+	llvm::SwitchInst *sw = buf->build().CreateSwitch(arg, dfltBlk, nCases);
 
       // add the cases to the switch
 	for (int i = 0;  i < nCases;  i++) {
 	    sw->addCase (buf->iConst(32, i), this->_v1[i]->bb());
 	}
-#endif
 
       // generate the code for the basic blocks
 	reg_state saveRegs;
