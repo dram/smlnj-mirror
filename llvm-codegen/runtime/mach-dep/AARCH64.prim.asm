@@ -30,18 +30,18 @@
 
 /* SML Register conventions for AArch64:
  *
- *	alloc ptr
- *	limit ptr
- *	store ptr
- *	exn ptr
- *	var ptr
- *	GC link
- *	base ptr
- *	std link
- *	std clos
- *	std arg
- *	std cont
- *	misc0
+ *	alloc ptr	-- x24
+ *	limit ptr	-- x25
+ *	store ptr	-- x26
+ *	exn ptr		-- x27
+ *	var ptr		-- x28
+ *	GC link		-- lr (aka x30)
+ *	base ptr	-- not defined for AARCH64
+ *	std link	-- x3
+ *	std clos	-- x2
+ *	std arg		-- x0
+ *	std cont	-- x1
+ *	misc0		-- x4
  */
 
 /* symbolic names for the CMachine and SML state registers; for some registers,
@@ -99,7 +99,7 @@
 ALIGNED_ENTRY(sigh_return_a)
 	mov	wlink,IM(ML_unit)		/* stdlink = UNIT */
 	mov	wclos,IM(ML_unit)		/* stdclos = UNIT */
-	mov	wgclink,IM(ML_unit)		/* pc = UNIT */
+	mov	wpc,IM(ML_unit)			/* pc = UNIT */
 	mov	requestId,IM(REQ_SIG_RETURN)	/* requestId = REQ_SIG_RETURN */
 	b	CSYM(set_request)
 
@@ -117,7 +117,7 @@ ALIGNED_ENTRY(sigh_resume)
 ALIGNED_ENTRY(pollh_return_a)
 	mov	w3,IM(ML_unit)			/* stdlink = UNIT */
 	mov	w2,IM(ML_unit)			/* stdclos = UNIT */
-	mov	wgclink,IM(ML_unit)		/* pc = UNIT */
+	mov	wpc,IM(ML_unit)			/* pc = UNIT */
 	mov	requestId,IM(REQ_POLL_RETURN)	/* requestId = REQ_POLL_RETURN */
 	b	CSYM(set_request)
 
@@ -140,7 +140,7 @@ ALIGNED_ENTRY(handle_a)
 ALIGNED_ENTRY(return_a)
 	mov	wlink,IM(ML_unit)		/* stdlink = UNIT */
 	mov	wclos,IM(ML_unit)		/* stdclos = UNIT */
-	mov	wgclink,IM(ML_unit)		/* pc = UNIT */
+	mov	wpc,IM(ML_unit)			/* pc = UNIT */
 	mov	requestId,IM(REQ_RETURN)	/* requestId = REQ_RETURN */
 	b	CSYM(set_request)
 
@@ -211,3 +211,17 @@ ENTRY(set_request)
 	st	xpc, MEM(xtmp1, PCOffMSP)
     /* note that we are leaving SML mode */
 	ldr	xtmp
+
+    /* return result is request code */
+
+    /* restore C callee-save registers */
+
+/**********************************************************************/
+
+/* restoreregs (ml_state_t *msp):
+ *
+ * Switch from C to SML.
+ */
+ALIGNED_ENTRY(restoreregs)
+    /* set up stack frame */
+    /* save C callee-save registers */
