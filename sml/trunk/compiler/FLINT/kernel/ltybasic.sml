@@ -69,7 +69,7 @@ fun tkc_int 0 = tkc_mono
   | tkc_int 3 = tkc_fn3
   | tkc_int i = tkc_fun(tkc_arg i, tkc_mono)
 
-(** primitive fflags and rflags *)
+(** primitive fflags *)
 val ffc_plambda = ffc_var (false, false)
 val ffc_rrflint = ffc_var (true, true)
 
@@ -134,12 +134,11 @@ val ltc_top = ltc_ppoly([tkc_mono], ltc_tv 0)
  *            UTILITY FUNCTIONS FOR TESTING EQUIVALENCE                    *
  ***************************************************************************)
 
-(** testing equivalence of tkinds, tycs, ltys, fflags, and rflags *)
+(** testing equivalence of tkinds, tycs, ltys, fflags *)
 val tk_eqv    : tkind * tkind -> bool = LK.tk_eqv
 val tc_eqv    : tyc * tyc -> bool = LK.tc_eqv
 val lt_eqv    : lty * lty -> bool = LK.lt_eqv
 val ff_eqv    : fflag * fflag -> bool = LK.ff_eqv
-val rf_eqv    : rflag * rflag -> bool = LK.rf_eqv
 
 
 (***************************************************************************
@@ -183,7 +182,7 @@ fun tc_print (x : tyc) =
                end)
      | LT.TC_ABS t => "Ax(" ^ (tc_print t) ^ ")"
      | LT.TC_BOX t => "Bx(" ^ (tc_print t) ^ ")"
-     | LT.TC_TUPLE(_,zs) => "TT<" ^ (plist(tc_print, zs)) ^ ">"
+     | LT.TC_TUPLE zs => "TT<" ^ (plist(tc_print, zs)) ^ ">"
      | LT.TC_ARROW (ff,z1,z2) =>
          parw(fn u => plist(tc_print,u),(ff,z1,z2))
      | LT.TC_PARROW _ => bug "unexpected TC_PARROW in tc_print"

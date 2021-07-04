@@ -33,7 +33,7 @@ include LTYDEF        (* see ltydef.sig for details *)
 (** new a type variable, currently not used *)
 val mkTvar : unit -> tvar
 
-(** primitives and utility functions for fflags and rflags *)
+(** primitives and utility functions for fflags *)
 val ffc_plambda: fflag
 val ffc_rrflint: fflag
 val ffc_fspec  : fflag * (bool * bool) -> fflag
@@ -73,12 +73,11 @@ val ltc_etag   : lty -> lty
 
 val ltc_top    : lty    (* used in a dirty hack in prim.sml *)
 
-(** testing equivalence of tkinds, tycs, ltys, fflags, and rflags *)
+(** testing equivalence of tkinds, tycs, ltys, fflags *)
 val tk_eqv     : tkind * tkind -> bool
 val tc_eqv     : tyc * tyc -> bool
 val lt_eqv     : lty * lty -> bool
 val ff_eqv     : fflag * fflag -> bool
-val rf_eqv     : rflag * rflag -> bool
 
 (** pretty printing of tkinds, tycs, and ltys *)
 val tk_print   : tkind -> string

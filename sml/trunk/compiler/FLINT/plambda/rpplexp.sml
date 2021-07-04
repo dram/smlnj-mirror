@@ -64,7 +64,6 @@ fun complex le =
         | g (TAPP(l, [])) = g l
         | g (TAPP(l, _)) = true
         | g (GENOP(_,_,_,_)) = true
-        | g (PACK(_, _, _, l)) = g l
 
         | g (RECORD l) = h l
         | g (SRECORD l) = h l
@@ -247,22 +246,6 @@ fun ppLexp (pd:int) ppstrm (l: lexp): unit =
                 pps ")";
                closeBox ())
 
-        | ppl (PACK(lt, ts, nts, l)) =
-            (openHOVBox 0;
-              pps "PACK(";
-              openHVBox 0;
-               openHOVBox 0;
-                app2 (fn (tc,ntc) =>
-                        (pps "<"; ppTyc' tc; pps ","; ppTyc' ntc;
-                         pps ">,"; br1 0),
-                     ts, nts);
-               closeBox(); br1 0;
-               prLty' lt; pps ","; br1 0;
-               ppl l;
-              closeBox();
-              pps ")";
-             closeBox())
-
         | ppl (SWITCH (l,_,llist,default)) =
             let fun switch [(c,l)] =
                       (openHOVBox 2;
@@ -381,7 +364,6 @@ fun ppFun ppstrm l v =
              else (app find ll; find b)
            | APP(l,r) => (find l; find r)
            | LET(w,l,r) => (if v=w then ppLexp 20 ppstrm l else find l; find r)
-           | PACK(_,_,_,r) => find r
            | TFN(_, r) => find r
            | TAPP(l, _) => find l
            | SWITCH (l,_,ls,d) =>
@@ -436,7 +418,6 @@ fun stringTag (VAR _) = "VAR"
   | stringTag (RECORD _) = "RECORD"
   | stringTag (SRECORD _) = "SRECORD"
   | stringTag (SELECT _) = "SELECT"
-  | stringTag (PACK _) = "PACK"
   | stringTag (WRAP _) = "WRAP"
   | stringTag (UNWRAP _) = "UNWRAP"
 

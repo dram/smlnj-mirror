@@ -1,4 +1,4 @@
-(* pplexp.sml
+ (* pplexp.sml
  *
  * COPYRIGHT (c) 2017 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
@@ -33,6 +33,7 @@ local structure A = Absyn
 in
 
 fun bug s = ErrorMsg.impossible ("PPLexp: "^s)
+val ppDepth = Control.Print.printDepth
 
 val lvarName = LambdaVar.lvarName
 
@@ -48,7 +49,6 @@ fun conToString (DATAcon((sym, _, _), _, v)) = ((S.name sym) ^ "." ^ (lvarName v
   | conToString (WORDcon{ival, ty}) =
       concat["(W", Int.toString ty, ")", IntInf.toString ival]
   | conToString (STRINGcon s) = PrintUtil.formatString s
-  | conToString (VLENcon n) = Int.toString n
 
 (** use of complex in ppLexp may lead to stupid n^2 behavior. *)
 fun complex (le: lexp) : bool =
@@ -62,7 +62,6 @@ fun complex (le: lexp) : bool =
       | TAPP(l, []) => complex l
       | TAPP(l, _) => true
       | GENOP(_,_,_,_) => true
-      | PACK(_, _, _, l) => complex l
 
       | (RECORD l | SRECORD l | VECTOR(l, _)) => List.exists complex l
       | SELECT(_, l) => complex l
@@ -240,23 +239,6 @@ fun ppLexp (pd:int) ppstrm (l: lexp): unit =
               pps ")";
              closeBox ())
 
-          | ppl pd (PACK(lt, ts, nts, l)) =
-            if pd < 1 then pps "<PACK>" else
-            (openHOVBox 0;
-              pps "PACK(";
-              openHVBox 0;
-               openHOVBox 0;
-                app2 (fn (tc,ntc) =>
-                        (pps "<"; ppTyc' tc; pps ","; ppTyc' ntc;
-                         pps ">,"; br1 0),
-                     ts, nts);
-               closeBox(); br1 0;
-               ppLty' lt; pps ","; br1 0;
-               ppl (pd-1) l;
-              closeBox();
-              pps ")";
-             closeBox())
-
           | ppl pd (SWITCH (l,_,llist,default)) =
             if pd < 1 then pps "<SWI>" else
             let fun switch [(c,l)] =
@@ -383,13 +365,12 @@ fun ppFun ppstrm l v =
                if (v=w)
                then PU.pps ppstrm ("VAR " ^ lvarName v ^ " is free in <lexp>\n")
                else ()
-           | l as FN(w,_,b) => if v=w then ppLexp 20 ppstrm l else find b
+           | l as FN(w,_,b) => if v=w then ppLexp (!ppDepth) ppstrm l else find b
            | l as FIX(vl,_,ll,b) =>
-             if List.exists (fn w => v=w) vl then ppLexp 20 ppstrm l
+             if List.exists (fn w => v=w) vl then ppLexp (!ppDepth) ppstrm l
              else (app find ll; find b)
            | APP(l,r) => (find l; find r)
-           | LET(w,l,r) => (if v=w then ppLexp 20 ppstrm l else find l; find r)
-           | PACK(_,_,_,r) => find r
+           | LET(w,l,r) => (if v=w then ppLexp (!ppDepth) ppstrm l else find l; find r)
            | TFN(_, r) => find r
            | TAPP(l, _) => find l
            | SWITCH (l,_,ls,d) =>
@@ -439,7 +420,6 @@ fun stringTag (VAR _) = "VAR"
   | stringTag (RECORD _) = "RECORD"
   | stringTag (SRECORD _) = "SRECORD"
   | stringTag (SELECT _) = "SELECT"
-  | stringTag (PACK _) = "PACK"
   | stringTag (WRAP _) = "WRAP"
   | stringTag (UNWRAP _) = "UNWRAP"
 

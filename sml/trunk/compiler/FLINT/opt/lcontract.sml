@@ -186,10 +186,10 @@ fun isBoolLty lt =
          (LT.lt_eqv(at, LT.ltc_unit)) andalso (LT.lt_eqv(rt, LT.ltc_bool))
      | _ => false)
 
-fun isBool true (RECORD(RK_TUPLE _, [], x,
+fun isBool true (RECORD(RK_TUPLE, [], x,
                   CON((_,DA.CONSTANT 1,lt), [], VAR x', v, RET [VAR v']))) =
       (x = x') andalso (v = v') andalso (isBoolLty lt)
-  | isBool false (RECORD(RK_TUPLE _, [], x,
+  | isBool false (RECORD(RK_TUPLE, [], x,
                   CON((_,DA.CONSTANT 0,lt), [], VAR x', v, RET [VAR v']))) =
       (x = x') andalso (v = v') andalso (isBoolLty lt)
   | isBool _ _ = false

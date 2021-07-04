@@ -207,7 +207,7 @@ fun tcLoop wflag (nx, ox) =
                        end
               end
           else bug "unexpected TC_TOKEN in tcLoop"
-     | (TC_TUPLE (nrf, nxs), TC_TUPLE (orf, oxs)) => 
+     | (TC_TUPLE nxs, TC_TUPLE oxs) => 
           let val wps = ListPair.map (tcLoop wflag) (nxs, oxs)
            in if opList wps then 
                 let val f = mkv() and v = mkv()
@@ -220,12 +220,12 @@ fun tcLoop wflag (nx, ox) =
                                    fn le => SELECT(u, i, x, h le))
                               end) ([], ident) nl
 
-                    val (ax, rf) = 
-                      if wflag then (LT.ltc_tyc ox, nrf) 
-                      else (LT.ltc_tyc nx, orf)
+                    val ax = 
+                      if wflag then LT.ltc_tyc ox
+                      else LT.ltc_tyc nx
                     fun cont nvs = 
                       let val z = mkv()
-                       in RECORD(RK_TUPLE rf, nvs, z, RET[VAR z])
+                       in RECORD(RK_TUPLE, nvs, z, RET[VAR z])
                       end
                     val body = hdr(appWraps(wps, nvs, cont))
                     val fdec = (fkfun, f, [(v, ax)], body)

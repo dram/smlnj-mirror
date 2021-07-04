@@ -42,7 +42,6 @@ type primtyc = PT.primtyc
 type tvar = LT.tvar
 
 type fflag = LT.fflag
-type rflag = LT.rflag
 
 type tkind = LT.tkind
 type tyc = LT.tyc
@@ -69,46 +68,40 @@ val tkc_fun    : tkind list * tkind -> tkind = tk_inj o LT.TK_FUN
 
 
 (*
- * FLINT fflag and rflag are used to classify different kinds of monomorphic
+ * FLINT fflag is used to classify different kinds of monomorphic
  * functions and records. As of now, they are roughly equivalent to:
  *
  *    datatype fflag
  *      = FF_VAR of bool * bool
  *      | FF_FIXED
  *
- *    datatype rflag = RF_TMP
- *
- * We treat both as abstract types so pattern matching no longer applies.
+ * We treat this as an abstract type so pattern matching no longer applies.
  * NOTE: FF_VAR flags are used by FLINTs before we perform representation
  * analysis while FF_FIXED is used by FLINTs after we perform representation
  * analysis.
  *)
 
-(** fflag and rflag constructors *)
+(** fflag constructors *)
 val ffc_var    : bool * bool -> fflag = fn x => LT.FF_VAR x
 val ffc_fixed  : fflag = LT.FF_FIXED
-val rfc_tmp    : rflag = LT.RF_TMP
 
-(** fflag and rflag deconstructors *)
+(** fflag deconstructors *)
 val ffd_var    : fflag -> bool * bool = fn x =>
       (case x of LT.FF_VAR x => x | _ => bug "unexpected fflag in ffd_var")
 val ffd_fixed  : fflag -> unit = fn x =>
       (case x of LT.FF_FIXED => () | _ => bug "unexpected fflag in ffd_fixed")
-val rfd_tmp    : rflag -> unit = fn (LT.RF_TMP) => ()
 
-(** fflag and rflag predicates *)
+(** fflag predicates *)
 val ffp_var    : fflag -> bool = fn x =>
       (case x of LT.FF_VAR _ => true | _ => false)
 val ffp_fixed  : fflag -> bool = fn x =>
       (case x of LT.FF_FIXED => true | _ => false)
-val rfp_tmp    : rflag -> bool = fn (LT.RF_TMP) => true
 
-(** fflag and rflag one-arm switch *)
+(** fflag one-arm switch *)
 fun ffw_var (ff, f, g) =
       (case ff of LT.FF_VAR x => f x | _ => g ff)
 fun ffw_fixed (ff, f, g) =
       (case ff of LT.FF_FIXED => f () | _ => g ff)
-fun rfw_tmp (rf, f, g) = f()
 
 
 (*
@@ -127,7 +120,7 @@ fun rfw_tmp (rf, f, g) = f()
  *      | TC_WRAP of tyc                   (* used after rep. analysis only *)
  *      | TC_ABS of tyc                    (* NOT USED *)
  *      | TC_BOX of tyc                    (* NOT USED *)
- *      | TC_TUPLE of tyc list             (* rflag hidden *)
+ *      | TC_TUPLE of tyc list             (* rflag gone *)
  *      | TC_ARROW of fflag * tyc list * tyc list
  *
  * We treat tyc as an abstract type so we can no longer use
@@ -153,7 +146,7 @@ val tcc_fix    : (int * string vector * tyc * tyc list) * int -> tyc =
 val tcc_wrap   : tyc -> tyc = fn tc => tc_inj (LT.TC_TOKEN(LK.wrap_token, tc))
 val tcc_abs    : tyc -> tyc = tc_inj o LT.TC_ABS
 val tcc_box    : tyc -> tyc = tc_inj o LT.TC_BOX
-val tcc_tuple  : tyc list -> tyc = fn ts => tc_inj (LT.TC_TUPLE (rfc_tmp, ts))
+val tcc_tuple  : tyc list -> tyc = fn ts => tc_inj (LT.TC_TUPLE ts)
 val tcc_arrow  : fflag * tyc list * tyc list -> tyc = LK.tcc_arw
 
 (** tyc deconstructors *)
@@ -198,7 +191,7 @@ val tcd_box    : tyc -> tyc = fn tc =>
       (case tc_out tc of LT.TC_BOX x => x
                        | _ => bug "unexpected tyc in tcd_box")
 val tcd_tuple  : tyc -> tyc list = fn tc =>
-      (case tc_out tc of LT.TC_TUPLE (_,x) => x
+      (case tc_out tc of LT.TC_TUPLE x => x
                        | _ => bug "unexpected tyc in tcd_tuple")
 val tcd_arrow  : tyc -> fflag * tyc list * tyc list = fn tc =>
       (case tc_out tc of LT.TC_ARROW x => x
@@ -266,7 +259,7 @@ fun tcw_abs (tc, f, g) =
 fun tcw_box (tc, f, g) =
       (case tc_out tc of LT.TC_BOX x => f x | _ => g tc)
 fun tcw_tuple (tc, f, g) =
-      (case tc_out tc of LT.TC_TUPLE (_,x) => f x | _ => g tc)
+      (case tc_out tc of LT.TC_TUPLE x => f x | _ => g tc)
 fun tcw_arrow (tc, f, g) =
       (case tc_out tc of LT.TC_ARROW x => f x | _ => g tc)
 
@@ -397,7 +390,7 @@ fun ltw_prim (lt, f, g) =
 fun ltw_tuple (lt, f, g) =
   (case lt_out lt
     of LT.LT_TYC tc =>
-         (case tc_out tc of LT.TC_TUPLE (_, x) => f x | _ => g lt)
+         (case tc_out tc of LT.TC_TUPLE x => f x | _ => g lt)
      | _ => g lt)
 
 fun ltw_arrow (lt, f, g) =

@@ -391,7 +391,7 @@ in case lexp
 	     | _ => ());
 	   (1+s, addv(S_rmv(lv, fv), v), F.SELECT(v,i,lv,le))
        end
-     | F.RAISE (F.VAR v,ltys) =>
+     | F.RAISE (F.VAR v, _) =>
        (* artificially high size estimate to discourage inlining *)
        (15, S.singleton v, lexp)
      | F.HANDLE (le,v) =>

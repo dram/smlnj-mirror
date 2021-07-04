@@ -592,7 +592,7 @@ td, d, ABS)
 
        in loope(e, env, d, ad)
        end
-
+    (* end fun lift *)
 
 fun typeLift fdec:fundec =
     (* if !Control.CG.lifttype then *)

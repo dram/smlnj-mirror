@@ -1002,8 +1002,8 @@ structure FContract :> FCONTRACT =
 					    of SOME lty =>
 					       let val ltd =
 						       case (rk, LT.ltp_tyc lty)
-							of (F.RK_STRUCT,false) => LT.ltd_str
-							 | (F.RK_TUPLE _,true) => LT.ltd_tuple
+							of (F.RK_STRUCT, false) => LT.ltd_str
+							 | (F.RK_TUPLE, true) => LT.ltd_tuple
 							 (* we might select out of a struct
 							  * into a tuple or vice-versa *)
 							 | _ => (fn _ => [])

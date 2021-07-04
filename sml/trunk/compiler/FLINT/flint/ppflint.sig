@@ -11,6 +11,11 @@ sig
     val printFundec: FLINT.fundec -> unit
     val printProg  : FLINT.prog -> unit
 
+    val printTyc : LtyExtern.tyc -> unit
+    val printLty : LtyExtern.lty -> unit
+    val printTycList : LtyExtern.tyc list -> unit
+    val printLtyList : LtyExtern.lty list -> unit
+
     (* defaults to LV.lvarName *)
     val LVarString  : (FLINT.lvar -> string) ref
 

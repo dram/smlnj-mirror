@@ -93,8 +93,8 @@ fun mcast (oldts, newts) =
  ****************************************************************************)
 (* reify : fundec -> fundec *)
 fun reify fdec =
-let val {getLty=getlty, cleanUp, ...} =  Recover.recover (fdec, false)
-    val (tcf, ltf, clear) = LT.tnarrow_gen ()
+let val getlty =  #getLty (Recover.recover (fdec, false))
+    val (tcf, ltf) = LT.typeNarrowGen ()
 
     fun dcf ((name,rep,lt),ts) = (name,rep,lt_vfn)
     fun dargtyc ((name,rep,lt), ts) =
@@ -264,7 +264,7 @@ let val {getLty=getlty, cleanUp, ...} =  Recover.recover (fdec, false)
 
      val (fk, f, vts, e) = fdec
  in (fk, f, map (fn (v,t) => (v, ltf t)) vts,
-     transform (LP.initKE) e) before (cleanUp(); clear())
+     transform (LP.initKE) e)
 end (* function reify *)
 
 end (* toplevel local *)

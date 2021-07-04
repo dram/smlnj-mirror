@@ -304,7 +304,7 @@ fun rtLexp (kenv : kenv) (tc : tyc) =
 		if (pt = PT.ptc_real) then tcode_real
 		else tcode_void
 	   | (TC_VAR(i, j)) => RET[(VAR(vlookKE(kenv, i, j)))]
-	   | (TC_TUPLE (_, [t1,t2])) =>
+	   | (TC_TUPLE [t1,t2]) =>
 	       (debugmsg ">>rtLexp TC_TUPLE";
 		(case (isFloat(kenv,t1), isFloat(kenv,t2))
 		  of (YES, YES) => tcode_fpair
@@ -319,8 +319,8 @@ fun rtLexp (kenv : kenv) (tc : tyc) =
 			 in COND(test, tcode_fpair, tcode_pair)
 			end) before
 		debugmsg "<<rtLexp TC_TUPLE")
-	   | (TC_TUPLE (_, [])) => tcode_void
-	   | (TC_TUPLE (_, ts)) => tcode_record
+	   | (TC_TUPLE []) => tcode_void
+	   | (TC_TUPLE ts) => tcode_record
 	   | (TC_ARROW (_,tc1,tc2)) => tcode_void
 	   | (TC_ABS tx) => loop tx
 	   | (TC_TOKEN(_,tx)) => loop tx
@@ -370,7 +370,7 @@ and isFloat (kenv, tc) =
 	(case (tc_out x)
 	  of (TC_PRIM pt) =>
 		if (pt = PT.ptc_real) then YES else NO
-	   | (TC_TUPLE (_, ts)) => NO
+	   | (TC_TUPLE ts) => NO
 	   | (TC_ARROW (_,tc1,tc2)) => NO
 	   | (TC_TOKEN(_,tx)) => loop tx
 	   | (TC_FIX _) => NO
@@ -395,7 +395,7 @@ fun isPair (kenv, tc) =
   let fun loop x =
 	(case (tc_out x)
 	  of (TC_PRIM pt) => NO
-	   | (TC_TUPLE (_, [_,_])) => YES
+	   | (TC_TUPLE [_,_]) => YES
 	   | (TC_TUPLE _) => NO
 	   | (TC_ARROW _) => NO
 	   | (TC_TOKEN(_,tx)) => loop tx

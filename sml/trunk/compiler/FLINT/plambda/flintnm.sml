@@ -129,7 +129,6 @@ fun tocon con = (case con
         | L.INTcon x    => F.INTcon x
 	| L.WORDcon x   => F.WORDcon x
 	| L.STRINGcon x => F.STRINGcon x
-	| L.VLENcon x   => F.VLENcon x
 	| L.DATAcon x => bug "unexpected case in tocon"
       (* end case *))
 
@@ -231,10 +230,10 @@ and tolexp (venv,d) lexp =
 
       | L.RAISE (le, r_lty) =>
             tovalue(venv, d, le,
-                    fn (le_val,le_lty) =>
-                    let val (_, r_ltys, _) = FL.t_pflatten r_lty
-                    in (F.RAISE(le_val, map FL.ltc_raw r_ltys), r_lty)
-                    end)
+                    fn (le_val, le_lty) =>
+                      let val (_, r_ltys, _) = FL.t_pflatten r_lty
+                       in (F.RAISE(le_val, r_ltys), r_lty)
+                      end)
 
       | L.HANDLE (body, handler) =>
             tovalue(venv, d, handler,
@@ -253,9 +252,7 @@ and tolexp (venv,d) lexp =
 			val newvenv = LT.ltInsert(venv,lvar,lv_lty,d)
 			val (le, le_lty) = tolexp (newvenv,d) le
 		    in
-			((F.DATAcon((s, cr, force_raw lty),
-				    map FL.tcc_raw tycs, lvar),
-			  le),
+			((F.DATAcon((s, cr, force_raw lty), tycs, lvar), le),
 			 le_lty)
 		    end
 		  | f (con,le) =
@@ -283,7 +280,7 @@ and tolexp (venv,d) lexp =
  * (ltyenv * DebIndex * L.lexp * ((value * lty) -> (F.lexp * lty list))) -> (F.lexp * lty)
  *
  * - venv is the type environment for values
- * - conts is the continuation
+ * - cont is the continuation
  *)
 and tovalue (venv,d,lexp,cont) = let
       val _ = debugmsg ">>tovalue"
@@ -485,17 +482,13 @@ and tolvar (venv,d,lvar,lexp,cont) =
                                   type never escape outside.
                               ***)
 
-                             val atys = map FL.ltc_raw atys
-                             val nrty = FL.ltc_raw rty
-                             val pty = LT.ltc_arrow(LT.ffc_rrflint,atys,[nrty])
+                             val pty = LT.ltc_arrow(LT.ffc_rrflint,atys,[rty])
                           in ( LT.ltc_ppoly(ks, pty), r_lty, flat)
                          end
                      | (false, []) => (* monomorphic case *)
                          let val (aty, rty) = LT.ltd_parrow f_lty
                              val (_, atys, flat) = FL.t_pflatten aty
-                             val atys = map FL.ltc_raw atys
-                             val nrty = FL.ltc_raw rty
-                             val pty = LT.ltc_arrow(LT.ffc_rrflint,atys,[nrty])
+                             val pty = LT.ltc_arrow(LT.ffc_rrflint,atys,[rty])
                           in (pty, rty, flat)
                          end
                      | _ => bug "unexpected case in PO_helper")
@@ -531,16 +524,9 @@ and tolvar (venv,d,lvar,lexp,cont) =
             in (F.LET(lvs, lexp', c_lexp'), c_lty)
             end
 
-(*         fun default_tovalue () = *)
-(*             tovalue(venv, d, lexp, *)
-(*                     fn (v,lty) => *)
-(*                     let val (lexp', ltys) = cont(lty) *)
-(*                     in (F.LET([lvar], F.RET[v], lexp'), ltys) *)
-(*                     end) *)
-
     val r = case lexp of
-      (* primops have to be eta-expanded since they're not valid
-       * function values anymore in Flint *)
+       (* primops have to be eta-expanded since they're not valid
+        * function values anymore in Flint *)
         L.PRIM (po,lty,tycs) => eta_expand(lexp, LT.lt_pinst(lty, tycs))
       | L.GENOP (dict,po,lty,tycs) => eta_expand(lexp, LT.lt_pinst(lty, tycs))
 
@@ -558,7 +544,7 @@ and tolvar (venv,d,lvar,lexp,cont) =
 	    val (lexp', lty') =
             PO_helper(arg, f_lty, tycs,
                        fn (arg_vals,pty, c_lexp) =>
-                       flint_prim((NONE, po, pty, map FL.tcc_raw tycs),
+                       flint_prim((NONE, po, pty, tycs),
 				  arg_vals, lvar, c_lexp))
 	    val _ = debugmsg "<<tolvar L.APP"
 	    val _ = debugLty lty'
@@ -570,7 +556,7 @@ and tolvar (venv,d,lvar,lexp,cont) =
                   | f ((tycs,le)::t1,t2,cont) =
                 tolvarvalue(venv,d,le,
                             fn (le_lv,le_lty) =>
-                            f(t1, (map FL.tcc_raw tycs,le_lv)::t2, cont))
+                            f(t1, (tycs,le_lv)::t2, cont))
             (* first, eval default *)
             in tolvarvalue(venv,d,default,
                            fn (dflt_lv,dflt_lty) =>
@@ -582,7 +568,7 @@ and tolvar (venv,d,lvar,lexp,cont) =
                                         flint_prim((SOME {default=dflt_lv,
                                                           table=table'},
                                                     po, pty,
-                                                    map FL.tcc_raw tycs),
+                                                    tycs),
 						   arg_vals, lvar, c_lexp))))
             end
 
@@ -606,7 +592,7 @@ and tolvar (venv,d,lvar,lexp,cont) =
                     fn (f_val,f_lty) =>
                     let val f_lty = LT.lt_pinst(f_lty, tycs)
 			val (c_lexp, c_lty) = cont(f_lty)
-                    in  (F.LET([lvar], F.TAPP(f_val, map FL.tcc_raw tycs),
+                    in  (F.LET([lvar], F.TAPP(f_val, tycs),
                                c_lexp), c_lty)
                     end)
 
@@ -614,7 +600,7 @@ and tolvar (venv,d,lvar,lexp,cont) =
             tovalue(venv, d, le,
                     fn (le_lv, le_lty) =>
                     let val (c_lexp, c_lty) = cont(LT.ltc_etag lty)
-                        val mketag = FU.mketag (FL.tcc_raw (LT.ltd_tyc lty))
+                        val mketag = FU.mketag (LT.ltd_tyc lty)
 				     handle LT.DeconExn => bug "etag in flintnm"
                     in (flint_prim(mketag, [le_lv], lvar, c_lexp), c_lty)
                     end)
@@ -625,7 +611,7 @@ and tolvar (venv,d,lvar,lexp,cont) =
                          val (_,v_lty) = LT.ltd_parrow r_lty
 			 val (c_lexp, c_lty) = cont(v_lty)
 		     in (F.CON((s, cr, force_raw lty),
-			       map FL.tcc_raw tycs, v, lvar, c_lexp),
+			       tycs, v, lvar, c_lexp),
 			 c_lty)
 		     end)
 
@@ -635,7 +621,7 @@ and tolvar (venv,d,lvar,lexp,cont) =
 			let val _ = debugmsg ">>tolvar VECTOR cont"
 			    val lty = LT.ltc_tyc(LT.tcc_vector tyc)
 			    val (c_lexp, c_lty) = cont(lty)
-			in (F.RECORD(F.RK_VECTOR (FL.tcc_raw tyc),
+			in (F.RECORD(F.RK_VECTOR tyc,
 				     vals, lvar, c_lexp),
 			    c_lty)
 			end)
@@ -665,24 +651,9 @@ and tolvar (venv,d,lvar,lexp,cont) =
 		    in (F.SELECT(v, n, lvar, c_lexp), c_lty)
 		    end)
 
-      | L.PACK (lty,otycs,ntycs,lexp) =>
-            bug "PACK is not currently supported"
-(*
-	    tovalue(venv, d, lexp,
-		    fn (v, v_lty) =>
-		    let val nlty = LT.lt_pinst(lty, ntycs)
-			val (c_lexp, c_lty) = cont(nlty)
-		    in (F.PACK(lty,
-			       map FL.tcc_raw otycs,
-			       map FL.tcc_raw ntycs,
-			       v, lvar, c_lexp),
-			c_lty)
-		    end)
-*)
-
-      (* these ones shouldn't matter because they shouldn't appear *)
-(*       | L.WRAP _ => bug "unexpected WRAP in plambda" *)
-(*       | L.UNWRAP _ => bug "unexpected UNWRAP in plambda" *)
+     (* these ones shouldn't matter because they shouldn't appear
+      | L.WRAP _ => bug "unexpected WRAP in plambda"
+      | L.UNWRAP _ => bug "unexpected UNWRAP in plambda" *)
 
       | _ => default_tolexp ()
     in (debugmsg "<<tolvar"; r)

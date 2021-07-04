@@ -30,13 +30,11 @@ signature PLAMBDA =
       | INTcon of int IntConst.t	(* sz = 0 for IntInf.int *)
       | WORDcon of int IntConst.t
       | STRINGcon of string
-      | VLENcon of int
 
   (*
    * lexp: the universal typed intermediate language. TFN, TAPP is abstraction
    * and application on type constructors. Structure abstractions and functor
    * abstractions are represented as normal structure and functor definitions
-   * with its component properly PACKed. FN defines normal function, FIX defines
    * a set of recursive functions, LET(v,e1,e2) is a syntactic sugar for exprs
    * of forms like APP(FN(v,_,e2), e1); the type of v will be that of e1.
    * APP is the function application. STRECD and STRSEL are structure record
@@ -72,7 +70,6 @@ signature PLAMBDA =
       | SRECORD of lexp list
       | SELECT of int * lexp
 
-      | PACK of lty * tyc list * tyc list * lexp
       | WRAP of tyc * bool * lexp
       | UNWRAP of tyc * bool * lexp
 

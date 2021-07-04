@@ -39,7 +39,6 @@ sig
  *)
 include LTYBASIC        (* see ltydef.sig and ltybasic.sig for details *)
 
-
 (** tkind constructors *)
 val tkc_mono   : tkind
 val tkc_box    : tkind
@@ -131,11 +130,10 @@ val tc_upd_prim : tyc -> Primop.primop
 (** translating the tkind into the corresponding type *)
 val tk_lty      : tkind -> lty
 
-(** twrap type translation generator, used by Wrapping.wrapping *)
-val twrap_gen   : bool -> ((tyc -> tyc) * (lty -> lty) *
-                           (tyc -> tyc) * (lty -> lty) * (unit -> unit))
+(** type wrapping translation generator, used once in Wrapping.wrapping *)
+val typeWrapGen : unit -> (tyc -> tyc) * (lty -> lty) * (tyc -> tyc) * (lty -> lty)
 
-(** tnarrow type translation generator, used by Reify.reify *)
-val tnarrow_gen : unit -> ((tyc -> tyc) * (lty -> lty) * (unit -> unit))
+(** type narrowing translation generator, used once in Reify.reify *)
+val typeNarrowGen : unit -> (tyc -> tyc) * (lty -> lty)
 
 end (* signature LTYEXTERN *)

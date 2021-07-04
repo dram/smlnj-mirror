@@ -241,8 +241,8 @@ fun tcTag (kenv, tc) =
 	  of (TC_PRIM pt) => if PT.unboxed pt then NO else YES
                 (* if PT.ubxupd pt then YES else NO *)
 		    (* this is just an approximation *)
-	   | (TC_TUPLE (_, [])) => YES
-	   | (TC_TUPLE (_, ts)) => NO
+	   | (TC_TUPLE []) => YES
+	   | (TC_TUPLE ts) => NO
 	   | (TC_ARROW (_,tc1,tc2)) => YES (* NO *)
 	   | (TC_ABS tx) => loop tx
 	   | (TC_TOKEN(_,tx)) => loop tx
@@ -314,7 +314,7 @@ fun tgdd (i, tc, kenv, rt) =
 (* val tcCoerce : kenv * tyc * bool * bool -> (lexp -> lexp) option *)
 fun tcCoerce (kenv, tc, nt, wflag, b) =
   (case (tc_out tc, tc_out nt)
-    of (TC_TUPLE (_, ts), _) =>
+    of (TC_TUPLE ts, _) =>
 	 let fun h([], i, e, el, 0) = NONE
 	       | h([], i, e, el, res) =
 		   let val w = mkv()
