@@ -28,15 +28,15 @@ local
    structure V = VarCon
    open MCCommon
    structure RS = RuleSet
-
-   open PP PPUtil
+   open PP
+   open PPUtil
 in
 
 fun bug msg = ErrorMsg.impossible ("MCPrint: " ^ msg)
+val debugging = FLINT_Control.mcdebugging
 
-(* debugMsg : bool ref -> string -> unit *)
-fun debugMsg flag (msg: string) =
-    if !flag
+fun debugMsg (msg: string) =
+    if (!debugging)
     then with_default_pp
 	  (fn ppstrm =>
 	    (openHVBox ppstrm (PP.Rel 0);
@@ -46,9 +46,8 @@ fun debugMsg flag (msg: string) =
 	     PP.flushStream ppstrm))
     else ()
 
-(* debugPrint : bool ref -> string * (PP.stream -> 'a -> unit) * 'a -> unit *)
-fun debugPrint flag (msg: string, printfn: PP.stream -> 'a -> unit, subject: 'a) =
-    if !flag
+fun debugPrint (msg: string, printfn: PP.stream -> unit) =
+    if (!debugging)
     then with_default_pp
 	  (fn ppstrm =>
 	    (openHVBox ppstrm (PP.Rel 0);
@@ -56,7 +55,7 @@ fun debugPrint flag (msg: string, printfn: PP.stream -> 'a -> unit, subject: 'a)
 	     newline ppstrm;
 	     PP.nbSpace ppstrm 2;
 	     openHVBox ppstrm (PP.Rel 0);
-	     printfn ppstrm subject;
+	     printfn ppstrm;
 	     closeBox ppstrm;
 	     newline ppstrm;
 	     closeBox ppstrm;
@@ -66,15 +65,14 @@ fun debugPrint flag (msg: string, printfn: PP.stream -> 'a -> unit, subject: 'a)
 fun ppCon ppstrm (con : con) : unit =
     PP.string ppstrm (conToString con)
 
-(*
 fun ppPath ppstrm path =
     PP.string ppstrm (pathToString path)
-*)
+
 fun ppList ppstrm ppfn elems =
     ppClosedSequence ppstrm
       {front = (fn strm => PP.string strm "["),
        back =  (fn strm => PP.string strm "]"),
-       sep = PPUtil.sepWithSpc ",",
+       sep =  (fn strm => PP.string strm ", "),
        pr = ppfn,
        style = CONSISTENT}
       elems
@@ -115,19 +113,20 @@ fun ppVarBindings ppstrm varbindings =
 fun ppRuleset ppstrm ruleset =
     let val rulesList = RS.listItems ruleset
     in PP.openHBox ppstrm;
-        PU.pps ppstrm "{";
-        PU.ppSequence ppstrm
-	  {sep = (fn ppstrm => PU.pps ppstrm ","),
-	   pr = (fn ppstrm => fn r => PU.pps ppstrm (Int.toString r)),
-	   style = PU.INCONSISTENT}
-	  rulesList;
-        PU.pps ppstrm "}";
+       PU.pps ppstrm "{";
+       PU.ppSequence ppstrm
+	 {sep = (fn ppstrm => PU.pps ppstrm ","),
+	  pr = (fn ppstrm => fn r => PU.pps ppstrm (Int.toString r)),
+	  style = PU.INCONSISTENT}
+	 rulesList;
+       PU.pps ppstrm "}";
        PP.closeBox ppstrm (* openHBox *)
     end
 
-(* ppProtoAndor : ppstrm -> protoAndor -> unit *)
-(* pretty printer for protoAndor nodes *)
-fun ppProtoAndor ppstrm =
+
+(* ppSimpleAndor : ppstrm -> simpleAndor -> unit *)
+(* pretty printer for simple AND-OR nodes *)
+fun ppSimpleAndor ppstrm =
     let fun ppNode ppstrm (ANDs {bindings, children}) =
 	    (PP.openHOVBox ppstrm (PP.Abs 0);
 	     PP.openHBox ppstrm;
@@ -146,7 +145,7 @@ fun ppProtoAndor ppstrm =
 	     PP.break ppstrm {nsp=1,offset=0};
 	     ppSign ppstrm sign;
 	     PP.closeBox ppstrm;
-	     ppProtoVariants ppstrm cases;
+	     ppSimpleVariants ppstrm cases;
 	     PP.closeBox ppstrm)
 	  | ppNode ppstrm (VARs {bindings}) =
 	    (PP.openHBox ppstrm;
@@ -160,12 +159,12 @@ fun ppProtoAndor ppstrm =
 	     PU.ppvseq ppstrm 0 "" ppNode nodes;
 	     PP.closeBox ppstrm)
 
-	and ppProtoVariants ppstrm variants =
+	and ppSimpleVariants ppstrm variants =
 	    (PP.openVBox ppstrm (PP.Abs 3);
-	     PU.ppvseq ppstrm 0 "" ppProtoVariant variants;
+	     PU.ppvseq ppstrm 0 "" ppSimpleVariant variants;
 	     PP.closeBox ppstrm)
 
-	and ppProtoVariant ppstrm (con, rules, subcase) =
+	and ppSimpleVariant ppstrm (con, rules, subcase) =
 	    (PP.openHBox ppstrm (* (PP.Abs 0) *);
 	     PP.string ppstrm (conToString con);
 	     PP.break ppstrm {nsp=1,offset=0};
@@ -184,30 +183,27 @@ fun ppProtoAndor ppstrm =
     end  (* fun ppSimpleAndor *)
 
 (* ppAndor : ppstrm -> andor -> unit *)
-(*  pretty printer for AND-OR nodes
- *  could develop a "path" while printing the andor tree *)
+(* pretty printer for AND-OR nodes *)
 fun ppAndor ppstrm =
-    let fun ppNode ppstrm (AND {id, children}) =
+    let fun ppNode ppstrm (AND {loc={id,path}, children}) =
 	    (PP.openHOVBox ppstrm (PP.Abs 0);
 	     PP.openHBox ppstrm;
              PP.string ppstrm "AND";
 	     PP.break ppstrm {nsp=1,offset=0};
 	     PP.string ppstrm (Int.toString id);
-(*	     PP.break ppstrm {nsp=1,offset=0};
+	     PP.break ppstrm {nsp=1,offset=0};
 	     ppPath ppstrm path;
-*)
 	     PP.closeBox ppstrm;
 	     ppAndChildren ppstrm children;
 	     PP.closeBox ppstrm)
-	  | ppNode ppstrm (OR {id, sign, defaults, cases}) =
+	  | ppNode ppstrm (OR {loc={id, path}, sign, defaults, cases}) =
 	    (PP.openHOVBox ppstrm (PP.Abs 0);
              PP.openHBox ppstrm;
 	     PP.string ppstrm "OR";
 	     PP.break ppstrm {nsp=1,offset=0};
 	     PP.string ppstrm (Int.toString id);
-(*	     PP.break ppstrm {nsp=1,offset=0};
+	     PP.break ppstrm {nsp=1,offset=0};
 	     ppPath ppstrm path;
-*)
 	     PP.break ppstrm {nsp=1,offset=0};
 	     ppRuleset ppstrm defaults;
 	     PP.break ppstrm {nsp=1,offset=0};
@@ -215,14 +211,13 @@ fun ppAndor ppstrm =
 	     PP.closeBox ppstrm; (* openHBox *)
 	     ppVariants ppstrm cases;
 	     PP.closeBox ppstrm) (* openHOVBox *)
-	  | ppNode ppstrm (VAR {id}) =
+	  | ppNode ppstrm (VAR {loc = {id,path}}) =
 	    (PP.openHBox ppstrm;
 	     PP.string ppstrm "VAR";
 	     PP.break ppstrm {nsp=1,offset=0};
 	     PP.string ppstrm (Int.toString id);
-(*	     PP.break ppstrm {nsp=1,offset=0};
+	     PP.break ppstrm {nsp=1,offset=0};
 	     ppPath ppstrm path;
-*)
 	     PP.closeBox ppstrm)
 
 	and ppAndChildren ppstrm nodes =
@@ -248,20 +243,19 @@ fun ppAndor ppstrm =
 	       | DCON node => ppNode ppstrm node
 	       | VEC _ => PP.string ppstrm "VEC") (* incomplete *) 
 
-     in ppNode ppstrm
+    in ppNode ppstrm
     end (* fun ppAndor *)
 
-(* ppDectree : ppstrm -> decTree -> unit *)
-val ppDectree =
+(* ppDecTree : ppstrm -> decTree -> unit *)
+val ppDecTree =
     let fun ppDec ppstrm (CHOICE {andor, sign, cases, default}) =
             (PP.openHBox ppstrm;
 	     PP.string ppstrm "CHOICE";
 	     PP.break ppstrm {nsp=1,offset=0};
 	     PP.string ppstrm (Int.toString (getId andor));
 	     PP.break ppstrm {nsp=1,offset=0};
-(*	     ppPath ppstrm (getPath andor);
+	     ppPath ppstrm (getPath andor);
 	     PP.break ppstrm {nsp=1,offset=0};
-*)
 	     ppSign ppstrm sign;
 	     PP.break ppstrm {nsp=1,offset=0};
 	     ppChoices ppstrm (cases,default);
@@ -295,11 +289,9 @@ val ppDectree =
 	     PP.break ppstrm {nsp=1,offset=0};
 	     ppDec ppstrm decTree;
 	     PP.closeBox ppstrm)
-     in ppDec
-    end (* ppDectree *)
+    in ppDec
+    end
 
-(* ppHRule : ppstream -> Absyn.pat * PLambda.lexp *)
-(* print hybrid (absyn lhs, plambda rhs) rule *)
 fun ppHRule ppstrm (pat, lexp) =
     (PP.openHBox ppstrm;
        PPAbsyn.ppPat StaticEnv.empty ppstrm (pat, 100);
@@ -315,4 +307,5 @@ fun ppHMatch ppstrm match =
      PP.closeBox ppstrm)
 
 end (* top local *)
+
 end (* structure PPMatchComp *)

@@ -55,31 +55,31 @@ structure MatchComp : MATCH_COMP =
 struct
 
 local
+  structure DA = Access
   structure T = Types
+  structure BT = BasicTypes
+  structure V = VarCon
+  structure AS = Absyn
   structure AU = AbsynUtil
   structure PL = PLambda
   structure LT = PLambdaType
+  structure TU = TypesUtil
+  structure PO = Primop
   structure LV = LambdaVar
   structure PPL = PPLexp
+  structure LN = LiteralToNum
   structure EM = ErrorMsg
   structure PP = PrettyPrint
   structure PU = PPUtil
   structure PVM = Andor.PVM
   structure DT = DecisionTree
-  structure ST = MCStats
 
-  open MCCommon Control.MC (* match compiler control flags *)
+  open MCCommon
   structure RS = RuleSet
 		     
   val debugging = Control.MC.debugging
   val stats = Control.MC.stats
-  val timings = Control.MC.timings
-  val printProtoAndor = Control.MC.printProtoAndor
-  val printAndor = Control.MC.printAndor
-  val printDectree = Control.MC.printDectree
-  val printPvarMap = Control.MC.printPvarMap
-  val printCode = Control.MC.printCode
-		       
+		      
   fun bug s = EM.impossible ("MatchComp: " ^ s)
   fun say msg = (Control.Print.say msg; Control.Print.flush ())
   fun says msgs = say (concat msgs)
@@ -93,10 +93,10 @@ local
 
   val pd = Control.Print.printDepth
 
-  val ppLexp = PPL.ppLexp 100
+  fun ppLexp ppstrm le = PPL.ppLexp 100 ppstrm le
 
   fun ppDecTree dt =
-      PP.with_default_pp (fn ppstrm => MCPrint.ppDectree ppstrm dt)
+      PP.with_default_pp (fn ppstrm => MCPrint.ppDecTree ppstrm dt)
 
   fun ppPvarMapEntry ppstrm (lvar, alist) =
       let fun prBind ppstrm (r, id) =
@@ -134,10 +134,23 @@ in
 type toTcLt = (T.ty -> LT.tyc) * (T.ty -> LT.lty)
 
 type giisTy = (* type of int inf switch generator *)
-     PL.lexp * (IntInf.int * PL.lexp) list * PL.lexp -> PL.lexp
+     PLambda.lexp * (IntInf.int * PLambda.lexp) list * PLambda.lexp -> PLambda.lexp
 
 val mkv = LambdaVar.mkLvar  (* use the "global" lvar generator from LambdaVar *)
 
+(* --------------------------------------------------------------------------- *)
+(* utility functions used by matchComp *)
+	      
+
+val choiceTotalThreshold = 10
+
+fun reportStats (nodeCount: int, {rulesUsed, failures, choiceTotal, choiceDist}: DT.decTreeStats) =
+    if !stats andalso choiceTotal > choiceTotalThreshold
+    then (say "decTree Stats: \n";
+	  saysnl ["  nodeCount =   ", Int.toString nodeCount];
+	  saysnl ["  choiceTotal = ", Int.toString choiceTotal];
+	  newline())
+    else ()
 
 (* --------------------------------------------------------------------------- *)
 (* matchComp: Main match compiler driver function *)
@@ -147,10 +160,11 @@ type failInfo = PL.lexp option * T.ty * string
 (* matchComp : (pat * lexp) list * failInfo * toLcLt * errTy * giisTy
                 -> lexp * lvar * ruleno list * bool * bool *)
 fun matchComp (hybridMatch, fail: failInfo, toTcLt as (_, toLty), giis) =
-let fun timeIt x = TimeIt.timeIt (!timings) x
+let fun timeIt x = TimeIt.timeIt (!stats) x
     val (_,_,location) = fail
-    val _ = MCPrint.debugPrint debugging
-              ("matchComp: hmatch = \n", MCPrint.ppHMatch, hybridMatch)
+    val _ = MCPrint.debugPrint
+              ("matchComp: hmatch = \n",
+	        (fn ppstrm => MCPrint.ppHMatch ppstrm hybridMatch))
 
     val (numExpandedRules, expandedPats, rhsFunBinders, ruleMap) =
 	Preprocessing.expandPats toLty hybridMatch
@@ -159,44 +173,45 @@ let fun timeIt x = TimeIt.timeIt (!timings) x
      * in the match, numRulesExpanded > length hybridMatch. *)
     val allRules: RS.set = RS.fromList (List.tabulate(numExpandedRules, fn x => x));
 
-    val _ = ST.initialLvar := LV.nextLvar ()
+    val simpleAndor: simpleAndor = AndorSimple.makeAndor expandedPats
 
-    val protoAndor: protoAndor = (* ProtoAndor.makeProtoAndor expandedPats *)
-        timeIt ("makeProtoAndor", location, ProtoAndor.makeProtoAndor, expandedPats)
+    val _ = MCPrint.debugPrint
+	      ("** matchComp: simpleAndor = ",
+	       (fn ppstrm => MCPrint.ppSimpleAndor ppstrm simpleAndor))
 
-    val _ = MCPrint.debugPrint printProtoAndor
-	      ("** matchComp: protoAndor = ", MCPrint.ppProtoAndor, protoAndor)
+    val (andor: andor, pvarmap: Andor.pvarmap, nodeCount) = (* Andor.makeAndor (simpleAndor, allRules) *)
+	timeIt ("Andor.makeAndor", location, Andor.makeAndor, (simpleAndor, allRules))
 
-    val (andor: andor, pvarmap: Andor.pvarmap, nodeCount) =
-	(* Andor.makeAndor (protoAndor, allRules) *)
-	timeIt ("Andor.makeAndor", location, Andor.makeAndor, (protoAndor, allRules))
-    val _ = if !stats then ST.collectAndorStats andor else ()
+    val _ = MCPrint.debugPrint
+	      ("** matchComp: andor (nodeCount = " ^ Int.toString nodeCount ^ ") =",
+	       (fn ppstrm => MCPrint.ppAndor ppstrm andor))
 
-    val _ = MCPrint.debugPrint printAndor ("** matchComp: andor", MCPrint.ppAndor, andor)
+    val _ = MCPrint.debugPrint
+	      ("** matchComp: pvarmap = ",
+	       (fn ppstrm => ppPvarMap ppstrm pvarmap))
 
-    val _ = MCPrint.debugPrint printPvarMap ("** matchComp: pvarmap = ", ppPvarMap, pvarmap)
+    val decTree = (* DecisionTree.genDecisionTree (andor, allRules) *)
+	timeIt ("genDecisionTree", location, DT.genDecisionTree, (andor, allRules))
 
-    val dectree = (* DecisionTree.makeDectree (andor, allRules) *)
-	timeIt ("makeDectree", location, DT.makeDectree, (andor, allRules))
-    val _ = ST.collectDectreeStats dectree  (* must collect dectree stats for rulesUsed and numFAIL *)
-
-    val _ = MCPrint.debugPrint printDectree ("** matchComp: dectree = ", MCPrint.ppDectree, dectree)
+    val _ = MCPrint.debugPrint
+	      ("** matchComp: decTree = ",
+	       (fn ppstrm => MCPrint.ppDecTree ppstrm decTree))
 
     (* checking exhaustiveness and redundancy of rules *)
-    (* It may be that there are unused _ramified_ rules, but all original rules are used!? Example? *)
-    val SOME{rulesUsed, numFAIL, ...} = !ST.dectreeStats
+
+    val decTreeStats as {rulesUsed, failures, ...} : DT.decTreeStats = DT.decTreeStats decTree
     val unusedRules : ruleset = RS.difference (allRules, rulesUsed)  (* expanded rules *)
     val unusedOriginalRules : ruleset = RS.map (#3 o ruleMap) unusedRules
-        (* unusedRules translated back to corresponding original rule numbers WRONG??? *)
+        (* unusedRules translated back to corresponding original rule numbers *)
     val redundant = not (RS.isEmpty unusedRules)
-    val nonexhaustive = numFAIL > 0  (* any FAIL nodes => nonexhaustive rules *)
+    val nonexhaustive = (failures > 0)  (* any FAIL nodes => nonexhaustive rules *)
 
     (* generating the "raw" lexp for the match *)
 
-    val (matchLexp, rootLvar) = (* Generate.generate (andor, dectree, pvarmap, ruleMap,
+    val (matchLexp, rootLvar) = (* Generate.genMatch (andor, decTree, pvarmap, ruleMap,
                                                       fail, toTcLt, giis) *)
-        timeIt ("genMatch", location, Generate.generate,
-		(andor, dectree, pvarmap, ruleMap, fail, toTcLt, giis))
+        timeIt ("genMatch", location, Generate.genMatch,
+		(andor, decTree, pvarmap, ruleMap, fail, toTcLt, giis))
 
     (* wrapping let-bindings of abstracted right-hand-sides around match code,
      * (corresponds to newmc "genprelude") *)
@@ -204,11 +219,11 @@ let fun timeIt x = TimeIt.timeIt (!timings) x
     val code: PL.lexp = foldl (fn (fbinder, body) => fbinder body) matchLexp
 			      rhsFunBinders
 
-    val _ = MCPrint.debugPrint printCode ("** matchComp: code = ", ppLexp, code)
+    val _ = MCPrint.debugPrint
+	      ("** matchComp: code = ",
+	       (fn ppstrm => ppLexp ppstrm code))
 
-    val _ = ST.finalLvar := LV.nextLvar ()
-				    
-    val _ = if !stats then ST.reportStats () else ()
+    val _ = reportStats (nodeCount, decTreeStats)
 
     (* rudundant <=> not (null unusedOriginalRules) <=> not (null unusedExpandedRules) *)
  in (code, rootLvar, RS.toList unusedOriginalRules, redundant, nonexhaustive)
@@ -249,6 +264,16 @@ end
  * A pattern is exhaustive if this dummy rule is never used,
  * and is irredundant if all of the other rules are used.
  *)
+
+(* make various match compiler control flags (from Control.MC) visible *)
+val bindNonExhaustiveWarn = Control.MC.bindNonExhaustiveWarn
+val bindNonExhaustiveError = Control.MC.bindNonExhaustiveError
+val matchNonExhaustiveWarn = Control.MC.matchNonExhaustiveWarn
+val matchNonExhaustiveError = Control.MC.matchNonExhaustiveError
+val matchRedundantWarn = Control.MC.matchRedundantWarn
+val matchRedundantError = Control.MC.matchRedundantError
+val bindNoVariableWarn = Control.MC.bindNoVariableWarn
+val printMatch = Control.MC.printMatch
 
 (* bindCompile: Entry point for compiling matches induced by val declarations
  *  (e.g., val listHead::listTail = list).

@@ -1,0 +1,232 @@
+(* mccommon.sml
+ *
+ * COPYRIGHT (c) 2018 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *)
+
+(* TODO: this module requires a signature ! *)
+
+structure MCCommon =
+struct
+
+local
+  structure EM = ErrorMsg
+  structure DA = Access
+  structure LV = LambdaVar
+  structure TU = TypesUtil
+  structure V = VarCon
+
+  open Types VarCon PLambda Absyn
+in
+
+(* --------------------------------------------------------------------------- *)
+(* cons, links, and paths *)
+
+(* case discriminators -- translate to PLambda.con *)
+datatype con
+  = DATAcon of datacon * tyvar list
+  | INTcon of int IntConst.t
+  | WORDcon of int IntConst.t
+  | STRINGcon of string
+  | VLENcon of int * ty (* translated to INTcon in genMatch *)
+
+datatype link
+  = PI of int         (* record/tuple selection *)
+  | VPI of int * ty   (* vector selection, specifying vectro element type *)
+  | CON of con        (* datacon/constant discriminant (unary or nullary) *)
+
+(* path: the reverse of the _path_ from root to a given node. uniquely identifies
+ * the andor/pattern-space node at the (reverse of the) path's position.  Paths
+ * are "linear" but a pattern space corrseponds to a "prefix"-closed set of paths.
+ * If two paths are not prefixes of one another (i.e. they differ at some link)
+ * they are on different "branches of the pattern space tree).
+ * A path is maximal (terminal) in the pattern space if there are no extensions
+ * of that path in the pattern space.  The node designated by a terminal path is
+ * an andor LEAF node, reprsenting a constant or variable at that pattern point. *)
+
+(* NOTE 1: the (previous) VLEN link for a vector length descrimination did not "destruct" the
+ * vector in the way that a CON (datacon) link corresponds to destructing the
+ * matching value, it was just there to convey the vector element type
+ * constant links also do not involve "destructing" the value, just verifying that it matches. 
+ * PI and VPI represent selection from a value, while CON represents
+ * discrimination of different sorts of value as well as (in the non-constant cases),
+ * destruction of the value into its subcomponent(s). links of the form CON(VLENcon(k,ty))
+ * are used to discriminate vectors by their length.  *)
+
+(* NOTE 2: paths are (currently) only used for information. They play no algorithmic
+ * role in match compilation. Instead, andor nodes (points in the pattern space)
+ * are designated more efficiently by unique nodeId numbers that are generated as
+ * the andor tree is constructed (Andor.makeAndor). *)
+
+type path = link list
+
+fun pathLength path = length path
+
+fun conToString (DATAcon (dcon,_)) = Symbol.name(TU.dataconName dcon)
+  | conToString (VLENcon (n, _)) = "L" ^ (Int.toString n)
+  | conToString (INTcon {ival,ty}) = "I" ^ (IntInf.toString ival)
+  | conToString (WORDcon {ival,ty}) = "W" ^ (IntInf.toString ival)
+  | conToString (STRINGcon s) = "S:"^ s
+
+fun linkToString (PI n) = "P" ^ Int.toString n  (* tuple projection *)
+  | linkToString (VPI (n, _)) = "V" ^ Int.toString n  (* vector projection *)
+  | linkToString (CON con) = conToString con 
+
+fun pathToString path = PrintUtil.listToString ("<", ",", ">") linkToString path
+
+
+(* --------------------------------------------------------------------------- *)
+(* ruleno and rule sets *)
+
+structure RuleSet = IntListSet
+
+type ruleno = RuleSet.item (* = int *)
+type ruleset = RuleSet.set
+
+
+(* --------------------------------------------------------------------------- *)
+(* andor trees *)
+
+(* nodeId: node id numbers added in the translateAndor 2nd pass of andor tree construction.
+ *  These are used as a more efficient node identifier than paths, and useful for forming
+ *  maps over nodes (e.g. mvarenv). *)
+type nodeId = int
+
+(* varBindings: which variables are bound (at a node) in which rules.
+ *  No distinction is made between simple variable bindings and "as" (layered) bindings. *)
+type varBindings = (V.var * ruleno) list
+
+datatype 'a subcase  (* kinds of andor0/andor subcases *)
+  = CONST            (* discriminant is int, word, string, or constant datacon *)
+  | DCON of 'a       (* discriminant is non-constant datacon, 'a is its argument *)
+  | VEC of 'a list   (* discrimanant is vector length, 'a list are the vector elements *)
+
+(* "proto" or "basic" AndOr trees *)
+datatype simpleAndor
+  = ANDs of
+     {bindings : varBindings,
+      children : simpleAndor list}
+  | ORs of
+     {bindings : varBindings,
+      sign : DA.consig,
+      cases : simpleVariant list}
+  | VARs of
+     {bindings : varBindings}
+withtype simpleVariant = con * ruleset * simpleAndor subcase
+
+(* nodeLoc is redundant, both id and path uniquely identify a node *)
+type nodeLoc = 
+     {id: nodeId,  (* node identifier (redundant but more efficient than the path *)
+      path : path} (* path to the node (uniquely identifies node by position in andor tree *)
+ 
+(* The "full" andor tree, with node Ids, paths and binding rulesets and
+ *  defaults. These are generated by a 2nd pass tree construction from the basic
+ *  form of andor trees (andor0). Not sure that brule ruleset is all that is needed
+ *  -- it is basically the varBindings from andor0 with the variables forgotten.
+ *  [OR]defaults are computed based on subtracting case rules (directs) from inherited
+ *  live rule sets (active), without reference to variable bindings. The (id, path, brules)
+ *  values could be collected into a single "info" record field. *)
+datatype andor
+  = AND of  (* implicit record type, #fields = length children *)
+      {loc : nodeLoc,
+       children: andor list} (* tuple/record components *)
+  | OR of   (* case descrimination *)
+      {loc: nodeLoc,
+       sign : DA.consig,     (* retained in CASETEST, to be passed eventually to genswitch *)
+       defaults: ruleset,    (* "default" rules (how defined? how used?) *)
+       cases: variant list}  (* case "variants" *)
+  | VAR of  (* variable node, not merged into and ANO or OR node  *)
+      {loc : nodeLoc}
+withtype variant = con * ruleset * andor subcase
+
+(* getLoc : andor -> nodeLoc *)
+fun getLoc (AND{loc,...}) = loc
+  | getLoc (OR{loc,...}) = loc
+  | getLoc (VAR{loc,...}) = loc
+
+(* getId : andor -> nodeId *)
+fun getId (AND{loc={id,...},...}) = id
+  | getId (OR{loc={id,...},...}) = id
+  | getId (VAR{loc={id,...},...}) = id
+
+(* getPath : andor -> path *)
+fun getPath (AND{loc={path,...},...}) = path
+  | getPath (OR{loc={path,...},...}) = path
+  | getPath (VAR{loc={path,...},...}) = path
+
+
+(* --------------------------------------------------------------------------- *)
+(* decision tree *)
+
+datatype dectree
+  = CHOICE of
+      {andor : andor,   (* the andor OR node that is the basis of the CHOICE *)
+       sign: DA.consig, (* only needed to determine datatype width, but passed to PL.SWITCH
+                         * in Generate..genswitch *)
+       cases: (con * dectree) list,  (* CHOICE is saturated if cons are exhaustive *)
+       default: dectree option}     (* possible default (if CHOICE is not saturated?) *)
+  | RHS of ruleno  (* leaf node of decision tree dispatching to rule ruleno *)
+  | FAIL  (* match fails, raise MATCH or BIND exception, as appropriate *)
+
+
+(* --------------------------------------------------------------------------- *)
+(* LHS and RHS rule representations, after preprocessing LHS *)
+
+type ramifiedLHS = (pat * lvar) list
+(* ramified left-hand side of a rule, where the initial pattern may have been
+ * split into several patterns by OR expansion. Path list gives locations of
+ * bound variables in corresponding pattern. All the lvars in the list elements are the
+ * same, and this lvar connects the ramified LHS with the corresponding RHS expression,
+ * (lvar, lexp) associated with that common lvar. We redundantly include the same lvar
+ * with each pattern because ultimately we will be generating a rhs expression for each
+ * pattern individually based on the lvar, after we have concatenated all the ramifiedLHS
+ * values for the original rules, effectively creating an expanded set of rules.
+ * Note: all the patterns (deriving by OR expansion from a single original pattern) will
+ *   have the same set/list of bound pvars. *)
+
+(* represenation of a hybrid rule after preprocessing (OR expanding) LHS pattern.
+ * lvar components will agree, forming a linkage between LHS and RHS. This constitues
+ * an expanded set of rules related by the fact that they derive from one original rule
+ * by OR expansion of its lhs pattern. Multiple patterns with a common rhs expression,
+ * linked to the expanded patterns via the shared lvar. *)
+type ruleRep = (ramifiedLHS * (lvar * PLambda.lexp))
+
+(* representation of a hybrid match. length of list = number of original rules *
+ *   Note that the length matchRep = the number of original rules (before or expansion)
+ *   = number of right-hand-sides. *)
+type matchRep = ruleRep list
+
+
+(* ================================================================================ *)
+(* match compiler utility definitions *)
+
+fun bug s = EM.impossible ("MCCommon: " ^ s)
+
+fun mkRECORDpat (RECORDpat{fields, flex=false, typ, ...}) pats =
+      RECORDpat {flex = false, typ = typ,
+                 fields = ListPair.map (fn((id,_),p)=>(id,p)) (fields, pats)}
+  | mkRECORDpat (RECORDpat{flex=true,...}) _ =
+      bug "mkRECORDpat - flex record"
+  | mkRECORDpat _ _ = bug "mkRECORDpat - non-record"
+
+fun conEq (DATAcon (d1, _), DATAcon (d2, _)) = TU.eqDatacon (d1, d2)
+  | conEq (INTcon n, INTcon n') = (#ival n = #ival n')   (* types assumed compatible *)
+  | conEq (WORDcon n, WORDcon n') = (#ival n = #ival n') (* types assumed compatible *)
+  | conEq (STRINGcon s, STRINGcon s') = (s = s')
+  | conEq (VLENcon (n, _), VLENcon (n', _)) = (n = n')   (* types assumed compatible *)
+  | conEq _ = false
+
+(* linkEq : lint * link -> bool *)
+(* link equality. The type of the node at the end of any given link is determined
+ * by the path up to and including that link.  If we are comparing two links in the
+ * context of a common prefix path up to those links, the types (e.g. of vectors for
+ * two VLEN links) will be the same. *)
+fun linkEq (PI i1, PI i2) = (i1 = i2)
+  | linkEq (VPI (i1,_), VPI (i2,_)) = (i1 = i2)
+  | linkEq (CON c1, CON c2) = conEq (c1, c2)
+  | linkEq _ = false
+
+fun pathEq (path1, path2) = ListPair.allEq linkEq (path1, path2)
+
+end (* toplevel local *)
+end (* structure MCCommon *)
