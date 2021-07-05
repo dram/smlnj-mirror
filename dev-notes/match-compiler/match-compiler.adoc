@@ -4137,8 +4137,311 @@ the primary bindings. For example,
     type varbindings = varbinding list
 
 
+================================================================================
+[40] Path relevance, admin/destruct lvar bindings (theory)
+================================================================================
+
+DEFN: A pattern is "relevant" if it either discriminates (can't be matched by all values
+of its type) or destructs (i.e. binds variables to components of a matching value).
+Matching an irrelevant pattern has no effect, i.e. no case discrimination is made,
+and no variable is bound.
+
+Examples:
+
+  x is relevant (variable binding, even though no destruction)
+
+  _ is irrelevant
+
+  () is irrelevant  (irrefutable, no variables)
+
+  C is irrelevant (if C is the sole constructor of, e.g., datatype t = C)
+
+  C _ is irrelevant (if datatype t = C of ty)
+
+  (_, _) is irrelevant
+
+  cons (_, _) is relevant (nil refutes it, so it discriminates).
+
+  cons (x, xs) is relevant (it both discriminates, and binds variables x and xs)
+
+DEFN: A path (in the pattern space, or, equivalently, the andor tree) is _directly relevant_ if
+
+  (a) A (source) pattern variable is bound at that point, or
+
+  (b) A refutable _case_ must be tested/discriminated at that point.
+
+Conversely, a path is irrelevant if the pattern at that point is irrefutable, meaning
+that it is either
+
+  (a) a wildcard pattern "_", or
+
+  (b) a singleton constant datatype constructor, or
+
+  (c) a singleton dataconstructor applied to an irrelevant argument pattern, or
+
+  (d) a conjunction (AND) of irrelevant patterns.
+
+In other words, a path is relevant if the subpattern that it designates is either
+refutable, or contains pattern variables.  The value matching at an irrevant path
+is neither tested (examined) nor "named" (bound to an lvar).
+
+PROP: A prefix of a relevant path is also relevant.
+
+PROP: A prefix of an irrelevant path may be relevant, if it is also a prefix of
+a relevant path.
+
+All relevant points/paths need to have an administrative (or destruct) lvar bound
+to the matching value (component).  This lvar will either
+
+(a) "represent" a corresponding pattern variable in the match result record, getting
+    bound to the matching value, or
+(b) be tested to discriminate a branch of a case/switch/OR node, or
+(c) be needed as a "stepping stone" to compute the value needed for (a) or (b).
+
+[We could call lvars for the (a) and (b) cases "primary", and lvars needed for (c) "secondary".]
+
+Given the full andor tree, there is a "relevant" subtree (subset of paths) containing
+only the relevant branches (including their prefixes).
+
+PROP: The number of destruct lvars needed is equal to the number of nodes in the
+relevant subtree.
+
+WRONG? There are also the destruct lvars associated with a case descrimination for constructors
+with arguments (unless the argument pattern of the constructor is irrelevant, as in
+
+     cons (_, _)
+
+where the argument pattern "(_,_)" is irrefutable and contains no variables. Thus for
+the (sub)pattern
+
+     cons (x, y)
+
+the destruct lvar will be bound to the pair (x, y) and will be assiciated with the
+"cons" link in the relevant paths to variables x (p.cons.0) and y (p.cons.1).
+
+The relevant paths can be stratified by their lengths.
+
+At any given relevant path node,
+
+(1) we can assume that there are lvars bound for each of the prefixes of the path back
+to the root (with a nested sequence of LET (lvar ...) or SWITCH case bindings.
 
 
+Implementation Note:
+
+  * Representing paths in reverse order (root last) makes it easier to derive prefixes
+  (just repeated tl).
+
+  * path as list of links/keys vs path datatype with path links?
+
+  * may be useful to represent path as pair of length and link list?
+    If, for instance, we need to derive a prefix of a specified length (how do we
+    calculate how many "tl"s to take?
+
+In the generate phase, when deciding when to introduce destruct mvar(s), for a given
+path p, the needed information includes:
+
+   Is p relevant?
+   If so, what is the lvar associated with tl p (p's immediate prefix).
+   What is the last path link to p.
+   Is p terminal (in dectree?).
+
+If p is _not_ relevant, we should generate no matching code at p, and there should be no mvar(p).
+
+If p is relevant[pvar binding], then we need to generate an lvar and associate it
+with pvars bound at p (?).
+
+If p is relevant[case], where case is refutable (multiple con values), there needs
+to be a mvar(p) to be the subject of the SWITCH, and for each relevant(?) branch there
+needs to be a con destruct lvar for that branch. E.g. for p a list case, there
+needs to be an mvar(p.cons), but not an mvar(p.nil), since the "argument" of nil is
+"notionally" unit, which is irrefutable and pvar-free.  So a new mvar needs to be
+generated to represent the "payload" of the cons constructor, i.e. the (head,tail)
+pair -- but only if the (head,tail) pattern is relevant.
+
+Destructing ANDs
+----------------
+If p is an AND node, there will need to be destruct mvars for the successor paths
+p.0, p.1, ..., p.n (where n is the number of children), but _only_ for those subpatterns
+that are relevant (var-containing or refutable).
+
+An AND path is relevant if _any_ of its children are relevant (because p is a prefix
+of the path of each child).
+
+----------------------------------
+Per-rule relevant nodes/paths
+
+The set of relevant nodes may change depending on what rule "fires" in a match.  For
+instance,
+
+   case e
+     of (_, nil) => 0
+      | (x, _) => x + 1
+
+Here if rule 0 fires, then path <0> is _not_ relevant. But if the second component is
+non-null and rule 1 fires, path <0> is relevant because of the binding of x at that path,
+in that rule.
+
+So the notion of relevance should be per rule, i.e. it is a relation on rules * paths.
+
+   relevant (r, p)
+
+When deciding on whether to bind an mvar (destruct variable) at a given point, it
+should be deciced based on what rules are still "live" at that point.  Thus if the
+decision tree looks like:
+
+  OR <1> {0,1}
+    nil {0}  <-- here binding x is not relevant
+    ::  {1}  <-- here binding x _is_ relevant
+
+We could pre-compute the relevance relation and use it when deciding where to
+introduce mvar bindings.
+
+-----------------------------------
+Two kinds of mvars
+
+(1) mvars that will correspond to, and represent, pvars occurring in the lhs pattern
+(only for such pvars that are "still relevant", i.e. whose rules are still live.
+Call these "binding" mvars.
+
+(2) mvars that bind to the subject of a non-trivial (multiple branch) choice.
+These are relevant to rules that are live at that choice node.  Call these "choice"
+mvars.
+
+PROP: if relevant(r, p) and prefix (p', p) then relevant(r, p').  I.e. a prefix of
+a path relevant for r is also relevant for r.
+
+Defn: varpaths (r) = {p: path | pat(r)@p = VAR (*) }
+
+The binding mvars are dependent on the patterns of rules.
+
+The choice mvars are dependent on the decision tree structure.
+
+Example
+
+    (_,    nil) =>  0
+    (u::v, _  ) =>  1
+
+The choice point <0> is not relevant if we are under the nil branch for <1> (i.e. rule 0
+is not live). Or in other words, not(relevant(0, <0>)).
+
+The relevant relation naturally extends to rulesets:
+
+    relevant(R, p) <=> (E r <- R) relevant(r, p)
+
+Defn: relevant (r, p) if either
+      (1) isVar(pat(r)@p)
+      (2) @p is a choice node and r in live(@p)
+
+Notation: If p is a path in an andor tree A, then A@p is the node or subtee of A
+designated by the path.  If A is understood, the we can say @p, designating the
+node of A at p.  (p in paths(A)).  A@p is undefined if p is not a path of A.
+
+Functions
+---------
+
+prel0 : rule * path -> bool  (path is var relevant _if_ rule is "live"; r in LiveRules)
+crel0 : rule * path -> bool  (path is choice relevant _if_ rule is "live")
+
+prel : ruleset * path/nodeId -> bool   -- pvar binding relevance
+crel : ruleset * path/nodeId -> bool   -- choice node relevance
+
+prel(R, p) = (E r <- R). prel0(r,p)     [ "<-" == "in" ]
+
+rel : ruleset * path/nodeId -> bool
+      rel (R, p) = prel (R, p) orelse crel (R, p)
+
+So relevance in not simply an attribute of a path or nodeId (or node in the andor tree).
+
+"Generators" for prel and crel relations could be represented as mappings:
+
+   prelRules: path/nodeId -> Ruleset
+
+s.t. prel(R, p) <=> R subset relRules(p)
+                    or p < p' s.t. prel (R, p)
+
+Q: How can we precompute the mappings prelRules and crelRules?
+
+Q: How to propagate relation upward to path prefixes?
+
+               --- p1 --- p2
+                     \
+		      \
+		       p3
+
+Suppose p1 is a prefix of p2 and p3.  Then 
+
+       prelRules(p1) superset union(prelRules(p2), prelRules(p3))
+
+in general
+
+       p1 < p2  ==> prelRules(p1) superset prelRules(p2)
+
+and
+
+       prelRules(p) = Union {prelRules (p') | p < p1'}
+
+
+Possible Useful Auxiliary Functions
+-----------------------------------
+
+pathToId : (A: andor, p: path) : nodeId   = nodeId(A@p)
+
+pathToPrefixIds : (A: andor, p: path) : nodeId list  == nodeIds of prefixes of p (in A)
+
+prelMap : nodeId -> ruleset  (finite map from nodeId to set of rules for which it is prelevant)
+
+crelMap : nodeId -> ruleset  (ditto for crelevant)
+
+prefixMap : nodeId -> nodeId list  (nodeIds of nodes on prefexes of the nodeId path)
+(the predecessor nodeId list could be built into the nodes during the construction of
+the andor tree, or they could be used to populate a separate finite map).
+
+Both prel and crel relations depend on dectree as well as andor tree. The pvar nodes
+and their paths and prefixes can be determined from the andor tree, but we need knowledge
+of "live" sets of rules as well, and these come from the dectree.
+
+Implementation sketch
+---------------------
+1. For each andor node, we need to be able to access its predecessors/ancestors. 
+This can be done by retaining the path as part of the node, and retracing the
+(prefixes of the) path to access its ancestors.
+
+ASSUMPTION: if a variable appears in the pattern of a rule, that rule is considered
+relevant to the position of the variable (no "hidden" variables in a pattern). This
+seems obvious.
+
+2. We maintain a node environment that maps the id of a node to a ruleset R containing
+the rules such that (A r <- R) relevant(r, id).  This is the "relevance set" of the node
+(in this particular environment). These environments are not static, but are constructed
+incrementally during the code generation phase.
+
+3. There is a "static" part of the environment, dependent only on the andor tree, that
+tracks the variable binding relevance property.
+
+For each rule r, and node n @ p at which a variable is bound in pat(r), r is in the
+relevant ruleset for n/p and is also added to the relevant ruleset for each ancestor node
+of n (or each prefix path of p).
+
+4. The remainder of the environment depends on the decision tree.  If rule r is "live" at
+a choice node n @ p, then r should be added to the relevant ruleset for n/p and all its
+ancestors.  But what doesn "live" mean in this case?  Does it only count if r @ p is a
+constructor (or choice discrimant)?  What if r is "live" by default, because r @ p is
+a variable (or WILDCARD)?  If it is live because r @ p is a variable, then r will be in
+the relevant ruleset because of the variable binding anyway.  If r @ p is a WILDCARD,
+then (I assume) r should not be considered relevant for p (~ relevant(r,p)).
+
+Consider the example:
+
+(0)    (true, 0)
+(1)    (x, 1)
+(2)    (_, 2)
+
+Then we have
+
+     relevant (0, <0>)    -- choice
+     relevant (1, <0>)    -- pvar
+   ~ relevant (2, <0>)    -- WILDCARD
 ================================================================================
 [NN] Literature
 ================================================================================
