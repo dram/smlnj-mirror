@@ -4141,10 +4141,13 @@ the primary bindings. For example,
 [40] Path relevance, admin/destruct lvar bindings (theory)
 ================================================================================
 
-DEFN: A pattern is "relevant" if it either discriminates (can't be matched by all values
-of its type) or destructs (i.e. binds variables to components of a matching value).
-Matching an irrelevant pattern has no effect, i.e. no case discrimination is made,
-and no variable is bound.
+40.1 Basic definitions.
+
+DEFN: A pattern element is _relevant_ if it either _discriminates_
+(can't be matched by all values of its type) or _names_ (i.e. binds
+variables to destructs of a matching value). Matching an irrelevant
+pattern has no effect, i.e. no case discrimination is made, and no
+variable is bound.
 
 Examples:
 
@@ -4227,7 +4230,8 @@ At any given relevant path node,
 to the root (with a nested sequence of LET (lvar ...) or SWITCH case bindings.
 
 
-Implementation Note:
+--------------------------------------------------------------------------------
+40.2 Implementation Note:
 
   * Representing paths in reverse order (root last) makes it easier to derive prefixes
   (just repeated tl).
@@ -4259,8 +4263,9 @@ needs to be an mvar(p.cons), but not an mvar(p.nil), since the "argument" of nil
 generated to represent the "payload" of the cons constructor, i.e. the (head,tail)
 pair -- but only if the (head,tail) pattern is relevant.
 
-Destructing ANDs
-----------------
+--------------------------------------------------------------------------------
+40.3 Destructing ANDs
+
 If p is an AND node, there will need to be destruct mvars for the successor paths
 p.0, p.1, ..., p.n (where n is the number of children), but _only_ for those subpatterns
 that are relevant (var-containing or refutable).
@@ -4268,8 +4273,8 @@ that are relevant (var-containing or refutable).
 An AND path is relevant if _any_ of its children are relevant (because p is a prefix
 of the path of each child).
 
-----------------------------------
-Per-rule relevant nodes/paths
+--------------------------------------------------------------------------------
+40.4 Per-rule relevant nodes/paths
 
 The set of relevant nodes may change depending on what rule "fires" in a match.  For
 instance,
@@ -4297,8 +4302,8 @@ decision tree looks like:
 We could pre-compute the relevance relation and use it when deciding where to
 introduce mvar bindings.
 
------------------------------------
-Two kinds of mvars
+--------------------------------------------------------------------------------
+40.5 Two kinds of mvars
 
 (1) mvars that will correspond to, and represent, pvars occurring in the lhs pattern
 (only for such pvars that are "still relevant", i.e. whose rules are still live.
@@ -4337,8 +4342,8 @@ Notation: If p is a path in an andor tree A, then A@p is the node or subtee of A
 designated by the path.  If A is understood, the we can say @p, designating the
 node of A at p.  (p in paths(A)).  A@p is undefined if p is not a path of A.
 
-Functions
----------
+--------------------------------------------------------------------------------
+40.6 Some Basic Functions
 
 prel0 : rule * path -> bool  (path is var relevant _if_ rule is "live"; r in LiveRules)
 crel0 : rule * path -> bool  (path is choice relevant _if_ rule is "live")
@@ -4382,8 +4387,8 @@ and
        prelRules(p) = Union {prelRules (p') | p < p1'}
 
 
-Possible Useful Auxiliary Functions
------------------------------------
+--------------------------------------------------------------------------------
+40.7 Possible Useful Auxiliary Functions
 
 pathToId : (A: andor, p: path) : nodeId   = nodeId(A@p)
 
@@ -4401,8 +4406,9 @@ Both prel and crel relations depend on dectree as well as andor tree. The pvar n
 and their paths and prefixes can be determined from the andor tree, but we need knowledge
 of "live" sets of rules as well, and these come from the dectree.
 
-Implementation sketch
----------------------
+-----------------------------------------------------------------------------------------
+40.8 Implementation sketch
+
 1. For each andor node, we need to be able to access its predecessors/ancestors. 
 This can be done by retaining the path as part of the node, and retracing the
 (prefixes of the) path to access its ancestors.
@@ -4442,6 +4448,165 @@ Then we have
      relevant (0, <0>)    -- choice
      relevant (1, <0>)    -- pvar
    ~ relevant (2, <0>)    -- WILDCARD
+
+so
+
+     relevant (<0>) = {0,1}
+
+If the "current live rules" has a non-empty intersection with {0,1}, then we should
+generate an mvar and let-bind it appropriately.
+
+Q: how do we determine what a new mvar binding should be?
+
+     LET (newmvar, ???, ...)
+
+This depends on what is being destructed, e.g. a record (AND node).
+
+--------------------------------------------------------------------------------
+40.9 NOTE: Saturated CHOICE/SWITCH
+
+A CHOICE node may be saturated, meaning that all the datatype constructors occur
+as discriminators in its cases component, but there may still be a default, e.g.
+
+(0)   (true, false)  => rhs_0
+(1)   (false, false) => rhs_1
+(2)   (x, true)      => rhs_2(x)
+
+Here <0> is an OR/CHOICE node, and both bool constructors are present, but if
+<1> is true, rule (2) will be selected and will bind x.
+
+--------------------------------------------------------------------------------
+40.10 NOTE: variable relevance
+
+There may be matches where a variable exists but is "irrelevant" or "unreachable".
+But this seems to be possible only when the variable occurs in a redundant rule,
+as in the following example:
+
+(0)   true  => rhs_0
+(1)   false => rhs_1
+(2)   x     => rhs_2(x)
+
+Here matching will never need to bind x, because rule (2) is redundant and will
+never be reached during a match (i.e. no RHS 2 node in the decision tree).
+
+CONJECTURE: If there are no redundant rules, then every variable is "relevant"
+to some rule.
+
+If this is the case, we may as well assume that for every pattern variable
+v occurring at path p, there is a rule r s. t. relevant(r,p).
+
+    (A v <- varpaths) (E r) relevant(r, p)
+
+where
+
+    varpaths = {path <- paths(andor) | is_AND (node(andor,path))
+
+QUESTION: relation between cases and default in SWITCH (dectree.SWITCH)?
+
+If the cases are saturated, under what circumstance would the default be used?  For instance,
+if the subject type is bool and there are true and false cases, could the default ever 
+be chosen?  [See 40.9 above]
+
+CONJECTURE: if a SWITCH is sturated, default should/will be NONE.
+
+--------------------------------------------------------------------------------
+40.11 NOTE: OR/CHOICE rules
+
+The rules for which an OR/CHOICE node (@ path p) is relevant fall into 3 categories:
+
+(1) conRules: rules that have a con at p (isCon(pat(r)@p).  ("con-relevant" rules)
+(2) varRules: rules that have a variable at p (isVar(pat(r)@p))  ("var-relevant rules)
+(3) wildRules: rules that have a WC at p (isWild(pat(r)@p)); these are _not_ relevant to p. 
+
+relevant(r,p) holds for (1) and (2), but not for (3).
+
+   relevant (p) = conRules ++ varRules
+
+where relevant (p) = {r | relevant(r,p)}
+
+
+================================================================================
+41. Wildcard pats and live rules
+================================================================================
+
+Notation: given a "match" M (i.e. a list of (pat, exp) pairs), if r < |M|,
+then
+
+    pat(r) = #1 (nth (M, r)).
+    pats (M) = map #1 M
+    andor (M) = andor (pats M)
+    at (pat, path) = pattern at position p in pat, or undefined (also denoted pat@path)
+    paths (pat) = {p : path | pat@p is defined}
+
+In addition to the relevance relation (for a given andor tree):
+
+    relevant (r: ruleno, p: path)
+
+we also have a compatibility relation, stating that rule r is "compatible" with the
+pattern node at path p:
+
+    compat (r: ruleno, p: path)   <==>   pat(r) @ p is defined
+
+and a corresponding ruleset mapping
+
+    compat (p: pat) : ruleset = {r : ruleno | compat (r, p)}
+
+And, conversely,
+
+    compat (r: ruleno) : path set = {p : path | compat (r, p)}
+
+PROP:  compat (r) = the set of all paths in pat(r)
+
+(Another plausible name for this relation would be "compat".)
+
+Notation: for a match/andor, pat(r,p) is the pattern at path p in rule r.
+
+PROP:
+(0) relevant (r, p) ==> compat (r, p)
+(1) pat(r, p) is VAR ==> relevant (r, p)
+(2) pat(r, p) is WC ==> compat (r, p)
+(3) pat(r, p) is con ==> compat (r, p)   [ con = const | con pat ]
+
+NOTE: "live" rules can be _static_, as tracked during construction of the andor tree
+(andor.sml), where the notion is dependent only on the structure of the patterns or
+andor tree, or _dynamic_, as in the construction of the decision tree (decisiontree.sml),
+where liveness depends on previous switch choices (nodes above in the decision tree),
+i.e. on the "dynamic" path through the decision tree driven by the value being matched.
+
+
+================================================================================
+41. Limiting to essential mvar bindings
+================================================================================
+
+The principle is that mvar bindings should only be introduced for "relevant" nodes,
+where the mvar will (eventually) be used for either
+
+(1) the value corresponding to a pvar that will need to be supplied to a rule rhs
+(2) the value that becomes the subject of a switch.
+
+The idea: introduce bindings for (root or) AND structure nodes only if the 
+relevant(id) intersect live is non-empty.  I.e. there is a live (at the point
+where the binding occurs) rule that is relevant to the node.  Thus relevance is
+qualified or restricted by "liveness" at the point where generate is translating
+a node (or its surrounding AND structure).
+
+We can add instrumenttion to check that every mvar that is bound in this way does
+eventually get "used".  We can also check that a given (relevant) node is assigned
+an mvar once and only once.
+
+Wildcard patterns in themselves will never lead to a binding, though a node with
+a Wildcard layer/rule may be mvar bound if there is another source of relevance (i.e.
+it is relevant to some other live rule).  Similarly, compound non-relevant patterns
+will not yield an mvar binding (e.g. (), (_,_), (_, ()), etc.).
+
+--------------------------------------------------------------------------------
+TERMINOLOGY: The "destruct" of a value is the value that result from stipping off
+the head constructor, assuming the value's type is a datatype.  For instance,
+the destruct of [1] is the pair (1, nil). A datatype constant or other 
+constant match element (e.g. an int) does not have a destruct. The destruct of
+a vector is a VEC, which is essentially the list of vector elements (the VLENcon
+is stripped off).
+
 ================================================================================
 [NN] Literature
 ================================================================================
@@ -4454,7 +4619,7 @@ analyze next.
 2. Augustsson, "Compiling Pattern Matching", ?, 1985
 Describes pattern matching as implemented in LML (Lazy ML).
 
-n. Sestoft, "ML Pattern Match Compilation and Partial Evaluation", ?, ?
+3. Sestoft, "ML Pattern Match Compilation and Partial Evaluation", ?, ?
 
 
 ================================================================================
