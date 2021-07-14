@@ -4575,7 +4575,7 @@ i.e. on the "dynamic" path through the decision tree driven by the value being m
 
 
 ================================================================================
-41. Limiting to essential mvar bindings
+42. Limiting to essential mvar bindings
 ================================================================================
 
 The principle is that mvar bindings should only be introduced for "relevant" nodes,
