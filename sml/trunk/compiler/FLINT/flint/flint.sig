@@ -15,6 +15,7 @@ signature FLINT =
     type lvar = LambdaVar.lvar
 
     type fflag = LtyDef.fflag
+    type rflag = LtyDef.rflag
 
   (* specifies what kind of inlining behavior is desired for the function *)
     datatype ilhint
@@ -55,7 +56,7 @@ signature FLINT =
     datatype rkind
       = RK_VECTOR of tyc           (* vector: all elements have same type *)
       | RK_STRUCT                  (* module: elements may be polymorphic *)
-      | RK_TUPLE                   (* tuple: all fields are monomorphic *)
+      | RK_TUPLE of rflag          (* tuple: all fields are monomorphic *)
 
   (*
    * dcon records the name of the constructor (for debugging), the
@@ -67,13 +68,15 @@ signature FLINT =
   (*
    * con: used to specify all possible switching statements. Efficient switch
    * generation can be applied to DATAcon and INTcon. Otherwise, the switch is
-   * just a short-hand of the binary branch trees. VLENcon is gone, translated to INTcon.
+   * just a short-hand of the binary branch trees. Some of these instances
+   * such as VLENcon will go away soon.
    *)
     datatype con
       = DATAcon of dcon * tyc list * lvar
       | INTcon of int IntConst.t	(* sz = 0 for IntInf.int *)
       | WORDcon of int IntConst.t
       | STRINGcon of string
+      | VLENcon of int
 
   (** simple values, including variables and static constants. *)
     datatype value

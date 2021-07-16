@@ -19,6 +19,7 @@ type primtyc = PrimTyc.primtyc
 type tvar = Lty.tvar
 
 type fflag = Lty.fflag 
+type rflag = Lty.rflag
 
 type tkind = Lty.tkind
 type tyc = Lty.tyc
@@ -39,34 +40,41 @@ type lty = Lty.lty
  *)
 
 (* 
- * FLINT fflag is used to classify different kinds of monomorphic 
+ * FLINT fflag and rflag are used to classify different kinds of monomorphic 
  * functions and records. As of now, they are roughly equivalent to:
  *
  *    datatype fflag
  *      = FF_VAR of bool * bool
  *      | FF_FIXED
  *
- * We treat this as an abstract type so pattern matching no longer applies.
+ *    datatype rflag = RF_TMP
+ *
+ * We treat both as abstract types so pattern matching no longer applies.
  * NOTE: FF_VAR flags are used by FLINTs before we perform representation
  * analysis while FF_FIXED is used by FLINTs after we perform representation
  * analysis. 
  *)
 
-(** fflag constructors *)
+(** fflag and rflag constructors *)
 val ffc_var    : bool * bool -> fflag
 val ffc_fixed  : fflag
+val rfc_tmp    : rflag
 
-(** fflag deconstructors *)
+(** fflag and rflag deconstructors *)
 val ffd_var    : fflag -> bool * bool
 val ffd_fixed  : fflag -> unit
+val rfd_tmp    : rflag -> unit
 
-(** fflag predicates *)
+(** fflag and rflag predicates *)
 val ffp_var    : fflag -> bool
 val ffp_fixed  : fflag -> bool
+val rfp_tmp    : rflag -> bool
 
-(** fflag one-arm switch *)
+(** fflag and rflag one-arm switch *)
 val ffw_var    : fflag * (bool * bool -> 'a) * (fflag -> 'a) -> 'a
 val ffw_fixed  : fflag * (unit -> 'a) * (fflag -> 'a) -> 'a
+val rfw_tmp    : rflag * (unit -> 'a) * (rflag -> 'a) -> 'a
+
 
 (* 
  * FLINT tyc is roughly equivalent to the following ML datatype 
@@ -84,7 +92,7 @@ val ffw_fixed  : fflag * (unit -> 'a) * (fflag -> 'a) -> 'a
  *      | TC_WRAP of tyc                   (* used after rep. analysis only *)
  *      | TC_ABS of tyc                    (* NOT USED *)
  *      | TC_BOX of tyc                    (* NOT USED *)
- *      | TC_TUPLE of tyc list             (* rflag gone *)
+ *      | TC_TUPLE of tyc list             (* rflag hidden *)
  *      | TC_ARROW of fflag * tyc list * tyc list 
  *
  * We treat tyc as an abstract type so we can no longer use 

@@ -16,7 +16,6 @@ struct
     structure LT = LtyExtern
     structure PO = Primop
     structure PU = PrintUtil
-    structure PP = PrettyPrint
     structure CTRL = Control.FLINT
 
     (** some print utilities **)
@@ -33,11 +32,40 @@ struct
     infix &
     fun op& (f1,f2) () = (f1(); f2())
 
+    fun toStringFFlag ff =
+      let fun h b = if b then "r" else "c"
+       in LT.ffw_var (ff, fn (b1,b2) => (h b1)^(h b2), fn _ => "f")
+      end
+
+    fun toStringFKind ({isrec,cconv,inline,...}:F.fkind) =
+	(case inline of F.IH_ALWAYS => "(i)"
+		      | F.IH_UNROLL => "(u)"
+		      | F.IH_MAYBE(s,ws) => "(i:"^(Int.toString s)^")"
+		      | F.IH_SAFE => "")^
+	     (case isrec
+	       of SOME(_,F.LK_UNKNOWN) => "R"
+		| SOME(_,F.LK_LOOP) => "LR"
+		| SOME(_,F.LK_TAIL) => "TR"
+		| NONE => "")^
+		  (case cconv
+		    of F.CC_FCT => "FCT"
+		     | F.CC_FUN fixed => ("FUN "^(toStringFFlag fixed)))
+
+(*
+    fun toStringFKind F.FK_ESCAPE  = "FK_ESCAPE"
+      | toStringFKind F.FK_KNOWN   = "FK_KNOWN"
+      | toStringFKind F.FK_KREC    = "FK_KREC"
+      | toStringFKind F.FK_KTAIL   = "FK_KTAIL"
+      | toStringFKind F.FK_NOINL   = "FK_NOINL"
+      | toStringFKind F.FK_HANDLER = "FK_HANDLER"
+*)
+
+    val printFKind = say o toStringFKind
 
     (** classifications of various kinds of records *)
     fun toStringRKind (F.RK_VECTOR tyc) = "VECTOR[" ^ LT.tc_print tyc ^ "]"
       | toStringRKind F.RK_STRUCT = "STRUCT"
-      | toStringRKind (F.RK_TUPLE) = "RECORD"
+      | toStringRKind (F.RK_TUPLE _) = "RECORD"
 
     val printRKind = say o toStringRKind
 
@@ -48,6 +76,7 @@ struct
       | toStringCon (F.WORDcon{ival, ty}) =
 	  concat["(W", Int.toString ty, ")", IntInf.toString ival]
       | toStringCon (F.STRINGcon s) = PrintUtil.formatString s
+      | toStringCon (F.VLENcon n)   = Int.toString n
 
     val printCon = say o toStringCon
 
@@ -65,64 +94,17 @@ struct
     val LVarString = ref LV.lvarName
 
     fun printVar v = say (!LVarString v)
-(*
     val printTyc = say o LT.tc_print
     val printLty = say o LT.lt_print
     fun printTvTk (tv:LT.tvar,tk) =
 	say ((LV.lvarName tv)^":"^(LT.tk_print tk))
-*)
-    val with_pp = PP.with_default_pp_sans (!FLINT_Control.lineWidth)
-    fun printTyc tyc = (* say o LT.tc_print *)
-	with_pp
-	  (fn ppstrm => PPLty.ppTyc 1000 ppstrm tyc)
-    fun printLty lty = (* say o LT.lt_print *)
-	with_pp
-	  (fn ppstrm => PPLty.ppLty 1000 ppstrm lty)
-    fun printTvTk (tv:LT.tvar,tkind) =
-	with_pp
-	    (fn ppstrm => (PP.string ppstrm (LV.lvarName tv);
-			   PP.string ppstrm ":";
-			   PPLty.ppTKind 1000 ppstrm tkind))
 
-    val bracketComma = ("[", ",", "]")
-    val printValList = PU.printClosedSequence bracketComma printSval
-    val printVarList = PU.printClosedSequence bracketComma printVar
-    val printTycList = PU.printClosedSequence bracketComma printTyc
-    val printLtyList = PU.printClosedSequence bracketComma printLty
-    val printTvTkList = PU.printClosedSequence bracketComma printTvTk
-
-    fun fflagToString ff =
-        let fun h b = if b then "r" else "c"
-         in LT.ffw_var (ff, fn (b1,b2) => (h b1)^(h b2), fn _ => "f")
-        end
-
-    fun printFKind ({isrec,cconv,inline,known}: F.fkind) =
-	let val inlineStr = 
-		(case inline
-		   of F.IH_ALWAYS => "in"
-		    | F.IH_UNROLL => "ur"
-		    | F.IH_MAYBE(s,ws) =>
-		      concat ["im(", Int.toString s, ",",
-			      PU.listToString bracketComma Int.toString ws,")"]
-		    | F.IH_SAFE => "is")
-	    val (isrecStr, isrecLtys) =
-		(case isrec
-		   of SOME(ltys,F.LK_UNKNOWN) => ("R", ltys)
-		    | SOME(ltys,F.LK_LOOP) => ("LR", ltys)
-		    | SOME(ltys,F.LK_TAIL) => ("TR", ltys)
-		    | NONE => ("NR", nil))
-	    val cconvStr = 
-		(case cconv
-		   of F.CC_FCT => "FCT"
-		    | F.CC_FUN fflag => ("FUN(" ^ fflagToString fflag ^ ")"))
-	 in say "FD[";
-	    say (cconvStr ^ ", ");
-	    say (inlineStr ^ ", ");
-	    say (Bool.toString known ^ ", ");
-	    say isrecStr;
-	    if null isrecLtys then () else printLtyList isrecLtys;
-	    say "]"
-	end
+    val parenCommaSep = ("(", ",", ")")
+    val printValList = PU.printClosedSequence ("[",",","]") printSval
+    val printVarList = PU.printClosedSequence ("[",",","]") printVar
+    val printTycList = PU.printClosedSequence ("[",",","]") printTyc
+    val printLtyList = PU.printClosedSequence ("[",",","]") printLty
+    val printTvTkList = PU.printClosedSequence ("[",",","]") printTvTk
 
     fun printDecon (F.DATAcon((_,Access.CONSTANT _,_),_,_)) = ()
         (* WARNING: a hack, but then what about constant exceptions ? *)
@@ -321,7 +303,6 @@ struct
 	  printSval value;  say ")";
 	  newline();  dent();  pLexp body)
 
-(*
       | pLexp (F.PRIMOP (p as (_, PO.UNWRAP, _, []), [value], lvar, body)) =
 	 (* <lvar> = UNWRAP(<tyc>, <value>)
 	  * <body>
@@ -330,7 +311,7 @@ struct
 	  printTyc (FU.getUnWrapTyc p);  say ", ";
 	  printSval value;  say ")";
 	  newline();  dent();  pLexp body)
-*)
+
       | pLexp (F.PRIMOP ((d, primop, lty, tycs), values, lvar, body)) =
 	 (* <lvar> = PRIM(<primop>, <lty>, [<tycs>]) [<values>]
 	  * <body>
@@ -351,7 +332,7 @@ struct
 	 *      <body>)
 	 *)
 	(printVar lvar; say " : ";
-	 printFKind fkind;
+	 say "("; printFKind fkind; say ") ";
 	 (*** the return-result lty no longer available ---- printLty lty; **)
          say " = "; newline();
 	 indent 2;

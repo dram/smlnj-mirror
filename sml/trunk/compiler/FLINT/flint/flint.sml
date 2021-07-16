@@ -19,6 +19,7 @@ structure FLINT : FLINT =
     type lvar = LV.lvar
 
     type fflag = LD.fflag
+    type rflag = LD.rflag
 
   (* what kind of inlining behavior is desired for the function *)
     datatype ilhint
@@ -56,7 +57,7 @@ structure FLINT : FLINT =
     datatype rkind
       = RK_VECTOR of tyc           (* vector: all elements have same type *)
       | RK_STRUCT                  (* module: elements may be polymorphic *)
-      | RK_TUPLE                   (* tuple: all elements are monomorphic *)
+      | RK_TUPLE of rflag          (* tuple: all elements are monomorphic *)
 
   (*
    * dcon records the name of the constructor (for debugging), the
@@ -76,8 +77,9 @@ structure FLINT : FLINT =
       | INTcon of int IntConst.t	(* sz = 0 for IntInf.int *)
       | WORDcon of int IntConst.t
       | STRINGcon of string
+      | VLENcon of int
 
-  (** value: "simple" values; i.e. variables and static constants. *)
+  (** simple values, including variables and static constants. *)
     datatype value
       = VAR of lvar
       | INT of int IntConst.t	(* sz = 0 for IntInf.int *)
@@ -85,7 +87,7 @@ structure FLINT : FLINT =
       | REAL of int RealConst.t
       | STRING of string
 
-  (** lexp: FLINT lambda expressions *)
+  (** the definitions of the lambda expressions *)
     datatype lexp
       = RET of value list
       | LET of lvar list * lexp * lexp

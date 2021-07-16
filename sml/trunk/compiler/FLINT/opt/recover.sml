@@ -16,29 +16,12 @@ end (* signature RECOVER *)
 structure Recover : RECOVER =
 struct
 
-local
-  structure LT = LtyExtern
-  structure DI = DebIndex
-  structure LV = LambdaVar
-  structure F = FLINT
-  structure PP = PrettyPrint
+local structure LT = LtyExtern
+      structure DI = DebIndex
+      open FLINT
+in
 
-  open FLINT
-
-val debugging = FLINT_Control.rcdebugging
-fun bug s = ErrorMsg.impossible ("Recover: " ^ s)
-fun say msg = (Control.Print.say msg; Control.Print.flush ())
-fun says msgs = say (concat msgs)
-fun saynl msg = (say (msg ^ "\n"))
-fun dbsay msg = if !debugging then say msg else ()
-fun dbsays msgs = if !debugging then says msgs else ()
-fun dbsaynl msg = if !debugging then saynl msg else ()
-
-fun ppLty (lty : lty) =
-    PP.with_default_pp
-	(fn ppstrm => PPLty.ppLty 1000 ppstrm lty)
-
-in (* local *)
+fun bug s = ErrorMsg.impossible ("Recover: "^s)
 
 fun ltInst (lt, ts) =
   (case LT.lt_inst(lt, ts)
@@ -58,38 +41,17 @@ fun reslty (lt, ts) =
                  | _ => bug "unexpected case in reslty"
   end
 
-fun check (test, msg) =
-    if !debugging andalso not test
-    then says ["!!! ", msg, "\n"]
-    else ()
-
 exception RecoverLty
-fun recover (fdec: F.prog, postRep: bool) =
-  let val ltyTable : lty LV.Tbl.hash_table = LV.Tbl.mkTable(32, RecoverLty)
-
-      (* getLvar : LV.lvar -> lty *)
-      fun getLvar (lv: LV.lvar): lty =
-	   let val _ = dbsays [">>> : ", LV.toString lv, " --> "]
-	       val lty = LV.Tbl.lookup ltyTable lv
-			 handle RecoverLty =>
-		           bug ("recover..getLvar: unbound lvar: " ^ LV.prLvar lv)
-	    in if !debugging then ppLty lty else ();
-	       lty
-	   end
-
-      (* addLvar : LV.lvar * lty -> unit *)
-      fun addLvar (arg as (lvar: LV.lvar, lty: lty)) : unit =
-	  (if !debugging
-	   then (says ["+++ ", LV.toString lvar, " : "];
-		 ppLty lty)
-	   else ();
-	   LV.Tbl.insert ltyTable arg)
-
-      (* addLvars: (LV.lvar * lty) list -> unit *)
-      fun addLvars vts = app addLvar vts
-
-      (* getlty : FLINT.value -> lty *)
-      fun getlty ((VAR lvar): F.value): lty = getLvar lvar
+fun recover (fdec, postRep) =
+  let val ltyTable : lty LambdaVar.Tbl.hash_table =
+	  LambdaVar.Tbl.mkTable(32, RecoverLty)
+      fun get v = LambdaVar.Tbl.lookup ltyTable v
+	    handle RecoverTy => (
+	      print (concat["Recover.get: ", LambdaVar.prLvar v, "\n"]);
+	      bug "Recover.recover.get")
+      val addv = LambdaVar.Tbl.insert ltyTable
+      fun addvs vts = app addv vts
+      fun getlty (VAR v) = get v
         | getlty (INT{ty, ...}) = LT.ltc_num ty
         | getlty (WORD{ty, ...}) = LT.ltc_num ty
         | getlty (REAL _) = LT.ltc_real
@@ -97,23 +59,17 @@ fun recover (fdec: F.prog, postRep: bool) =
 
       val lt_nvar_cvt = LT.lt_nvar_cvt_gen()
 
-      (* lexpToLtys : lexp -> lty list *)
-      fun lexpToLtys e =
-        let (* lpv : F.value -> lty *)
-	    fun lpv (u: F.value) = getlty u
-					  
-            (* lpvs : F.value list -> lty list *)
+      (* loop : depth -> lexp -> lty list *)
+      fun loop e =
+        let fun lpv u = getlty u
             fun lpvs vs = map lpv vs
 
-            (* lpd : fundec/prog -> unit *)
-            fun lpd (fkind, flvar, vts, e): unit =
-              (addLvars vts; addLvar (flvar, LT.ltc_fkfun(fkind, map #2 vts, lpe e)))
-
-            (* lpds : fundec list -> unit *)
+            fun lpd (fk, f, vts, e) =
+              (addvs vts; addv (f, LT.ltc_fkfun(fk, map #2 vts, lpe e)))
             and lpds (fds as ((fk as {isrec=SOME _, ...},_,_,_)::_)) =
                   let fun h ((fk as {isrec=SOME (rts,_), ...},
                              f, vts, _) : fundec) =
-                            addLvar(f, LT.ltc_fkfun(fk, map #2 vts, rts))
+                            addv(f, LT.ltc_fkfun(fk, map #2 vts, rts))
                         | h _ = bug "unexpected case in lpds"
                       val _ = app h fds
                    in app lpd fds
@@ -121,19 +77,13 @@ fun recover (fdec: F.prog, postRep: bool) =
               | lpds [fd] = lpd fd
               | lpds _ = bug "unexpected case 2 in lpds"
 
-            (* lpc : con * lexp -> ??? *)
             and lpc (DATAcon((_,_,lt), ts, v), e) =
-                  (addLvar (v, arglty(lt, ts)); lpe e)
+                  (addv (v, arglty(lt, ts)); lpe e)
               | lpc (_, e) = lpe e
 
-	    (* lpe : lexp -> lty list *)
-            and lpe (RET vs : F.lexp) : lty list = lpvs vs
+            and lpe (RET vs) = lpvs vs
               | lpe (LET(vs, e1, e2)) =
-		  let val e1Ltys = lpe e1
-		  in check (length vs = length e1Ltys, "lpe[LET]");
-                     addLvars (ListPair.zipEq (vs, e1Ltys));
-		     lpe e2
-		  end
+                  (addvs (ListPair.zip(vs, lpe e1)); lpe e2)
               | lpe (FIX(fdecs, e)) = (lpds fdecs; lpe e)
               | lpe (APP(u, vs)) =
 		  let val u' = lpv u
@@ -144,15 +94,15 @@ fun recover (fdec: F.prog, postRep: bool) =
 			raise LT.DeconExn))
 		  end
               | lpe (TFN((tfk, v, tvks, e1), e2)) =
-                  (addLvar(v, LT.lt_nvpoly(tvks, lexpToLtys e1));
+                  (addv(v, LT.lt_nvpoly(tvks, loop e1));
                    lpe e2)
               | lpe (TAPP(v, ts)) = LT.lt_inst (lpv v, ts)
               | lpe (RECORD(rk,vs,v,e)) =
-                  (addLvar (v, LT.ltc_rkind(rk, lpvs vs)); lpe e)
+                  (addv (v, LT.ltc_rkind(rk, lpvs vs)); lpe e)
               | lpe (SELECT(u,i,v,e)) =
-                  (addLvar (v, LT.ltd_rkind(lpv u, i)); lpe e)
+                  (addv (v, LT.ltd_rkind(lpv u, i)); lpe e)
               | lpe (CON((_,_,lt),ts,_,v,e)) =
-                  (addLvar (v, reslty(lt, ts)); lpe e)
+                  (addv (v, reslty(lt, ts)); lpe e)
               | lpe (SWITCH(_, _, ces, e)) =
                   let val lts = map lpc ces
                    in case e of NONE => hd lts
@@ -167,23 +117,23 @@ fun recover (fdec: F.prog, postRep: bool) =
               | lpe (PRIMOP((_,Primop.WCAST, lt, []), _, v, e)) =
                   if postRep then
                      (case LT.ltd_fct lt
-                       of ([_],[r]) => (addLvar(v, r); lpe e)
+                       of ([_],[r]) => (addv(v, r); lpe e)
                         | _ => bug "unexpected case for WCAST")
                   else bug "unexpected primop WCAST in recover"
               | lpe (PRIMOP((_,_,lt,ts), _, v, e)) =
-                  (addLvar (v, reslty (lt, ts)); lpe e)
+                  (addv (v, reslty (lt, ts)); lpe e)
 
          in lpe e handle LT.DeconExn => (print "\nWhole Expr:\n";
 					 PPFlint.printLexp e; bug "ltd decon")
-        end (* function lexpToLtys *)
+        end (* function transform *)
 
       val (fkind, f, vts, e) = fdec
-      val _ = addLvars vts
-      val atys = map #2 vts    (* argument ltys *)
+      val _ = addvs vts
+      val atys = map #2 vts
       (* val _ = PPFlint.printLexp e *)
-      val rtys = lexpToLtys e  (* result ltys *)
-      val _ = addLvar (f, LT.ltc_fkfun(fkind, atys, rtys))
-  in {getLty=getlty, cleanUp=fn () => LV.Tbl.clear ltyTable, addLty=addLvar}
+      val rtys = loop e
+      val _ = addv (f, LT.ltc_fkfun(fkind, atys, rtys))
+  in {getLty=getlty, cleanUp=fn () => LambdaVar.Tbl.clear ltyTable, addLty=addv}
  end (* function recover *)
 
 end (* local *)

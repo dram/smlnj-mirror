@@ -137,6 +137,9 @@ sig
 (* check an integer/word literal value for being in range as defined by its type *)
   val numInRange : IntInf.int * Types.ty -> bool
 
+  val dataconName : Types.datacon -> Symbol.symbol
+  (* the "name" of a datacon *)
+
   val dataconSign : Types.datacon -> Access.consig
   (* the "sign" of a datacon, which is the sign of its datatype *)
 

@@ -124,6 +124,10 @@ datatype fflag                                 (* calling conventions *)
   = FF_VAR of bool * bool                      (* is it fixed ? *)
   | FF_FIXED                                   (* used after rep. analysis *)
 
+datatype rflag = RF_TMP                        (* tuple kind: a template *)
+ (* [dbm] only one rflag value, so doesn't discriminate anything,
+  * therefore redundant, could be removed *)
+
 (** definitions of concrete plambda type constructors *)
 datatype tycI
   = TC_VAR of DebIndex.index * int             (* tyc variables [why not enc_tvar?] *)
@@ -145,7 +149,7 @@ datatype tycI
       index : int}                             (* index of this dt in family *)
      (* TC_FIX are built in trans/transtypes.sml*)
 
-  | TC_TUPLE of tyc list                       (* std record tyc *)
+  | TC_TUPLE of rflag * tyc list               (* std record tyc *)
   | TC_ARROW of fflag * tyc list * tyc list    (* std function tyc *)
   | TC_PARROW of tyc * tyc                     (* special fun tyc [not used] *)
 
@@ -335,7 +339,7 @@ local (* hashconsing impl *)
           combine (8::n::i::(getnum t)::(map getnum ts))
       | (TC_ABS t) => combine [9, getnum t]
       | (TC_BOX t) => combine [10, getnum t]
-      | (TC_TUPLE ts) => combine (11::(map getnum ts))
+      | (TC_TUPLE (_, ts)) => combine (11::(map getnum ts))
       | (TC_ARROW(rw, ts1, ts2)) =>
           let fun h (FF_FIXED) = 10
                 | h (FF_VAR(true,b2)) = if b2 then 20 else 30
@@ -418,7 +422,7 @@ local (* hashconsing impl *)
             end
         | (TC_ABS t) => getAux t
         | (TC_BOX t) => getAux t
-        | (TC_TUPLE ts) => fsmerge ts
+        | (TC_TUPLE (_, ts)) => fsmerge ts
         | (TC_ARROW(_, ts1, ts2)) => fsmerge (ts1@ts2)
         | (TC_PARROW(t1, t2)) => fsmerge [t1, t2]
         | (TC_TOKEN (k, (ref(_, t, AX_NO)))) => AX_NO
@@ -646,7 +650,7 @@ end
 		| (TC_SEQ _, _) => print "SEQ\n"
 		| (TC_PROJ _, _) => print "PROJ\n"
 		| (TC_SUM _, _) => print "SUM\n"
-		| (TC_TUPLE _) => print "TUPLE\n"
+		| (TC_TUPLE _, _) => print "TUPLE\n"
 		| (TC_ARROW _, _) => print "ARROW\n"
 		| (TC_PARROW _, _) => print "PARROW\n"
 		| (TC_BOX _, _) => print "BOX\n"

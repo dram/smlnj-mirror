@@ -14,7 +14,7 @@ structure Wrapping : WRAPPING =
 struct
 
 local structure CO = Coerce
-      structure LE = LtyExtern
+      structure LT = LtyExtern
       structure DI = DebIndex
       structure PO = Primop
       structure DA = Access
@@ -24,7 +24,7 @@ in
 fun bug s = ErrorMsg.impossible ("Wrapping: " ^ s)
 val say = Control_Print.say
 fun mkv _ = LambdaVar.mkLvar()
-val fkfun = {isrec=NONE,known=false,inline=IH_ALWAYS, cconv=CC_FUN LE.ffc_fixed}
+val fkfun = {isrec=NONE,known=false,inline=IH_ALWAYS, cconv=CC_FUN LT.ffc_fixed}
 val ident = fn le => le
 fun option f NONE = NONE
   | option f (SOME x) = SOME (f x)
@@ -33,20 +33,20 @@ fun option f NONE = NONE
  *                   MISC UTILITY FUNCTIONS                                 *
  ****************************************************************************)
 local val lt_upd =
-        let val x = LE.ltc_array (LE.ltc_tv 0)
-         in LE.ltc_poly([LE.tkc_mono],
-              [LE.ltc_arrow(LE.ffc_rrflint, [x, LE.ltc_int, LE.ltc_tv 0],
-                                            [LE.ltc_unit])])
+        let val x = LT.ltc_array (LT.ltc_tv 0)
+         in LT.ltc_poly([LT.tkc_mono],
+              [LT.ltc_arrow(LT.ffc_rrflint, [x, LT.ltc_int, LT.ltc_tv 0],
+                                            [LT.ltc_unit])])
         end
       val lt_sub =
-        let val x = LE.ltc_array (LE.ltc_tv 0)
-         in LE.ltc_poly([LE.tkc_mono],
-              [LE.ltc_arrow(LE.ffc_rrflint, [x, LE.ltc_int], [LE.ltc_tv 0])])
+        let val x = LT.ltc_array (LT.ltc_tv 0)
+         in LT.ltc_poly([LT.tkc_mono],
+              [LT.ltc_arrow(LT.ffc_rrflint, [x, LT.ltc_int], [LT.ltc_tv 0])])
         end
 in
 
-fun isArraySub t = LE.lt_eqv(t, lt_sub)
-fun isArrayUpd t = LE.lt_eqv(t, lt_upd)
+fun isArraySub t = LT.lt_eqv(t, lt_sub)
+fun isArrayUpd t = LT.lt_eqv(t, lt_upd)
 val f64sub = PO.NUMSUBSCRIPT(PO.FLOAT 64)
 val f64upd = PO.NUMUPDATE(PO.FLOAT 64)
 
@@ -58,12 +58,12 @@ val f64upd = PO.NUMUPDATE(PO.FLOAT 64)
 fun classPrim (px as (d, p, lt, ts)) =
   (case (p, ts)
     of ((PO.NUMSUBSCRIPT _ | PO.NUMUPDATE _), _) =>   (* overloaded primops *)
-         ((d, p, LE.lt_pinst(lt, ts), []), true)
+         ((d, p, LT.lt_pinst(lt, ts), []), true)
      | (PO.ASSIGN, [tc]) =>			      (* special *)
-	if (LE.tc_upd_prim tc = PO.UNBOXEDUPDATE)
+	if (LT.tc_upd_prim tc = PO.UNBOXEDUPDATE)
 	  then ((d, PO.UNBOXEDASSIGN, lt, ts), false) (* avoid store-list allocation *)
 	  else ((d, p, lt, ts), false)
-     | (PO.UPDATE, [tc]) => ((d, LE.tc_upd_prim tc, lt, ts), false)
+     | (PO.UPDATE, [tc]) => ((d, LT.tc_upd_prim tc, lt, ts), false)
      | _ => (px, false))
 
 val argbase = fn vs => (vs, ident)
@@ -86,16 +86,15 @@ fun wrapping fdec =
 let (* In pass1, we calculate the old type of each variables in the FLINT
      * expression. We do this for the sake of having simpler wrapping code.
      *)
-(*    val {getLty=getlty, cleanUp, ...} = Recover.recover (fdec, false) *)
-    val getlty = #getLty (Recover.recover (fdec, false))
+    val {getLty=getlty, cleanUp, ...} = Recover.recover (fdec, false)
 
     (** generate a set of new wrappers *)
-    val (tcWrap, ltWrap, tcf, ltf (*, cleanup2*)) = LE.typeWrapGen () (* LE.twrap_gen true *)
+    val (tcWrap, ltWrap, tcf, ltf, cleanup2) = LT.twrap_gen true
 
     fun fixDconTy lt =
-      if LE.ltp_ppoly lt then
-        let val (ks, t) = LE.ltd_ppoly lt
-         in LE.ltc_ppoly(ks, ltWrap t)
+      if LT.ltp_ppoly lt then
+        let val (ks, t) = LT.ltd_ppoly lt
+         in LT.ltc_ppoly(ks, ltWrap t)
         end
       else ltWrap lt
 
@@ -105,7 +104,7 @@ let (* In pass1, we calculate the old type of each variables in the FLINT
           fun lpfd ({isrec,known,inline,cconv}, v, vts, e) =
 	      let val nisrec = case isrec of SOME(ts,l) => SOME(map ltf ts, l)
 					   | NONE => NONE
-		  val ncconv = case cconv of CC_FUN fixed => CC_FUN LE.ffc_fixed
+		  val ncconv = case cconv of CC_FUN fixed => CC_FUN LT.ffc_fixed
 					   | CC_FCT => cconv
 	      in ({isrec=nisrec, known=known,
 		   cconv=ncconv, inline=inline},
@@ -120,7 +119,7 @@ let (* In pass1, we calculate the old type of each variables in the FLINT
             let (*** fixing the potential mismatch in the type *)
                 val ndc = (name, rep, fixDconTy lt)
 
-                val aty = case LE.ltd_arrow (LE.lt_pinst(lt, ts))
+                val aty = case LT.ltd_arrow (LT.lt_pinst(lt, ts))
                            of (_, [x], _) => x
                             | _ => bug "unexpected case in lpdc"
                 val (naty, oaty) = (ltWrap aty, ltf aty)
@@ -169,10 +168,10 @@ let (* In pass1, we calculate the old type of each variables in the FLINT
                  in if issp (* primop has been specialized *)
                     then ((dict, np, nlt, wts), argbase, resbase)
                     else (* still a polymorphic primop *)
-                     (let val nt = LE.lt_pinst(nlt, wts)
-                          val (_, nta, ntr) = LE.ltd_arrow nt
-                          val ot = ltf(LE.lt_pinst(lt, ts))
-                          val (_, ota, otr) = LE.ltd_arrow ot
+                     (let val nt = LT.lt_pinst(nlt, wts)
+                          val (_, nta, ntr) = LT.ltd_arrow nt
+                          val ot = ltf(LT.lt_pinst(lt, ts))
+                          val (_, ota, otr) = LT.ltd_arrow ot
                           val arghdr =
                             (case CO.wrapOp(wenv, nta, ota, d)
                               of NONE => argbase
@@ -210,8 +209,8 @@ let (* In pass1, we calculate the old type of each variables in the FLINT
                | TAPP (v, ts) =>
                    let val olt = getlty v
                        val nts = map tcWrap ts
-                       val nlts = LE.lt_inst(ltf olt, nts)
-                       val olts = map ltf (LE.lt_inst(olt, ts))
+                       val nlts = LT.lt_inst(ltf olt, nts)
+                       val olts = map ltf (LT.lt_inst(olt, ts))
                        val hdr = CO.unwrapOp (wenv, nlts, olts, d)
                     in case hdr
                         of NONE => TAPP(v, nts)
@@ -229,8 +228,8 @@ let (* In pass1, we calculate the old type of each variables in the FLINT
 
                | RECORD(RK_VECTOR t, vs, v, e) =>
                    let val (otc, ntc) = (tcf t, tcWrap t)
-                       val ot = LE.ltc_tyc otc
-                       val nt = LE.ltc_tyc ntc
+                       val ot = LT.ltc_tyc otc
+                       val nt = LT.ltc_tyc ntc
                     in (case CO.wrapOp(wenv, [nt], [ot], d)
                          of NONE => RECORD(RK_VECTOR ntc, vs, v, loop e)
                           | SOME hhh =>
@@ -283,7 +282,7 @@ let (* In pass1, we calculate the old type of each variables in the FLINT
     val nvts = map (fn (v, t) => (v, ltf t)) vts
     val wenv = CO.initWpEnv()
     val ne = transform (wenv, DI.top) e
- in (fk, f, nvts, CO.wpBuild(wenv, ne)) (* before (cleanup2(); cleanUp()) *)
+ in (fk, f, nvts, CO.wpBuild(wenv, ne)) before (cleanup2(); cleanUp())
 end (* function wrapping *)
 
 end (* toplevel local *)

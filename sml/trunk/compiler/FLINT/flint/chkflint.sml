@@ -335,6 +335,7 @@ fun check phase envs lexp = let
 		  | INTcon{ty, ...} => g (LT.ltc_num ty)
 		  | WORDcon{ty, ...} => g (LT.ltc_num ty)
 		  | STRINGcon _ => g ltString
+		  | VLENcon _ => g LT.ltc_int (* ? *)
 	      in typeIn venv' e
 	      end
 	    val ts = brLts ce
@@ -361,7 +362,7 @@ fun check phase envs lexp = let
 		      app (fn v => match (lt, typeofVal v)) vs;
 		      ltVector t
 		    end
-		| RK_TUPLE =>
+		| RK_TUPLE _ =>
 		  if null vs then LT.ltc_unit
 		  else let
 		    fun chkMono v = let val t = typeofVal v

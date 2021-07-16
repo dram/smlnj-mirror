@@ -209,7 +209,8 @@ and ppTyc pd ppstrm (tycon : Lty.tyc) =
 	    (pps "BOX(";
 	     ppTyc' tyc;
 	     pps ")")
-	  | ppTycI (Lty.TC_TUPLE tycs) =
+	    (* rflag is a tuple kind template, a singleton datatype RF_TMP *)
+	  | ppTycI (Lty.TC_TUPLE(rflag, tycs)) =
 	    (ppClosedSequence ppstrm
                 {front = (fn s => PP.string s "{"),
                  sep = PPUtil.sepWithCut ",",

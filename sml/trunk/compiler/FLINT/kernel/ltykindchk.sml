@@ -282,7 +282,7 @@ let val dict = Memo.newDict()
               | TC_BOX tc =>
                 (tkAssertIsMono (g tc, "TC_BOX");
                  tkc_mono)
-              | TC_TUPLE tcs =>
+              | TC_TUPLE (_,tcs) =>
                 (List.app (fn tc => (tkAssertIsMono(g tc, "TC_TUPLE"))) tcs;
                  tkc_mono)
               | TC_ARROW (_, tcs1, tcs2) =>

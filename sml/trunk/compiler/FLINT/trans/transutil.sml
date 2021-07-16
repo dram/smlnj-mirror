@@ -85,7 +85,7 @@ fun aconvertPat (pat, {mkLvar=mkv, ...} : compInfo)
         (* ASSERT: any var in a VARpat will have an LVAR access. *)
         (* ASSERT: pat will not contain MARKpat *)
 	fun mappat (VARpat(oldvar as V.VALvar{access=DA.LVAR(oldlvar),
-                                              typ=ref oldtyp, prim, btvs ,path})) =
+                                            typ=ref oldtyp,prim,btvs,path})) =
               let fun find ((V.VALvar{access=DA.LVAR(lv),...}, newvar)::rest) =
                         if lv=oldlvar then newvar else find rest
 			(* a variable could occur multiple times because
@@ -95,7 +95,7 @@ fun aconvertPat (pat, {mkLvar=mkv, ...} : compInfo)
 		        let val (newtyp,_) = TypesUtil.instantiatePoly oldtyp
 			    val newvar =
                                 V.VALvar{access=DA.dupAcc(oldlvar,mkv), prim=prim,
-					 typ=ref newtyp, path=path, btvs = btvs}
+					  typ=ref newtyp, path=path, btvs = btvs}
 			 in varmap := (oldvar,newvar)::(!varmap); newvar
 			end
 	       in VARpat(find(!varmap))

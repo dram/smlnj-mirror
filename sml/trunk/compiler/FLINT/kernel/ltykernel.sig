@@ -6,6 +6,7 @@ sig
 
 type tkind = Lty.tkind
 type fflag = Lty.fflag
+type rflag = Lty.rflag
 type tvar = Lty.tvar
 type tyc = Lty.tyc
 type lty = Lty.lty
@@ -24,11 +25,12 @@ val tk_out   : tkind -> Lty.tkindI
 val tc_out   : tyc -> Lty.tycI
 val lt_out   : lty -> Lty.ltyI
 
-(** testing equivalence of tkinds, tycs, ltys, fflags *)
+(** testing equivalence of tkinds, tycs, ltys, fflags, and rflags *)
 val tk_eqv   : tkind * tkind -> bool
 val tc_eqv   : tyc * tyc -> bool
 val lt_eqv   : lty * lty -> bool
 val ff_eqv   : fflag * fflag -> bool
+val rf_eqv   : rflag * rflag -> bool
 
 (** finding out the depth for a tyc's innermost-bound free variables *)
 val tc_depth : tyc * DebIndex.depth -> DebIndex.depth

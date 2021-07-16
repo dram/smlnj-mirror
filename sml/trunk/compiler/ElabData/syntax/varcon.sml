@@ -12,6 +12,8 @@ structure VarCon : VARCON =
     structure S  = Symbol
     structure SP = SymPath
 
+    fun bug msg = ErrorMsg.impossible ("VarCon: " ^ msg)
+
     datatype var
       = VALvar of			(* ordinary variables *)
 	  {path : SP.path,
@@ -30,12 +32,23 @@ structure VarCon : VARCON =
       = VAL of var
       | CON of datacon
 
+    fun varName (VALvar{path,...}) = SymPath.last path
+      | varName _ = bug "varName"
+
     fun mkVALvar (id, acc) =
 	  VALvar{path = SP.SPATH [id],
 		 typ = ref T.UNDEFty,
 		 access = acc,
 		 btvs = ref [],
 		 prim = PrimopId.NonPrim}
+
+    (* varToLvar : var -> LV.lvar *)
+    fun varToLvar (VALvar{access=A.LVAR lvar, ...}) = lvar
+      | varToLvar _ = bug "varToLvar - bad variable"
+
+    (* varToType : var -> T.ty *)
+    fun varToType (VALvar{typ, ...}) = !typ
+      | varToType _ = bug "varToType - bad variable"
 
     val bogusCON = T.DATACON{
 	    name=S.varSymbol "bogus",
