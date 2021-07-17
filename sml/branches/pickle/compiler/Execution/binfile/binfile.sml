@@ -23,7 +23,7 @@ structure Binfile :> BINFILE =
 
     type executable = CodeObj.executable
 
-    type stats = { env: int, inlinfo: int, data: int, code: int }
+    type stats = { env: int, data: int, code: int }
 
     type pickle = { pid: pid, pickle: W8V.vector }
 
@@ -32,7 +32,6 @@ structure Binfile :> BINFILE =
 	exportPid: pid option,
 	cmData: pid list,
 	senv: pickle,
-	lambda: pickle,
 	guid: string,
 	csegments: csegments,
 	executable: executable option ref
@@ -47,8 +46,6 @@ structure Binfile :> BINFILE =
     val cmDataOf = #cmData o unBF
     val senvPickleOf = #senv o unBF
     val staticPidOf = #pid o senvPickleOf
-    val lambdaPickleOf = #lambda o unBF
-    val lambdaPidOf = #pid o lambdaPickleOf
 
     val guidOf = #guid o unBF
 
@@ -203,7 +200,7 @@ structure Binfile :> BINFILE =
    * call to "write".
    *)
     fun size { contents, nopickle } = let
-	  val { imports, exportPid, senv, cmData, lambda,  csegments, guid, ... } =
+	  val { imports, exportPid, senv, cmData, csegments, guid, ... } =
 		unBF contents
 	  val (_, picki) = pickleImports imports
 	  val hasExports = isSome exportPid
@@ -215,17 +212,16 @@ structure Binfile :> BINFILE =
 	    (if hasExports then bytesPerPid else 0) +
 	    bytesPerPid * (length cmData + 2) + (* 2 extra: stat/sym *)
 	    String.size guid +
-	    pickleSize lambda +
+	    0 + (* unused lambda size *)
 	    codeSize csegments +
 	    pickleSize senv
 	  end
 
-    fun create { imports, exportPid, cmData, senv, lambda, csegments, guid } = BF {
+    fun create { imports, exportPid, cmData, senv, csegments, guid } = BF {
 	    imports = imports,
 	    exportPid = exportPid,
 	    cmData = cmData,
 	    senv = senv,
-	    lambda = lambda,
 	    guid = guid,
 	    csegments = csegments,
 	    executable = ref NONE
@@ -277,7 +273,8 @@ structure Binfile :> BINFILE =
 	  val importSzB = readInt32 s
 	  val cmInfoSzB = readInt32 s
 	  val nei = cmInfoSzB div bytesPerPid
-	  val lambdaSz = readInt32 s
+        (* read unused lambda size *)
+	  val _ = readInt32 s
 	  val g = readInt32 s
 	  val pad = readInt32 s
 	  val cs = readInt32 s
@@ -289,11 +286,11 @@ structure Binfile :> BINFILE =
 		  | _ => error "too many export PIDs"
 		(* end case *))
 	  val envPids = readPidList (s, nei)
-	  val (staticPid, lambdaPid, cmData) = (case envPids
-		 of st :: lm :: cmData => (st, lm, cmData)
+	  val (staticPid, cmData) = (case envPids
+(* NOTE: the second item is the lambdaPID, which is not used *)
+		 of st :: _ :: cmData => (st, cmData)
 		  | _ => error "env PID list"
 		(* end case *))
-	  val plambda = bytesIn (s, lambdaSz)
 	  val guid = Byte.bytesToString (bytesIn (s, g))
 	(* skip padding *)
 	  val _ = if pad <> 0 then ignore (bytesIn (s, pad)) else ()
@@ -306,12 +303,11 @@ structure Binfile :> BINFILE =
 		exportPid = exportPid,
 		cmData = cmData,
 		senv = { pid = staticPid, pickle = penv },
-		lambda = { pid = lambdaPid, pickle = plambda },
 		guid = guid,
 		csegments = code
 	      },
 	    stats = {
-		env = es, inlinfo = lambdaSz, code = cs,
+		env = es, code = cs,
 		data = W8V.length (#data code)
 	      }
 	  } end
@@ -326,9 +322,12 @@ structure Binfile :> BINFILE =
 
     fun write { arch, version, stream = s, contents, nopickle } = let
 	(* Keep this in sync with "size" (see above). *)
-	  val { imports, exportPid, cmData, senv, lambda, csegments, guid, ... } = unBF contents
+	  val { imports, exportPid, cmData, senv, csegments, guid, ... } = unBF contents
 	  val { pickle = senvP, pid = staticPid } = senv
-	  val { pickle = lambdaP, pid = lambdaPid } = lambda
+	(* we have removed the unused FLINT pickle, but we need a flint PID to maintain file
+         * compatibility, so we just reuse the staticPid.
+         *)
+	  val lambdaPid = staticPid
 	  val envPids = staticPid :: lambdaPid :: cmData
 	  val (leni, picki) = pickleImports imports
 	  val importSzB = W8V.length picki
@@ -339,7 +338,8 @@ structure Binfile :> BINFILE =
 	  val nei = length envPids
 	  val cmInfoSzB = nei * bytesPerPid
 	  fun pickleSize { pid, pickle } = if nopickle then 0 else W8V.length pickle
-	  val lambdaSz = pickleSize lambda
+	(* unused lambda size *)
+	  val lambdaSz = 0
 	  val g = String.size guid
 	  val pad = 0			(* currently no padding *)
 	  val cs = codeSize csegments
@@ -357,14 +357,13 @@ structure Binfile :> BINFILE =
 	    writePidList (s, epl);
 	    (* arena1 *)
 	    writePidList (s, envPids);
-	    (* arena2 -- pickled flint stuff *)
-	    if lambdaSz = 0 then () else BinIO.output (s, lambdaP);
+	    (* arena2 -- UNUSED -- this used to be the pickled FLINT IR *)
 	    (* GUID area *)
 	    BinIO.output (s, Byte.stringToBytes guid);
 	    (* padding area is currently empty *)
 	    writeCSegs (s, csegments);
 	    writeEnv ();
-	    { env = es, inlinfo = lambdaSz, data = datasz, code = cs }
+	    { env = es, data = datasz, code = cs }
 	  end
 
     fun exec (BF {imports, exportPid, executable, csegments, ... }, dynEnv, exnWrapper) = let

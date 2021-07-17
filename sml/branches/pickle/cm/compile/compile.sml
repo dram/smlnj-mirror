@@ -17,8 +17,7 @@ local
 
     type pid = Pid.persstamp
     type statenv = StaticEnv.staticEnv
-    type symenv = SymbolicEnv.env
-    type result = { stat: statenv, sym: symenv }
+    type result = { stat: statenv }
     type ed = IInfo.info
 in
     signature COMPILE = sig
@@ -112,30 +111,22 @@ in
 		    val { pid, pickle } = BF.senvPickleOf bfc
 		in UnpickMod.unpickleEnv context (pid, pickle)
 		end
-	    fun symenv () =
-		let val { pickle, ... } = BF.lambdaPickleOf bfc
-		    val l = if Word8Vector.length pickle = 0 then NONE
-			    else UnpickMod.unpickleFLINT pickle
-		in SymbolicEnv.mk (BF.exportPidOf bfc, l)
-		end
 	    val ii = { statenv = Memoize.memoize statenv,
-		       symenv = Memoize.memoize symenv,
 		       statpid = BF.staticPidOf bfc,
-		       sympid = BF.lambdaPidOf bfc,
 		       guid = BF.guidOf bfc }
 	    val cmdata = PidSet.addList (PidSet.empty, BF.cmDataOf bfc)
 	in
 	    { ii = ii, ts = ts, cmdata = cmdata }
 	end
 
-	fun pidset (p1, p2) = PidSet.add (PidSet.singleton p1, p2)
+	fun pidset pid = PidSet.singleton pid
 
 	fun nofilter (ed: envdelta) = let
-	    val { statenv, symenv, statpid, sympid, guid } = ed
+	    val { statenv, statpid, guid } = ed
 	    val statenv' = Memoize.memoize statenv
 	in
-	    { envs = fn () => { stat = statenv' (), sym = symenv () },
-	      pids = pidset (statpid, sympid) }
+	    { envs = fn () => { stat = statenv' () },
+	      pids = pidset statpid }
 	end
 
 	fun requiredFiltering set se = let
@@ -148,12 +139,12 @@ in
 	end
 
 	fun filter (ii, s) = let
-	    val { statenv, symenv, statpid, sympid, guid } = ii
+	    val { statenv, statpid, guid } = ii
 	    val ste = statenv ()
 	in
 	    case requiredFiltering s ste of
-		NONE => { envs = fn () => { stat = ste, sym = symenv () },
-			  pids = pidset (statpid, sympid) }
+		NONE => { envs = fn () => { stat = ste },
+			  pids = pidset statpid }
 	      | SOME s => let
 		    val ste' = SE.filter (ste, SymbolSet.listItems s)
 		    val key = (statpid, s)
@@ -170,23 +161,19 @@ in
 				statpid'
 			    end
 		in
-		    { envs = fn () => { stat = ste', sym = symenv () },
-		      pids = pidset (statpid', sympid) }
+		    { envs = fn () => { stat = ste' },
+		      pids = pidset statpid' }
 		end
 	end
 
-	fun rlayer ({ stat, sym }, { stat = stat', sym = sym' }) =
-	    { stat = SE.consolidateLazy (SE.atop (stat, stat')),
-	      (* let's not bother with stale pids here... *)
-	      sym = SymbolicEnv.atop (sym, sym') }
+	fun rlayer ({ stat }, { stat = stat' }) =
+	    { stat = SE.consolidateLazy (SE.atop (stat, stat')) }
 
 	val emptyEnv =
-	    { envs = fn () => { stat = SE.empty, sym = SymbolicEnv.empty },
-	      pids = PidSet.empty }
+	    { envs = fn () => { stat = SE.empty }, pids = PidSet.empty }
 
 	fun layer ({ envs = e, pids = p }, { envs = e', pids = p' }) =
-	    { envs = fn () => rlayer (e (), e' ()),
-	      pids = PidSet.union (p, p') }
+	    { envs = fn () => rlayer (e (), e' ()), pids = PidSet.union (p, p') }
 
 	(* I would rather not use an exception here, but short of a better
 	 * implementation of concurrency I see no choice.
@@ -215,7 +202,7 @@ in
 	    in
 		storeBFC (i, x)
 	    end
-		 
+
 
 	    fun sbnode gp (DG.SB_SNODE n) = snode gp n
 	      (* The beauty of this scheme is that we don't have
@@ -248,8 +235,7 @@ in
 					       (["bytes]\n"], "")
 					       [(#code, "code"),
 						(#data, "data"),
-						(#env, "env"),
-						(#inlinfo, "inlinable")]))
+						(#env, "env")]))
 		end
 
 		fun loaded _ = Say.vsay ["[loading ", descr, "]\n"]
@@ -260,7 +246,7 @@ in
 		fun fail () =
 		    if #keep_going (#param gp) then NONE else raise Abort
 
-		fun compile_here (stat, sym, pids, split) = let
+		fun compile_here (stat, pids, split) = let
 		    fun perform_setup _ NONE = ()
 		      | perform_setup what (SOME code) =
 			(Say.vsay ["[setup (", what, "): ", code, "]\n"];
@@ -293,7 +279,7 @@ in
 			in
 			    SmlInfo.error gp i EM.WARN
 					  ("failed to write " ^ binname) ppb;
-			    { code = 0, env = 0, inlinfo = 0, data = 0 }
+			    { code = 0, env = 0, data = 0 }
 			end
 		    end (* save *)
 		in
@@ -332,29 +318,20 @@ in
 				    else ()
 				val cinfo = C.mkCompInfo { source = source,
 							   transform = fn x => x }
-				val splitting = Control.LambdaSplitting.get' split
 				val guid = SmlInfo.guid i
 				val { csegments, newstatenv, exportPid,
 				      staticPid, imports, pickle = senvP,
-				      inlineExp, ... } =
+				      ... } =
 				    C.compile { source = source, ast = ast,
-						statenv = stat, symenv = sym,
+						statenv = stat,
 						compInfo = cinfo, checkErr = check,
-						splitting = splitting,
 						guid = guid }
-				val { hash = lambdaPid, pickle = lambdaP } =
-				    PickMod.pickleFLINT inlineExp
-				val lambdaP = case inlineExp of
-						  NONE => Byte.stringToBytes ""
-						| SOME _ => lambdaP
 				val bfc = BF.create
 					      { imports = imports,
 						exportPid = exportPid,
 						cmData = cmData,
 						senv = { pickle = senvP,
 							 pid = staticPid },
-						lambda = { pickle = lambdaP,
-							   pid = lambdaPid },
 						guid = guid,
 						csegments = csegments }
 				val memo =
@@ -408,9 +385,8 @@ in
 			     * children.  Now it is time to check the
 			     * global map... *)
 			    fun fromfile () = let
-				val { stat, sym } = envs ()
-				val { split, extra_compenv, ... } =
-				    SmlInfo.attribs i
+				val { stat } = envs ()
+				val { split, extra_compenv, ... } = SmlInfo.attribs i
 				val stat =
 				    case extra_compenv of
 					NONE => stat
@@ -442,8 +418,7 @@ in
 					NONE => otherwise ()
 				      | SOME (bfc, ts, stats) => let
 					    val memo = bfc2memo (bfc, ts, stat)
-					    val contst = { contents = bfc,
-							   stats = stats }
+					    val contst = { contents = bfc, stats = stats }
 					in
 					    if isValidMemo (memo, pids, i) then
 						(notify gp i;
@@ -459,7 +434,7 @@ in
 				    Concur.noTasks ()
 				fun compile_again () =
 				    (Say.vsay ["[compiling ", descr, "]\n"];
-				     compile_here (stat, sym, pids, split))
+				     compile_here (stat, pids, split))
 				fun compile_there' p =
 				    not (bottleneck ()) andalso
 				    compile_there p

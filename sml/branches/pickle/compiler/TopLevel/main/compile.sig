@@ -39,11 +39,9 @@ signature COMPILE0 =
 	    source: Source.inputSource,
 	    ast: Ast.dec,
 	    statenv: StaticEnv.staticEnv,
-	    symenv: SymbolicEnv.env,
 	    compInfo: Absyn.dec CompInfo.compInfo,
 	    guid: guid,
-	    checkErr: string -> unit,
-	    splitting: int option
+	    checkErr: string -> unit
 	  } -> {
 	    csegments: CodeObj.csegments,
 	    newstatenv: StaticEnv.staticEnv,
@@ -52,7 +50,6 @@ signature COMPILE0 =
 	    exportLvars: Access.lvar list,
 	    staticPid: hash,
 	    pickle: pickle,
-	    inlineExp: FLINT.prog option,
 	    imports: ImportTree.import list
 	  }
 

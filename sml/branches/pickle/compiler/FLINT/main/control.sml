@@ -59,7 +59,7 @@ struct
 	     ["lcontract", (* Cruder but quicker than fcontract *)
 	      "fixfix", "fcontract",
 	      "specialize",
-	      "loopify", "fixfix", "split", "fcontract",
+	      "loopify", "fixfix", "fcontract",
 	      "wrap", "fcontract", "reify",
 	      (*"abcopt",*) "fcontract", "fixfix", "fcontract+eta"])
 

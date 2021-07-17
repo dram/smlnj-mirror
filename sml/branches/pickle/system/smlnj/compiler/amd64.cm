@@ -20,7 +20,6 @@ Library
 	signature PERSSTAMPS
 	signature STATICENV
 	signature DYNAMICENV
-	signature SYMENV
 	signature ENVIRONMENT
 	signature ENVREF
 	signature MODULE_ID
@@ -57,7 +56,6 @@ Library
 	structure PersStamps
 	structure StaticEnv
 	structure DynamicEnv
-	structure SymbolicEnv
 	structure Environment
 	structure EnvRef
 	structure ModuleId

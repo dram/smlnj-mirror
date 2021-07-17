@@ -21,16 +21,14 @@ signature BINFILE = sig
     exception FormatError
 
     type pid = PersStamps.persstamp
-    type stats = { env: int, inlinfo: int, data: int, code: int }
+    type stats = { env: int, data: int, code: int }
     type pickle = { pid: pid, pickle: Word8Vector.vector }
 
     val staticPidOf    : bfContents -> pid
     val exportPidOf    : bfContents -> pid option
-    val lambdaPidOf    : bfContents -> pid
     val cmDataOf       : bfContents -> pid list
 
     val senvPickleOf   : bfContents -> pickle
-    val lambdaPickleOf : bfContents -> pickle
 
     val guidOf         : bfContents -> string
 
@@ -43,7 +41,6 @@ signature BINFILE = sig
 	    exportPid: pid option,
 	    cmData: pid list,
 	    senv: pickle,
-	    lambda: pickle,
 	    guid: string,
 	    csegments: CodeObj.csegments
 	  } -> bfContents

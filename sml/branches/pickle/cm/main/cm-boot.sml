@@ -92,7 +92,7 @@ functor LinkCM (structure HostBackend : BACKEND) = struct
 	  in
 	      case Servers.withServers (fn () => c_group gp) of
 		  NONE => false
-		| SOME { stat, sym} =>
+		| SOME { stat } =>
 		  (* Before executing the code, we announce the privileges
 		   * that are being invoked.  (For the time being, we assume
 		   * that everybody has every conceivable privilege, but at
@@ -106,9 +106,7 @@ functor LinkCM (structure HostBackend : BACKEND) = struct
 		       NONE => false
 		     | SOME dyn =>
 			   (if add_bindings then
-				let val delta = E.mkenv { static = stat,
-							  symbolic = sym,
-							  dynamic = dyn }
+				let val delta = E.mkenv { static = stat, dynamic = dyn }
 				    val loc = ER.loc ()
 				    val base = #get loc ()
 				    val new = E.concatEnv (delta, base)
@@ -374,7 +372,7 @@ functor LinkCM (structure HostBackend : BACKEND) = struct
 			       | GG.NOLIB n =>
 				   addSources (#subgroups n, sources,
 					       insert (a, p, x), v))
-		      
+
 		  val p = mkStdSrcPath group
 		  val gr = GroupReg.new ()
 		  val x0 = { class = "cm", derived = false }
@@ -517,7 +515,7 @@ functor LinkCM (structure HostBackend : BACKEND) = struct
 	  val al_managers =
 	      AutoLoad.mkManagers { get_ginfo = al_ginfo,
 				    dropPickles = dropPickles }
-	      
+
 	  fun reset () =
 	      (Compile.reset ();
 	       Link.reset ();
@@ -568,7 +566,7 @@ functor LinkCM (structure HostBackend : BACKEND) = struct
 				       (SOME p, SOME i) =>
 				       (case DE.look de p of
 					    NONE => pm
-					  | SOME obj => 
+					  | SOME obj =>
 					    IM.insert (pm, i,
 						       DE.singleton (p, obj)))
 				     | _ => pm)
@@ -590,7 +588,7 @@ functor LinkCM (structure HostBackend : BACKEND) = struct
 	      in
 		  system_values := m
 	      end
-	      
+
 	      val _ =
 		  SafeIO.perform { openIt = fn () => TextIO.openIn pidmapfile,
 				   closeIt = TextIO.closeIn,
@@ -640,12 +638,10 @@ functor LinkCM (structure HostBackend : BACKEND) = struct
 			      SOME r => r
 			    | NONE => raise Fail "init: bogus init group (2)"
 
-		      val { stat = pervstat, sym = pervsym } = doTrav perv_ct
+		      val { stat = pervstat } = doTrav perv_ct
 		      val pervdyn = doTrav perv_lt
 
-		      val pervasive = E.mkenv { static = pervstat,
-					        symbolic = pervsym,
-						dynamic = pervdyn }
+		      val pervasive = E.mkenv { static = pervstat, dynamic = pervdyn }
 
 		      fun bare_autoload x =
 			  (Say.say
@@ -939,7 +935,7 @@ functor LinkCM (structure HostBackend : BACKEND) = struct
 	val sources = sources
 
 	val symval = SSV.symval
-	val load_plugin = cwd_load_plugin 
+	val load_plugin = cwd_load_plugin
 	val mk_standalone = mk_standalone
 
 	structure Graph = struct
