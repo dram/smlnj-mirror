@@ -4607,6 +4607,172 @@ constant match element (e.g. an int) does not have a destruct. The destruct of
 a vector is a VEC, which is essentially the list of vector elements (the VLENcon
 is stripped off).
 
+--------------------------------------------------------------------------------
+42.1."Lazy" or "just-in-time" mvar binding
+
+[Editorial comment: How does this relate to relevance analysis?  Does
+it depend on it, overlap it, or even supercede it?]
+
+Basic notions:
+
+DEFN: "mvars in scope" or MVS: at a given (andor/dectree) node, what mvars
+have been bound and are "visible" or "in scope" at this node?
+
+DEFN: "binding nodeId of an mvar" bindingId(mvar): the andor node where a
+variable appears (unique after OR expansion).
+
+DEFN: "nearest-neighbor or nearest-ancestor mvar" at a node is the "closest"
+mvar binding to the node.  If we want to introduce a bound mvar to
+denote the node value, we should define it via the most direct
+relation to one of the nearest-neighbor mvars.
+
+DEFN: "relation of a new mvar binding to an existing bound mvar (probably a
+"nearest-neighbor mvar".  We are interested in an mvar that is in
+scope and as "close" to this node as possible, where closeness could
+be defined in terms of fewest selections needed to define the new mvar
+in terms of the existing one. Could also define this in terms of the
+shortest chain of selections from the old mvar to the new one.
+
+Do we only need chains of selections (records and/or vector) in
+defining a new mvar in terms of an exising bound and in-scope mvar?
+
+Initially we start with a root mvar, unless the whole pattern is
+"irrelevant" (e.g. ()). Some "high-level" mvars will be defined in
+terms of this top root mvar.  Switch branches (non-degenerate, i.e.
+possessing subtree arguments) introduce new local roots.  Then within
+these branch subtrees, the local root can serve as an additional
+starting point for a definition of local mvars.  So with nested
+switches, we get a list of progressively more local definition roots.
+
+DEFN: "lazy" or "just-in-time" mvar binding. This is the principle of
+introducing an mvar binding at the latest possible time, or just
+before it is going to be used (say in a switch, or maybe just around
+a RHS dispatch (RHS function call) to bind its arguments
+(corresponding to pvars).
+
+ASSUMPTION: for the source of a definition (the base mvar we are
+deriving from) we only use mvars that are "consistent" with the
+dectree branch we are currently in.  I.e. we don't need to refer
+to mvars that are sub branches not taken on our decision path.
+
+----------------
+Example 1
+
+(0)  ((nil, _), true) => 0
+(1)  ((x, nil), false) => length x
+
+Andor tree:
+
+   AND 0 {0,1}
+     0: AND 1
+        0: SWITCH[list] 3 {0,1}
+	   nil: {0} $ {0}
+	    * : VAR(x) {0,1}
+	1: SWITCH[list] 4 {0,1}
+	   nil: {1} $ {0,1}
+     1: SWITCH[bool]: 2 {0,1}
+        true: {0} $ {0}
+	false: {1} $ {1}
+
+Here is code for this match that seems to obey the just-in-time
+binding discipline:  Here rt is an mvar for the root node of the
+andor tree (node 0), rt @ <>.
+
+    let m0 = sel(rt,1)                  -- m0 = rt.1
+        sw m0                           -- switch[bool] on m0 @ <1>
+	  true =>
+	    let m1 = sel (rt, 0)        -- m1 = rt.0
+	      let m2 = sel (m1, 0)      -- m2 = rt.0.0
+	        sw m2                   -- test m2 @ <0,0> for nil
+		  nil => rhs(0) ()      -- invoke rhs(0) with unit arg (no variables)
+		  * => FAIL             -- nil required for match
+          false =>
+	    let m3 = sel (rt, 0)        -- m3 = rt.0; same as m1, but m1 not in scope
+	      let m4 = sel (m3, 0)      -- m4 = rt.0.0; relevant to pvar x
+	        let m5 = sel(m3, 1)     -- m5 = rt.0.1; case relevant [list]
+		  sw m5                 -- test m5 @ <0,1> for nil
+		    nil => rhs(1) (m4)  -- pass m4, representing x to rhs(1)
+		    * => FAIL           -- nil required for match
+
+mvar bindings: 6, redundant bindings rt.0 (2), rt.0.0 (2)
+
+** Oldmc match code = 
+
+  v13 = FN(v14: TYC({}),(I63)0)               -- rhs(0)
+    v12 = FN(v3: TYC(TCAP(list, [TV(1,0)])),  -- rhs(1) [v8 = length, external]
+             APP(TAPP(v8 [TV(1,0)]), v3))
+      v10 = <Match raising function>
+        v15 = v7[1]     -- rt.1               -- v7 = rt, i.e. subject of the match
+          v16 = v7[0]   -- rt.0
+            SWI v15
+             of false.v17 =>
+                  v18 = v16[1]                -- v18 = rt.0.1
+                    SWI v18
+                     of nil.v19 =>            -- v19 = "destruct" nil, not used
+		          v20 = v16[0]        -- rt.0.0
+                            APP(v12, v20)
+                      _ => APP(v10, RCD())    -- FAIL
+                true.v21 =>
+                  v22 = v16[0]                -- v22 = rt.0.0
+                    SWI v22
+                     of nil.v23 =>            -- v23 = "destruct" nil, not used
+		          APP(v13, RCD())
+                      _ => APP(v10, RCD())    -- FAIL
+  
+mvar bindings: 5, redundant bindings rt.0.0 (2)
+
+The main difference is that the bindings of m1 and m3 (to sel(rt,0) =
+rt.0) are "lifted" out the top switch branches and merged.  A name for
+rt.0 is needed in both switch branches.
+
+---------------------------
+42.2 "Eager" binding
+
+If instead of "lazy" binding, (i.e. binding mvars as late as
+possible), we bind eagerly, then for Example 1 we get:
+
+    let m0 = sel (rt, 0)               -- m0 @ <0>    rel: var {x}, sw {3,4}
+      let m1 = sel (rt, 1)             -- m1 @ <1>    rel: sw {2}
+        let m2 = sel (m0, 0)           -- m2 @ <0.0>  rel: var {x}, sw {3}
+	  let m3 = sel (m0, 1)	       -- m3 @ <0.1>  rel: sw {4}
+            sw m1                      -- switch[bool] on rt.1
+	      true =>
+		sw m2                  -- switch[list] on rt.0.0 (test for nil)
+		  nil => rhs(0) ()     -- invoke rhs(0) with unit arg (no variables)
+		  * => FAIL            -- nil required for match
+	      false =>
+	        sw m3                  -- switch[list] on rt.0.1 (test for nil)
+		  nil => rhs(1) (m4)   -- pass m4, representing x to rhs(1)
+		  * => FAIL            -- nil required for match
+  
+mvar bindings: 4, no redundant bindings
+
+Here we completely destruct the top AND structure before doing any switch.
+
+From this one example, it appears that eager binding may be better
+than lazy binding, and that oldmc uses something in-between.
+
+42.3 Binding "time" refinement
+
+With var-relevant nodes, early binding seems to be good always,
+because we we definitely need that binding for the pvar on the rhs.
+
+For case-relevant nodes, it might pay off to delay binding if the
+case analysis is "guarded" by an intervening case such that the
+case analysis only occurs in a subset (minority) of the cases of
+the intervening case.  So if there are 5 branches and this value will
+be tested in only two of them, there will be three branches where the
+binding is not used. The question is what is the dynamic distributing
+of selection of the "relevant" branches compared with all the
+branches. Here move the binding down into the branches may/will have
+a cost in code size, but may save time because the binding is
+irrelevant to most (dynamically) selected cases.
+
+Without knowing the dynamic distribution of case selections, we could
+fall back on a static approximation: what proportion of cases make use
+of the bound variable (in which cases is it still relevant).
+
+
 ================================================================================
 [NN] Literature
 ================================================================================
