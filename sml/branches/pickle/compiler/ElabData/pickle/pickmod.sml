@@ -697,9 +697,11 @@ in
 		bug "uninstantiated VARty in pickmod"
 	      | ty (T.CONty (c, l)) = "a" $ [tycon c, list ty l]
 	      | ty (T.IBOUND i) = "b" $ [int i]
+(* we probably do not need to support pickling WILDCARDty *)
 	      | ty T.WILDCARDty = "c" $ []
 	      | ty (T.POLYty { sign, tyfun = T.TYFUN { arity, body } }) =
 		"d" $ [list bool sign, int arity, ty body]
+(* we probably do not need to support pickling UNDEFty *)
 	      | ty T.UNDEFty = "e" $ []
 	      | ty (T.MARKty(ty1, region1)) = ty ty1
 	      | ty _ = bug "unexpected type in pickmod-ty"
@@ -980,7 +982,7 @@ in
 	end
     in
 	env
-    end
+    end (* envPickler *)
 
     fun pickleEnv context e = let
 	val lvlist = ref []

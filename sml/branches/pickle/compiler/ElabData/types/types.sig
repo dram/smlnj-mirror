@@ -25,7 +25,7 @@ and ovldSource
 datatype openTvKind
   = META
   | FLEX of (label * ty) list
-			 
+
 (* In future, may need to add real, char, string literals as new forms of
  * overload tvKinds *)
 and tvKind
@@ -63,7 +63,7 @@ and tyckind
    = PRIMITIVE 		(* primitive tycons *)
   | ABSTRACT of tycon
   | DATATYPE of
-     {index: int,
+     {index: int,			(* index for RECtyc *)
       stamps: Stamps.stamp vector,
       root : EntPath.entVar option,    (* the root field used by type spec only *)
       freetycs: tycon list,            (* tycs derived from functor params *)
@@ -91,12 +91,12 @@ and tycon
 
 and ty
   = VARty of tyvar
-  | IBOUND of int
+  | IBOUND of int		(* DeBruijn index; must be in a tyfun *)
   | CONty of tycon * ty list
   | POLYty of {sign: polysign, tyfun: tyfun}
   | MARKty of ty * SourceMap.region
-  | WILDCARDty
-  | UNDEFty
+  | WILDCARDty			(* used for avoiding cascading errors *)
+  | UNDEFty			(* pre-type-checking type *)
 
 and tyfun
   = TYFUN of {arity : int, body : ty}
