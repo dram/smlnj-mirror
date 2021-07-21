@@ -237,6 +237,7 @@ structure UnpickMod : UNPICKMOD = struct
 	      | cr #"J" = A.SUSP (SOME (access (), access ()))
 	      | cr _ = raise Format
 	in
+(* QUESTION: does it make sense to share these? *)
 	    share crM cr
 	end
 
@@ -245,6 +246,7 @@ structure UnpickMod : UNPICKMOD = struct
 	      | cs #"N" = A.CNIL
 	      | cs _ = raise Format
 	in
+(* QUESTION: does it make sense to share these? *)
 	    share csM cs
 	end
 
@@ -254,6 +256,7 @@ structure UnpickMod : UNPICKMOD = struct
 	      | nk #"C" = P.FLOAT (int ())
 	      | nk _ = raise Format
 	in
+(* QUESTION: does it make sense to share these? *)
 	    share nkM nk
 	end
 
