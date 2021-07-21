@@ -4,7 +4,10 @@ This is a list of things (both major and minor) that should be fixed/improved/ch
 in the SML/NJ compiler.  It is organized into short-term goals by proposed release
 target plus an additional "wish-list" of long-term goals.
 
-## For 2021.1
+## Maintain a 110.99.x branch for backwards compatibility
+  * e.g., 32-bit, Sparc, PPC, ...
+
+## For 2021.1 (August 2021?)
 
   * check if the problem with IntInf literals has gone away.
 
@@ -12,13 +15,26 @@ target plus an additional "wish-list" of long-term goals.
     `Absyn` IR.  Include direct translation of "or" patterns and support for Successor
     ML views.
 
+  * Drop 32-bit support
+
 ## High priority future work
 
-  * 64-bit support for Windows
+  * 64-bit ARM support. (2021.1)
 
-  * LLVM code generator (prototype under construction)
+  * integrate LLVM code generator into install process (2021.1)
 
-  * 64-bit ARM support.
+  * New-new-runtime: new GC and core services with old version of C functions
+    and the LLVM code generator.
+
+  * migration to CMake (new-new-runtime effort is using CMake)
+
+  * 64-bit support for Windows (2021.1)
+
+  * New website
+
+## High priority bugs
+
+  * `IntInf.int` to/from `real` conversions
 
 ## Future work
 
@@ -26,30 +42,26 @@ We divide future work into small and big projects.
 
 ### Small projects
 
-  * Better type error messages:
-    - Do not use the **same** name to refer to types that are **different**
-    - Do not use **different** names to refer to types that are the **same**
-    - Highlight points of difference when comparing types
-    - For record types, distinguish between field name mismatches, missing/extra
-      fields, and field type mismatches.
-    - Sort error messages by file position.
+  * Back-end improvements to take advantage of LLVM code generator:
 
-  * Expand the `FSGN` primop in `CPS/convert/convert.sml` (as we do for `REAL_TO_BITS`)
-    and remove it from the `CPS.P.branch` type.  This change would simplify the code
-    generator.  Eventually, we should move the `REAL_TO_BITS` primop into the
-    code generator so that it can be exposed to machines for which a register-to-register
-    operation is possible.  We should also add a `BITS_TO_REAL` primop.
+      - Expand the `FSGN` primop in `CPS/convert/convert.sml` (as we do for `REAL_TO_BITS`)
+	and remove it from the `CPS.P.branch` type.  This change would simplify the code
+	generator.  Eventually, we should move the `REAL_TO_BITS` primop into the
+	code generator so that it can be exposed to machines for which a register-to-register
+	operation is possible.  We should also add a `BITS_TO_REAL` primop.
+
+      - The `CPS.SWITCH` construct only supports tagged integer arguments (this limitation
+	is because of the way that jump-table indices is handled in `CodeGen/mlriscGen.sml`).
+	It should be generalized to boxed, fixed-precision, integer types.
+
+      - switches on strings use string equality as the basic operation (the `CPS.P.streq` and
+	`CPS.strneq` operators), which does not allow for binary search.  Replace these with
+	a `STRCMP` three-way branch in the `cexp` type.
+
+      - Add support for `Real32.real`, including arrays and vectors.
 
   * Cleanup `compiler/CPS/clos/closure.sml`; there is a lot of code that was
     written to support quasi-stacks, which is no longer needed.
-
-  * The `CPS.SWITCH` construct only supports tagged integer arguments (this limitation
-    is because of the way that jump-table indices is handled in `CodeGen/mlriscGen.sml`).
-    It should be generalized to boxed, fixed-precision, integer types.
-
-  * switches on strings use string equality as the basic operation (the `CPS.P.streq` and
-    `CPS.strneq` operators), which does not allow for binary search.  Replace these with
-    a `STRCMP` three-way branch in the `cexp` type.
 
   * All of the intermediate representations (FLINT, CPS, etc.) use the same LambdaVar.lvar
     type to represent variables.  There should be distinct types for these to avoid
@@ -73,19 +85,13 @@ We divide future work into small and big projects.
   * The `unboxedFloats` flag in the `MACH_SPEC` signature is `true` for all targets; can
     we get rid of it?
 
-  * Functor specialization in the compiler.  This feature would allow more code
-    sharing in the libraries (since functors could be used to generate multiple
-    implementations).  It will require both the new Absyn representation and ASDL
-    pickling.
-
-  * Add support for `Real32.real`, including arrays and vectors.
-
   * Many (most?) of the runtime system functions in the Windows port return `true` or
     `NONE` to signal an error, instead of raising the `SysErr` exception.  Furthermore,
     when a `SysErr` is raised, it does not contain the error information from the OS.
     We should use the `GetLastError` and `FormatMessage` functions to generate better
     information (see [Retrieving the Last Error
     Code](https://docs.microsoft.com/en-us/windows/desktop/Debug/retrieving-the-last-error-code)).
+    This could be part of the 64-bit Windows effort.
 
   * Remove runtime-typing from FLINT; the files involved include:
     - compiler/FLINT/reps/reify.sml
@@ -99,17 +105,29 @@ We divide future work into small and big projects.
   * Expose the two-level representation of arrays and vectors and add compiler support
     for slices.
 
-  * FLINT replacement (switch to 3CPS?)
+  * Use CM libraries to modularize the compiler (*i.e.*, split up the `compiler/core.cm`)
+    file.
 
 ### Big projects
 
-  * New-new-runtime: new GC and core services with old version of C functions
-    and the LLVM code generator.
-
-  * Switch environment pickling to use ASDL
+  * Switch environment pickling to use ASDL.  We split the pickling process into
+    two phases.  The first phase maps to an ASDL generated IR and the second phase
+    serializes the IR.
+    (in progress)
 
   * New post-typechecking Absyn representation that makes the polymorphic type machinery
     explicit (*i.e.*, type abstraction and applications explicit).
+
+  * Better type error messages:
+    - Do not use the **same** name to refer to types that are **different**
+    - Do not use **different** names to refer to types that are the **same**
+    - Highlight points of difference when comparing types
+    - For record types, distinguish between field name mismatches, missing/extra
+      fields, and field type mismatches.
+    - Sort error messages by file position.
+    - Define an abstract interface to the generation of error messages that will allow
+      different implementations (*e.g.*, LSP/text/detailed text)
+    - Update error-message catalog; include catalog URLs in error messages
 
   * Compile-time application of functors.  This change will yield several significant
     benefits:
@@ -119,6 +137,15 @@ We divide future work into small and big projects.
     - Eliminate the need for special tricks to get datatype representations
       right (*e.g.*, it avoids the `type 'a list = nil | cons of 'a t` problem.
       It should also allow more aggressive specialization of datatype representations.
+
     This change depends on the migration to ASDL for pickling (because we will need
     to pickle functors) and on the overhaul of the Absyn representation.
+
+  * Language-Server Protocol support.  Largely, this requires providing better programatic
+    interfaces to front-end and CM mechanisms (*e.g.*, we don't want to have to parse textual
+    error messages; instead, we should be able to directly generate the appropriate
+    JSONRPC messages for them).
+
+  * FLINT replacement/cleanup (switch to 3CPS?)
+
 
