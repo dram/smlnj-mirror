@@ -15,7 +15,7 @@ structure ToExtern : sig
 
     structure A = Access and XA = ExtAccess
     structure T = Types and XT = ExtTypes
-    structure SP = SymPath
+    structure SP = SymPath and XSP = ExtSymPath
     structure IP = InvPath
     structure MI = ModuleId
     structure POI = PrimopId
@@ -27,6 +27,14 @@ structure ToExtern : sig
     structure B = Bindings
 
     fun bug msg = ErrorMsg.impossible ("Extern: " ^ msg)
+
+    val stampConverter = Stamps.newConverter ()
+
+    fun stamp s = Stamps.Case stampConverter s {
+	    fresh = ExtStamps.Fresh
+	    global = ExtStamps.Global
+	    special = ExtStamps.Special
+	  }
 
     fun mkAccess { lvar, isLocalPid } = let
 	  fun access (A.LVAR i) = XA.LVAR(lvar i)

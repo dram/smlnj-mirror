@@ -178,14 +178,19 @@ module ExtAccess (
   import ExtLVar
 ) {
 
-    access
+    access_rep
       = LVAR (ExtLVar.lvar)
       | EXTERN (PersStamps.persstamp)
-      | PATH (access, int)
+      | PATH (access_rep, int)
 	-- note that we represent `PATH(EXTERN pid, n)` as `LVAR(n)`, when `pid` is "local"
       | NO_ACCESS
 
-    conrep
+    -- hash-consed access
+    access = access_rep!
+
+    access_pair = (access, access)
+
+    conrep_rep
       = UNTAGGED
       | TAGGED (int)
       | TRANSPARENT
@@ -196,8 +201,10 @@ module ExtAccess (
       | LISTCONS
       | LISTNIL
 
-    access_pair = (access, access)
+    -- hash-consed conrep
+    conrep = conrep_rep!
 
+-- FIXME: should be equivalent to Access.consig
     consig
       = CSIG (int, int)
       | CNIL
@@ -482,7 +489,6 @@ module ExtModules (
       = VARtyc (ExtEntPath.ent_path)	-- selection from current entityEnv
       | CONSTtyc (ExtTypes.tycon)	-- actual tycon
       | FORMtyc (ExtTypes.tycon)	-- formal tycon
-
 
     envrec = (
       ExtStamps.stamp stamp,

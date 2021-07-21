@@ -36,4 +36,15 @@ structure FromExtern : sig
 	    cr
 	  end
 
+(* FIXME: should be the same type *)
+    fun consig (XA.CSIG(n, m)) = A.CSIG(n, m)
+      | consig XA.CNIL = A.CNIL
+
+    fun mkEnvUnpickler {globalPid, ...} = let
+	  fun stamp (Fresh lv) = Stamps.global { pid = globalPid(), cnt = lv }
+	    | stamp (Global arg) = Stamps.global arg
+	    | stamp (Special arg) = Stamps.special arg
+	  in
+	  end (* mkEnvUnpickler *)
+
   end
