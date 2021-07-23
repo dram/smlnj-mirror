@@ -5,7 +5,8 @@
 
 STEM=cfg
 
-ASDLGEN=../../bin/asdlgen
+ASDLGEN=/Users/jhr/Work/smlnj/sml/bin/asdlgen
+#ASDLGEN=../../bin/asdlgen
 
 if [ ! -x $ASDLGEN ] ; then
   echo "mk.sh: unable to find '$ASDLGEN'"
