@@ -41,7 +41,7 @@ namespace CFG_Prim {
       // the first argument is the record's descriptor word and the second
       // is the content of the special object.
 	assert (args.size() == 2 && "expected descriptor and content");
-	return buf->allocRecord (args[0], { args[1] });
+	return buf->allocRecord (buf->asMLValue(args[0]), { args[1] });
 
     }
 
@@ -196,11 +196,11 @@ namespace CFG_Prim {
 
     } // ARITH::codegen
 
-    Value *REAL_TO_INT::codegen (code_buffer * buf, Args_t const &args)
+    Value *FLOAT_TO_INT::codegen (code_buffer * buf, Args_t const &args)
     {
 	return buf->createFPToSI (args[0], buf->iType (this->_v_to));
 
-    } // REAL_TO_INT::codegen
+    } // FLOAT_TO_INT::codegen
 
 
   /***** code generation for the `pure` type *****/
@@ -254,6 +254,10 @@ namespace CFG_Prim {
 		 return buf->build().CreateCall(
 		    (this->get_sz() == 32) ? buf->sqrt32() : buf->sqrt64(),
 		    args);
+	    case pureop::FCOPYSIGN:
+		 return buf->build().CreateCall(
+		    (this->get_sz() == 32) ? buf->sqrt32() : buf->sqrt64(),
+		    args);
 	} // switch
 
     } // PURE_ARITH::codegen
@@ -274,11 +278,23 @@ namespace CFG_Prim {
 
     } // TRUNC::codegen
 
-    Value *INT_TO_REAL::codegen (code_buffer * buf, Args_t const &args)
+    Value *INT_TO_FLOAT::codegen (code_buffer * buf, Args_t const &args)
     {
 	return buf->createSIToFP (args[0], buf->fType(this->_v_to));
 
-    } // INT_TO_REAL::codegen
+    } // INT_TO_FLOAT::codegen
+
+    Value *FLOAT_TO_BITS::codegen (code_buffer * buf, Args_t const &args)
+    {
+	return buf->createBitCast (args[0], buf->iType(this->_v_sz));
+
+    } // FLOAT_TO_BITS::codegen
+
+    Value *BITS_TO_FLOAT::codegen (code_buffer * buf, Args_t const &args)
+    {
+	return buf->createBitCast (args[0], buf->fType(this->_v_sz));
+
+    } // BITS_TO_FLOAT::codegen
 
     Value *PURE_SUBSCRIPT::codegen (code_buffer * buf, Args_t const &args)
     {

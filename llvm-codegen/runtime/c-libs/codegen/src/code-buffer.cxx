@@ -83,9 +83,9 @@ code_buffer::code_buffer (target_info const *target)
 	this->_gcFnTy = llvm::FunctionType::get(gcRetTy, gcTys, false);
     }
 
-  // initialize the overflow block and function type
+  // initialize the overflow block and raise_overflow function type
     {
-      // the overflow block and function have a minimal calling convention
+      // the overflow block and raise_overflow have a minimal calling convention
       // that consists of just the hardware CMachine registers.  These are
       // necessary to ensure that the correct values are in place at the point
       // where the Overflow exception will be raised.
@@ -100,9 +100,8 @@ code_buffer::code_buffer (target_info const *target)
 		tys.push_back (this->mlValueTy);
 	    }
 	}
-	this->_overflowFnTy = llvm::FunctionType::get(this->voidTy, tys, false);
+	this->_raiseOverflowFnTy = llvm::FunctionType::get(this->voidTy, tys, false);
 	this->_overflowBB = nullptr;
-	this->_overflowFn = nullptr;
     }
 
 } // constructor
@@ -128,17 +127,15 @@ void code_buffer::beginModule (std::string const & src, int nClusters)
     this->_fabs64 = nullptr;
     this->_sqrt32 = nullptr;
     this->_sqrt64 = nullptr;
+    this->_copysign32 = nullptr;
+    this->_copysign64 = nullptr;
     this->_readReg = nullptr;
     this->_spRegMD = nullptr;
-
-  // clear the overflow function pointer
-    this->_overflowFn = nullptr;
 
 } // code_buffer::beginModule
 
 void code_buffer::completeModule ()
 {
-    this->_createOverflowFn();
 }
 
 void code_buffer::optimize ()
@@ -528,6 +525,8 @@ void code_buffer::_storeMemReg (sml_reg_id r, Value *v)
 //
 Value *code_buffer::allocRecord (Value *desc, Args_t const & args)
 {
+    assert (desc->getType() == this->mlValueTy && "descriptor should be ML Value");
+
     int len = args.size();
     Value *allocPtr = this->mlReg (sml_reg_id::ALLOC_PTR);
 

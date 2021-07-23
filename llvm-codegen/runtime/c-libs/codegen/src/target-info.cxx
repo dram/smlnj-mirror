@@ -29,7 +29,7 @@ static target_info AArch64Info = {
 	true,				// hasPCRel
 	{ 0, 0, 0, 0, 0 },		// no memory registers
 	8232,				// call-gc offset
-	8224,				// overflow exception offset
+	8224,				// raise_overflow offset
 	8*1024				// allocation slop
     };
 
@@ -47,7 +47,7 @@ static target_info X86_64Info = {
 	    8224, 8232		   	// EXN_HNDLR, VAR_PTR
 	},
 	8240,				// call-gc offset
-	8248,				// overflow exception offset
+	8248,				// raise_overflow offset
 	8*1024				// allocation slop
     };
 

@@ -405,7 +405,7 @@ namespace CFG_Prim {
         virtual Value *codegen (code_buffer *buf, Args_t const &args) = 0;
 
       protected:
-        enum _tag_t {_con_ARITH = 1, _con_REAL_TO_INT};
+        enum _tag_t {_con_ARITH = 1, _con_FLOAT_TO_INT};
         arith (_tag_t tag)
           : _tag(tag)
         { }
@@ -440,12 +440,13 @@ namespace CFG_Prim {
         arithop _v_oper;
         int _v_sz;
     };
-    class REAL_TO_INT : public arith {
+    class FLOAT_TO_INT : public arith {
       public:
-        REAL_TO_INT (rounding_mode p_mode, int p_from, int p_to)
-          : arith(arith::_con_REAL_TO_INT), _v_mode(p_mode), _v_from(p_from), _v_to(p_to)
+        FLOAT_TO_INT (rounding_mode p_mode, int p_from, int p_to)
+          : arith(arith::_con_FLOAT_TO_INT), _v_mode(p_mode), _v_from(p_from),
+              _v_to(p_to)
         { }
-        ~REAL_TO_INT ();
+        ~FLOAT_TO_INT ();
         // pickler method suppressed
         rounding_mode get_mode () const
         {
@@ -516,7 +517,9 @@ namespace CFG_Prim {
             _con_PURE_ARITH = 1,
             _con_EXTEND,
             _con_TRUNC,
-            _con_INT_TO_REAL,
+            _con_INT_TO_FLOAT,
+            _con_FLOAT_TO_BITS,
+            _con_BITS_TO_FLOAT,
             _con_PURE_SUBSCRIPT,
             _con_PURE_RAW_SUBSCRIPT,
             _con_RAW_SELECT
@@ -622,12 +625,12 @@ namespace CFG_Prim {
         int _v_from;
         int _v_to;
     };
-    class INT_TO_REAL : public pure {
+    class INT_TO_FLOAT : public pure {
       public:
-        INT_TO_REAL (int p_from, int p_to)
-          : pure(pure::_con_INT_TO_REAL), _v_from(p_from), _v_to(p_to)
+        INT_TO_FLOAT (int p_from, int p_to)
+          : pure(pure::_con_INT_TO_FLOAT), _v_from(p_from), _v_to(p_to)
         { }
-        ~INT_TO_REAL ();
+        ~INT_TO_FLOAT ();
         // pickler method suppressed
         int get_from () const
         {
@@ -650,6 +653,46 @@ namespace CFG_Prim {
       private:
         int _v_from;
         int _v_to;
+    };
+    class FLOAT_TO_BITS : public pure {
+      public:
+        FLOAT_TO_BITS (int p_sz)
+          : pure(pure::_con_FLOAT_TO_BITS), _v_sz(p_sz)
+        { }
+        ~FLOAT_TO_BITS ();
+        // pickler method suppressed
+        int get_sz () const
+        {
+            return this->_v_sz;
+        }
+        void set_sz (int v)
+        {
+            this->_v_sz = v;
+        }
+        Value *codegen (code_buffer *buf, Args_t const &args);
+
+      private:
+        int _v_sz;
+    };
+    class BITS_TO_FLOAT : public pure {
+      public:
+        BITS_TO_FLOAT (int p_sz)
+          : pure(pure::_con_BITS_TO_FLOAT), _v_sz(p_sz)
+        { }
+        ~BITS_TO_FLOAT ();
+        // pickler method suppressed
+        int get_sz () const
+        {
+            return this->_v_sz;
+        }
+        void set_sz (int v)
+        {
+            this->_v_sz = v;
+        }
+        Value *codegen (code_buffer *buf, Args_t const &args);
+
+      private:
+        int _v_sz;
     };
     struct PURE_SUBSCRIPT : public pure {
         PURE_SUBSCRIPT ()
@@ -1159,7 +1202,7 @@ namespace CFG {
 	bool isNUMt () { return this->_tag == _con_NUMt; }
 	bool isFLTt () { return this->_tag == _con_FLTt; }
 
-    
+
       protected:
         enum _tag_t {_con_LABt = 1, _con_PTRt, _con_TAGt, _con_NUMt, _con_FLTt};
         ty (_tag_t tag)
@@ -1244,7 +1287,7 @@ namespace CFG {
         virtual Value *codegen (code_buffer *buf) = 0;
 	bool isLABEL () { return (this->_tag == _con_LABEL); }
 
-    
+
       protected:
         enum _tag_t {
             _con_VAR = 1,
@@ -1489,7 +1532,7 @@ namespace CFG {
         virtual void codegen (code_buffer *buf) = 0;
         llvm::BasicBlock *bb () { return this->_bb; }
 
-    
+
       protected:
         enum _tag_t {
             _con_LET = 1,
@@ -1546,7 +1589,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-    
+
       private:
         exp * _v0;
         param * _v1;
@@ -1594,7 +1637,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-    
+
       private:
         CFG_Prim::alloc * _v0;
         std::vector<exp *> _v1;
@@ -1635,7 +1678,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-    
+
       private:
         exp * _v0;
         std::vector<exp *> _v1;
@@ -1675,7 +1718,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-    
+
       private:
         exp * _v0;
         std::vector<exp *> _v1;
@@ -1707,7 +1750,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-    
+
       private:
         LambdaVar::lvar _v0;
         std::vector<exp *> _v1;
@@ -1738,7 +1781,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-    
+
       private:
         exp * _v0;
         std::vector<stm *> _v1;
@@ -1793,7 +1836,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-    
+
       private:
         CFG_Prim::branch * _v0;
         std::vector<exp *> _v1;
@@ -1843,7 +1886,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-    
+
       private:
         CFG_Prim::arith * _v0;
         std::vector<exp *> _v1;
@@ -1884,7 +1927,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-    
+
       private:
         CFG_Prim::setter * _v0;
         std::vector<exp *> _v1;
@@ -1924,7 +1967,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-    
+
       private:
         std::vector<exp *> _v0;
         std::vector<LambdaVar::lvar> _v1;
@@ -1998,7 +2041,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-    
+
       private:
         bool _v_reentrant;
         std::string _v_linkage;
@@ -2062,7 +2105,7 @@ namespace CFG {
 	    this->_phiNodes[i]->addIncoming(v, bblk);
 	}
 
-    
+
       private:
         frag_kind _v_kind;
         LambdaVar::lvar _v_lab;
@@ -2149,7 +2192,7 @@ namespace CFG {
 	llvm::Function *fn () const { return this->_fn; }
 	frag *entry () const { return this->_v_frags[0]; }
 
-    
+
       private:
         attrs * _v_attrs;
         std::vector<frag *> _v_frags;

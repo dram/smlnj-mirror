@@ -514,6 +514,20 @@ class code_buffer {
 	}
 	return this->_sqrt64;
     }
+    llvm::Function *copysign32 () const
+    {
+	if (this->_copysign32 == nullptr) {
+	    this->_copysign32 = _getIntrinsic (llvm::Intrinsic::copysign, this->f32Ty);
+	}
+	return this->_copysign32;
+    }
+    llvm::Function *copysign64 () const
+    {
+	if (this->_copysign64 == nullptr) {
+	    this->_copysign64 = _getIntrinsic (llvm::Intrinsic::copysign, this->f64Ty);
+	}
+	return this->_copysign64;
+    }
 
   /***** shorthand for LLVM integer instructions (with argument coercions) *****/
 /* FIXME: Note that for now, we assume that all arithmetic is in the native integer size! */
@@ -742,12 +756,11 @@ class code_buffer {
 
   // more cached types (these are internal to the code_buffer class)
     llvm::FunctionType *_gcFnTy; 		// type of call-gc function
-    llvm::FunctionType *_overflowFnTy;		// type of overflow function
+    llvm::FunctionType *_raiseOverflowFnTy;	// type of raise_overflow function
 
-  // a basic block for the current cluster that will force an Overflow trap
+  // a basic block for the current cluster that will raise the Overflow exception
     llvm::BasicBlock		*_overflowBB;
     std::vector<llvm::PHINode *> _overflowPhiNodes;
-    llvm::Function		*_overflowFn;	// per-module overflow function
 
   // tracking the state of the SML registers
     sml_registers		_regInfo;	// target-specific register info
@@ -767,6 +780,8 @@ class code_buffer {
     mutable llvm::Function *_fabs64;		// @llvm.fabs.f64
     mutable llvm::Function *_sqrt32;		// @llvm.sqrt.f32
     mutable llvm::Function *_sqrt64;		// @llvm.sqrt.f64
+    mutable llvm::Function *_copysign32;	// @llvm.copysign.f32
+    mutable llvm::Function *_copysign64;	// @llvm.copysign.f64
 
   // cached @llvm.read_register + meta data to access stack
     llvm::Function *_readReg;
@@ -815,9 +830,6 @@ class code_buffer {
 
   // add the "extra" arguments (plus optional base pointer) to an argument vector
     void _addExtraArgs (Args_t &args, arg_info const &info) const;
-
-  // create the overflow function for the module (if required)
-    void _createOverflowFn ();
 
   // constructor
     code_buffer (struct target_info const *target);
