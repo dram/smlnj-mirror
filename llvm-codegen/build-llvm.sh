@@ -28,7 +28,6 @@
 FORCE=no
 LLVM_SRC=llvm-10.0.1.src
 BUILD_TYPE=Debug
-PRESET="smlnj-llvm-debug"
 NPROCS=4
 USE_GOLD_LD=no
 
@@ -98,7 +97,6 @@ while [ "$#" != "0" ] ; do
       fi ;;
     --release)
       BUILD_TYPE=Release
-      PRESET="smlnj-llvm-release"
       ;;
     --targets)
       if [ $# -ge 1 ] ; then
@@ -121,10 +119,12 @@ else
   LLVM_INSTALL=llvm-release
 fi
 LLVM_BUILD=build-"$LLVM_INSTALL"
+PRESET=smlnj-"$LLVM_INSTALL"
 
 # most of the definitions are specified in the CMakePresets.json file
 #
 CMAKE_DEFS="\
+  -DCMAKE_INSTALL_PREFIX=../$LLVM_INSTALL \
   -DLLVM_TARGETS_TO_BUILD=$TARGETS \
 "
 
@@ -147,11 +147,13 @@ mkdir "$LLVM_BUILD"
 cd $LLVM_BUILD
 
 echo "$0: configuring build"
-cmake --prefix=$PREFIX $CMAKE_DEFS ../$LLVM_SRC || exit 1
+echo "  cmake --preset=$PRESET $CMAKE_DEFS ../$LLVM_SRC"
+cmake --preset=$PRESET $CMAKE_DEFS ../$LLVM_SRC || exit 1
 
 rm -rf $LLVM_INSTALL
 
 echo "$0: building on $NPROCS cores"
+echo "  make -j $NPROCS install"
 time make -j $NPROCS install
 
 echo ""
