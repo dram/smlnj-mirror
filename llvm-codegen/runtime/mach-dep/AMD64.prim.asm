@@ -60,8 +60,6 @@
  *
  * for details.
  */
-#ifdef LLVM_LAYOUT
-
 #define negateSignBit	REGOFF(8264,RSP)
 #define signBit		REGOFF(8256,RSP)
 #define overflowFn	REGOFF(8248,RSP)
@@ -83,31 +81,6 @@
  * pushed onto the stack.
  */
 #define ML_FRAME_SIZE	(ML_SPILL_SIZE+ML_AREA_SIZE)
-
-#else /* MLRISC_LAYOUT */
-
-#define tempmem0	REGOFF(0,RSP)
-#define mlStatePtr	REGOFF(8, RSP)
-#define signBit		REGOFF(16,RSP)
-#define negateSignBit	REGOFF(24,RSP)
-#define baseptr		REGOFF(32,RSP)	/* start address of module */
-#define exncont		REGOFF(40,RSP)
-#define pc		REGOFF(48,RSP)	/* gcLink */
-#define varptr		REGOFF(56,RSP)
-#define start_gc	REGOFF(64,RSP)	/* holds address of saveregs */
-
-/* space reserved for spilling registers */
-#define ML_SPILL_SIZE	8192
-
-/* size of stack-frame region where ML stuff is stored (includes alignment padding). */
-#define ML_AREA_SIZE	88
-
-/* the amount to bump up the frame after the callee save registers have been
- * pushed onto the stack.
- */
-#define ML_FRAME_SIZE	(ML_SPILL_SIZE+ML_AREA_SIZE)
-
-#endif /* LLVM_LAYOUT */
 
 /* we put the request code in tempmem before jumping to set_request */
 #define request_w	tempmem0
@@ -180,8 +153,8 @@ ALIGNED_ENTRY(request_fault)
 
 /* Raise the Overflow exception */
 ALIGNED_ENTRY(raise_overflow)
-	MOV	(IM(REQ_RAISE_OVERFLOW), request_w)
 	POP	(pc)			/* a PC in the raising code object */
+	MOV	(IM(REQ_RAISE_OVERFLOW), request_w)
 	JMP	(CSYM(set_request))
 
 /* bind_cfun : (string * string) -> c_function
