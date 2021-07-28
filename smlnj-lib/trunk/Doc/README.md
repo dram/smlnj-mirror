@@ -49,7 +49,19 @@ Note that we use `xref:` instead of `link:`, because the latter
 is specific to HTML generation, whereas the former applies to
 PDF as well.
 
-### Odds and ends
+## External references
+
+One can refer to entities in the SML Basis Library using the
+syntax
+
+    {sml-basis-url}/file.html#anchor[ ... ]
+
+For example, we can cross reference the `Domain` exception in the
+`General` structure as follows:
+
+    {sml-basis-url}/general.html#SIG:GENERAL.Domain:EXN[`Domain`]
+
+## Odds and ends
 
 For inline code enclosed in back quotes, it is necessary to escape
 the function type constructor (++\->++); otherwise, the entitie

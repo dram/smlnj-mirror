@@ -285,11 +285,24 @@ structure JSONUtil : sig
 		in
 		  (ZARR{prefix = prefix, child = zipper, suffix = vs}, v)
 		end
-            | sub (prefix, v::vs, i) = sub(v::prefix, vs, i-1)
+            | sub (prefix, v::vs, i) = sub (v::prefix, vs, i-1)
 	  in
 	    sub ([], vs, i)
 	  end
       | unzip (v, SUB _ :: _) = raise NotArray v
+      | unzip (v as J.ARRAY vs, FIND pred :: rest) = let
+          fun find (_, []) = raise ElemNotFound v
+            | find (prefix, v::vs) = if pred v
+                then let
+                  val (zipper, v) = unzip (v, rest)
+                  in
+                    (ZARR{prefix = prefix, child = zipper, suffix = vs}, v)
+                  end
+                else find (v::prefix, vs)
+          in
+            find ([], vs)
+          end
+      | unzip (v, FIND _ :: _) = raise (NotArray v)
 
   (* zip up a zipper *)
     fun zip (zipper, v) = let

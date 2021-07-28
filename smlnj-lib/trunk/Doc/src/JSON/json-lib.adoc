@@ -33,8 +33,14 @@ streams using a "SAX-style" API.
   xref:str-JSONStreamParser.adoc[`[.kw]#structure# JSONStreamParser`]::
     A stream (or event) based parser for JSON input.
 
+  xref:sig-JSON_STREAM_OUTPUT.adoc[`[.kw]#signature# JSON_STREAM_OUTPUT`]::
+    The interface to a stream-based printer for JSON output.
+
+  xref:str-JSONBufferPrinter.adoc[`[.kw]#structure# JSONBufferPrinter`]::
+    A stream-based printer for JSON output to character buffers.
+
   xref:str-JSONStreamPrinter.adoc[`[.kw]#structure# JSONStreamPrinter`]::
-    A stream based printer for JSON input.
+    A stream-based printer for JSON output to text files.
 
 == Usage
 
@@ -58,6 +64,10 @@ include::str-JSONPrinter.adoc[]
 include::str-JSONUtil.adoc[]
 
 include::str-JSONStreamParser.adoc[]
+
+include::sig-JSON_STREAM_OUTPUT.adoc[]
+
+include::str-JSONBufferPrinter.adoc[]
 
 include::str-JSONStreamPrinter.adoc[]
 

@@ -32,5 +32,10 @@ structure MakeIndex : sig
 		end
 	    | _ => usage OS.Process.failure
 	  (* end case *))
+            handle exn => (
+              TextIO.output(TextIO.stdErr, concat[
+                  "make-index: uncaught exception (", exnMessage exn, ")"
+                ]);
+              OS.Process.failure)
 
   end

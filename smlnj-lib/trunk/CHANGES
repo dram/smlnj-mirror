@@ -5,6 +5,19 @@ correspond to SML/NJ releases.
 SML/NJ 2021.1
 -------------------
 
+[2021-07-28]
+        Refactored the output modules in the JSON library.  These changes should
+        not affect current clients of the library, but allow the addition of
+        printing JSON to a `CharBuffer.buf`.
+
+[2021-07-28]
+        Bug fix to `JSONUtil` module; the `FIND` path arc was not getting
+        handled for the update functions (`replace`, `insert`, and `append`).
+
+--------------------------------------------------------------------------------
+SML/NJ 110.99.1
+-------------------
+
 [2021-03-09]
 	Fixed bug #278 (ListMergeSort is documented as stable, but is not (esp.
 	since 110.78 rewrite!))

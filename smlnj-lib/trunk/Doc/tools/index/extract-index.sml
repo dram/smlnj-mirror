@@ -25,6 +25,12 @@ structure ExtractIndex : sig
     structure SS = Substring
     structure SIO = TextIO.StreamIO
 
+  (* error reporting *)
+    fun error msg = (
+          TextIO.output(TextIO.stdErr, concat("Error: " :: msg));
+          TextIO.output1 (TextIO.stdErr, #"\n");
+          OS.Process.exit OS.Process.failure)
+
     val attrRE = RE.compileString "^:!?([^!:]+)!?:(.*)"
     val includeRE = RE.compileString "^include::([^.]+\\.adoc)\\[\\]"
     val xrefRE = RE.compileString
@@ -45,7 +51,13 @@ structure ExtractIndex : sig
 	    fn s => Option.map (getSubstrs s) (prefix s)
 	  end
 
-    fun openIn (rootDir, path) = TextIO.openIn (P.concat(rootDir, path))
+    fun openIn (rootDir, path) = let
+          val file = P.concat(rootDir, path)
+          in
+            if OS.FileSys.access(file, [OS.FileSys.READ])
+              then TextIO.openIn file
+              else error ["file '", file, "' does not exist or is not readable"]
+          end
 
     fun trimWS ss = SS.dropr Char.isSpace (SS.dropl Char.isSpace ss)
 
@@ -165,7 +177,7 @@ structure ExtractIndex : sig
 	(* extract module names from the code block *)
 	  fun getSynopsis inS = let
 		fun lp mods = (case TextIO.inputLine inS
-		       of NONE => raise Fail "unexpected EOF in synopsis"
+		       of NONE => error ["unexpected EOF in synopsis"]
 			| SOME ln => (case matchModule ln
 			     of SOME(MT.Match(_, [MT.Match(mk, _), MT.Match(id, _)])) =>
 				  let
@@ -173,6 +185,7 @@ structure ExtractIndex : sig
 					 of "signature" => FT.SIGNATURE
 					  | "structure" => FT.STRUCTURE
 					  | "functor" => FT.FUNCTOR
+                                          | _ => error ["expected module kind"]
 					(* end case *))
 				  in
 				    lp ((mk, id)::mods)
@@ -209,9 +222,7 @@ structure ExtractIndex : sig
 				   of "signature" => FT.sigPage
 				    | "structure" => FT.structPage
 				    | "functor" => FT.functPage
-				    | _ => raise Fail(concat[
-					  "**bogus keyword \"", kw, "\""
-					])
+				    | _ => error ["**bogus keyword \"", kw, "\""]
 				  (* end case *))
 			    val page = {
 				    file = file,
@@ -230,9 +241,9 @@ structure ExtractIndex : sig
 			    end
 		      (* end case *))
 		  | NONE => List.rev pages
-		  | SOME(MT.Match(s, _)) => raise Fail(concat[
+		  | SOME(MT.Match(s, _)) => error [
 			"**bogus xref \"", String.toString s, "\""
-		      ])
+		      ]
 		(* end case *))
 	  in
 	    {pages = getPages []}
@@ -253,9 +264,9 @@ structure ExtractIndex : sig
 		 of SOME(MT.Match(_, [MT.Match(path, [])])) =>
 		      getIncludes(path :: incs)
 		  | NONE => List.rev incs
-		  | SOME(MT.Match(s, _)) => raise Fail(concat[
+		  | SOME(MT.Match(s, _)) => error [
 			"**bogus include \"", String.toString s, "\""
-		      ])
+		      ]
 		(* end case *))
 	  in
 	    getIncludes []

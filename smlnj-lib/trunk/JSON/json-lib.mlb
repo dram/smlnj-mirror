@@ -1,12 +1,9 @@
 (* json-lib.mlb
  *
- * COPYRIGHT (c) 2008 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2021 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
  * An MLB file for the JSON library, so that it can be used by MLton programs.
- *
- * TODO:
- *	This is not complete, since MLton does not have the ml-lpt-lib yet.
  *)
 
 local
@@ -24,8 +21,14 @@ local
     json-tokens.sml
     json.lex.sml
     json.sml
+    json-source.sml
     json-stream-parser.sml
     json-parser.sml
+    json-stream-output.sig
+    json-stream-output.fun
+(* NOTE: MLton does not support the CharBuffer Basis Library extension
+    json-buffer-printer.sml
+*)
     json-stream-printer.sml
     json-printer.sml
     json-util.sml
@@ -41,7 +44,11 @@ in
   structure JSONUtil
 
 (* SAX-style API (event based) *)
+  signature JSON_STREAM_OUTPUT
   structure JSONStreamParser
+(* NOTE: MLton does not support the CharBuffer Basis Library extension
+  structure JSONBufferPrinter
+*)
   structure JSONStreamPrinter
 
 end
