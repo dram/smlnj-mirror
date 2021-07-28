@@ -54,7 +54,7 @@ structure ExtractIndex : sig
     fun openIn (rootDir, path) = let
           val file = P.concat(rootDir, path)
           in
-            if OS.FileSys.access(file, [OS.FileSys.READ])
+            if OS.FileSys.access(file, [OS.FileSys.A_READ])
               then TextIO.openIn file
               else error ["file '", file, "' does not exist or is not readable"]
           end
