@@ -32,7 +32,7 @@ SML/NJ 110.98. This document replaces the Alex Aiken compiler note.
    match.sml    -- top-level matchComp function
    transmc.sml  -- translating typed Absyn into Absyn with compiled matches
  
-== [4] Final Files
+== [4] pre-revmc
    mctypes.sml  -- match compiler types (replaces trans/mccommon.sml)
                    defines types key, path, andor, dec-tree, and mcexp
    rules.{sig,sml}
@@ -46,7 +46,18 @@ SML/NJ 110.98. This document replaces the Alex Aiken compiler note.
    varenvmc.sml  -- environment used for match compilation
    varenvac.sml  -- environment used for alpha-conversion
 
-== [4] Terminology anb basic types
+== [4] final revmc
+   mccommon.sml      -- match compiler types (was mctypes.sml)
+   preprocess.sml    -- preprocessing to expand OR patterns into ramified patterns & rules)
+   protoandor.sml    -- layering of patterns to create preliminary andor tree (protoAndor)
+   andor.sml         -- 2nd pass translation into full andor trees (nodeIds, defaults),
+                        also produces relevance map (relmap)
+   decisiontree.sml  -- translate andor tree into a decision tree (dectree)
+   generate.sml      -- translate decision tree + relmap into plambda match "code" (Generate.generate)
+   matchcomp.sml     -- combine the previous phases matchComp and wrap with error
+                        checking (matchCompile, bindCompile, handleCompile)
+
+Terminology anb basic types
 
 The types used in the match compiler are defined 
 
@@ -4617,11 +4628,36 @@ contains all possible cons (for datatypes; this is "impossible" for
 int, word, string constants), then the default field should be NONE.
 This is because the switch will look at the head constructor and
 _always_ find it in the cases list, so it will never fall through to
-the default.
+the default. The default will be present (SOME) in cases where the
+original OR lacked some constructors, or when some constructor cases
+were eliminated by the liveness check (caseLive = {}). In either of
+these cases, # caes < width datatype.
 
 This is true in particular for a SWITCH for a singleton datatype,
 which will always have a single case that covers the only possible con.
+QUESTION: can a single con be eliminated by the liveness check? If so,
+ example?
 
+  datatype t = T of int
+
+  (0) (T(x), true)
+  (1) (_,    false)
+
+   AND 0 @<> {0,1}
+     0: OR 1 @<0> {0,1}, defaults = {2}   (overlayed (2) _ )
+          T cr = {0}, live = {0; 2}
+     1: OR 2 @<1> {0,1}
+          true  cr = {0}, live = {0}
+	  false cr = {1}, live = {1}
+
+   SWITCH[bool] @<1>
+     true: SWITCH[t] @<0> {0,1}
+     	     T => RHS 0
+	     * => FAIL
+     false: SWITCH[t] @<0> {0,1}
+             * => RHS 2
+
+-----------------
 On the other hand, an OR node may have saturated cases but still have
 a non-empty defaults set. Here is an example:
 
@@ -4633,8 +4669,8 @@ Here the OR node looks like
 
    AND 0 @<> {0,1,2}
      0: OR 1 @<0> {0,1,2}, defaults = {2}   (overlayed (2) _ )
-          nil {0; 2}
-	  ::  {1; 2}
+          nil cr = {0}, live = {0; 2}
+	  ::  cr = {1}, live = {1; 2}
      1: OR 2 @<1> {0,1,2}
           true  {0,1}
 	  false {2}
@@ -4643,14 +4679,18 @@ So in this example for OR node @<0>, both constructor cases are
 present, but there is still a defaults rule {2}, which comes into
 play if the decision tree starts with OR @<1>.
 
-   SWITCH @<1>
-     true: SWITCH @<0> {0,1}
+   SWITCH[bool] @<1>
+     true: SWITCH[list] @<0> {0,1}
      	     nil => RHS 0
 	     :: => RHS 1
-     false: SWITCH @<0> {2}
+     false: SWITCH[list] @<0> {2}
              * => RHS 2
 
-	     
+In the second SWITCH @<0>, both con cases are eliminated because caseLive is empty
+for both nil and ::, but defaults = {2} so defaultsLive = {2} is nonempty, so the
+default tree is present (SOME (RHS 2)).
+
+
 ================================================================================
 42. Limiting to "essential" mvar bindings; placing mvar bindings
 ================================================================================
