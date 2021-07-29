@@ -4573,9 +4573,86 @@ andor tree, or _dynamic_, as in the construction of the decision tree (decisiont
 where liveness depends on previous switch choices (nodes above in the decision tree),
 i.e. on the "dynamic" path through the decision tree driven by the value being matched.
 
+--------------------------------------------------------------------------------
+41.1 default and live rules magic
 
+The default rules (e.g. for an OR/SWITCH) are determined by filtering
+the full ruleset passed down through the tree (andor or decision). A
+rule ends up in the default set if it is not knocked out by conflict
+with a case constuctor on the path the current node.
+
+A rule will be a default rule (at a node) because it cannot be
+"falsified" by a matching value. This will be because of the presence
+of a variable or wildcard in the rule, either at the node in question
+or higher on the path to that node (i.e. at an ancestor of the node).
+
+But we do not need to keep track of these variables or wildcards
+explicitly, because the residual rules not conflicting with con
+choices will automatically have this property. We determine default
+rules by tracking their con conflicts rather by analyzing the presence
+of variables and wildcards in the rule pattern. All the essential
+information is provided by the caserules of OR variants in the andor tree.
+
+What about singleton constuctor types/nodes?  At such a node, any rule
+will necessarily match (because of its type at the node), so such a
+node is not capable of knocking out any rules by con conflict. Should
+this special case be detected?  Does it need special handling?
+
+Note that to analyze the liveness relation between nodes and rules, we
+do not have to record the variables bound at a node, but just the fact
+that there is a variable at that (node,rule). The "liveness" effect of
+a wildcard pattern is achieved without recording the existence of the
+wildcard pattern (except at atomic WCp, WC leaf nodes). A layered
+wildcard pattern at a node has no effect at all on the andor tree. Its
+effect is simply the abscence of filtering (killing) of
+rules. Similarly for layered variables at a node, where the effect is
+not recorded in the andor tree, but in the relevance map at that node.
+
+--------------------------------------------------------------------------------
+41.2
+Saturated SWITCH vs saturated OR node -- defaults
+
+If a (MC.)SWITCH is _saturated_, in the sense that the cases list
+contains all possible cons (for datatypes; this is "impossible" for
+int, word, string constants), then the default field should be NONE.
+This is because the switch will look at the head constructor and
+_always_ find it in the cases list, so it will never fall through to
+the default.
+
+This is true in particular for a SWITCH for a singleton datatype,
+which will always have a single case that covers the only possible con.
+
+On the other hand, an OR node may have saturated cases but still have
+a non-empty defaults set. Here is an example:
+
+  (0) (nil, true)
+  (1) (x::y, true)
+  (2) (_, false)
+
+Here the OR node looks like
+
+   AND 0 @<> {0,1,2}
+     0: OR 1 @<0> {0,1,2}, defaults = {2}   (overlayed (2) _ )
+          nil {0; 2}
+	  ::  {1; 2}
+     1: OR 2 @<1> {0,1,2}
+          true  {0,1}
+	  false {2}
+
+So in this example for OR node @<0>, both constructor cases are
+present, but there is still a defaults rule {2}, which comes into
+play if the decision tree starts with OR @<1>.
+
+   SWITCH @<1>
+     true: SWITCH @<0> {0,1}
+     	     nil => RHS 0
+	     :: => RHS 1
+     false: SWITCH @<0> {2}
+             * => RHS 2
+
+	     
 ================================================================================
-42. Limiting to essential mvar bindings
+42. Limiting to "essential" mvar bindings; placing mvar bindings
 ================================================================================
 
 The principle is that mvar bindings should only be introduced for "relevant" nodes,
@@ -4771,6 +4848,55 @@ irrelevant to most (dynamically) selected cases.
 Without knowing the dynamic distribution of case selections, we could
 fall back on a static approximation: what proportion of cases make use
 of the bound variable (in which cases is it still relevant).
+
+NOTE: eager binding as in revmc produces about 50% more mvar bindings
+than oldmc for a large example like to55.sml (984 vs 649) [derived from
+yacc.grm.sml]. So eager binding of node mvars does not scale well.
+
+
+================================================================================
+[43] paths in patterns and andor trees (pvar to mvar mapping)
+================================================================================ 
+Files: preprocess.sml, generate.sml
+
+How can we get away with not recording any information about the
+original rule pattern variables in the andor tree structure (which
+serves as a "summary" of all the rule patterns)?
+
+1. we extract from each lhs pattern a list of its pattern variables
+(pvars) in some order (e.g. order in which they are found in a
+preorder traversal of the pattern).
+
+2. We extract from each pattern a mapping (environment) from pvars to
+the "path" giving their location in the pattern. This is done after
+OR-elimination, where we can assume that each pvar occurs exactly once
+in its pattern, and hence the path is unique.
+
+3. We interpret the path associated with a pvar in the andor tree to
+get a node, and hence a nodeId. This is the node associated with the
+position of the pvar (in its associated rule)
+
+4. We map that nodeId to an mvar using a mvarenv. We do this in order
+of the original pvars to get a list/tuple of mvars whose bindings will
+be the instantiations of the pvars after a match is executed. This
+tuple expression is used as the argument of the associated rule rhs
+function.
+
+  pattern  -->  pvar list * (pvar * path) alist   (pathenv)
+  path * andor  -->  nodeId
+  nodeId * mvarenv  -->  mvar
+
+
+43.1 Notes on paths
+
+A vector pattern component has a path with an "invisible" length
+associated with a OR case distinction based on the length of a list,
+whose discriminating con is of the form VLENcon (n, ty) where n is
+the vector length and ty is the vector element type.
+
+   NOTE: the paths to vector "element" nodes (under a "VELEMS elems" subcase) 
+   end in [..., DC(VLENcon (n, ty), VI(k,ty)], where n is the length discriminator.
+   and k is the element index in the vector.
 
 
 ================================================================================
