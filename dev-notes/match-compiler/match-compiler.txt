@@ -4486,6 +4486,8 @@ as discriminators in its cases component, but there may still be a default, e.g.
 Here <0> is an OR/CHOICE node, and both bool constructors are present, but if
 <1> is true, rule (2) will be selected and will bind x.
 
+See 41.2 below for further discussion and examples.
+
 --------------------------------------------------------------------------------
 40.10 NOTE: variable relevance
 
@@ -4620,8 +4622,7 @@ rules. Similarly for layered variables at a node, where the effect is
 not recorded in the andor tree, but in the relevance map at that node.
 
 --------------------------------------------------------------------------------
-41.2
-Saturated SWITCH vs saturated OR node -- defaults
+41.2 Saturated SWITCH vs saturated OR node -- defaults (See also 40.9)
 
 If a (MC.)SWITCH is _saturated_, in the sense that the cases list
 contains all possible cons (for datatypes; this is "impossible" for
@@ -4689,6 +4690,30 @@ play if the decision tree starts with OR @<1>.
 In the second SWITCH @<0>, both con cases are eliminated because caseLive is empty
 for both nil and ::, but defaults = {2} so defaultsLive = {2} is nonempty, so the
 default tree is present (SOME (RHS 2)).
+
+QUESTION: If there are no variables or wildcards in the patterns, does
+this imply that defaults field of all OR nodes is empty?
+ANS: (I assume so.)
+
+Example: (in mkDecTree) liveDefaults = {}
+  shows that defaults = {} where OR statically saturated (?)
+
+  (true, true)
+  (true, false)
+  (false, true)
+
+  AND @<> {0,1,2}
+    0: OR[bool] @<0> dft = {0,1,2} - {0,1,2} = {}
+         true  cr = {0,1}
+         false cr = {2}
+    1: OR[bool] @<1> dft = {0,1,2} - {0,1,2} = {}
+         true  cr = {0,2}
+         false cr = {1}
+
+
+QUESTION: singleton datatypes (one constructor). Does this case get
+handled generically, with no special case detection and handling?
+ANS: (Appears so.)
 
 
 ================================================================================
@@ -4793,7 +4818,7 @@ Andor tree:
 
 Here is code for this match that seems to obey the just-in-time
 binding discipline:  Here rt is an mvar for the root node of the
-andor tree (node 0), rt @ <>.
+andor tree (node 0), rt @ <>. It represents the whole value being matched.
 
     let m0 = sel(rt,1)                  -- m0 = rt.1
         sw m0                           -- switch[bool] on m0 @ <1>
@@ -4869,6 +4894,7 @@ Here we completely destruct the top AND structure before doing any switch.
 From this one example, it appears that eager binding may be better
 than lazy binding, and that oldmc uses something in-between.
 
+----------------------------------
 42.3 Binding "time" refinement
 
 With var-relevant nodes, early binding seems to be good always,
@@ -4893,9 +4919,102 @@ NOTE: eager binding as in revmc produces about 50% more mvar bindings
 than oldmc for a large example like to55.sml (984 vs 649) [derived from
 yacc.grm.sml]. So eager binding of node mvars does not scale well.
 
+------------------------------
+42.4 Incremental, by-need mvar binding
+
+Example: tt/to4-revmc2-trees.txt
+This contains a "hand-coded" match based on translating from the
+dectree for to4.sml (first 4 rules of to55.sml, which is itself
+derived from the yacc.grm.sml code).
+
+The idea is to not introduce mvars except when forced. The main
+(only?) forcing circumstance is the introduction of "decon" variables
+for switch cases where the con is a non-constant datacon. In this
+case, the decon mvar represents the argument of the case
+constructor/discriminator. Derived values (e.g. an element of a
+tuple datacon arg) are expressed directly by selections from some
+previously introduced mvar (which will normally/always be a decon
+variable.
+
+Example:
+
+  nil => 0
+  (x,y)::_ => x
+
+  swi rt                       
+    nil =>
+    :: s0 => rhs1(sel(0,sel(0,s0)))   -- s0 = rt.::
+                                      -- x = s0.0.0
+
+Here the path link "::" represents the decon of rt (in the case where
+the value bound to rt is a non-empty list, i.e. a cons.
+
+We don't need to introduce an mvar to name the selection expression
+sel(0,sel(0,s0)), though it could be done if that particular selection
+expression was repeated (common subexpression elimination).
+
+When we need a component value are path/node p, how do we decide the
+"relative root" to derive that component from (e.g. s0 in the case of
+x in the obove example). We look at the mapping from all so far
+introduced mvars ({rt,s0} to their paths {rt: <>, s0: <::>} and find
+the mvar whose path is "closest prefix" of the path of the node p
+(in this case, the path for pvar x is <::.0.0>). Then we translate
+the "difference" between those paths into a selection expression:
+<::.0.0> - <::> = <0.0> ==> sel(0, sel(0, s0).
+
+So we need to maintain this mapping from mvars to their paths. Call
+this the pathmap.
+
+When we generate a switch on a value, we know its andor node (an OR
+node) and thus the path for the subject (the path of the OR node).
+So we also need to be able derive the path of any given OR node to
+compute the subject expression for the derived switch. Thus we either
+incorporate the path into the OR node as one of its fields, or we need
+to construct a mapping from nodeIds to paths.
+
+This assumes that we do not name AND-structure nodes with mvars. These
+nodes (and their values) remain anonymous and are accessed from some
+decon mvar (or the root mvar) via iterated selection. The (relative) root of
+these selection chains can always be a decon mvar or the root mvar.
+
+When we get to a rhs dispatch (call of the nth rhs function), we need
+to marshal its argument(s), which correspond to pvars in the lhs
+pattern. We need to
+
+(1) determine which pvars are already represented by mvars introduced
+so far (and use those mvars as their representatives), and
+
+(2) for those pvars not already captured by mvars, introduce new mvar
+bindings wrapped around the call of the rhs fn.  We construct their
+expressions as above: find closest relative root based on comparing
+paths (looking for the longest prefix path among the mvar paths) and
+generating a selection expression that will be bound to a fresh mvar
+corresponding to the pvar.
+
+Ingredients/requirements
+------------------------
+
+0. decision tree (dectree)
+1. andor [OR] node to path map  [path field in OR nodes?]
+2. pvar to path map (per rule?) [pvars have different paths in
+   different rules]
+3. mvar to path map (mapping introduced decon mvars to their path)
+3. path prefix relation
+4. prefix difference (diff (p1, p2) = q such that p1*q = p2)
+   INVARIANT? prefix difference will only include selections (no decons)
+5. generate selection expressions from (mvar, oldpath, newpath).
+   These will be used to designate either switch subjects or pvar occurrences.
+
+CLAIM: The relative paths defined by path differences will only
+involve selection, because if the difference path were to include
+a decon link, then there would be a decon variable bound there, and
+thus the difference was not taken relative to the "closest"
+("longest") prefix with an mvar binding.
+
+
 
 ================================================================================
-[43] paths in patterns and andor trees (pvar to mvar mapping)
+[43] paths in patterns and andor trees (the pvar to mvar mapping)
 ================================================================================ 
 Files: preprocess.sml, generate.sml
 
@@ -4929,14 +5048,31 @@ function.
 
 43.1 Notes on paths
 
-A vector pattern component has a path with an "invisible" length
-associated with a OR case distinction based on the length of a list,
-whose discriminating con is of the form VLENcon (n, ty) where n is
-the vector length and ty is the vector element type.
+Paths are not explicitly manifest in the andor tree and dectree
+datatypes. They are an artifact introduced for the "binding" analysis
+relating pvars (original pattern variables) and mvars (administrative
+destruct variables). Each pvar has a unique path in its pattern, and
+hence in the andor tree, where that path designates a unique andor
+node and its nodeId. We use nodeIds to keep track of the nodes needing
+an mvar to denote their matching value (these are the var-relevant
+nodes). Other nodes (and nodeIds) are relevant because their value
+is the subject of a switch (i.e. nodeIds of OR nodes).
+
+QUESTION: Is it possible for an OR node to be irrelevant, i.e. one
+where the value does not need to be examined for discrimination?
+
+A vector pattern component has a path with an "invisible" (meaning it
+does not correspond to a syntactic element or relation in the pattern)
+discrimination link associated with a OR case distinction on the
+length of the vector, whose discriminating con is of the form VLENcon
+(n, ty) where n is the vector length and ty is the vector element
+type. In other words, a vector subpattern has a "virtual" vector
+length constructor that appears in OR nodes and SWITCHES and paths.
 
    NOTE: the paths to vector "element" nodes (under a "VELEMS elems" subcase) 
-   end in [..., DC(VLENcon (n, ty), VI(k,ty)], where n is the length discriminator.
-   and k is the element index in the vector.
+   end in [..., DC(VLENcon (n, ty), VI k], where n is the length discriminator.
+   and k is the element index in the vector.  The path to the node
+   representing a vector subpattern ends in a DC(VLENcon _) link.
 
 
 ================================================================================
