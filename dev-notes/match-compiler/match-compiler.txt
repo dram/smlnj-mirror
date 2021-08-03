@@ -5118,7 +5118,15 @@ an lexp by calling relativeLexp.
 
 NOTE: common subexpression optimization
 
-The sparce mvar strategy 
+The sparce mvar strategy means that "many" (what percent in common
+cases?) value components will be accessed via selection lexps, and
+this can give rise to opportunities to apply common-subexpression
+optimizations. The context for such optimizations makes them fairly
+simple: the lexps are pure and simple in form.  The optimization would
+introduce additional LET expression to bind mvars to such common
+subexpressions, allowing the corresponding selection operations to
+be performed once or at least fewer times.
+
 
 ================================================================================
 [43] paths in patterns and andor trees (and the pvar to mvar mapping)
