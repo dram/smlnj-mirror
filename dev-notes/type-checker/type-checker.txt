@@ -1,0 +1,23 @@
+= Type Checker [110.99.1 version]
+:Author: Dave MacQueen
+:Date: 2020/05/09
+:stem: latexmath
+:source-highlighter: pygments
+:VERSION: 110.98
+
+Agenda:
+
+Reunderstand and redesign type SML/NJ type checker.
+
+* pre- and post-type-checking version of abstract syntax
+  i.e. proper "typed abstract syntax" produced by type checker
+  - explicit polymorphic type abstraction and instantiation (a la plambda?)
+
+* remove any last vestiges of FLINT interference in the type checker (tycpath)
+
+* redesign type error management and improve type error messages (also wrt modules?)
+
+* translate (FLINT/tran/transtypes.sml) front-end types into "named"-style plambda/flint.
+
+* types/modules interface (probably involved more in module redesign)
+

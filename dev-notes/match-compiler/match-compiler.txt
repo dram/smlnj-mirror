@@ -4920,7 +4920,7 @@ than oldmc for a large example like to55.sml (984 vs 649) [derived from
 yacc.grm.sml]. So eager binding of node mvars does not scale well.
 
 ------------------------------
-42.4 Incremental, by-need mvar binding
+42.4 Incremental, by-need mvar binding (sparce mvar binding)
 
 Example: tt/to4-revmc2-trees.txt
 This contains a "hand-coded" match based on translating from the
