@@ -1,0 +1,54 @@
+revmc/../match/notes/todo.txt
+
+To do items for revmc match compiler.
+
+1. update comments to reflect (final?) reality [Mostly DONE -- but generate will change for item 4]
+
+2. eliminate ty arg in VI link constructor (not used or relevant). [DONE]
+
+3. check that OR node metric agrees with that of oldmc (later can
+   experiment with alternative metrics).
+
+4. investigate optimized placement of mvar bindings in generated plambda "code".
+   [Done, new sparce mvarallocation strategy.]
+
+5. can protoandor and andor phases be merged to directly construct the andor tree from pats?
+   [probably, but what is the gain?]
+
+6. can lvar component be eliminated from PLambda datacon?
+   Would need to check how PLambda.DATAcon is used throughout FLINT
+   and beyond -- how much would change if we moved the lvar from the
+   DATAcon arg to a component of the SWITCH cases:
+
+   datatype con
+     = DATAcon of dataconstr * tyc list    (* dropping lvar *)
+     | ...
+
+   datatype lexp =
+     ...
+     | SWITCH of
+         lexp * A.consig * (con * lvar option * lexp) list * lexp option  (* adding lvar option *)
+     ...
+
+   (... and similarly for the FLINT structure. )
+   If feasible, the lvar (mvar) could become an optional component of the switch case. This would
+   eliminate the need to introduce irrelevant mvars for constant datacons, and simplify the
+   conToCon function translating MCCommon.con to PLambda.con since it
+   would not have to generate (possibly irrelevant) mvars.
+
+   NOTE: PLambda.con has dropped the VLENcon constructor, but FLINT.con still has it!
+
+7. collect, organize, and catalog a set of match test cases and benchmarks
+   add test cases for vector patterns, and refs and susps in patterns
+
+8. adapt for use in newmc (mainly (only?) generate.sml)
+
+9. thoroughly test new match compiler
+   - compiling full set of libraries (after removing .cm directories to force compilation)
+   - test with new match test suit from point 7.
+
+10. integrate new match compiler code into TRUNK and test again (ready for 2021.1 release)
+
+[11.] In parallel with above, implement prototype "Petersen-style"
+match compiler for comparison, probably starting with JHR code.
+
