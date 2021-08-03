@@ -5006,12 +5006,105 @@ Ingredients/requirements
    These will be used to designate either switch subjects or pvar occurrences.
 
 CLAIM: The relative paths defined by path differences will only
-involve selection, because if the difference path were to include
+involve selection (PI,VI), because if the suffix path were to include
 a decon link, then there would be a decon variable bound there, and
 thus the difference was not taken relative to the "closest"
 ("longest") prefix with an mvar binding.
 
+Note: the path -> (mvar,path) mapping is uses a path -> mvar
+environment that is maintained recursively relative to the position
+(branch) in the dectree being "compiled" into code.
+It will vary according to which node in the decision tree is the current focus.
+But all introduced (decon and let) mvars will be fresh, i.e. unique.
 
+At a given node (path p) where we need to access the corresponding value
+(i.e. a OR/switch node or a pvar node), we look up the path for that
+node using MCUtil.lookPath and get an (mvar * link list) option. The
+mvar is from the "nearest" mvar binding m' @ path p' on the path back through
+ancestors of the node, and the link list is the path suffix x such
+that p = p' + s. The links on s, which should be only PI or VI links,
+are then used to construct a accessor lexp for the value at p. In the
+example above, suppose p = <::,0>, the position of the pvar x. Then in
+this case p' = <::>, with decon mvar s0, and the expression for
+accessing the value of x is sel(0,sel(0,s0)) [where sel(0,s0) gives us
+the head of the list argument, and the outer sel(0,_) then gives us
+the first component of the pair that is the head.
+
+----------------------------
+Defn: a destruct (or decon) of an OR node is a descendent node that
+represents the argument of a non-constant data constructor of that OR
+node's datatype.  E.g.
+
+   OR [list]
+     nil 
+     :: N    <-- new decon mvar introduced to represent "value" of N
+
+Here N is a destruct of the OR node, in this case the only one, since
+a constant data constructor cannot be destructed (or its destruct is
+unit, which isn't represented by a node). In the case of a
+vector-length OR node (discriminating between vector patterns by
+vector length), the vector subject is treated as it's own destruct
+after discrimination.
+
+Defn: decon mvar, an mvar introduced to represent a decon of an OR
+node over a datatype (only for non-constant datacon cons).
+
+The strategy is to only introduce mvars and their bindings as decon
+variables for non-constant constructor cases in switches, except that
+an mvar is bound to the subject expression of a vector-length switch
+(immediately surrounding the switch) and used as the subject of the
+switch and as the decon variable of the cases of the switch (i.e. the
+vector is "deconstructed into itself" in each length case).
+
+Defn: path = link list; path concatenation is @ (list append)
+
+Defn: prefix (p1,p2) <=> (E p). p2 = p1 @ p
+
+Defn: s = suffix(p1,p2) if p2 = p1 @ s   (where @ is path concatenation)
+  (this implies that prefix(p1,p2)
+
+All other accesses are direct via a "path segment" of projections
+(either PI record selections or VI vector element selections). These
+path segments are called suffixes (the difference between a path p
+and one of its prefixes, p': s = suffix (p',p)).
+
+A pathenv environment is a finite map that maps paths to mvars.
+Represented as an association list:
+
+   pathenv = (path * mvar) list 
+
+The paths in the domain of a pathenv will actually be restricted to
+paths to "destructs" of OR nodes (switches) in the andor tree or to
+vector length OR nodes themselves.
+
+The lookup function for these pathenv environments,
+
+   lookPath : pathenv -> path -> (mvar, path) option
+
+looks for the longest prefix of the argument path (which may be the
+path itself) found in the domain of the pathenv, and (if found)
+returns the corresponding mvar and the suffix from that domain path to
+the argument path.
+
+   lookPath penv p ==>
+      NONE if domain penv contains no prefix of p
+      SOME (mvar, s) if there exists p' in domain penv s.t. prefix(p',
+         and p' is the longest such, and s = suffix (p',p)
+	
+When we need an lexp to represent a node, either to
+
+  (1) represent the subject on a switch, or
+  (2) represent a pvar in the rhs linkage (rhs function argument)
+
+We call lookPath (penv, p) where p is the path of the node and penv
+is the "prevailing" pathenv passed this call of genDectree to get
+(assuming successful) an mvar and suffix. We then convert this to
+an lexp by calling relativeLexp.
+
+   val subject =
+       case lookPath (penv, p)
+         of SOME(mvar, suffix) => relativeLexp(mvar, suffix)
+          | NONE => bug "unbound path"
 
 ================================================================================
 [43] paths in patterns and andor trees (the pvar to mvar mapping)
@@ -5046,6 +5139,7 @@ function.
   nodeId * mvarenv  -->  mvar
 
 
+----------------------
 43.1 Notes on paths
 
 Paths are not explicitly manifest in the andor tree and dectree
