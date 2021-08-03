@@ -4922,6 +4922,15 @@ yacc.grm.sml]. So eager binding of node mvars does not scale well.
 ------------------------------
 42.4 Incremental, by-need mvar binding (sparce mvar binding)
 
+Let's call this the "sparce mvar strategy". The idea is roughly to
+bind mvars only at constructor destruct points (e.g. an mvar is
+bound to the destruct of a list cons, but not to the "destruct"
+of a nil, or for random other andor nodes like components of a
+tuple). When we need an expression representing the value at another
+node, we construct a relative lexp expression that is a succession
+of (tuple or vector) projections from one of these decon mvars or
+the root mvar.
+
 Example: tt/to4-revmc2-trees.txt
 This contains a "hand-coded" match based on translating from the
 dectree for to4.sml (first 4 rules of to55.sml, which is itself
@@ -5106,8 +5115,13 @@ an lexp by calling relativeLexp.
          of SOME(mvar, suffix) => relativeLexp(mvar, suffix)
           | NONE => bug "unbound path"
 
+
+NOTE: common subexpression optimization
+
+The sparce mvar strategy 
+
 ================================================================================
-[43] paths in patterns and andor trees (the pvar to mvar mapping)
+[43] paths in patterns and andor trees (and the pvar to mvar mapping)
 ================================================================================ 
 Files: preprocess.sml, generate.sml
 

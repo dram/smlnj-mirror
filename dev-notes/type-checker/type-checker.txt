@@ -21,3 +21,5 @@ Reunderstand and redesign type SML/NJ type checker.
 
 * types/modules interface (probably involved more in module redesign)
 
+* use "modern" BASIS and SML/NJ libraries (such as Atom, sets, maps,
+hash-tables, etc.)
