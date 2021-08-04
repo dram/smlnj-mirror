@@ -26,6 +26,7 @@ local
    structure PU = PPUtil
    structure LV = LambdaVar
    structure V = VarCon
+   structure AS = Absyn
    open MCCommon
    structure RS = RuleSet
    open PP
@@ -82,6 +83,13 @@ fun ppOption ppstrm ppfn elemOp =
     case elemOp
       of NONE => PP.string ppstrm "<<>>"
        | SOME e => (PP.string ppstrm "<< "; ppfn ppstrm e; PP.string ppstrm " >>")
+
+fun ppExp (exp, msg) =
+      PP.with_default_pp
+          (fn ppstrm =>
+	      (PP.string ppstrm msg;
+	       PPAbsyn.ppExp (StaticEnv.empty, NONE) ppstrm (exp, 20);
+	       PP.newline ppstrm))
 
 fun ppSign ppstrm sign =
     (case sign
@@ -187,7 +195,7 @@ fun ppProtoAndor ppstrm =
 (*  pretty printer for AND-OR nodes
  *  could develop a "path" while printing the andor tree *)
 fun ppAndor ppstrm =
-    let fun ppNode ppstrm (AND {id, children}) =
+    let fun ppNode ppstrm (AND {id, children, ...}) =
 	    (PP.openHOVBox ppstrm (PP.Abs 0);
 	     PP.openHBox ppstrm;
              PP.string ppstrm "AND";
@@ -199,7 +207,7 @@ fun ppAndor ppstrm =
 	     PP.closeBox ppstrm;
 	     ppAndChildren ppstrm children;
 	     PP.closeBox ppstrm)
-	  | ppNode ppstrm (OR {id, sign, defaults, cases}) =
+	  | ppNode ppstrm (OR {id, sign, defaults, cases, ...}) =
 	    (PP.openHOVBox ppstrm (PP.Abs 0);
              PP.openHBox ppstrm;
 	     PP.string ppstrm "OR";
@@ -215,7 +223,7 @@ fun ppAndor ppstrm =
 	     PP.closeBox ppstrm; (* openHBox *)
 	     ppVariants ppstrm cases;
 	     PP.closeBox ppstrm) (* openHOVBox *)
-	  | ppNode ppstrm (VAR {id}) =
+	  | ppNode ppstrm (VAR {id, ...}) =
 	    (PP.openHBox ppstrm;
 	     PP.string ppstrm "VAR";
 	     PP.break ppstrm {nsp=1,offset=0};
@@ -298,20 +306,50 @@ val ppDecTree =
     in ppDec
     end
 
-fun ppHRule ppstrm (pat, lexp) =
+fun ppPvarMapEntry ppstrm (lvar, alist) =
+    let fun prBind ppstrm (r, id) =
+	    (PP.openHBox ppstrm;
+	       PP.string ppstrm "(";
+	       PP.string ppstrm (Int.toString r);
+	       PP.string ppstrm ",";
+	       PP.string ppstrm (Int.toString id);
+	       PP.string ppstrm ")";
+	     PP.closeBox ppstrm)
+     in PP.openHBox ppstrm;
+	PP.string ppstrm (LV.toString lvar);
+	PU.pps ppstrm " = {";
+	PU.ppSequence ppstrm
+	 {sep = (fn ppstrm => PU.pps ppstrm ","),
+	  pr = prBind,
+	  style = PU.INCONSISTENT}
+	 alist;
+	PU.pps ppstrm "}";
+	PP.closeBox ppstrm (* openHBox *)
+    end
+
+fun ppPvarMap ppstrm pvarmap =
+    let val contents = Andor.PVM.listItemsi pvarmap
+    in case contents
+	of nil => PP.string ppstrm "<< empty pvarmap >>"
+	 | _ => 
+	   (PP.openVBox ppstrm (PP.Abs 3);
+	      PU.ppvseq ppstrm 0 "" ppPvarMapEntry contents;
+	    PP.closeBox ppstrm)
+    end
+
+fun ppRule ppstrm (AS.RULE(pat, exp)) =
     (PP.openHBox ppstrm;
        PPAbsyn.ppPat StaticEnv.empty ppstrm (pat, 100);
        PP.string ppstrm " => ";
        PP.openHOVBox ppstrm (PP.Abs 3);
-         PPLexp.ppLexp 100 ppstrm lexp;
+        PPAbsyn.ppExp (StaticEnv.empty, NONE) ppstrm (exp, 100);
        PP.closeBox ppstrm;  (* openHOVBox *)
      PP.closeBox ppstrm)  (* openHBox *)
 
-fun ppHMatch ppstrm match =
+fun ppMatch ppstrm match =
     (PP.openVBox ppstrm (PP.Abs 3);
-       PU.ppvseq ppstrm 0 "" ppHRule match;
+       PU.ppvseq ppstrm 0 "" ppRule match;
      PP.closeBox ppstrm)
 
 end (* top local *)
-
-end (* structure PPMatchComp *)
+end (* structure MCPrint *)

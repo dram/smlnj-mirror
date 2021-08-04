@@ -11,6 +11,7 @@ local
   structure DA = Access
   structure V = VarCon
   structure AS = Absyn
+  structure T = Types
   structure TU = TypesUtil
   structure BT = BasicTypes
   structure MC = MCCommon	     
@@ -21,9 +22,20 @@ local
 
 in
 
-fun numToCon (v, ty) =
-    let fun mkWORD sz = WORDcon{ival = v, ty = sz}
-	fun mkINT sz = INTcon{ival = v, ty = sz}
+fun isWordTy ty =
+    TU.equalType (ty, BT.wordTy) orelse
+    TU.equalType (ty, BT.word8Ty) orelse
+    TU.equalType (ty, BT.word32Ty) orelse
+    TU.equalType (ty, BT.word64Ty)
+
+(* numToCon : IntInf.int * T.ty -> MC.con *)
+fun numToCon (value, ty) =
+    if isWordTy ty
+    then WORDcon {ival = value, ty = ty}
+    else INTcon {ival = value, ty = ty}
+(*
+    let fun mkWORD sz = WORDcon{ival = value, ty = sz}
+	fun mkINT sz = INTcon{ival = value, ty = sz}
      in if TU.equalType(ty, BT.intTy)
 	  then mkINT Target.defaultIntSz
 	else if TU.equalType(ty, BT.int32Ty)
@@ -42,13 +54,14 @@ fun numToCon (v, ty) =
           then mkWORD 64
 	  else bug "numToCon: unrecognized numeric type"
       end
-
+*)
 (* default integer pattern constant *)
-fun intCon n = INTcon {ival = IntInf.fromInt n, ty = Target.defaultIntSz}
+fun intCon n = INTcon {ival = IntInf.fromInt n, ty = BT.intTy}
 
-(* pattern constant for character literal *)
+(* charCon : char -> con
+ *  pattern constant for character literal *)
 (* QUESTION: perhaps this should be a Word8.word literal? *)
-fun charCon s = intCon (Char.ord (String.sub (s, 0)))
+fun charCon c = intCon (Char.ord c)
 
 (* addVar : V.var * ruleno * simpleAndor -> simpleAndor *)
 fun addVar (var: V.var, rule: ruleno, ANDs{bindings, children}) =
@@ -76,9 +89,9 @@ let (* genAndor : pat * ruleno -> andor *)
 	  end
       | genAndor (STRINGpat s, rule) =
 	  ORs {bindings = nil, sign = DA.CNIL,	cases = [(STRINGcon s, RS.singleton rule, CONST)]}
-      | genAndor (CHARpat s, rule) =
+      | genAndor (CHARpat c, rule) =
 	  (* NOTE: this rule won't work for cross compiling to multi-byte characters. *) 
-	  ORs{bindings = nil, sign = DA.CNIL, cases = [(charCon s, RS.singleton rule, CONST)]}
+	  ORs{bindings = nil, sign = DA.CNIL, cases = [(charCon c, RS.singleton rule, CONST)]}
       | genAndor (RECORDpat{fields,...}, rule) =
 	  ANDs{bindings = nil, children=multiGen(map #2 fields, rule)}
       | genAndor (VECTORpat(pats,ty), rule) =
@@ -134,9 +147,9 @@ let (* genAndor : pat * ruleno -> andor *)
 
       (* NOTE: the following won't work for cross compiling
        * to multi-byte characters *)
-      | mergeAndor (CHARpat s, ORs{bindings, cases, sign}, rule) =
+      | mergeAndor (CHARpat c, ORs{bindings, cases, sign}, rule) =
 	  ORs{bindings = bindings, sign=sign,
-	       cases = addACase(charCon s, nil, rule, cases)}
+	       cases = addACase(charCon c, nil, rule, cases)}
       | mergeAndor (RECORDpat{fields,...},
 		    ANDs{bindings, children}, rule) =
 	  ANDs{bindings = bindings,

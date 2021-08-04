@@ -36,7 +36,8 @@ type ruleset = RuleSet.set
 (* con: case discriminators *)
 
 (* con translates direclty to PLambda.con, except that VLENcon (n,t) is translated
- *  to PLambda.INTcon n (in Generate.genMatch). *)
+ *  to PLambda.INTcon n (in Generate.genMatch). character case discriminators will
+ *  be translated to INTcon. *)
 datatype con
   = DATAcon of datacon * tyvar list
   | INTcon of T.ty IntConst.t
@@ -54,14 +55,13 @@ datatype con
 type nodeId = int
 
 (* varBindings: which variables are bound (at a node) in which rules.
- *  No distinction is made between simple variable bindings and "as" (layered) bindings. *)
+ *  No distinction is made between primary variable bindings and secondary ("as" -- layered) bindings. *)
 type varBindings = (V.var * ruleno) list
 
-datatype 'a subcase  (* kinds of andor0/andor subcases *)
+datatype 'a subcase  (* kinds of protoAndor/andor subcases *)
   = CONST            (* discriminant is int, word, string, or constant datacon *)
   | DCON of 'a       (* discriminant is non-constant datacon, 'a is its argument *)
   | VEC of 'a list   (* discrimanant is vector length, 'a list are the vector elements *)
-
 
 (* protoAndor: "proto" or "basic" AndOr trees, built by the first pass of andor tree construction *)
 datatype protoAndor

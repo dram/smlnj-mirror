@@ -17,39 +17,36 @@ structure MatchComp =
 struct
 
 local
-  structure S = Symbol
-  structure SP = SymPath
+
   structure T = Types
-  structure BT = BasicTypes
   structure TU = TypesUtil
   structure A = Access
   structure V = VarCon
   structure AS = Absyn
   structure AU = AbsynUtil
   structure EU = ElabUtil
-  structure R = Rules
-  structure SV = SVar
-  structure SE = SVarEnv
-  structure K = Key
-  structure MT = MCTypes
-  structure MU = MCUtil
-  structure L = Layers
+
+  structure MCC = MCControl
+  structure MC = MCCommon
   structure DT = DecisionTree
-  structure C = VMCexp
+
   structure PP = PrettyPrint
   structure PU = PPUtil
   structure ED = ElabDebug
-  open Absyn MCTypes
+  structure EM = ErrorMsg
+
+  open AS MC
+  structure RS = RuleSet
 
   (* printing for matchComp *)
 
   fun bug msg = ErrorMsg.impossible ("MatchComp: " ^ msg)
 
-  val printAndor = MCControl.printAndor
-  val printDecisionTree = MCControl.printDecisionTree
-  val printMatchAbsyn = MCControl.printMatchAbsyn
-  val debugging = MCControl.mcdebugging
-  val stats = MCControl.mcstats
+  val printAndor = MCC.printAndor
+  val printDecisionTree = MCC.printDecisionTree
+  val printMatchAbsyn = MCC.printMatchAbsyn
+  val debugging = MCC.mcdebugging
+  val stats = MCC.mcstats
 
   val say = Control_Print.say
   fun newline () = say "\n"
@@ -61,6 +58,8 @@ local
       then (say msg; newline())
       else ()
   fun dbsays msgs = dbsay (concat msgs)
+
+  val db_printDepth = 100
 
   fun ppAndor andor =
       PP.with_default_pp
@@ -80,18 +79,18 @@ local
       PP.with_default_pp
           (fn ppstrm =>
 	      (PP.string ppstrm msg;
-	       PPAbsyn.ppExp (StaticEnv.empty, NONE) ppstrm (exp, 20);
+	       PPAbsyn.ppExp (StaticEnv.empty, NONE) ppstrm (exp, db_printDepth);
 	       PP.newline ppstrm))
 
   fun ppDec (dec, msg) =
       PP.with_default_pp
           (fn ppstrm =>
 	      (PP.string ppstrm msg;
-	       PPAbsyn.ppDec (StaticEnv.empty, NONE) ppstrm (dec, 20);
+	       PPAbsyn.ppDec (StaticEnv.empty, NONE) ppstrm (dec, db_printDepth);
 	       PP.newline ppstrm))
 
   fun ppPat pat =
-      PP.with_default_pp(fn ppstrm => PPAbsyn.ppPat StaticEnv.empty ppstrm (pat, 20))
+      PP.with_default_pp(fn ppstrm => PPAbsyn.ppPat StaticEnv.empty ppstrm (pat, db_printDepth))
 
   fun ppVar var =
       PP.with_default_pp(fn ppstrm => PPVal.ppVar ppstrm var)
@@ -116,8 +115,6 @@ in
  * genAndor within the body of genDecTree.
  *)
 
-fun k_ident (x: AS.exp) = x
-
 val choiceTotalThreshold = 10
 
 fun reportStats (nodeCount: int, {rulesUsed, failures, choiceTotal, choiceDist}: DT.decTreeStats) =
@@ -129,50 +126,15 @@ fun reportStats (nodeCount: int, {rulesUsed, failures, choiceTotal, choiceDist}:
     else ()
 
 
-(* ================================================================================ *)
-(* matchComp: AS.rule list * T.ty * T.datacon -> AS.exp * VarCon.var *)
-(* lhsTy is the type of the patterns (i.e. the domain or lhs) of the match
- * Called by transMatch.  fillPat will have been applied to rule patterns. *)
-(*
-and matchComp (rules: AS.rule list, lhsTy: T.ty, rhsTy: T.ty, failExnOp: T.datacon option) =
-    let val numRules = length rules
-	val _ = says [">> matchComp[", Int.toString numRules,"]"]
-	val patterns = map (fn (AS.RULE(pat,_)) => pat) rules (* strip RULE constructor *)
-	val (andor, nodeCount) = (* AndOr.makeAndor(patterns, lhsTy) *)
-              timeIt ("makeAndor", "no location", AndOr.makeAndor, (patterns, lhsTy))
-	val _ = saynl "<< makeAndor"
-	val _ = if !printAndor
-		then ppAndor andor
-		else ()
-	val (dectree,ruleCounts) = (* DecisionTree.decisionTree (andor, numRules) *)
-	      timeIt ("decisionTree", "no location", DT.decisionTree, (andor, numRules))
-	val decTreeStats = DT.decTreeStats dectree
-	val _ = saynl "<< decisionTree"
-	val _ = if !printDecisionTree
-		then ppDecisionTree dectree
-		else ()
-	val _ = reportStats (nodeCount, decTreeStats)
-        val (matchExp, matchRootVar) =
-	    (* genMatch (rules, andor, dectree, ruleCounts, rhsTy, varenvAC, matchFailExn) *)
-	    timeIt ("genMatch", "no location",
-		    genMatch, (rules, andor, dectree, ruleCounts, rhsTy, varenvAC, matchFailExn))
-	val _ = saynl "<< genMatch"
-	val _ = if !printMatchAbsyn
-		then ED.withInternals (fn () => ppExp (matchExp, "matchComp:matchExp: \n"))
-		else ()
-    in saynl "<< matchComp";  (* -- debugging *)
-       (matchExp, SVar.svarToVar matchRootVar)
-    end
-*)
-(* matchComp : (pat * lexp) list * failInfo * toLcLt * errTy * giisTy
-                -> lexp * lvar * ruleno list * bool * bool *)
+(* matchComp : AS.rule list * T.ty * T.ty * T.datacon option
+                -> AS.exp * V.var * ruleno list * bool * bool *)
 fun matchComp (rules, lhsTy: T.ty, rhsTy: T.ty, failExnOp: T.datacon option) =
 let fun timeIt x = TimeIt.timeIt (!stats) x
     val location = "nolocation"
     val rules' = map (fn AS.RULE x => x) rules  (* strip RULE constructor *)
     val _ = MCPrint.debugPrint
               ("matchComp: match = \n",
-	        (fn ppstrm => MCPrint.ppHMatch ppstrm hybridMatch))
+	        (fn ppstrm => MCPrint.ppMatch ppstrm rules))
 
     val (numExpandedRules, expandedPats, rhsFunBinders, ruleMap) =
 	Preprocessing.expandPats (rules', lhsTy, rhsTy)
@@ -190,7 +152,7 @@ let fun timeIt x = TimeIt.timeIt (!stats) x
 
     val (andor: andor, pvarmap: Andor.pvarmap, nodeCount) =
 	(* Andor.makeAndor (protoAndor, allRules) *)
-	timeIt ("Andor.makeAndor", location, Andor.makeAndor, (protoAndor, allRules))
+	timeIt ("Andor.makeAndor", location, Andor.makeAndor, (protoAndor, lhsTy, allRules))
 
     val _ = MCPrint.debugPrint
 	      ("** matchComp: andor (nodeCount = " ^ Int.toString nodeCount ^ ") =",
@@ -198,7 +160,7 @@ let fun timeIt x = TimeIt.timeIt (!stats) x
 
     val _ = MCPrint.debugPrint
 	      ("** matchComp: pvarmap = ",
-	       (fn ppstrm => ppPvarMap ppstrm pvarmap))
+	       (fn ppstrm => MCPrint.ppPvarMap ppstrm pvarmap))
 
     val decTree = (* DecisionTree.genDecisionTree (andor, allRules) *)
 	timeIt ("genDecisionTree", location, DT.genDecisionTree, (andor, allRules))
@@ -216,212 +178,164 @@ let fun timeIt x = TimeIt.timeIt (!stats) x
     val redundant = not (RS.isEmpty unusedRules)
     val nonexhaustive = (failures > 0)  (* any FAIL nodes => nonexhaustive rules *)
 
-    (* generating the "raw" lexp for the match *)
+   (* generating the "core" exp for the match *)
 
-    val (matchLexp, rootLvar) = (* Generate.genMatch (andor, decTree, pvarmap, ruleMap,
+    val (coreExp, rootVar) = (* Generate.genMatch (andor, decTree, pvarmap, ruleMap,
                                                       fail, toTcLt, giis) *)
         timeIt ("genMatch", location, Generate.genMatch,
-		(andor, decTree, pvarmap, ruleMap, failExnOp))
+		(andor, decTree, pvarmap, ruleMap, (failExnOp, rhsTy)))
 
-    (* wrapping let-bindings of abstracted right-hand-sides around match code,
+    (* fullExp: wrapping let-bindings of abstracted right-hand-sides around coreExp,
      * (corresponds to newmc "genprelude") *)
 
-    val code: AS.exp = foldl (fn (fbinder, body) => fbinder body) matchLexp
-			     rhsFunBinders
+    val fullExp: AS.exp = foldl (fn (fbinder, body) => fbinder body) coreExp
+				rhsFunBinders
 
     val _ = if !printMatchAbsyn
-	    then ED.withInternals (fn () => ppExp (matchExp, "matchComp:matchExp: \n"))
+	    then ED.withInternals (fn () => ppExp (fullExp, "matchComp: fullExp =\n"))
 	    else ()
 
     val _ = reportStats (nodeCount, decTreeStats)
 
     (* rudundant <=> not (null unusedOriginalRules) <=> not (null unusedExpandedRules) *)
- in (code, rootLvar, RS.toList unusedOriginalRules, redundant, nonexhaustive)
+ in (fullExp, rootVar, RS.toList unusedOriginalRules, redundant, nonexhaustive)
 end
+(* --------------------------------------------------------------------------- *)
+(* Match Compiler entry points *)
 
-(* ================================================================================ *)
-
-(* translation functions: translate AS.exp and AS.dec while compiling matches
- *   transExp : AS.exp -> AS.exp
- *   transDec : AS.dec -> AS.dec
+(*
+ * The three entry points for the match compiler.
+ *
+ * They take as arguments:
+ *   env -- an environment (env);
+ *   rules : Absyn.rule list -- a match represented as a list of absyn rules;
+ *   rhsTy : Types.ty -- the type of the right-hand-side of the match (rule exps)
+ *   err:  a function err to use in printing warning/error messages
+ *
+ * env and err are only used in the printing of diagnostic information; they are
+ * not used in the match compilation per se.
+ *
+ * If the control flag Control.MC.printArgs is set, they print match.
+ *
+ * They call matchComp to actually compile the match.
+ * This returns a 5-tuple (matchExp, rootVar, unused, redundant, exhaustive).
+ *   matchExp : Absyn.exp -- the expression that implements the match.
+ *   unused : ruleno list -- unused rules (if match is redundant)
+ *   redundant : bool -- is match redundant?
+ *   exhaustive : bool -- is match exhaustive?
+ *
+ * They print warning messages as appropriate, as described below.
+ * If the control flag Control.MC.printRet is set, they print the matchExp.
+ *
+ * They return the matchExp + rootVar (the root variable to which the matched
+ * value will be bound (dynamically).
  *)
 
-(* simpleVALdec : V.var * AS.exp * T.tyvar list -> AS.dec *)
-(* used in Translate.transDec/transVB *)
-fun simpleVALdec (var, exp, boundtvs) =
-    VALdec [VB{pat = VARpat var, exp = exp,
-	       typ = V.varType var, boundtvs = boundtvs, tyvars = ref nil}]
+val emptyEnv = StaticEnv.empty (* default -- needed for warning/error printing *)
 
-(* transExp : AS.exp -> AS.exp *)
-fun transExp (calledFrom: string, exp) =
-    let val _ = says [">> transExp: from ", calledFrom]
-	val transRules =  (* apply fillPat to rule patterns, translate rhss *)
-	    map (fn RULE(pat,exp) => RULE(EU.fillPat pat, transExp exp))
-        fun trans exp =
-            (case exp
-	       of RECORDexp fields =>
-		    RECORDexp (map (fn (numberedLabel, exp) => (numberedLabel, trans exp))
-				   fields)
-		| VECTORexp (exps,ty) => VECTORexp(map trans exps, TU.prune ty)
-		| APPexp (rator, rand) => APPexp (trans rator, trans rand)
-		| FNexp (rules, argTy, resTy) =>
-		    let val RULE(pat1,exp1)::_ = rules (* debugging *)
-			val _ = (say "transExp:FNexp:pat1 = "; ppPat pat1; newline() (* debugging *))
-			val (bodyExp, matchVar) =
-			    matchComp (transRules rules, argTy, resTy, SOME (EU.getMatchExn()))
-		     in FNexp ([RULE(VARpat matchVar, bodyExp)], TU.prune argTy, TU.prune resTy)
-		    end
-		| HANDLEexp (baseExp, (rules, argTy, resTy)) =>
-		    let val (handlerBody, matchVar) =
-			    matchComp (transRules rules, argTy, resTy, NONE)
-			val matchRule = RULE(VARpat matchVar, handlerBody)
-		     in HANDLEexp(trans baseExp, ([matchRule], TU.prune argTy, TU.prune resTy))
-		    end
-		| CASEexp (scrutinee, (rules, scrutTy, resTy)) =>
-		    let val RULE(pat1,exp1)::_ = rules (* debugging *)
-			val _ = (say "transExp:CASEexp:pat1 = "; ppPat pat1; newline() (* debugging *))
-			val (caseBody, matchVar) =
-			    matchComp(transRules rules, scrutTy, resTy, EU.getMatchExn())
-		    in LETexp(VALdec[VB{pat = VARpat matchVar,
-					exp = trans scrutinee,
-					typ = scrutTy,
-					boundtvs = nil,
-					tyvars = ref nil}],
-			      caseBody)
-		    end
-		| RAISEexp (exp, ty) => RAISEexp (trans exp, ty) (* original source raise *)
-		| IFexp {test, thenCase, elseCase} =>
-		    IFexp {test = trans test, thenCase = trans thenCase, elseCase = trans elseCase}
-		| ANDALSOexp (exp1, exp2) => ANDALSOexp (trans exp1, trans exp2)
-		| ORELSEexp (exp1, exp2) => ORELSEexp (trans exp1, trans exp2)
-		| WHILEexp { test, expr } => WHILEexp{ test = trans test, expr = trans expr}
-		| LETexp (dec, exp) => LETexp(transDec dec, trans exp)
-		| SEQexp exps => SEQexp (map trans exps)
-		| CONSTRAINTexp (exp, ty) => CONSTRAINTexp (trans exp, ty)
-		| MARKexp (exp, region) => MARKexp (trans exp, region)
-		| _ => exp)
-		  (* (VARexp _ | CONexp _ | NUMexp _ | REALexp _ | STRINGexp _  | CHARexp _ |
-		   *  RSELECTexp _ | VSELECTexp _ | SWITCHexp _ | VSWITCHexp) => exp *)
-     in trans exp
-    end (* transExp *)
+fun stripRULE (AS.RULE r) = r
 
-(* transDec : AS.dec -> dec *)
-and transDec (dec: AS.dec): AS.dec =
-    let fun transDec0 (dec: AS.dec) : AS.dec =
-            (case dec
-	      of VALdec vbs => transVBs vbs
-	       | VALRECdec rvbs => VALRECdec (map transRVB rvbs)
-	       | DOdec exp => DOdec (transExp("transDec:DOdec", exp))
-	       | LOCALdec (innerDec, outerDec) =>
-		   LOCALdec (transDec0 innerDec, transDec0 outerDec)
-	       | SEQdec decs => SEQdec (map transDec0 decs)
-	       | ABSTYPEdec {abstycs, withtycs, body} =>
-		   ABSTYPEdec {abstycs = abstycs, withtycs = withtycs, body = transDec0 body}
-	       | MARKdec (dec, region) => MARKdec (transDec0 dec, region)
-	       | _ => dec) (* transDec called locally for LETSTR, LETFCT, STRdec, FCTdec *)
+(* bindCompile: Entry point for compiling matches associated with val declarations
+ *  (e.g., val x::xs = list).
+ *  The match consists of a single rule, corresponding to the let binding.
+ *  A match failure causes the Bind exception to be raised.
+ *  If the control flag Control.MC.bindNonExhaustiveWarn
+ *  is set then a nonexhaustive binding warning is printed. If the control
+ *  flag Control.MC.bindNoVariableWarn is set, and the pattern
+ *  of the match rule contains no variables or wildcards, a warning is printed.
+ *   Note: Arguably, a pattern containing no variables, but one or more wildcards,
+ *   should also trigger a warning, but this would cause warnings on declarations
+ *   like val _ = <exp>  and  val _:<ty> = <exp>.
+ *)
+fun bindCompile (rules, lhsTy, rhsTy, err: ErrorMsg.complainer): (AS.exp * V.var) =
+    let (* val _ = if !printMatch
+		then (say "bindCompile called with:"; PPL.ppMatch emptyEnv rules)
+		else () *)
+	val bindExn = EU.getBindExn ()
+	val (matchExp, rootLvar, _, _, nonexhaustive) =
+	    matchComp (rules, lhsTy, rhsTy, SOME bindExn)
 
-	(* transvb : AS.vb -> AS.dec *)
-	(* translation of vb to dec
-	 * -- We can get away without a d (DB depth) parameter, leaving it to Translate.
-	 * -- Looks like we can get away with never dealing with an internal svar in the match.
-	 * -- we need to access or (re)construct the type of the pat.
-	 *      Could store this as a field of VB.
-	 * -- do we need an absyn equivalent to mkPE, say transPolyExp? We don't have an equivalent
-	 *      to TFN in absyn -- yet! *)
-	and transVB (VB{pat, exp, typ, boundtvs, tyvars}) =
-	    (* match compile [(pat,exp)] if pat is nontrivial (not a var);
-	     * -- check what the match compiler does with (single) irrefutable patterns
-	     *    DONE -- it does the right thing. *)
-	    (if !debugging
-	     then (say "transVB:pat = "; ppPat pat; ppExp (exp, "transVB:exp = "))
-	     else ();
-	     case EU.fillPat(AU.stripPatMarks pat)   (* does fillPat strip MARKpats? *)
-	       of (WILDpat | CONSTRAINTpat(WILDpat, _)) =>  (* WILDpat pattern *)
-		  let val exp' = transExp ("transVB:WILDpat", exp)
-		   (* val _ = (print "transVB:exp' = "; ppExp exp') *)
-		   in VALdec([VB{pat = WILDpat, exp = exp', typ = typ,
-				 boundtvs = boundtvs, tyvars = tyvars}])
-		  end
-		| (VARpat var | CONSTRAINTpat(VARpat var, _)) =>
-		  (* simple single variable pattern *)
-		  let val exp' = transExp ("transVB:VARpat", exp)
-		  (* val _ = (print "transVB:exp' = "; ppExp exp') *)
-		  in VALdec([VB{pat = VARpat var, exp = exp',
-				typ = typ, boundtvs = boundtvs, tyvars = tyvars}])
-		  end
-		| pat =>  (* compound, possibly refutable, pattern. Does this work for constants? *)
-		  let val patvars = AU.patternVars pat
-		      val bindExn = EU.getBindExn()
-		  in case patvars
-		       of nil =>   (* "constant" pattern, no pattern variables *)
-			  let val (matchExp, matchVar) =
-				   matchComp ([RULE (pat, AU.unitExp)], typ, BT.unitTy, bindExn)
-			      val resultDec =
-				  LOCALdec(simpleVALdec(matchVar,
-							transExp ("transVB: null patvars", exp), nil),
-					    VALdec([VB{pat=WILDpat, exp = matchExp,
-						       typ=typ, boundtvs=nil, tyvars = ref nil}]))
-			   in if !debugging then ppDec (resultDec, "transVB (no var): \n") else ();
-			      resultDec
-			  end
-			| [pvar] =>     (* single pattern variable *)
-			  let val pvarTy = V.varType pvar
-			      val (matchExp, matchVar) =
-				   matchComp ([RULE (pat, VARexp(ref pvar, nil))], typ, pvarTy, bindExn)
-			      val resultDec =
-				   LOCALdec(simpleVALdec(matchVar, transExp ("transVB: single patvar", exp), nil),
-					    simpleVALdec(pvar, matchExp, boundtvs))
-			   in if !debugging then ppDec (resultDec, "transVB (single var): \n") else ();
-			      resultDec
-			  end
-			| patvars =>
-			  let val patvarstupleExp =
-				  EU.TUPLEexp (map (fn var => VARexp(ref var, nil)) patvars)
-			      val patvarstupleTy = Tuples.mkTUPLEtype (map V.varType patvars)
-			      val (matchExp, matchVar) =
-				  matchComp ([RULE (pat, patvarstupleExp)], typ, patvarstupleTy, bindExn)
-				  (* matchVar will be bound to MC-translation of exp *)
-			      val ptupleVar = V.VALvar{path = SP.SPATH [S.varSymbol "<ptupleVar>"],
-						       typ = ref(patvarstupleTy),
-						       btvs = ref(boundtvs),  (* possibly polymorphic *)
-						       access = A.LVAR(LambdaVar.mkLvar()),
-						       prim = PrimopId.NonPrim}
-			      fun selectVBs([], _) = []
-				| selectVBs (pvar::pvars, n) = (* non-polymorphic *)
-				    simpleVALdec(pvar, RSELECTexp (ptupleVar,n), nil)
-				      :: selectVBs(pvars, n+1)
-				    (* defining a pattern var by (record) selection from a
-				     * var (ptupleVar) bound to the tuple of all the pattern
-				     * var values; the btvs of each pattern var is a subset
-				     * of the btvs of ptupleVar. *)
-			      val resultDec =
-				  LOCALdec(SEQdec [simpleVALdec(matchVar,
-								transExp ("transVB: general", exp), nil),
-						   simpleVALdec(ptupleVar, matchExp, boundtvs)],
-					   SEQdec (selectVBs(patvars, 0)))
-					  (* rebinding orig pattern variables *)
-			   in if !debugging then ppDec (resultDec, "transVB (multiple vars): \n") else ();
-			      resultDec
-			  end
-		  end (* pat case *))
+	val nonexhaustiveF =
+	    nonexhaustive andalso (!MCC.bindNonExhaustiveWarn orelse !MCC.bindNonExhaustiveError)
+	val noVarsF = !MCC.bindNoVariableWarn andalso AU.noVarsInPat (#1 (stripRULE (hd rules)))
 
-	    (* NOTE: Given the way Translate.transDec deals with LOCALdec (i.e. not
-             * hiding the local decls), we use a single SEQ encompassing all the
-             * declarations. *)
+     in if nonexhaustiveF
+        then err (if !MCC.bindNonExhaustiveError then EM.COMPLAIN else EM.WARN)
+	       ("binding not exhaustive" ^
+	                (if noVarsF then " and contains no variables" else ""))
+		       (MatchPrint.bindPrint (emptyEnv, map stripRULE rules))
+        else if noVarsF
+        then err EM.WARN "binding contains no variables"
+                 (MatchPrint.bindPrint (emptyEnv, map stripRULE rules))
+        else ();
 
-	(* transVBs : AS.vb list -> AS.dec *)
-	and transVBs nil = bug "transVBs: nil"  (* expect at least one *)
-	  | transVBs [vb] = transVB vb
-	  | transVBs vbs = SEQdec (map transVB vbs)
+	(matchExp, rootLvar)
+    end
 
-	and transRVB (RVB{var: V.var, exp: exp, resultty: T.ty option, tyvars: T.tyvar list ref}) =
-	    (says [">> transRVB:var = ", Symbol.name (V.varName var)];
-	     RVB {var = var, exp = transExp ("transRVB", exp), resultty = resultty, tyvars = tyvars})
+(*
+ * handlerCompile: Entry point for compiling exception handler matches.
+ *  (e.g., handle Bind => Foo).  
+ *  Controls: if match redundant:
+ *    Control.MC.matchRedundantWarn => match redundancy warning
+ *    Control.MC.matchRedundantError => match redundancy error
+ *)
+fun handlerCompile (rules, lhsTy, rhsTy, err: ErrorMsg.complainer): (AS.exp * V.var) =
+    let (* val _ = if !printMatch
+		then (say "handlerCompile called with: "; PPL.ppMatch env rules)
+                else () *)
+	val (matchExp, rootVar, unused, redundant, _) =
+	    matchComp (rules, lhsTy, rhsTy, NONE)
+	val reportRedundancy = !MCC.matchRedundantError orelse !MCC.matchRedundantWarn
+     in if redundant andalso reportRedundancy
+	then err
+	     (if !MCC.matchRedundantError then EM.COMPLAIN else EM.WARN)
+	     "redundant patterns in match"
+             (MatchPrint.matchPrint (emptyEnv, map stripRULE rules, unused))
+	else ();
+	(matchExp, rootVar)
+    end
 
-     in transDec0 dec
-    end (* transDec *)
+(*
+ * matchCompile: Entry point for compiling matches induced by function expressions
+ *  (and thus case expression, if-then-else expressions, while expressions
+ *  and fun declarations) (e.g., fn (x::y) => ([x],y)).
+ *  Controls: if match redundant
+ *    Control.MC.matchRedundantWarn => match redundancy warning
+ *    Control.MC.matchRedundantError => match redundancy error
+ *  If match is nonexhaustive
+ *    Control.MC.matchExhaustive => match nonexhaustive warning
+ *)
+fun matchCompile (rules, lhsTy, rhsTy, err: ErrorMsg.complainer): (AS.exp * V.var) =
+    let (* val _ = if !printMatch
+		then (say "matchCompile called with: "; PPL.ppMatch emptyEnv rules)
+		else () *)
+	val matchExn = EU.getMatchExn ()
+	val (matchExp, rootVar, unused, redundant, nonexhaustive) =
+            matchComp (rules, lhsTy, rhsTy, SOME matchExn)
 
-fun transMatchDec dec = transDec dec
+	val nonexhaustiveF =
+	    nonexhaustive andalso
+	    (!MCC.matchNonExhaustiveError orelse !MCC.matchNonExhaustiveWarn)
+	val redundantF =
+	    redundant andalso
+	    (!MCC.matchRedundantError orelse !MCC.matchRedundantWarn)
+     in case (nonexhaustiveF,redundantF)
+	  of (true, true) =>
+             err (if !MCC.matchRedundantError orelse !MCC.matchNonExhaustiveError
+		  then EM.COMPLAIN else EM.WARN)
+	        "match redundant and nonexhaustive"
+	        (MatchPrint.matchPrint (emptyEnv, map stripRULE rules, unused))
+           | (true, false) =>
+             err (if !MCC.matchNonExhaustiveError then EM.COMPLAIN else EM.WARN)
+                 "match nonexhaustive"
+		 (MatchPrint.matchPrint (emptyEnv, map stripRULE rules, unused))
+           | (false, true) =>
+              err (if !MCC.matchRedundantError then EM.COMPLAIN else EM.WARN)
+	          "match redundant" (MatchPrint.matchPrint (emptyEnv, map stripRULE rules, unused))
+           | _ => ();
 
-end (* local *)
+	(matchExp, rootVar)
+    end
+
+end (* top local *)
 end (* structure MatchComp *)

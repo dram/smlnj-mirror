@@ -15,6 +15,8 @@ struct
 
 local
   structure LV = LambdaVar
+  structure T = Types
+  structure TU = TypesUtil
   structure M = LV.Map
   structure V = VarCon
   structure PP = PrettyPrint
@@ -35,13 +37,13 @@ local
       then (say msg; newline())
       else ()
   fun dbsays msgs = dbsay (concat msgs)
-
+(*
   fun ppCon con =
       PP.with_default_pp (fn ppstrm => MCPrint.ppCon ppstrm con)
 
   fun ppRules (rules: ruleset) =
       PP.with_default_pp (fn ppstrm => MCPrint.ppRuleset ppstrm rules)
-
+*)
 in
 
 (* node ids (: int) *)
@@ -105,11 +107,11 @@ fun pvarFind (pvarmap: pvarmap, lvar : LV.lvar) =
 (* translateAndor : protoAndor * ruleset * T.ty -> andor *)
 fun translateAndor (ANDs {bindings, children}, live, ty) =
       let val id = newId ()
-	  val childrenTys = TU.destructRecordTy ty
+	  val childrenTys = TU.destructRecordTy (TU.prune ty)
 	  val children' = ListPair.map (fn (pa, ty) => translateAndor (pa, live, ty))
 				       (children, childrenTys)
        in mapVarBindings (id, bindings);
-          AND {id = id, children = children'}
+          AND {id = id, children = children', typ = ty}
       end
   | translateAndor (ORs {bindings, cases, sign}, live, ty) =
       let val id = newId ()
@@ -119,32 +121,34 @@ fun translateAndor (ANDs {bindings, children}, live, ty) =
 	  val defaults = getDefaults (cases, live) (* subset of live *)
 	  fun transCase scase = translateCase (scase, live, defaults, ty)
 	  val cases' = map transCase cases
-	  val _ = if !debugging
+(*	  val _ = if !debugging
 		  then (say ("translateAndor: id = " ^ Int.toString id);
 			say "\n  live = ";
-		        ppRules live;
+		        ppRules live;         <-- dependency circularity (MCPrint depends on Andor)
 		        say "  defaults = ";
 		        ppRules defaults)
 		  else ()
+*)
        in mapVarBindings (id, bindings);
-	  OR {id = id, sign = sign, defaults = defaults, cases = cases'}
+	  OR {id = id, sign = sign, defaults = defaults, cases = cases', typ = ty}
       end
   | translateAndor (VARs {bindings}, live, ty) =
       let val id = newId ()
        in mapVarBindings (id, bindings);
-	  VAR {id = id, ty = ty}
+	  VAR {id = id, typ = ty}
       end
 
 (* translateCase : protoVariant * ruleset * ruleset * T.ty -> variant *)
 and translateCase ((con, caserules, subcase), live, defaults, ty) =
     let val caseLive = RS.intersection (caserules, live)
 	val stillLive = RS.intersection (RS.union (caserules, defaults), live)
-	val _ =  if !debugging
+(*	val _ =  if !debugging
 		 then (say "translateCase: con = ";
-		       ppCon con;
+		       ppCon con;   <-- dependency circularity
 		       say "  caseLive = "; ppRules caseLive;
 		       say "  stillLive = "; ppRules stillLive)
 		 else ()
+*)
       in case (con, subcase)
 	  of (VLENcon (k, elemty), VEC elements) =>
 	     let val elements' = map (fn pa => translateAndor (pa, stillLive, elemty)) elements
@@ -158,7 +162,7 @@ and translateCase ((con, caserules, subcase), live, defaults, ty) =
 	   | _ => bug "translateCase: inconsistent cases"
       end
 
-(* makeAndor : andor * ruleset -> andor *)
+(* makeAndor : andor * T.ty * ruleset -> andor * pvarmap * int *)
 fun makeAndor (andor, patty, allRules) =
       (pvarmapRef := M.empty;  (* reset pvarmap *)
        idcount := 0;           (* reset idcount *)

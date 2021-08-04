@@ -26,14 +26,15 @@ local
   structure T = Types
   structure BT = BasicTypes
   structure TU = TypesUtil
+  structure LV = LambdaVar
   structure A = Access
   structure V = VarCon
   structure AS = Absyn
   structure AU = AbsynUtil
   structure EU = ElabUtil
   structure MC = MCCommon  (* ~ MCTypes *)
+  structure MU = MCUtil
   structure DT = DecisionTree
-
   structure PP = PrettyPrint
   structure PU = PPUtil
   structure ED = ElabDebug
@@ -43,11 +44,11 @@ local
 
   fun bug msg = ErrorMsg.impossible ("Generate: " ^ msg)
 
-  val printAndor = ElabControl.printAndor
-  val printDecisionTree = ElabControl.printDecisionTree
-  val printMatchAbsyn = ElabControl.printMatchAbsyn
-  val debugging = ElabControl.mcdebugging
-  val stats = ElabControl.stats
+  val printAndor = MCControl.printAndor
+  val printDecisionTree = MCControl.printDecisionTree
+  val printMatchAbsyn = MCControl.printMatchAbsyn
+  val debugging = MCControl.mcdebugging
+  val stats = MCControl.mcstats
 
   val say = Control_Print.say
   fun newline () = say "\n"
@@ -100,6 +101,8 @@ local
 
   fun timeIt x = TimeIt.timeIt (!stats) x
 
+  fun mkv () = LV.mkLvar ()
+
 in
 
 (* new absyn-generator based on revmc version of generate.sml
@@ -145,15 +148,16 @@ fun reportStats (nodeCount: int, {rulesUsed, failures, choiceTotal, choiceDist}:
     else ()
 
 
-(* lvar analogue of mvarenv *)
+(* mvarenv: environment mapping node ids (nodeId == int) to variables (V.var) *)
 structure M = IntBinaryMap
 
 (* mvarenv: a finite mapping from AndOr node id numbers (andor.info.id) to
- * "mvars", which are lvars used as "administrative" variables in the match compiler
- * to represent values produced during value destruction. The do not derive from the pattern variables,
- * but in the end each pattern varialbe (for a given rule) will be associated with some mvar, which
- * in turn will be bound do the pattern variable's "matching value". *)
-type mvarenv = LV.lvar M.map
+ *  "mvars", which are "administrative" variables (V.var) used in the match compiler
+ *  to represent "intermediate" values produced during value destruction. The do not derive
+ *  from the pattern variables, but in the end each pattern variable _occurrence_ 
+ *  (for a given node and rule rule) will be associated with some mvar, which
+ *  in turn will be bound (dynamically) to the pattern variable's "matching value". *)
+type mvarenv = V.var M.map
 
 val emptyMvarenv = M.empty
 
@@ -171,8 +175,8 @@ fun lookMvar' (env: mvarenv, id: nodeId) =
       of NONE => bug "lookMvar'"
        | SOME mvar => mvar
 
-(* andorMvar : mvarnev * andor -> V.var *)
-fun andorMvar (mvarenv, andor) =
+(* andorVar : mvarenv * andor -> V.var *)
+fun andorVar (mvarenv, andor) =
     lookMvar' (mvarenv, getId andor)
 
 
@@ -183,9 +187,9 @@ fun simpleVALdec (var, exp, boundtvs) =
 	       typ = V.varType var, boundtvs = boundtvs, tyvars = ref nil}]
 
 
-type failInfo = T.datacon * T.ty  (* optional exception datacon and "result" type *)
+type failInfo = T.datacon option * T.ty  (* optional exception datacon and "result" type *)
 
-(* genMatch : MT.andor * DT.decTree * pvarmap * ruleMap * failInfo -> AS.exp * V.var *)
+(* genMatch : MC.andor * DT.decTree * pvarmap * ruleMap * failInfo -> AS.exp * V.var *)
 (* top level code generating function for matches (formerly MCCode.genCode) *)
 fun genMatch (andor, decTree, pvarmap, ruleMap, (failExnOp, resTy)) =
     let val _ = dbsay ">> genMatch"
@@ -206,17 +210,17 @@ fun genMatch (andor, decTree, pvarmap, ruleMap, (failExnOp, resTy)) =
      (* genRHS : ruleno * mvarenv * pvarmap -> AS.exp
       *  lexp invoking the rule RHS function (abstracted rhs) on the mvars corresponding to
       *  the pattern bound variable(s) *)
-     fun genRHS (ruleno, pvarmap, mvarenv) =
+     fun genRHS (ruleno, pvarmap, varenv) =
 	   let val (pvars, fvar, _) = ruleMap ruleno
-	       val fvarExp = VARexp (fvar, nil)
+	       val fvarExp = VARexp (ref fvar, nil)
 	       fun lookupPvar (pvar: V.var) : AS.exp = 
 		    (case findId (pvarmap, pvar, ruleno)
 		       of NONE => bug "lookupPvar: (pvar, ruleno) not found in pvarmap"
-			| SOME id => VARexp (lookMvar' (mvarenv, id)), nil)
+			| SOME id => VARexp (ref(lookMvar' (varenv, id)), nil))
 	    in case pvars
 	         of [pvar] => AS.APPexp (fvarExp, lookupPvar pvar)
 		  | pvars =>  (* multiple bound pvars, including none *)
-		      AS.APPexp(fvarExp, AU.mkTupleExp (map lookupPvar pvars))
+		      AS.APPexp(fvarExp, AU.TUPLEexp (map lookupPvar pvars))
 	   end
 
 
@@ -235,6 +239,9 @@ fun genMatch (andor, decTree, pvarmap, ruleMap, (failExnOp, resTy)) =
      * be no OR-nodes? Claim that it works out properly. (Explain, details?) *)
     (* ASSUME: The andor nodeId is already bound to an mvar in the mvarenv argument. *)
 
+    (* newVar : nodeId * T.ty -> V.var *)
+     fun newVar (id, typ) =
+	 V.newVALvar (Symbol.varSymbol ("n" ^ Int.toString id), typ)
     (* bindNodes : andor  list * mvarenv -> mvarenv *)
     fun bindNodes (andors, mvarenv) = foldr bindAndorIds mvarenv andors
 
@@ -243,103 +250,102 @@ fun genMatch (andor, decTree, pvarmap, ruleMap, (failExnOp, resTy)) =
      *  i.e. the "upper subtree" consisting of all the "AND-structural subnodes" are bound
      *  to fresh mvars.
      * ASSERT: the andor ids are not bound in the argument mvarenv *)
-    and bindAndorIds (AND {id, children}, mvarenv) =
+    and bindAndorIds (AND {id, children, typ}, mvarenv) =
 	  (dbsays [">> bindAndorIds:AND: ", Int.toString id];
-	   bindNodes (children, bindMvar(id, mkv (), mvarenv)))
-      | bindAndorIds (OR {id, ...}, mvarenv) = 
+	   bindNodes (children, bindMvar(id, newVar(id, typ), mvarenv)))
+      | bindAndorIds (OR {id, typ, ...}, mvarenv) = 
           (dbsays [">> bindAndorIds:OR: ", Int.toString id];
-	   bindMvar (id, mkv (), mvarenv))
-      | bindAndorIds (VAR {id}, mvarenv) =
+	   bindMvar (id, newVar(id, typ), mvarenv))
+      | bindAndorIds (VAR {id, typ}, mvarenv) =
           (dbsays [">> bindAndorIds:VAR: ", Int.toString id];
-	   bindMvar (id, mkv (), mvarenv))
+	   bindMvar (id, newVar(id, typ), mvarenv))
 
-    (* wrapBindings : PL.lexp * andor * mvarenv -> PL.lexp *)
-    fun wrapBindings (lexp, andor, mvarenv) = 
+    (* wrapBindings : AS.exp * andor * mvarenv -> AS.exp *)
+    fun wrapBindings (exp, andor, varenv) = 
 	(case andor
-	  of AND {id, children} =>
-	       let val thismvar = lookMvar' (mvarenv, id)
-		   val children_mvars = map (fn node => andorMvar (mvarenv, node)) children
-		   fun wrap (andor, lexp) = wrapBindings (lexp, andor, mvarenv)
-		   val lexp' = foldr wrap lexp children
-	       in mkLetr (children_mvars, thismvar, lexp')
+	  of AND {id, children, ...} =>
+	       let val thisVar = lookMvar' (varenv, id)
+		   val childrenVars = map (fn node => andorVar (varenv, node)) children
+		   fun wrap (andor, lexp) = wrapBindings (lexp, andor, varenv)
+		   val exp' = foldr wrap exp children
+	       in MU.mkLetr (childrenVars, thisVar, exp')
 	       end
-	   | _  => lexp)
+	   | _  => exp)
 
-    (* wrapBindingsList : PL.lexp * andor list * mvarenv -> PL.lexp *)
+    (* wrapBindingsList : AS.exp * andor list * mvarenv -> AS.exp *)
     fun wrapBindingsList (lexp, andors, mvarenv) =
 	foldr (fn (andor, le) => wrapBindings (le, andor, mvarenv)) lexp andors
 
-    val mvarenv0 = bindAndorIds (andor, emptyMvarenv)
-    val rootVar = andorVar (mvarenv0, andor)
+    val varenv0 = bindAndorIds (andor, emptyMvarenv)
+    val rootVar = andorVar (varenv0, andor)
 
     (* savedTraces : trace list ref
      * This variable saves traces that are found at DMATCH nodes.
-     * These can be used to generate counterexamples for non-exhaustive matches. *)
+     * These can be used to generate counterexamples for non-exhaustive matches.
     val savedTraces = ref (nil : path list list)
     fun saveTrace dtrace = (savedTraces := dtrace :: !savedTraces)
+    *)
 
     (* genDecTree: decTree * varenv -> AS.exp *)
     (* test with ?/t6.sml *)
     fun genDecTree (decTree, varenv) =
 	(case decTree
-	   of MT.CHOICE{andor = OR {id, cases = cases_OR, ...}, sign, cases = cases_CHOICE, default} =>
+	   of MC.CHOICE{andor = OR {id, cases = cases_OR, ...}, sign, cases = cases_CHOICE, default} =>
 		 (* cases and variants should be "congruent", since choices is
 		  * created as a Variants.map over variants, but we insure coordination
 		  * by defining aoVariants and dtVariants bellow, which will be
 		  * guaranteed to have keys in the same order. *)
-		 (case lookVar (varenv, id)
-		    of NONE => bug "genDecTree:CHOICE: no var bound at this id"
-		     | SOME var =>  (* var represents choice scrutinee value *)
-		       (* transCase: variant * (MT.con * dectree) -> (MT.con * var option * PL.lexp) *)
-		       let fun genCase ((con, _, subcase), (con', decTree0)) =
-				(* ASSERT: con = con' -- the variant lists should be coordinated *)
-			       (if not (conEq (con, con'))  (* verifying ASSERT above *)
-				then bug "genDecTree:CHOICE:keys disagree"
-				else ();
-				(* say (concat ["genDecTree.switchBody:con = ", conToString con, "\n"]); *)
-				(case subcase   (* variant node assoc. with con *)
-				   of CONST =>  (* no destruct, no new values to be bound *)
-					(con, NONE, genDecTree(decTree0, varenv))
-				    | VEC elements => (* => con = VLENcon(len,ty) *)
-					(* var is bound to the vector value *)
-					let val varenv1 = bindNodes (elements, varenv)
-						(* AND-destruct the vector elements, binding new vars *)
-					    val baseExp = genDecTree (decTree0, varenv1)
-					    val exp' = wrapBindingsList (baseLexp, elements, varenv1)
-					    val elementVars =
-						map (fn andor => andorVar (varenv1, andor))
-						    elements
-					    val exp'' =
-						(case con
-						   of MT.VLENcon (_,elemty) => 
-						      mkLetv (elementVars, var, exp', elemty)
-						    | _ => bug "genDecTree: expected VLENcon")
-					 in (con, SOME var, exp'')
-					    (* var is bound to the vector itself, inherited from OR *)
-					end
-				    | DCON argNode =>  (* con is non-constant datacon *)
-					let (* destruct node0, binding new vars *)
-					    val varenv1 = bindAndorIds (argNode, varenv)
-						(* add bindings for argNode AND-structure *)
-					    val argVar = andorVar (varenv1, argNode)
-						(* bound to datacon argument *)
-					    val baseLexp = genDecTree(decTree0, varenv1)
-					    val caselexp = wrapBindings (baseLexp, argNode, varenv1)
-					 in (con, SOME argVar, caselexp)
-					end))
-			    val switchCases = ListPair.mapEq genCase (cases_OR, cases_CHOICE)
-			    val defaultOp = Option.map (fn dt => genDecTree (dt, varenv)) default
-			 in switch (var, sign, switchCases, defaultOp)
-			    (* switch detects and handles the vector length case *)
-			end)
-            | MT.FAIL =>
-		let val failExn = 
-			(case failExnOp
-			  of NONE => AS.VARexp(rootVar, nil)
-			   | SOME datacon => AS.CONexp(datacon, nil))
-		 in AS.RAISEexp (AS.CONexp (failExn, nil), resTy)
+		let val var = lookMvar' (varenv, id)
+		    (* genCase: variant * (MC.con * dectree) -> (MC.con * var option * AS.exp) *)
+		    fun genCase ((con, _, subcase), (con', decTree0)) =
+			 (* ASSERT: con = con' -- the variant lists should be coordinated *)
+			(if not (conEq (con, con'))  (* verifying ASSERT above *)
+			 then bug "genDecTree:CHOICE:keys disagree"
+			 else ();
+			 (* say (concat ["genDecTree.switchBody:con = ", conToString con, "\n"]); *)
+			 (case subcase   (* variant node assoc. with con *)
+			    of CONST =>  (* no destruct, no new values to be bound *)
+				 (con, NONE, genDecTree(decTree0, varenv))
+			     | VEC elements => (* => con = VLENcon(len,ty) *)
+				 (* var is bound to the vector value *)
+				 let val varenv1 = bindNodes (elements, varenv)
+					 (* AND-destruct the vector elements, binding new vars *)
+				     val baseExp = genDecTree (decTree0, varenv1)
+				     val exp' = wrapBindingsList (baseExp, elements, varenv1)
+				     val elementVars =
+					 map (fn andor => andorVar (varenv1, andor))
+					     elements
+				     val exp'' =
+					 (case con
+					    of MC.VLENcon (_,elemty) => 
+					       MU.mkLetv (elementVars, var, exp' (*, elemty ???*))
+					     | _ => bug "genDecTree: expected VLENcon")
+				  in (con, SOME var, exp'')
+				     (* var is bound to the vector itself, inherited from OR *)
+				 end
+			     | DCON argNode =>  (* con is non-constant datacon *)
+				 let (* destruct node0, binding new vars *)
+				     val varenv1 = bindAndorIds (argNode, varenv)
+					 (* add bindings for argNode AND-structure *)
+				     val argVar = andorVar (varenv1, argNode)
+					 (* bound to datacon argument *)
+				     val baseLexp = genDecTree(decTree0, varenv1)
+				     val caselexp = wrapBindings (baseLexp, argNode, varenv1)
+				  in (con, SOME argVar, caselexp)
+				 end))
+		    val switchCases = ListPair.mapEq genCase (cases_OR, cases_CHOICE)
+		    val defaultOp = Option.map (fn dt => genDecTree (dt, varenv)) default
+		 in MU.mkSwitch (var, switchCases, defaultOp)
+		     (* switch detects and handles the vector length case *)
 		end
-	    | MT.RHS ruleno => genRHS (ruleno, pvarmap, varenv)
+            | MC.FAIL =>
+		let val failExp = 
+			(case failExnOp
+			  of NONE => AS.VARexp(ref rootVar, nil)
+			   | SOME datacon => AS.CONexp(datacon, nil))
+		 in AS.RAISEexp (failExp, resTy)
+		end
+	    | MC.RHS ruleno => genRHS (ruleno, pvarmap, varenv)
 	        (* invoke (i.e. call) the appropriate rhs function for this ruleno *)
 	    | _ => bug "genDecTree: CHOICE andor not an OR node"
 	(* end case *))
@@ -348,7 +354,7 @@ fun genMatch (andor, decTree, pvarmap, ruleMap, (failExnOp, resTy)) =
     val dtLexp = genDecTree (decTree, varenv0)
     val lexp = wrapBindings (dtLexp, andor, varenv0)
 
- in (lexp, rootLvar)
+ in (lexp, rootVar)
 end (* fun genMatch *)
 
 end (* top local *)

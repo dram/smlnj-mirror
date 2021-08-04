@@ -6,18 +6,17 @@ structure Preprocessing =
 struct
 
 local
-  structure DA = Access
-  structure LV = LambdaVar
+
+  structure BT = BasicTypes
   structure V = VarCon		       
-  structure LT = PLambdaType
-  structure MT = MCCommon
+  structure AS = Absyn
+  structure AU = AbsynUtil
+  structure MC = MCCommon
   structure MU = MCUtil
-  structure PL = PLambda
-  open Absyn MCCommon PLambda
+  open Absyn MCCommon
 
   fun bug msg = ErrorMsg.impossible ("Preprocessing: " ^ msg)
 
-  val mkv = LambdaVar.mkLvar
 in
 
 fun allConses (hds, tls) =
@@ -27,8 +26,8 @@ fun allConses (hds, tls) =
  * rule *)
 type ruleInfo =
      (V.var list   (* the (common) pattern-bound variables (pvars) *)
-      * LV. lvar   (* the lvar naming the abstracted rhs function *)
-      * ruleno)    (* the pre-expansion ruleno *)
+    * V.var        (* the var naming the abstracted rhs function *)
+    * ruleno)      (* the pre-expansion ruleno *)
 
 type ruleMap = int -> ruleInfo
 
@@ -50,41 +49,42 @@ fun orExpand (ORpat(pat1,pat2)) =
       map (fn pat => LAYEREDpat(lpat,pat)) (orExpand bpat)
   | orExpand pat = [pat]
 
-(* expandPats : (T.ty -> LT.lty)  (* type translation *)
-                -> (pat * lexp) list  (* hybrid pre-expansion rules *)
-                -> int * pat list * (PL.lexp -> PL.lexp) list * ruleMap
+(* expandPats : (pat * lexp) list  (* pre-expansion rules *)
+                -> int * pat list * (exp -> exp) list * ruleMap
  *  preProcessPat is applied to each hybrid rule in the match. All the patterns
  *  in the ramifiedLHS are derived from the original single pattern by OR expansion.
  *)
 fun expandPats (rules, argTy, resTy) =
 let
     fun processRule ((pat, rhs), (expandedRuleno, originalRuleno, ruleTable, pats, rhsBinders)) =
-	 let val pat = AbsynUtil.stripPatMarks pat
-	     val patVariables = AbsynUtil.patVariables pat (* works even with OR patterns *)
+	 let val pat = AU.stripPatMarks pat
+	     val patVariables = AU.patternVars pat (* works even with OR patterns *)
 
 	     (* abstractRHS : V.var list * AS.exp -> AS.exp *)
 	     fun abstractRHS (pvars, rhs) =
 		 (case pvars
 		   of nil =>
-		        AS.FNexp ([RULE(AU.unitPat, rhs)], BT.unitTy, resTy)
+		        let val argVar = V.newVALvar (Symbol.varSymbol "marg", BT.unitTy)
+			 in AS.FNexp ([RULE(AS.VARpat(argVar), rhs)], BT.unitTy, resTy)
+			end
 		    | [var] =>
 		        let val varTy = V.varType var
-			in FN ([RULE(var, rhs)], varTy, resTy)
+			in AS.FNexp ([AS.RULE(AS.VARpat var, rhs)], varTy, resTy)
 			end
 		    | vars =>
-			let val argTy = TU.mkTupleTy (map V.varType vars)
-			    val argVar = V.newVar (argTy)
-			    val argVarExp = AS.VARexp (argVar, nil)
+			let val argTy = BT.tupleTy (map V.varType vars)
+			    val argVar = V.newVALvar (Symbol.varSymbol "margs", argTy)
 			    fun wrapLet (nil, n) = rhs
 			      | wrapLet (v::rest, n) =
-				  MU.mkLetVar(v, AS.RSELECTexp (argVarExp, n), wrapLet (rest, n+1))
+				  MU.mkLetVar(v, AS.RSELECTexp (argVar, n), wrapLet (rest, n+1))
 			    val body = wrapLet (vars, 0)
-			 in FN ([RULE (AS.VARpat(argVar), body)], argTy, resTy)
+			 in AS.FNexp ([AS.RULE (AS.VARpat(argVar), body)], argTy, resTy)
 			end)
 
 	     val rhsFun = abstractRHS (patVariables, rhs)
-
-	     val fvar: V.var = V.newVar (BT.--> (argTy, resTy))  (* lvar to which rhs function is bound *)
+   
+             (* var naming the abstracted rhs function *)
+	     val fvar: V.var = V.newVALvar (Symbol.varSymbol "fvar", BT.--> (argTy, resTy))
 
              (* rhsFunBinder : AS.exp -> AS.exp *)
 	     val rhsFunBinder = fn (body: AS.exp) => MU.mkLetVar (fvar, rhsFun, body)
@@ -109,7 +109,7 @@ let
     val ruleTable = rev ruleTable
 
     (* ruleMap : ruleMap *)
-    fun ruleMap (r: ruleno) =
+    fun ruleMap (r: ruleno) : (V.var list * V.var * ruleno) =
         let fun loop nil = bug "lookTable"
 	      | loop ((exr, orr, sz, pvars, fvar) :: rest) =
 		if r >= exr andalso r < exr + sz
