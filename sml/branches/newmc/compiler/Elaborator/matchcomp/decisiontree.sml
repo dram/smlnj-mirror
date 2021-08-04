@@ -9,10 +9,10 @@ struct
 local
 
   structure DA = Access
+  structure IM = Andor.IM
   open MCCommon
-  structure RS = RuleSet
 
-  val debugging = MCControl.mcdebugging
+  val debugging = Control.MC.debugging
 
   fun bug msg = ErrorMsg.impossible ("DecisionTree: " ^ msg)
 
@@ -105,7 +105,7 @@ fun bestOrNode (nodeQ, live) =
 (* inserts the "accessible" OR nodes in this andor tree into the nodeQ *)
 fun accessible (andor, nodeQ) =
     (case andor
-       of VAR _ => nodeQ  (* no OR nodes here *)
+       of (VAR _ | WC) => nodeQ  (* no OR nodes here *)
         | AND {children, ...} =>
 	    accessibleList (children, nodeQ)  (* add OR nodes from children *)
         | OR _ => insertQ(andor, nodeQ))  (* insert this OR node into queue *)
@@ -113,94 +113,80 @@ fun accessible (andor, nodeQ) =
 (* accessibleList : andor[OR] list * nodeQueue -> nodeQueue *)
 and accessibleList (andors, nodeQ) = foldl accessible nodeQ andors
 
-(* mkDecTree : (nodeQueue * ruleset -> dectree *)
-(* "live" rules = rules still "in play" = rules surviving earlier choices" ?? *)
-fun mkDecTree (nodeQ: nodeQueue, live: ruleset) =
-      if RS.isEmpty live then FAIL else  (* no live rules, raise MATCH/BIND/unhandled exception *)
-      (case bestOrNode(nodeQ, live)
-         of (SOME(node as (OR{id, typ, sign, cases, defaults}), remainder)) =>
-             let val dtCases = mkcases (cases, remainder, defaults, live)
-                 val liveDefaults = RS.intersection (live, defaults)
-		 val defTree =
-                     if length cases = signToWidth sign
-		     then NONE (* cases are "saturated" -- cover all possible cons *)
-                     else SOME (mkDecTree (remainder, liveDefaults))
-			  (* default needed to cover cons not in any variant *)
-              in CHOICE {andor=node, sign=sign, cases=dtCases, default=defTree}
-             end
-	  | NONE => RHS (RS.minItem live))
-             (* no further choices => no more rules can be eliminated *)
+(* makeDectree: andor * ruleset * relmap -> dectree * relmap
+ *  On initial (and only) call, in matchcomp.sml: live = allRules *)
+fun makeDectree (andor, live) =
+let (* val relmapRef = ref relmap
+   (* relmap is only used to record new relevant nodes, based on leading to an OR-SWITCH node, i.e.
+    * it is only written, not read *)
 
-(* mkcases : variant list * nodeQueue * (defaults: ruleset) * (live: ruleset) -> (con * dectree) list
- *  ASSERT: (1) length of result (decTree) cases = length of input (OR-node) cases, and
- *          (2) corresponding elements of cases and result have the same con element. *)
-and mkcases (cases: variant list, nodeQ: nodeQueue, defaults: ruleset, live: ruleset) =
-    let fun genSubCase (con, rules, subcase) =
-	    let val caseLive = RS.intersection (rules, live)
-		val caseLiveWithDefaults = RS.intersection (RS.union (defaults, rules), live)
-                    (* ASSERT: not (empty caseLive) => not (empty caseLiveWithDefaults, because
-                       caseLive \subset caseLiveWithDefaults *)
-	        val dectree =
-		    if RS.isEmpty caseLiveWithDefaults
-		       (* caseLive *) (* if this con is matched, the match has failed. defaults? *)
-		    then FAIL
-		    else case subcase
-			  of CONST => mkDecTree (nodeQ, caseLiveWithDefaults)
-			       (* no destruct; go to next CHOICE *)
-			   | DCON andor => mkDecTree (accessible (andor, nodeQ), caseLiveWithDefaults)
-			   | VEC velements => 
-			     mkDecTree (accessibleList (velements, nodeQ), caseLiveWithDefaults)
-	     in (con, dectree)
-	    end
-     in map genSubCase cases
+    (* addRelevantRules : ruleset * trail -> unit *)
+    fun addRelevantRules (relrules: ruleset, trail : nodeId list) : unit =
+	let fun update (id, relmap) =
+		(case IM.find (relmap, id)
+		   of NONE => IM.insert (relmap, id, relrules)
+		    | SOME rules' => IM.insert (relmap, id, RS.union(relrules, rules')))
+	in if RS.empty relrules
+	   then ()
+	   else relmapRef := foldl update (!relmapRef) trail
+	end
+*)
+    (* mkDecTree : (nodeQueue * ruleset -> dectree
+     *  (dynamic) live rules = rules still "in play" = rules not in conflict with earlier choices
+     *   It is possible that dtCases may be empty, in which case (if liveDefaults not empy) we 
+     *   produce a degenerate switch with no cases but a default. Could produce just the default
+     *   instead?  What about when dtCases is empty and liveDefaults is empty? Should produce FAIL
+     *   in this case? *)
+    fun mkDecTree (nodeQ: nodeQueue, live: ruleset) =
+	  if RS.isEmpty live then FAIL else  (* no live rules, raise MATCH/BIND/unhandled exception *)
+	  (case bestOrNode(nodeQ, live)
+	     of (SOME(node as (OR{id, path, sign, cases, defaults}), remainder)) =>
+		 let val casesRules = foldl RS.union RS.empty (map #2 cases) (* union of caserules *)
+		     val casesLive = RS.intersection (casesRules, live)  (* subset of live *)
+		     val dtCases = mkcases (cases, remainder, defaults, live)
+		     val liveDefaults = RS.intersection (live, defaults)
+		         (* subset of live, can be proper subset of defaults, can be empty *)
+		     val stillLive = RS.union (casesLive, liveDefaults)
+		     val defaultDtOp =
+			 if length dtCases = signToWidth sign  (* remaining live OR-cases saturate the type? *)
+			 then NONE (* dtCases saturated the type *)
+			 else SOME (mkDecTree (remainder, liveDefaults))
+			      (* default needed to cover con variants that were absent or killed *)
+		 in SWITCH {andor=node, sign=sign, cases=dtCases, default=defaultDtOp, live = stillLive}
+		 end
+	      | NONE => RHS (RS.minItem live))
+		 (* no further choices => no more rules can be eliminated. In particular,
+		  * the minimum ruleno in live can't be eliminated, so it is selected. *)
+
+    (* mkcases : variant list * nodeQueue * (defaults: ruleset) * (live: ruleset) -> (con * dectree) list
+     *  ASSERT: (1) length of result (decTree) cases <= length of input (OR-node) cases.
+     *     decTree cases may be fewer if some cons cases are not "live" *)
+    and mkcases (cases: variant list, nodeQ: nodeQueue, defaults: ruleset, live: ruleset) =
+	let (* mkCase: variant -> (con * dectree) option; andor-case -> switch-case option *)
+	    fun mkCase (con, caseRules, subcase) =
+		let val caseLive = RS.intersection (caseRules, live) (* rules with con "here" *)
+		    val defaultsLive = RS.intersection (defaults, live)
+		    val casePlusDefaultsLive = RS.union (caseLive, defaultsLive)
+		in if RS.isEmpty caseLive then NONE else
+		     let val dectree =
+			     (case subcase
+			       of CONST => mkDecTree (nodeQ, casePlusDefaultsLive)
+					(* no andor subtree to destruct; go to next OR choice *)
+				| DCARG andor => mkDecTree (accessible (andor, nodeQ), casePlusDefaultsLive)
+				| VELEMS elems => mkDecTree (accessibleList (elems, nodeQ), casePlusDefaultsLive))
+		      in SOME (con, dectree)
+		     end
+		end
+	 in List.mapPartial mkCase cases
     end
 
-(* genDecisionTree: andor * ruleset -> dectree
- *  initially: live = allRules *)
-fun genDecisionTree (andor, live) =
-    mkDecTree (accessible (andor, emptyQ), live)
-
-(* =========================================================================== *)
-(* collecting decision tree stats *)
-	      
-structure NodeMap = IntRedBlackMap
-
-type decTreeStats =
-     {rulesUsed : RS.set,
-      failures : int,
-      choiceTotal : int,
-      choiceDist : int NodeMap.map}
-
-(* decTreeStats : dectree * int -> decTreeStats
- *  returns the set of all rules used in the dectree, maintaining ordering
- *  (because union operation does). The boolean value indicates presence of FAIL,
- *  signalling that the rules are non-exhaustive. *)
-fun decTreeStats (dectree: dectree): decTreeStats =
-    let val rules = ref RS.empty
-	val failures = ref 0
-	val choiceTotal = ref 0
-	val choiceDist = ref NodeMap.empty
-	fun scanTree (RHS n) = (rules := RS.add (!rules, n)) 
-	  | scanTree FAIL = (failures := !failures + 1)
-	  | scanTree (CHOICE {andor, cases, default, ...}) =
-	    (choiceTotal := !choiceTotal + 1;
-	     choiceDist :=
-		let val nmap = !choiceDist
-		    val nodeId = getId andor
-		    val newcount =
-			case NodeMap.find (nmap, nodeId)
-			 of NONE => 1
-			  | SOME k => k+1
-		in NodeMap.insert(nmap, nodeId, newcount)
-		end;
-	     app (fn (_, dt) => scanTree dt) cases;
-	     Option.app scanTree default)
-    in scanTree dectree;
-       {rulesUsed = !rules,
-	failures = !failures,
-	choiceTotal = !choiceTotal,
-	choiceDist = !choiceDist}
-    end
+ in mkDecTree (accessible (andor, emptyQ), live)
+end (* makeDectree *)
 
 end (* local *)
 end (* structure DecisionTree *)
+
+(* NOTES:
+Example OR case where defaults is not a subset of live? (or defaults disjoint from live)
+Example where caseLive is a proper subset of casePlusDefaultsLive?
+*)

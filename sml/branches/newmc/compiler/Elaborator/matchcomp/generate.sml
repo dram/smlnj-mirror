@@ -1,65 +1,42 @@
-(* matchcomp/generate.sml *)
+(* FLINT/trans/generate.sml *)
+(* revised "old" match compiler *)
 
-(* generating absyn "code" for a match *)
-(* matchcomp.sml *)
+(* generation of "code" (in the form of PLambda.lexp) from decision trees (type dectree) *)
 
-(* This is the "code-generation" phase of match compiler as modelled on the revmc version.
- * The "code" (Absyn.exp) for a match is generated from the decision tree and its associated andor
- * (used for record/vector destruction and variable bindings).
- * This code performs pattern dispatching and destruction and then invokes the appropriate
- * RHS expressions with the necessary variable bindings. Types are needed for the "administrative"
- * mvars that are introduced.  These are computed by deconstructing the pattern type of the match.
- *
- * The "code" is in the form of an Absyn.exp.  Absyn.exp has been augmented with two new
- * expression forms: SWITCHexp and VSWITCHexp, which are created only by the match
- * compilation (i.e. never by direct elaboration of source code). Match compilation is
- * invoked (on "typed" absyn decs) after type checking, so it is responsible for "maintaining"
- * the correct type information in the translated absyn, which should remain well-typed.
- *)
-
-structure Generate =
+structure Generate = 
 struct
 
 local
-  structure S = Symbol
-  structure SP = SymPath
   structure T = Types
   structure BT = BasicTypes
-  structure TU = TypesUtil
   structure LV = LambdaVar
   structure A = Access
-  structure V = VarCon
-  structure AS = Absyn
-  structure AU = AbsynUtil
-  structure EU = ElabUtil
-  structure MC = MCCommon  (* ~ MCTypes *)
+  structure PO = Primop
+  structure LT = PLambdaType  (* LTextern *)
+  structure PL = PLambda
+  structure P = Paths
+  structure MC = MCCommon
   structure MU = MCUtil
-  structure DT = DecisionTree
   structure PP = PrettyPrint
-  structure PU = PPUtil
-  structure ED = ElabDebug
-  open Absyn MCCommon
 
-  (* printing for matchComp *)
+  open MCCommon
 
-  fun bug msg = ErrorMsg.impossible ("Generate: " ^ msg)
-
-  val printAndor = MCControl.printAndor
-  val printDecisionTree = MCControl.printDecisionTree
-  val printMatchAbsyn = MCControl.printMatchAbsyn
-  val debugging = MCControl.mcdebugging
-  val stats = MCControl.mcstats
+  val debugging = Control.MC.debugging
+  val stats = Control.MC.stats
 
   val say = Control_Print.say
   fun newline () = say "\n"
   fun saynl msg = (say msg; newline())
-  fun says strings = saynl (concat strings)
+  fun says strings = say (concat strings)
+  fun saysnl strings = saynl (concat strings)
 
   fun dbsay msg =
       if !debugging
       then (say msg; newline())
       else ()
   fun dbsays msgs = dbsay (concat msgs)
+
+  fun bug msg = ErrorMsg.impossible ("Generate: " ^ msg)
 
   fun ppAndor andor =
       PP.with_default_pp
@@ -72,21 +49,21 @@ local
       PP.with_default_pp
 	  (fn ppstrm =>
 	      (PP.string ppstrm "dectree:\n";
-	       MCPrint.ppDecTree ppstrm dectree;
+	       MCPrint.ppDectree ppstrm dectree;
 	       PP.newline ppstrm))
 
   fun ppExp (exp, msg) =
       PP.with_default_pp
           (fn ppstrm =>
 	      (PP.string ppstrm msg;
-	       PPAbsyn.ppExp (StaticEnv.empty, NONE) ppstrm (exp, 20);
+	       PPAbsyn.ppExp (StaticEnv.empty, NONE) ppstrm (exp, 100);
 	       PP.newline ppstrm))
 
   fun ppDec (dec, msg) =
       PP.with_default_pp
           (fn ppstrm =>
 	      (PP.string ppstrm msg;
-	       PPAbsyn.ppDec (StaticEnv.empty, NONE) ppstrm (dec, 20);
+	       PPAbsyn.ppDec (StaticEnv.empty, NONE) ppstrm (dec, 100);
 	       PP.newline ppstrm))
 
   fun ppPat pat =
@@ -99,263 +76,291 @@ local
       PP.with_default_pp
 	(fn ppstrm => (PP.string ppstrm (msg^": "); PPType.ppType StaticEnv.empty ppstrm ty))
 
-  fun timeIt x = TimeIt.timeIt (!stats) x
+  fun ppLexp (lexp, msg) =
+      PP.with_default_pp
+          (fn ppstrm =>
+	      (PP.string ppstrm msg;
+	       PPLexp.ppLexp 100 ppstrm lexp;
+	       PP.newline ppstrm))
 
-  fun mkv () = LV.mkLvar ()
+  (* intCon : int -> PL.con *)
+  fun intCon n = PL.INTcon {ival = IntInf.fromInt n, ty = Target.defaultIntSz}
 
+  val markexn = PL.PRIM(PO.MARKEXN,
+		     LT.ltc_parrow(LT.ltc_tuple [LT.ltc_exn, LT.ltc_string],
+				    LT.ltc_exn), [])
 in
 
-(* new absyn-generator based on revmc version of generate.sml
- *  1. new approach: assume rhs of rules are processed _before_ the match is translated,
- *  so we are only concerned with the patterns (as in revmc and oldmc).
- *  2. match information is passed in the form of pvarmap and ruleMap parameters.
- *     pvarmap maps bound pattern variables (pvar) to list of ruleno * nodeId pairs
- *        that determine the "locations" where the variable occurs (there can be
- *        multiple occurrences because of the ramification of or-patterns
- *        [it is assumed that pattern variables occurring in different (original) rules
- *        are distinct, even if they have the same "name" symbol.]
- *     ruleMap: maps rulenos (expanded) to 
- *        a) list of pvars bound in that rule's pattern (shared by all rules in a ramified family)
- *        b) variable to which the rhs function will be bound (also shared)
- *        c) original ruleno (before expansion)
- *  3. _all_ rhs expressions are abstracted to rhs functions, the defns of these functions
- *     are wrapped around the match expression itself. So no rhs expressions are "inlined".
- *     this should insure that alpha-conversion of pattern variables is not required -- they
- *     will only be bound once in the abstraction of the corresponding rhs exp.
- *)
-
-(* Singleton constructors are not treated in any special way. They still need to be destructed,
- * and the general case handles them -- they just have a single variant case in the switch.
- * Special constructors like ref and susp are handled by Translate, so they don't need to be
- * treated specially here (check?).
- * SWITCHexp translates almost directly to Plambda.SWITCH.
+(* How are singleton constructor patterns, and in particular the
+ * "special" ones like *ref* and *susp*?  In the general case we generate a single
+ * datacon "deconstructor" expressed as a single-variant SWITCH in these cases.
+ * It is possible that the single variant dies and this reduces to a SWITCH
+ * with empty cases and a default (see MC Notes, sec 41.2).
  *
- * Also need to deconstruct AND-structure _below_ a terminal OR/Decision node,
- * since variables may occur below the node. This is done by the call of
- * genAndor within the body of genDecTree.
+ * The special cases (ref,susp) are handled in genSwitch (along with switch on
+ * intinf integers). Otherwise, MC.SWITCH translates almost directly to Plambda.SWITCH.
  *)
 
-(* fun k_ident (x: AS.exp) = x  -- not using exp-continuations *)
+(* -------------------------------------------------------------------------------- *)
+(* generate: main match "code generation" function
+ * top level code generating function for matches (formerly MCCode.genCode) *)
 
-val choiceTotalThreshold = 10
+(* "hybrid" rule -- where the rule rhs has been translated to an lexp before match compilation *)
+type hrule = Absyn.pat * PL.lexp
 
-fun reportStats (nodeCount: int, {rulesUsed, failures, choiceTotal, choiceDist}: DT.decTreeStats) =
-    if !stats andalso choiceTotal > choiceTotalThreshold  (* don't report stats for smallish matches *)
-    then (say "decTree Stats: \n";
-	  says ["  nodeCount =   ", Int.toString nodeCount];
-	  says ["  choiceTotal = ", Int.toString choiceTotal];
-	  newline())
-    else ()
+(* generate : MC.andor * MC.decTree * ruleMap * ruleset * failInfo * toTcLt * giisTy
+	      -> PL.lexp * mvar *)
+fun generate (andor, decTree, ruleMap, allRules,
+	      (failExnLexpOp, rhsTy, location), (toTyc, toLty), genIntInfSwitch) =
+    let val _ = dbsay ">> generate"
 
+    fun relativeLexp (mvar, suffix: P.link list) =
+	let fun wrapSuffix (nil, lexp) = lexp
+	      | wrapSuffix (P.PI n::rest, lexp) = wrapSuffix (rest, PL.SELECT(n, lexp))
+	      | wrapSuffix (P.VI (n, elemTy)::rest, lexp) =
+		let val elemTyc = toTyc elemTy
+		    val lt_sub =
+			let val x = LT.ltc_vector (LT.ltc_tv 0)
+			in LT.ltc_poly([LT.tkc_mono],
+				       [LT.ltc_parrow(LT.ltc_tuple [x, LT.ltc_int],
+						      LT.ltc_tv 0)])
+			end
+		    val index_n = PL.INT {ival = IntInf.fromInt n, ty = Target.defaultIntSz}
+		    val element_n =
+			PL.APP(PL.PRIM(PO.SUBSCRIPTV, lt_sub, [elemTyc]),
+			       (* apply vec. subscript primop *)
+			       PL.RECORD [lexp, index_n]) (* (vector,index) *)
+		 in wrapSuffix(rest, element_n)
+		end
+	      | wrapSuffix (link::rest, lexp) =
+		(saynl ("relativeLexp:wrapSuffix suffix: " ^ P.pathToString suffix);
+		 bug "wrapSuffix")
+	    val suffix' = 
+		case suffix
+		 of P.DC(P.VLENcon _):: _ => tl suffix
+		  | _ => suffix
+	in wrapSuffix (suffix', PL.VAR mvar)
+	end
 
-(* mvarenv: environment mapping node ids (nodeId == int) to variables (V.var) *)
-structure M = IntBinaryMap
+    fun pathToLexp pathenv path =
+	case MU.lookPath (pathenv, path)
+	  of NONE => bug "pathToLexp"
+	   | SOME(mvar, suffix) => relativeLexp (mvar, suffix)
 
-(* mvarenv: a finite mapping from AndOr node id numbers (andor.info.id) to
- *  "mvars", which are "administrative" variables (V.var) used in the match compiler
- *  to represent "intermediate" values produced during value destruction. The do not derive
- *  from the pattern variables, but in the end each pattern variable _occurrence_ 
- *  (for a given node and rule rule) will be associated with some mvar, which
- *  in turn will be bound (dynamically) to the pattern variable's "matching value". *)
-type mvarenv = V.var M.map
-
-val emptyMvarenv = M.empty
-
-(* bindMvar : nodeId * V.var * mvarenv -> mvarenv *)
-fun bindMvar (id: int, mvar: V.var, env: mvarenv) =
-    M.insert(env, id, mvar)
-
-(* lookMvar : mvarenv * nodeId -> V.var option *)
-fun lookMvar (env: mvarenv, id: nodeId) = M.find (env, id)
-
-(* lookMvar' : mvarenv * nodeId -> V.var *)
-(* a version of lookMvar that is expecting to succeed *)
-fun lookMvar' (env: mvarenv, id: nodeId) =
-    case M.find (env, id)
-      of NONE => bug "lookMvar'"
-       | SOME mvar => mvar
-
-(* andorVar : mvarenv * andor -> V.var *)
-fun andorVar (mvarenv, andor) =
-    lookMvar' (mvarenv, getId andor)
-
-
-(* simpleVALdec : V.var * AS.exp * T.tyvar list -> AS.dec *)
-(* used in Translate.transDec/transVB *)
-fun simpleVALdec (var, exp, boundtvs) =
-    VALdec [VB{pat = VARpat var, exp = exp,
-	       typ = V.varType var, boundtvs = boundtvs, tyvars = ref nil}]
-
-
-type failInfo = T.datacon option * T.ty  (* optional exception datacon and "result" type *)
-
-(* genMatch : MC.andor * DT.decTree * pvarmap * ruleMap * failInfo -> AS.exp * V.var *)
-(* top level code generating function for matches (formerly MCCode.genCode) *)
-fun genMatch (andor, decTree, pvarmap, ruleMap, (failExnOp, resTy)) =
-    let val _ = dbsay ">> genMatch"
-
-     (* findId : Andor.pvarmap * V.var * ruleno -> nodeId option *)
-     fun findId (pvarmap: Andor.pvarmap, pvar, ruleno) =
-	 (* pvar, ruleno --pvarmap--> nodeId --mvarenv--> mvar *)
-	 (case Andor.pvarFind (pvarmap, V.varToLvar pvar)
-	    of NONE => NONE
-	     | SOME rule_ids => 
-	       let fun look ((ruleno',id)::rest) =
-		       if ruleno' = ruleno then SOME id
-		       else look rest
-		     | look nil = NONE
-	       in look rule_ids
-	       end)
-
-     (* genRHS : ruleno * mvarenv * pvarmap -> AS.exp
-      *  lexp invoking the rule RHS function (abstracted rhs) on the mvars corresponding to
-      *  the pattern bound variable(s) *)
-     fun genRHS (ruleno, pvarmap, varenv) =
-	   let val (pvars, fvar, _) = ruleMap ruleno
-	       val fvarExp = VARexp (ref fvar, nil)
-	       fun lookupPvar (pvar: V.var) : AS.exp = 
-		    (case findId (pvarmap, pvar, ruleno)
-		       of NONE => bug "lookupPvar: (pvar, ruleno) not found in pvarmap"
-			| SOME id => VARexp (ref(lookMvar' (varenv, id)), nil))
-	    in case pvars
-	         of [pvar] => AS.APPexp (fvarExp, lookupPvar pvar)
-		  | pvars =>  (* multiple bound pvars, including none *)
-		      AS.APPexp(fvarExp, AU.TUPLEexp (map lookupPvar pvars))
+     (* genRHS : ruleno * pathenv -> PL.lexp
+      *  invoking the rule RHS function (fvar ~ abstracted rhs) on record of mvars corresponding to
+      *    lhs pattern variables (which could be the empty record).
+      *  The case where there are no pvars in the pattern is handled by default case in body. *)
+     fun genRHS (ruleno: MC.ruleno, pathenv: MU.pathenv) =
+	   let val (varPaths, fvar, _) = ruleMap ruleno
+	       val argLexp =
+	           case varPaths
+		     of [path] => pathToLexp pathenv path
+		      | _ => PL.RECORD (map (pathToLexp pathenv) varPaths)
+			 (* for multiple pvars, _or none_ *)
+	   in PL.APP(PL.VAR fvar, argLexp)
 	   end
 
+    (* conToCon : MC.con * mvar option -> PL.con
+     *  translates MCCommon.con to PLambda.con and introduces a variable naming
+     *  the destruct of a datacon-headed value (even if the datacon is a constant!)
+     *  -- mvarOp will be SOME mvar if the con is a non-constant datacon or VLENcon,
+     *  NONE for constant datacon. The mvar, if provided, is generated in genDecTree. *)
+    fun conToCon (con, mvarOp) =  (* uses toLty and toTyc *)
+    (* transDcon : T.datacon -> PL.dataconstr
+     *  uses toLty arg of generate; used only in conToCon *)
+	let fun transDcon (T.DATACON {name, rep, typ, ...}: T.datacon) : PL.dataconstr =
+	    let val lty = (* translation of the datacon type *)
+		    (case typ
+		       of T.POLYty{sign, tyfun=T.TYFUN{arity, body}} =>
+			  if BT.isArrowType body then toLty typ
+			  else toLty (T.POLYty{sign=sign,
+						tyfun=T.TYFUN{arity=arity,
+							       body=BT.-->(BT.unitTy, body)}})
+			| _ => if BT.isArrowType typ then toLty typ
+			       else toLty (BT.--> (BT.unitTy, typ)))
+	     in (name, rep, lty)
+	    end
+	 in case con
+	      of P.DATAcon (datacon, ts) =>
+		  let val nts = map (toTyc o T.VARty) ts
+		      val mvar = getOpt (mvarOp, MU.mkMvar())
+			  (* get argument mvar from mvarOp = SOME mvar when the datacon is not
+			     a constant, otherwise when datacon is a constant, mvarOp = NONE, and
+			     we generate a new, but redundant, mvar that is required to construct
+			     a PL.DATAcon. Probably don't need to pass argument mvar via DATAcon. *)
+		   in PL.DATAcon (transDcon datacon, nts, mvar)
+		  end
+	       | P.VLENcon(i, t) => intCon i  (* element type t is no longer needed *)
+	       | P.INTcon i => PL.INTcon i
+	       | P.WORDcon w => PL.WORDcon w
+	       | P.STRINGcon s => PL.STRINGcon s
+	end
 
-    (* bindAndorIds : andor * mvarenv -> mvarenv
-     * wrapBindings : lexp * andor * mvarenv -> lexp
-     * Translates top non-OR structure, i.e. AND structure, (if any) into nested let
-     * expressions that are wrapped around a body expression (generated by a decision tree)
-     * to "destruct" that structure and bind its components to fresh "mvars" (lvars used
-     * as Match Compiler administrative variables. The association of mvars to andor tree
-     * locations (represented by nodeIds) is represented by mvarenv (an id --> mvar mapping).
-     * The wrapped let expressions are accumulated in a "continuation", k: exp -> exp
-     * that will be applied to the expression generated for the next chosen decision tree
-     * It is applied to the root node of an andor tree, and also to the variant
-     * nodes under an OR choice.
-     * What happens in the case of a single, irrefutable rule, where there will
-     * be no OR-nodes? Claim that it works out properly. (Explain, details?) *)
-    (* ASSUME: The andor nodeId is already bound to an mvar in the mvarenv argument. *)
+    (* genSwitch : mvar * A.sign * (P.con * PL.lexp) list * lexp option -> lexp
+     * -- uses toTyc, which was passed to genMatch
+     * -- the default will be SOME dt if the cons in the variants are not exhaustive (saturated)
+     * -- Detects the vector length switch case and extracts the vector element
+     *    type from the VLENcon constructor. Generates code to calculate the length of
+     *    the vector and binds it to an fresh mvar (lenMvar) used as the switch subject.
+     * -- Handles ref and susp constructors as special cases.
+     * -- Handles intinf INTcon discrimination as special cases.
+     * ASSERT: not (null cases) *)
+    fun genSwitch (subject: PL.lexp, sign, cases: (P.con * MU.mvar option * PL.lexp) list,
+		   defaultOp: PL.lexp option) =
+	let fun transCase (con, mvarOp, lexp) = (conToCon (con, mvarOp), lexp)
+	        (* only used in the general case where con is not a VLENcon or an intinf con,
+		 * if con is a non-constant datacon, then mvarOp = SOME mvar, and the mvar
+		 * is incorporated into the PL.datacon *)
+	 in case cases
+	      of nil => bug "Switch: empty cases"
+	       | (con, mvarOp, lexp) :: rest => 
+	         (case (con, mvarOp)
+		    of (P.VLENcon (n,ty), SOME mvar) => (* switch on vector length(s) *)
+			 (* "let val len = Vector.length mvar in <<switch over int values of len>>"
+			  * where "len" is a fresh internal variable -- this is generated in 
+			  * the VSWITCHexp case of Translate.mkExp0 to avoid the problem of
+			  * accessing the vector length primop in absyn.
+			  * -- defaultOp should be SOME _, not checked *)
+		         let val elemTyc = toTyc ty  (* translated vector element type *)
+			     val lt_len = LT.ltc_poly([LT.tkc_mono],
+					      [LT.ltc_parrow(LT.ltc_tv 0, LT.ltc_int)])
+			     val argtyc = LT.tcc_vector elemTyc
+			     val lenMvar = MU.mkMvar ()
+			     fun transVecCase (P.VLENcon(n, _), _, lexp) = (intCon n, lexp)
+			       | transVecCase _ = bug "Switch:vector case: con not VLENcon"
+			 in PL.LET (lenMvar,  (* bind lenMvar to the computed vector length *)
+				    PL.APP (PL.PRIM(PO.LENGTH, lt_len, [argtyc]), (* apply vec length primop *)
+					    subject), (* designates the vector *)
+				    PL.SWITCH (PL.VAR lenMvar, A.CNIL, map transVecCase cases, defaultOp))
+			 end
+		     | (P.INTcon{ty=0, ...}, NONE) => (* switch on IntInf constant(s) *)
+		         let fun strip (P.INTcon{ty=0, ival}, NONE, lexp) = (ival, lexp)
+			       | strip _ = bug "genswitch - INTINFcon"
+			  in case defaultOp
+			      of NONE => bug "Switch - no default in switch on IntInf"  (* ??? *)
+			       | SOME d => genIntInfSwitch (subject, map strip cases, d)
+			 end
+		    |  _ =>  (* the general case, dispatching on the con *)
+		       let val plcon = conToCon (con, mvarOp)  (* convert to PLambda con *)
+                        in case plcon  (* first check for REF and SUSP special cases *)
+		             of PL.DATAcon((_, A.REF, lty), tycs, lvar) => (* ref constructor *)
+				(case rest (* check there is only one case *)
+				  of nil =>
+			             PL.LET(lvar,
+					    PL.APP (PL.PRIM (Primop.DEREF, LT.lt_swap lty, tycs), subject),
+					    lexp)
+				   | _ => bug "switch: ref not singleton case")
+			      | PL.DATAcon((_, A.SUSP(SOME(_, A.LVAR f)), lty), tycs, lvar) =>
+				  (* SUSP constructor; "force" the suspension function *)
+				(case rest
+				   of nil => (* check there is only one case *)
+				      let val v = MU.mkMvar ()
+				      in PL.LET(lvar,
+						PL.LET(v, PL.TAPP(PL.VAR f, tycs), PL.APP(PL.VAR v, subject)),
+						lexp)
+				      end
+				    | _ => bug "switch: susp not singleton case")
+			      | _ => PL.SWITCH (subject, sign, map transCase cases, defaultOp)
+		       end)
+	end (* fun genSwitch *)
 
-    (* newVar : nodeId * T.ty -> V.var *)
-     fun newVar (id, typ) =
-	 V.newVALvar (Symbol.varSymbol ("n" ^ Int.toString id), typ)
-    (* bindNodes : andor  list * mvarenv -> mvarenv *)
-    fun bindNodes (andors, mvarenv) = foldr bindAndorIds mvarenv andors
+    val rootMvar = MU.mkMvar ()
+    val pathenv0 = MU.bindPath (MU.emptyPathenv, P.rootpath, rootMvar)
+    val rootMvarOp = SOME rootMvar
 
-    (* bindAndorIds : andor * mvarenv -> mvarenv
-     *  binds fresh mvars to all the node ids in andor argument, stopping at OR and VAR nodes,
-     *  i.e. the "upper subtree" consisting of all the "AND-structural subnodes" are bound
-     *  to fresh mvars.
-     * ASSERT: the andor ids are not bound in the argument mvarenv *)
-    and bindAndorIds (AND {id, children, typ}, mvarenv) =
-	  (dbsays [">> bindAndorIds:AND: ", Int.toString id];
-	   bindNodes (children, bindMvar(id, newVar(id, typ), mvarenv)))
-      | bindAndorIds (OR {id, typ, ...}, mvarenv) = 
-          (dbsays [">> bindAndorIds:OR: ", Int.toString id];
-	   bindMvar (id, newVar(id, typ), mvarenv))
-      | bindAndorIds (VAR {id, typ}, mvarenv) =
-          (dbsays [">> bindAndorIds:VAR: ", Int.toString id];
-	   bindMvar (id, newVar(id, typ), mvarenv))
+    fun isVector ((P.VLENcon _, _) :: _) = true
+      | isVector _ = false
 
-    (* wrapBindings : AS.exp * andor * mvarenv -> AS.exp *)
-    fun wrapBindings (exp, andor, varenv) = 
-	(case andor
-	  of AND {id, children, ...} =>
-	       let val thisVar = lookMvar' (varenv, id)
-		   val childrenVars = map (fn node => andorVar (varenv, node)) children
-		   fun wrap (andor, lexp) = wrapBindings (lexp, andor, varenv)
-		   val exp' = foldr wrap exp children
-	       in MU.mkLetr (childrenVars, thisVar, exp')
-	       end
-	   | _  => exp)
-
-    (* wrapBindingsList : AS.exp * andor list * mvarenv -> AS.exp *)
-    fun wrapBindingsList (lexp, andors, mvarenv) =
-	foldr (fn (andor, le) => wrapBindings (le, andor, mvarenv)) lexp andors
-
-    val varenv0 = bindAndorIds (andor, emptyMvarenv)
-    val rootVar = andorVar (varenv0, andor)
-
-    (* savedTraces : trace list ref
-     * This variable saves traces that are found at DMATCH nodes.
-     * These can be used to generate counterexamples for non-exhaustive matches.
-    val savedTraces = ref (nil : path list list)
-    fun saveTrace dtrace = (savedTraces := dtrace :: !savedTraces)
-    *)
-
-    (* genDecTree: decTree * varenv -> AS.exp *)
-    (* test with ?/t6.sml *)
-    fun genDecTree (decTree, varenv) =
+    (* genDecTree: decTree * pathenv * path list -> PL.lexp *)
+    fun genDecTree (decTree, pathenv) =
 	(case decTree
-	   of MC.CHOICE{andor = OR {id, cases = cases_OR, ...}, sign, cases = cases_CHOICE, default} =>
-		 (* cases and variants should be "congruent", since choices is
-		  * created as a Variants.map over variants, but we insure coordination
-		  * by defining aoVariants and dtVariants bellow, which will be
-		  * guaranteed to have keys in the same order. *)
-		let val var = lookMvar' (varenv, id)
-		    (* genCase: variant * (MC.con * dectree) -> (MC.con * var option * AS.exp) *)
-		    fun genCase ((con, _, subcase), (con', decTree0)) =
-			 (* ASSERT: con = con' -- the variant lists should be coordinated *)
-			(if not (conEq (con, con'))  (* verifying ASSERT above *)
-			 then bug "genDecTree:CHOICE:keys disagree"
-			 else ();
-			 (* say (concat ["genDecTree.switchBody:con = ", conToString con, "\n"]); *)
-			 (case subcase   (* variant node assoc. with con *)
-			    of CONST =>  (* no destruct, no new values to be bound *)
-				 (con, NONE, genDecTree(decTree0, varenv))
-			     | VEC elements => (* => con = VLENcon(len,ty) *)
-				 (* var is bound to the vector value *)
-				 let val varenv1 = bindNodes (elements, varenv)
-					 (* AND-destruct the vector elements, binding new vars *)
-				     val baseExp = genDecTree (decTree0, varenv1)
-				     val exp' = wrapBindingsList (baseExp, elements, varenv1)
-				     val elementVars =
-					 map (fn andor => andorVar (varenv1, andor))
-					     elements
-				     val exp'' =
-					 (case con
-					    of MC.VLENcon (_,elemty) => 
-					       MU.mkLetv (elementVars, var, exp' (*, elemty ???*))
-					     | _ => bug "genDecTree: expected VLENcon")
-				  in (con, SOME var, exp'')
-				     (* var is bound to the vector itself, inherited from OR *)
-				 end
-			     | DCON argNode =>  (* con is non-constant datacon *)
-				 let (* destruct node0, binding new vars *)
-				     val varenv1 = bindAndorIds (argNode, varenv)
-					 (* add bindings for argNode AND-structure *)
-				     val argVar = andorVar (varenv1, argNode)
-					 (* bound to datacon argument *)
-				     val baseLexp = genDecTree(decTree0, varenv1)
-				     val caselexp = wrapBindings (baseLexp, argNode, varenv1)
-				  in (con, SOME argVar, caselexp)
-				 end))
-		    val switchCases = ListPair.mapEq genCase (cases_OR, cases_CHOICE)
-		    val defaultOp = Option.map (fn dt => genDecTree (dt, varenv)) default
-		 in MU.mkSwitch (var, switchCases, defaultOp)
-		     (* switch detects and handles the vector length case *)
-		end
+	   of MC.SWITCH {andor, sign, cases = cases_SWITCH, default, live} =>
+		(case andor    (* ASSERT: node must be OR *)
+		  of OR {path, cases=cases_OR, ...} =>
+		     (* cases and variants should be "congruent", since switch cases are
+		      * created by mapping over OR node variants, but we insure coordination
+		      * by comparing con's in matchCases. *)
+		     (case MU.lookPath (pathenv, path)
+			of NONE => bug "genDecTree:SWITCH: no mvar bound at this OR path (or prefix)"
+		         | SOME (baseMvar, suffix) =>  
+			   let val subject = relativeLexp (baseMvar, suffix) (* lexp for switch scrutinee value *)
+			       val vecMvarInfo =
+				   (case cases_SWITCH
+				      of (P.VLENcon _, _) :: _ =>  (* vector-length switch *)
+					 (case subject
+					    of PL.VAR mvar => SOME (mvar, false)  (* null suffix, mvar bound to vector *)
+					     | _ => SOME (MU.mkMvar (), true))  (* ow, create a new mvar to denote vector *)
+				       | _ => NONE)  (* not a vector-length switch *)
+					   (* if switch subject is a vector, check if subject lexp is an mvar
+					    * (e.g. rootvar). If not, we need to bind subject to a fresh mvar
+					    * and use that mvar as the the decon-bound variable (in this case
+					    * bound to the vector) in each case. This new mvar will be bound to
+					    * path in a modified pathenv. *)
+			       fun genCase (con, decTree, subcase) =  (* caserules already taken into account building dectree *)
+				    (* say (concat ["genDecTree.genCase:con = ", conToString con, "\n"]); *)
+				    (case subcase   (* variant node assoc. with con *)
+				       of CONST =>  (* constant, no destruct, no new values to be bound *)
+					    (con, NONE, genDecTree(decTree, pathenv))
+					| DCARG _ =>
+					    let val deconMvar = MU.mkMvar() (* new decon variable denoting decon result *)
+						val newPathenv = MU.bindPath (pathenv, P.addLink(P.DC con, path), deconMvar)
+						val caseLexp = genDecTree(decTree, newPathenv)
+					     in (con, SOME deconMvar, caseLexp)
+					    end
+					| VELEMS _ => (* => con = VLENcon(len,ty) *)
+					    (case vecMvarInfo
+					       of SOME(vecMvar,new) =>
+						    if new (* vecMvar is a new mvar to be bound to vector *)
+						    then let val newPathenv = MU.bindPath (pathenv, path, vecMvar)
+							 in  (con, SOME vecMvar, genDecTree(decTree, newPathenv))
+							 end
+						    else (con, SOME vecMvar, genDecTree(decTree, pathenv))
+						| NONE => bug "genDecTree:genCase:VELEMS")
+				    (* end case *))  (* end genCase *)
+			       fun matchCases (dtcases as ((con, dectree)::dtrest), (con', _, subcase)::aorest) =
+				   if P.eqCon (con, con')
+				   then genCase(con, dectree, subcase) :: matchCases(dtrest, aorest)
+				   else matchCases (dtcases, aorest)
+				 | matchCases (nil, _) = nil
+				 | matchCases (_, nil) = bug "genDecTree..matchCases: andor case not found"
+			        val switchCases = matchCases (cases_SWITCH, cases_OR)
+				val defaultOp = Option.map (fn dt => genDecTree (dt, pathenv)) default
+			     in case vecMvarInfo
+				 of NONE => genSwitch (subject, sign, switchCases, defaultOp)  (* not a vector length switch *)
+				  | SOME(vecMvar,new) => 
+				     if new  (* PL.VAR mvar --> subject *)
+				     then PL.LET (vecMvar, subject,
+						  genSwitch (PL.VAR vecMvar, sign, switchCases, defaultOp))
+				     else genSwitch (subject, sign, switchCases, defaultOp)
+			    end)
+		   | _ => bug "genDecTree: SWITCH andor not an OR node")
             | MC.FAIL =>
-		let val failExp = 
-			(case failExnOp
-			  of NONE => AS.VARexp(ref rootVar, nil)
-			   | SOME datacon => AS.CONexp(datacon, nil))
-		 in AS.RAISEexp (failExp, resTy)
+	        let val lty = toLty rhsTy
+		    val failExnLexp = 
+			(case failExnLexpOp
+			  of NONE =>
+			     (case rootMvarOp
+			       of SOME mvar => PL.VAR mvar
+				| NONE => bug "genDecTree: FAIL: no root mvar")
+			   | SOME lexp => lexp)
+		    val lexp' =
+			if !Control.trackExn
+			then PL.APP (markexn, PL.RECORD[failExnLexp, PL.STRING location])
+			else failExnLexp
+		in PL.RAISE (lexp', lty)
 		end
-	    | MC.RHS ruleno => genRHS (ruleno, pvarmap, varenv)
-	        (* invoke (i.e. call) the appropriate rhs function for this ruleno *)
-	    | _ => bug "genDecTree: CHOICE andor not an OR node"
+	    | MC.RHS ruleno => genRHS (ruleno, pathenv)
+	        (* dispatch to (i.e. call) appropriate rhs function for this ruleno, with mvar arguments
+                 * corresponding to the pvars in the lhs pattern *)
 	(* end case *))
         (* end genDecTree *)
 
-    val dtLexp = genDecTree (decTree, varenv0)
-    val lexp = wrapBindings (dtLexp, andor, varenv0)
+    val lexp = genDecTree (decTree, pathenv0)
+(*    val lexp = wrapBindings (dtLexp, andor, mvarenv0) *)
 
- in (lexp, rootVar)
-end (* fun genMatch *)
+ in (lexp, rootMvarOp)
+end (* fun generate *)
 
 end (* top local *)
 end (* structure Generate *)

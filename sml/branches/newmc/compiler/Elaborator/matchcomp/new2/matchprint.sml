@@ -7,7 +7,7 @@ struct
 local
   structure PP = PrettyPrint
   open PrintUtil
-  val printDepth = Control.Print.printDepth
+  val printDepth = Control_Print.printDepth
 
   fun bug msg = ErrorMsg.impossible ("MatchPrint: "^ msg)
 in

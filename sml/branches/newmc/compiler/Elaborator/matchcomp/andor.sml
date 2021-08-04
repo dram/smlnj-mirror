@@ -1,29 +1,27 @@
 (* FLINT/trans/andor.sml *)
-(* revised "old" match compiler *)
+(* revmc: revised "old" match compiler *)
 
-(* Translate proto-andor trees (andorSimple) to andor trees. This involves
- *  (1) computing the "defaults" rule set for OR nodes, 
- *  (2) converting the "bindings" field of andor0 (varBindings) to bindings as ruleset
- *      (extracting the rules from bindings and discarding the variables, but "filtering"
- *      with the inherited "active" ruleset).
- *  (3) adding an id field with an unique nodeId number
- *  (This was originally derived from the "flatten" functions (e.g. "flatteningAndor) of mc99.)
+(* Translate proto-andor trees (protoAndor) to full andor trees. This involves
+ *  (1) adding an id field with an unique nodeId number that identifies the node.
+ *  (2) processing the "varRules" field of protoAndors to create a relevance map
+ *      (relmap) that maps nodeIds to sets of rules such that (1) the node is "relevant".
+ *      to a rule (case-relevant or var-relevant) and (2) the rule is (structurally)
+ *      live at that node.
+ *  (3) computing the "defaults" rule set for OR nodes, by removing the caserules for
+ *      the nodes cases from the structurally live rules at that node.
+ *  Andor trees are related to the results of the "flatten" functions (e.g. "flatteningAndor)
+ *  of oldmc.)
  *)
 
 structure Andor =
 struct
 
 local
-  structure LV = LambdaVar
-  structure T = Types
-  structure TU = TypesUtil
-  structure M = LV.Map
-  structure V = VarCon
+  structure P = Paths
   structure PP = PrettyPrint
   open MCCommon
-  structure RS = RuleSet
 
-  val debugging = MCControl.mcdebugging
+  val debugging = Control.MC.debugging
 
   fun bug msg = ErrorMsg.impossible ("Andor: " ^ msg)
 
@@ -32,141 +30,138 @@ local
   fun saynl msg = (say msg; newline())
   fun says strings = saynl (concat strings)
 
-  fun dbsay msg =
-      if !debugging
-      then (say msg; newline())
-      else ()
-  fun dbsays msgs = dbsay (concat msgs)
-(*
   fun ppCon con =
       PP.with_default_pp (fn ppstrm => MCPrint.ppCon ppstrm con)
 
-  fun ppRules (rules: ruleset) =
+  fun ppRules rules =
       PP.with_default_pp (fn ppstrm => MCPrint.ppRuleset ppstrm rules)
-*)
+
 in
 
-(* node ids (: int) *)
-val idcount = ref 0;
-fun newId () = !idcount before (idcount := !idcount + 1)
-fun resetId () = (idcount := 0)
+(* NOTE: The pvars (absyn pattern variables) are not recorded in the protoAndor or andor
+trees, only the rulenos in which variables occur at a node.
+The relation between pvars and match administrative variables (mvars) is handled by
+ positional correspondence between the pvars and mvars based on path positions of the
+pvars (which translate to nodeIds and thence to mvars via an mvarenv).
 
-(* pvarmap construction *)
+We build a relevance mapping from nodeIds in the andor tree to rulesets containing
+relevant rules for the nodeId.  A nodeId maps to the set of rules that either have
+a variable at the node, or form the subject of a switch (derived from the node, which must
+in this case be an OR node. These relevant rules are then propagated up the "trail" of
+ancestor nodes [relevant(r, p) & p' < p ==> relevant(r, p')] by being added to their relmap
+values.
+END NOTE *)
 
-(* a pvarmap maps lvars (of pattern variables) to (ruleno, nodeId) pairs, indicating the
- *  point of binding (layer (rule) and andor node) of the pattern variable. Given a
- *  pvar (and its lvar) and a ruleno, the pvarmap yields a nodeId, which can be looked
- *  up in an mvarenv to get the associated mvar:
- *    pvar * ruleno -- pvarmap --> nodeId -- mvarenv --> mvar 
- *    (pvarmap * mvarenv) -> pvar * ruleno -> mvar *)
+(* trail of nodeIds of ancestors of a node, in reverse order, with current node first *)
+type trail = nodeId list
 
-structure PVM = LV.Map
-type pvarmap = (ruleno * nodeId) list PVM.map
+(* relevance map *)
+structure IM = IntRedBlackMap	 (* nodeId (int) maps *)
+type relmap = ruleset IM.map    (* relevance (partial) map : nodeId -> ruleSet *)
 
-val pvarmapRef : pvarmap ref = ref PVM.empty
+(* makeAndor : protoAndor * ruleset -> andor
+ *   allRules will be the complete set of post-OR-expansion rule numbers *)
+fun makeAndor (protoAndor: protoAndor, allRules: ruleset): andor =
+let
+    (* generating new nodeIds *)
+    val idCounter = ref 0;
+    fun newId () = !idCounter before (idCounter := !idCounter + 1)
+(*
+    (* var-relevant rules map on nodeIds *)
+    val relmapRef : relmap ref = ref IM.empty
 
-(* mapVarBindings : nodeId * varBindings -> unit *)
-fun mapVarBindings (id: nodeId, varBindings: varBindings): unit =
-    let (* val _ = dbsays [">>mapVarBindings, #bindings = ", Int.toString (length varBindings)] *)
-	fun bind ((var,ruleno), pvmap) =
-	    let val lvar = V.varToLvar var
-(*		val _ = dbsays ["mapVarBindings: bind: lv", LV.toString lvar, " at ", Int.toString ruleno] *)
-	     in (case M.find (pvmap, lvar)
-		   of NONE => M.insert(pvmap, lvar, [(ruleno,id)])
-		    | SOME locs => M.insert(pvmap, lvar, (ruleno,id)::locs))
-	    end
-    in pvarmapRef := foldr bind (!pvarmapRef) varBindings
-(*       dbsay "<<mapVarBindings" *)
-    end
-
-(* pvarFind : LV.lvar * pvarmap -> (ruleno * nodeId) list option *)
-fun pvarFind (pvarmap: pvarmap, lvar : LV.lvar) =
-    M.find (pvarmap, lvar)
-
-(* translateAndor : protoAndor * path * ruleset * ty -> andor
-   Traverses the andor tree accumulating a bindenv binding all generated paths
-   (starting with path as the root) to the associated "live" rules from
-   the bindings fields in all the andor tree's nodes.
-
- * getDefaults: variant list * ruleset -> ruleset
-   getDefaults (cases, live):
-   take a starting set of "live" rules and successively subtract the rules
-   component of each variant in the cases arg. The result is a subset of the
-   original "live" ruleset that is disjoint from the rules of each caseAndor.
-   Defaults are rules that are "live" at the OR node but not because they
-   match the (explicit) discriminant of any variant.
-   [Does this mean that they are live because of matching a variable
-   (along the path to this node)? YES? (check).]  How, exactly, are default
-   rules related to pvar bindings?  Can we get away with ignoring the distinction
-   between direct (or simple) variable bindings and as bindings?
-   NOTE: the paths to vector "variant" nodes (children of a vector OR node) 
-   end in VPI links, but do not include a VLEN link, while the path of the
-   vector OR node itself terminates in a VLEN link.
+    (* addRelevantRules: ruleset * trail -> unit *)
+    fun addRelevantRules (relrules, trail) =
+	let fun update (id, relmap) =
+		(case IM.find (relmap, id)
+		   of NONE => IM.insert (relmap, id, relrules)
+		    | SOME rules' => IM.insert (relmap, id, RS.union(relrules, rules')))
+	 in relmapRef := foldl update (!relmapRef) trail
+	end
 *)
+    (* ================================================================================ *)
+    (* translateAndor : protoAndor * path * ruleset -> andor
+       Traverses the protoAndor tree accumulating a bindenv binding all generated paths
+       (starting with path as the root) to the associated "live" rules from
+       the bindings fields in all the andor tree's nodes.
 
-(* translateAndor : protoAndor * ruleset * T.ty -> andor *)
-fun translateAndor (ANDs {bindings, children}, live, ty) =
-      let val id = newId ()
-	  val childrenTys = TU.destructRecordTy (TU.prune ty)
-	  val children' = ListPair.map (fn (pa, ty) => translateAndor (pa, live, ty))
-				       (children, childrenTys)
-       in mapVarBindings (id, bindings);
-          AND {id = id, children = children', typ = ty}
-      end
-  | translateAndor (ORs {bindings, cases, sign}, live, ty) =
-      let val id = newId ()
-	  fun getDefaults (nil, live) = live
-	    | getDefaults ((_,rules,_)::rest, live)  =
-	        getDefaults (rest, RS.difference (live, rules))
-	  val defaults = getDefaults (cases, live) (* subset of live *)
-	  fun transCase scase = translateCase (scase, live, defaults, ty)
-	  val cases' = map transCase cases
-(*	  val _ = if !debugging
-		  then (say ("translateAndor: id = " ^ Int.toString id);
-			say "\n  live = ";
-		        ppRules live;         <-- dependency circularity (MCPrint depends on Andor)
-		        say "  defaults = ";
-		        ppRules defaults)
-		  else ()
-*)
-       in mapVarBindings (id, bindings);
-	  OR {id = id, sign = sign, defaults = defaults, cases = cases', typ = ty}
-      end
-  | translateAndor (VARs {bindings}, live, ty) =
-      let val id = newId ()
-       in mapVarBindings (id, bindings);
-	  VAR {id = id, typ = ty}
-      end
+     * computing the "defaults" field of OR nodes:
+       Taking a starting set of "live" rules passed as an argument, we successively subtract
+       the caserules component of each variant in the cases arg. The result is a subset
+       of the original "live" ruleset that is disjoint from the rules of each caseAndor.
+       Defaults are rules that are "live" at the OR node, not because they
+       match the (explicit) discriminant of any variant, but because of a variable or
+       wildcard.
+       NOTE: the paths to vector "element" nodes (accessed via a VELEMS subcase)
+       end in [..., DC(VLENcon (n, ty), VI k], where n is the length discriminator.
+       and k is the index of the element in the vector.
+    *)
 
-(* translateCase : protoVariant * ruleset * ruleset * T.ty -> variant *)
-and translateCase ((con, caserules, subcase), live, defaults, ty) =
-    let val caseLive = RS.intersection (caserules, live)
-	val stillLive = RS.intersection (RS.union (caserules, defaults), live)
-(*	val _ =  if !debugging
-		 then (say "translateCase: con = ";
-		       ppCon con;   <-- dependency circularity
-		       say "  caseLive = "; ppRules caseLive;
-		       say "  stillLive = "; ppRules stillLive)
-		 else ()
-*)
-      in case (con, subcase)
-	  of (VLENcon (k, elemty), VEC elements) =>
-	     let val elements' = map (fn pa => translateAndor (pa, stillLive, elemty)) elements
-	      in (con, caseLive, VEC elements')
-	     end
-	   | (DATAcon (dcon, _), DCON pandor) => (* non-constant datacon *)
-             (con, caseLive,
-	      DCON (translateAndor (pandor, stillLive, TU.destructDataconTy (ty, dcon))))
-	   | (_, CONST) => (* con should be constant, not checked *)
-	     (con, caseLive, CONST)
-	   | _ => bug "translateCase: inconsistent cases"
-      end
+    (* translateAndor : ruleset * path -> protoandor -> andor *)
+    fun translateAndor (live, rpath) pandor =
+	case pandor
+	  of ANDp {varRules, children} =>
+	       let val id = newId ()
+		   fun folder (n, pandor, andors) =
+		         translateAndor (live, P.addLinkR(P.PI n, rpath)) pandor :: andors
+		in AND {id = id,
+			children = List.foldli folder nil children}
+	       end
+	   | ORp {varRules, cases, sign} =>
+	       let val id = newId ()
+		   fun removeCaseRules ((_,caseRules,_): protoVariant, defaults: ruleset) =
+		       RS.difference (defaults, caseRules)
+		   val defaults = foldl removeCaseRules live cases
+		   (* ASSERT: defaults subset live *)
+		   fun transCase pcase = translateCase (pcase, defaults, (live, rpath))
+		   val cases' = map transCase cases
+		   val _ = if !debugging
+			   then (say ("translateAndor: id = " ^ Int.toString id);
+				 say "\n  live = ";
+				 ppRules live;
+				 say "  defaults = ";
+				 ppRules defaults)
+			   else ()
+		in OR {id = id, path = P.rpathToPath rpath, sign = sign, cases = cases', defaults = defaults}
+	       end
+	   | VARp {varRules} =>
+	       (* ASSERT: varRules not empty *)
+	       let val id = newId ()
+		in VAR {id = id}
+	       end
+	   | WCp => WC
 
-(* makeAndor : andor * T.ty * ruleset -> andor * pvarmap * int *)
-fun makeAndor (andor, patty, allRules) =
-      (pvarmapRef := M.empty;  (* reset pvarmap *)
-       idcount := 0;           (* reset idcount *)
-       (translateAndor (andor, allRules, patty), !pvarmapRef, !idcount))
+    (* translateCase : protoVariant * ruleset * (ruleset * rpath) -> variant *)
+    and translateCase ((con, caserules, subcase), defaults, (live, rpath)) =
+	let val caseLive = RS.intersection(caserules, live)  (* == caserules; CLAIM caserule subset live *)
+	    val _ = (* check conjecture that caserules subset live *)
+		    if RS.numItems caseLive < RS.numItems caserules
+		    then saynl "@@@@@@@@@ #caseLive < #caserules @@@@@@@@@@"
+		    else ()
+	    val stillLive = RS.union (caseLive, defaults)
+	    val _ =  if !debugging
+		     then (say "translateCase: con = ";
+			   ppCon con;
+			   say "  caseLive = "; ppRules caseLive;
+			   say "  stillLive = "; ppRules stillLive)
+		     else ()
+	  in case (con, subcase)
+	      of (P.VLENcon (k, ty), VELEMS elements) =>
+		   let val rpath' = P.addLinkR (P.DC con, rpath)
+		       fun folder (n, pandor, andors) =
+			   translateAndor (live, P.addLinkR(P.VI(n,ty), rpath')) pandor :: andors
+		       val elements' = List.foldli folder nil elements
+		   in (con, caseLive, VELEMS elements')
+		   end
+	       | (P.DATAcon _, DCARG pandor) => (* non-constant datacon *)
+		   (con, caseLive, DCARG (translateAndor (stillLive, P.addLinkR(P.DC con, rpath)) pandor))
+	       | (_, CONST) => (* con should be constant, not checked *)
+		   (con, caseLive, CONST)
+	       | _ => bug "translateCase: inconsistent cases"
+	  end
+
+ in translateAndor (allRules, P.rootpath) protoAndor
+end (* makeAndor *)
 
 end (* local *)
-end (* structure Andor2 *)
+end (* structure Andor *)
