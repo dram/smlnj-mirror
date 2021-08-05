@@ -388,8 +388,7 @@ ALIGNED_ENTRY(create_r_a)
 	CMP	(IM(SMALL_OBJ_SZW),temp)
 	JGE	(L_create_r_large)
 
-#define temp1 misc0
-	PUSH	(misc0)			/* use misc0 as temp1 */
+#define temp1 misc3
 
 	/* allocate the data object */
 	MOV	(temp,temp1)
@@ -409,7 +408,6 @@ ALIGNED_ENTRY(create_r_a)
 	MOV	(allocptr,stdarg)		/* stdarg := header obj */
 	ADD	(IM(16),allocptr)		/* allocptr += 2 */
 
-	POP	(misc0)
 	CONTINUE
 #undef temp1
 
@@ -429,8 +427,7 @@ ALIGNED_ENTRY(create_b_a)
 	CMP	(IM(SMALL_OBJ_SZW),temp)
 	JGE	(L_create_b_large)
 
-#define temp1 misc0
-	PUSH	(misc0)
+#define temp1 misc3
 
 	/* allocate the data object */
 	MOV	(temp,temp1)
@@ -449,7 +446,6 @@ ALIGNED_ENTRY(create_b_a)
 	MOV	(stdarg,REGOFF(8,allocptr))
 	MOV	(allocptr,stdarg)		/* stdarg := header */
 	ADD	(IM(16),allocptr)		/* allocptr += 2 */
-	POP	(misc0)
 	CONTINUE
 #undef temp1
 
@@ -469,8 +465,7 @@ ALIGNED_ENTRY(create_s_a)
 	CMP	(IM(SMALL_OBJ_SZW),temp)
 	JGE	(L_create_s_large)
 
-	PUSH	(misc0)
-#define temp1 misc0
+#define temp1 misc3
 
 	MOV	(temp,temp1)
 	SAL	(IM(TAG_SHIFTW),temp1)
@@ -492,7 +487,6 @@ ALIGNED_ENTRY(create_s_a)
 	MOV	(allocptr, stdarg)		/* stdarg is hdr obj */
 	ADD	(IM(16),allocptr)		/* allocptr += 2 */
 
-	POP	(misc0)
 #undef temp1
 	CONTINUE
 
@@ -508,16 +502,13 @@ LABEL(L_create_s_large)
 ALIGNED_ENTRY(create_v_a)
 	CHECKLIMIT
 	MOV	(REGIND(stdarg),temp)		/* temp = len tagged */
-	PUSH	(misc0)
-#define temp1 misc0
+#define temp1 misc3
+#define temp2 misc4
 
 	MOV	(temp,temp1)
 	SAR	(IM(1),temp1)			/* temp1 = untagged len */
 	CMP	(IM(SMALL_OBJ_SZW),temp1)
 	JGE	(L_create_v_large)
-
-	PUSH	(misc1)
-#define temp2 misc1
 
 	SAL	(IM(TAG_SHIFTW),temp1)
 	OR	(IM(MAKE_TAG(DTAG_vec_data)),temp1)
@@ -543,14 +534,11 @@ LABEL(L_create_v_lp)
 	MOV	(allocptr,stdarg)		/* result */
 	ADD	(IM(16),allocptr)		/* allocptr += 2 */
 
-	POP	(misc1)
-	POP	(misc0)
 	CONTINUE
 #undef temp1
 #undef temp2
 
 LABEL(L_create_v_large)
-	POP	(misc0)				/* restore misc0 */
 	MOVE	(stdlink, temp, pc)
 	MOV	(IM(REQ_ALLOC_VECTOR),request_w)
 	JMP	(CSYM(set_request))
@@ -611,6 +599,7 @@ ALIGNED_ENTRY(logb_a)
 	/* DEPRECATED */
 	CONTINUE
 
+#define SIGN_MASK	IM(0x8000000000000000)
 #define EXP_MASK	IM(0x7ff0000000000000)
 #define NOT_EXP_MASK	IM(0x800fffffffffffff)
 
@@ -625,14 +614,13 @@ ALIGNED_ENTRY(scalb_a)
 	MOV	(REGOFF(8,stdarg), temp)	/* get second arg */
 	SAR	(IM(1), temp)			/* untag second arg */
 	MOV	(REGIND(stdarg), stdarg)	/* put pointer to real in stdarg */
-	PUSH	(misc0)
-	PUSH	(misc1)
-#define temp1 misc0
-#define temp2 misc1
+#define temp1 misc3
+#define temp2 misc4
+#define temp3 misc5
 	MOV	(REGIND(stdarg), temp1)		/* put bits in temp1 */
-	MOV	(EXP_MASK, temp2)
+	MOV	(EXP_MASK, temp3)               /* temp3 := EXP_MASK */
+        MOV     (temp3, temp2)                  /* temp2 := temp3 */
 	AND	(temp1, temp2)			/* temp2 has shifted exponent */
-	TEST	(temp2, temp2)
 	JE	(L_scalb_return)		/* if temp2 == 0 then return first arg */
 	SAR	(IM(52), temp2)
 	ADD	(temp, temp2)			/* temp2 = exponent + scale */
@@ -653,8 +641,6 @@ L_scalb_alloc:
 	ADD	(WORD_SZB_IM,allocptr)		/* allocptr += 1 */
 
 L_scalb_return:
-	POP	(misc1)
-	POP	(misc0)
 	CONTINUE
 
 L_scalb_under:
@@ -662,9 +648,15 @@ L_scalb_under:
 	JMP	(L_scalb_alloc)
 
 L_scalb_over:
-	INT4					/* signal Overflow */
+        /* here we have an overflow; temp1 contains the bits */
+        MOV     (SIGN_MASK, temp2)              /* temp2 := bits & SIGN_MASK */
+
+        AND     (temp2, temp1)                  /* temp1 := sign(bits) */
+        ORB     (temp3, temp1)                  /* temp1 := temp1 | exponent(2047) */
+        JMP	(L_scalb_alloc)
 #undef temp1
 #undef temp2
+#undef temp3
 
 END
 

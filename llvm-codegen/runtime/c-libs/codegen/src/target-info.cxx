@@ -18,7 +18,7 @@ constexpr const char *kVendor = "unknown";
 constexpr const char *kOS = "linuix";
 #endif
 
-static target_info AArch64Info = {
+static target_info Arm64Info = {
 	"aarch64",			// name
 	"e-m:o-i64:64-i128:128-n32:64-S128", // LLVM data layout string
 	"sp",				// stack-pointer name
@@ -55,8 +55,8 @@ static target_info const *Targets[] = {
 #ifdef ENABLE_X86
 	&X86_64Info,
 #endif
-#ifdef ENABLE_AARCH64
-	&AArch64Info,
+#ifdef ENABLE_ARM64
+	&Arm64Info,
 #endif
     };
 

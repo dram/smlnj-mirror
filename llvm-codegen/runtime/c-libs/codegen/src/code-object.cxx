@@ -29,7 +29,7 @@ static llvm::ExitOnError exitOnErr;
 
 //==============================================================================
 
-#ifdef ENABLE_AARCH64
+#ifdef ENABLE_ARM64
 
 /* include the correct header file for relocation-record definitions */
 #if defined(OBJFF_MACHO)
@@ -159,7 +159,7 @@ void AArch64CodeObject::_resolveRelocs (llvm::object::SectionRef &sect, uint8_t 
     }
 
 }
-#endif // ENABLE_AARCH64
+#endif // ENABLE_ARM64
 
 //==============================================================================
 
@@ -245,7 +245,7 @@ std::unique_ptr<CodeObject> CodeObject::create (
   // then wrap it in a target-specific subclass object
     std::unique_ptr<CodeObject> p;
     switch (target->arch) {
-#ifdef ENABLE_AARCH64
+#ifdef ENABLE_ARM64
     case llvm::Triple::aarch64:
 	p = std::make_unique<AArch64CodeObject>(target, std::move(*objFile));
 	break;
