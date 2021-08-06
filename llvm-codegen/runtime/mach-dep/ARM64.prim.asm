@@ -7,6 +7,7 @@
  */
 
 #include "ml-base.h"
+#include "asm-base.h"
 #include "ml-values.h"
 #include "tags.h"
 #include "ml-request.h"
@@ -71,6 +72,7 @@
 #define       	xtmp1		x17
 #define       	wtmp1		w17
 #define       	xtmp2		x21	/* also misc14 */
+#define       	wtmp2		w21
 #define       	xtmp3		x22	/* also misc15 */
 #define 	xtmp4		x23	/* also misc16 */
 #define       	wtmp4		w23	/* also misc17 (32-bit view) */
@@ -84,9 +86,9 @@
 /* reference a stack location */
 #define STK(offset)		MEM(sp,offset)
 /* pre-increment memory reference; address is base + offset and base := base + offset */
-#define PREINC(base,offset)     [base] IM(offset)
+#define PREINC(base,offset)     [base, IM(offset)]!
 /* post-increment memory reference; address is base and base := base + offset */
-#define POSTINC(base,offset)     [base] IM(offset)
+#define POSTINC(base,offset)     [base], IM(offset)
 
 /* macro for returning from an SML compatible function via a return continuation */
 #define CONTINUE					\
@@ -109,7 +111,7 @@
 ALIGNED_ENTRY(sigh_return_a)
 	mov	wlink,IM(ML_unit)		/* stdlink = UNIT */
 	mov	wclos,IM(ML_unit)		/* stdclos = UNIT */
-	mov	wpc,IM(ML_unit)			/* pc = UNIT */
+	mov	wpc,IM(ML_unit)		/* pc = UNIT */
 	mov	requestId,IM(REQ_SIG_RETURN)	/* requestId = REQ_SIG_RETURN */
 	b	CSYM(set_request)
 
@@ -127,7 +129,7 @@ ALIGNED_ENTRY(sigh_resume)
 ALIGNED_ENTRY(pollh_return_a)
 	mov	w3,IM(ML_unit)			/* stdlink = UNIT */
 	mov	w2,IM(ML_unit)			/* stdclos = UNIT */
-	mov	wpc,IM(ML_unit)			/* pc = UNIT */
+	mov	wpc,IM(ML_unit)		/* pc = UNIT */
 	mov	requestId,IM(REQ_POLL_RETURN)	/* requestId = REQ_POLL_RETURN */
 	b	CSYM(set_request)
 
@@ -141,7 +143,7 @@ ALIGNED_ENTRY(pollh_resume)
 /* handle:
  */
 ALIGNED_ENTRY(handle_a)
-	mov	xgclink,xstdlink
+	mov	xpc,xlink
 	mov	requestId,IM(REQ_EXN)		/* requestId = REQ_RETURN */
 	b	CSYM(set_request)
 
@@ -150,34 +152,34 @@ ALIGNED_ENTRY(handle_a)
 ALIGNED_ENTRY(return_a)
 	mov	wlink,IM(ML_unit)		/* stdlink = UNIT */
 	mov	wclos,IM(ML_unit)		/* stdclos = UNIT */
-	mov	wpc,IM(ML_unit)			/* pc = UNIT */
+	mov	wpc,IM(ML_unit)		/* pc = UNIT */
 	mov	requestId,IM(REQ_RETURN)	/* requestId = REQ_RETURN */
 	b	CSYM(set_request)
 
 /* Request a fault. */
 ALIGNED_ENTRY(request_fault)
-	mov	xgclink,xstdlink
+	mov	xpc,xlink
 	mov	requestId,IM(REQ_FAULT)		/* requestId = REQ_FAULT */
 	b	CSYM(set_request)
 
 /* bind_cfun : (string * string) -> c_function
  */
 ALIGNED_ENTRY(bind_cfun_a)
-	CHECKLIMIT
+	CHECKLIMIT(bind_cfun_limit)
 	mov	requestId,IM(REQ_BIND_CFUN)	/* requestId = REQ_BIND_CFUN */
 	b	CSYM(set_request)
 
 /* build_literals:
  */
 ALIGNED_ENTRY(build_literals_a)
-	CHECKLIMIT(build_literals_gc)
+	CHECKLIMIT(build_literals_limit)
 	mov	requestId,IM(REQ_BUILD_LITERALS)	/* requestId = REQ_BUILD_LITERALS */
 	b	CSYM(set_request)
 
 /* callc:
  */
 ALIGNED_ENTRY(callc_a)
-	CHECKLIMIT(callc_gc)
+	CHECKLIMIT(callc_limit)
 	mov	requestId,IM(REQ_CALLC)		/* requestId = REQ_CALLC */
 	b	CSYM(set_request)
 
@@ -218,9 +220,9 @@ ENTRY(set_request)
 	stp	xclos, xcont, MEM(xtmp1, StdClosOffMSP)
 	stp	misc0, misc1, MEM(xtmp1, Misc0OffMSP)
 	stp	misc2, xarg, MEM(xtmp1, Misc2OffMSP)
-	st	xpc, MEM(xtmp1, PCOffMSP)
+	str	xpc, MEM(xtmp1, PCOffMSP)
     /* note that we are leaving SML mode */
-	ldr	xtmp
+/* TODO */
 
     /* return result is request code */
 /* TODO */
@@ -249,51 +251,51 @@ ALIGNED_ENTRY(restoreregs)
  * Allocate and initialize a new array
  */
 ALIGNED_ENTRY(array_a)
-	CHECKLIMIT(L_array_a_limit)
+	CHECKLIMIT(L_array_limit)
         ldr     xtmp1, MEM(xarg, 0)     /* xtmp1 := length of array (tagged) */
         asr     xtmp2, xtmp1, IM(1)     /* xtmp2 := (xtmp1 >> 1) -- untag length */
         cmp     xtmp2, IM(SMALL_OBJ_SZW) /* if (xtmp2 <= SMALL_OBJ_SZW) goto array_large */
-        b.hi    L_array_a_large
+        b.hi    L_array_large
 
         ldr     xarg, MEM(xarg,8)                   /* arg := initial data value */
         /* build descriptor in tmp4 */
         mov     wtmp4, IM(MAKE_TAG(DTAG_arr_data))
         orr     xtmp4, xtmp4, xtmp1, lsl IM(TAG_SHIFTW)
-        st      xtmp4, POSTINC(allocptr, WORD_SZB)  /* *allocptr++ = descriptor */
+        str     xtmp4, POSTINC(allocptr, WORD_SZB)  /* *allocptr++ = descriptor */
         mov     xtmp3, allocptr                     /* tmp3 = array data object */
 
         /* initialization loop; note that we assume len > 0 */
 L_array_lp:
-        st      xarg, POSTINC(allocptr, WORD_SZB)   /* *allocptr++ = initial value */
+        str     xarg, POSTINC(allocptr, WORD_SZB)   /* *allocptr++ = initial value */
         subs    xtmp2, xtmp2, IM(1)                 /* xtmp2 := xtmp2 - 1 */
         b.ne    L_array_lp                          /* if (xtmp2 <> 0) goto lp */
 
         /* allocate the header object */
         mov     wtmp4, IM(DESC_polyarr)
-        st      xtmp4, POSTINC(allocptr, WORD_SZB)  /* *allocptr++ = DESC_polyarr */
+        str     xtmp4, POSTINC(allocptr, WORD_SZB)  /* *allocptr++ = DESC_polyarr */
         mov     xarg, allocptr                      /* arg = header object */
-        st      xtmp3, POSTINC(allocptr, WORD_SZB)  /* *allocptr++ = data object */
-        st      xtmp1, POSTINC(allocptr, WORD_SZB)  /* *allocptr++ = tagged length */
+        str     xtmp3, POSTINC(allocptr, WORD_SZB)  /* *allocptr++ = data object */
+        str     xtmp1, POSTINC(allocptr, WORD_SZB)  /* *allocptr++ = tagged length */
         CONTINUE
 
 /* TODO */
 L_array_large:                          /* else (xtmp2 > SMALL_OBJ_SZW) */
 	mov	requestId,IM(REQ_ALLOC_ARRAY)
-        mov     pc,stdlink
+        mov     xpc,xlink
 	b	CSYM(set_request)
 
 /* create_v_a : (int * 'a list) -> 'a vector
  * Create a vector with elements taken from a non-null list.
  */
 ALIGNED_ENTRY(create_v_a)
-	CHECKLIMIT(L_create_v_a_limit)
+	CHECKLIMIT(L_create_v_limit)
 /* TODO */
 
 /* create_b : int -> bytearray
  * Create an uninitialized byte array of the given length.
  */
 ALIGNED_ENTRY(create_b_a)
-	CHECKLIMIT(L_create_b_a_limit)
+	CHECKLIMIT(L_create_b_limit)
         asr     xtmp1, xarg, IM(1)              /* tmp1 := untagged length */
         add     xtmp1, xtmp1, IM(7)
         asr     xtmp1, xtmp1, IM(3)             /* tmp1 := length in words */
@@ -302,21 +304,21 @@ ALIGNED_ENTRY(create_b_a)
         /* build descriptor in tmp2 */
         mov     wtmp2, IM(MAKE_TAG(DTAG_raw))
         orr     xtmp2, xtmp2, xarg, lsl IM(TAG_SHIFTW)
-        st      xtmp2, POSTINC(allocptr, WORD_SZB)  /* *allocptr++ = descriptor */
+        str     xtmp2, POSTINC(allocptr, WORD_SZB)  /* *allocptr++ = descriptor */
         mov     xtmp3, allocptr                     /* tmp3 = data object */
         add     allocptr, allocptr, xtmp1, lsl IM(3) /* allocptr += length */
         /* allocate header object */
         mov     wtmp4, IM(DESC_word8arr)
-        st      xtmp4, POSTINC(allocptr, WORD_SZB)  /* *allocptr++ = DESC_word8arr */
+        str     xtmp4, POSTINC(allocptr, WORD_SZB)  /* *allocptr++ = DESC_word8arr */
         mov     xtmp1, allocptr                     /* xtmp1 = header object */
-        st      xtmp3, POSTINC(allocptr, WORD_SZB)  /* *allocptr++ = data object */
-        st      xarg, POSTINC(allocptr, WORD_SZB)   /* *allocptr++ = tagged length */
+        str     xtmp3, POSTINC(allocptr, WORD_SZB)  /* *allocptr++ = data object */
+        str     xarg, POSTINC(allocptr, WORD_SZB)   /* *allocptr++ = tagged length */
         mov     xarg, xtmp1
         CONTINUE
 
 L_create_b_large:                                   /* else (xtmp2 > SMALL_OBJ_SZW) */
 	mov	requestId,IM(REQ_ALLOC_BYTEARRAY)
-        mov     pc,stdlink
+        mov     xpc,xlink
 	b	CSYM(set_request)
 
 /* create_s_a: int -> string
@@ -324,7 +326,7 @@ L_create_b_large:                                   /* else (xtmp2 > SMALL_OBJ_S
  * This function includes an additional byte at the end to hold a null character.
  */
 ALIGNED_ENTRY(create_s_a)
-	CHECKLIMIT(L_create_s_a_limit)
+	CHECKLIMIT(L_create_s_limit)
         asr     xtmp1, xarg, IM(1)              /* tmp1 := untagged length */
         add     xtmp1, xtmp1, IM(8)
         asr     xtmp1, xtmp1, IM(3)             /* tmp1 := length in words (incl. null) */
@@ -333,22 +335,22 @@ ALIGNED_ENTRY(create_s_a)
         /* build descriptor in tmp2 */
         mov     wtmp2, IM(MAKE_TAG(DTAG_raw))
         orr     xtmp2, xtmp2, xarg, lsl IM(TAG_SHIFTW)
-        st      xtmp2, POSTINC(allocptr, WORD_SZB)  /* *allocptr++ = descriptor */
+        str     xtmp2, POSTINC(allocptr, WORD_SZB)  /* *allocptr++ = descriptor */
         mov     xtmp3, allocptr                     /* tmp3 = data object */
         add     allocptr, allocptr, xtmp1, lsl IM(3) /* allocptr += length */
-        st      xzero, MEM(allocptr, -8)            /* zero out last word */
+        str     xzero, MEM(allocptr, -8)            /* zero out last word */
         /* allocate header object */
         mov     wtmp4, IM(DESC_string)
-        st      xtmp4, POSTINC(allocptr, WORD_SZB)  /* *allocptr++ = DESC_word8arr */
+        str     xtmp4, POSTINC(allocptr, WORD_SZB)  /* *allocptr++ = DESC_word8arr */
         mov     xtmp1, allocptr                     /* xtmp1 = header object */
-        st      xtmp3, POSTINC(allocptr, WORD_SZB)  /* *allocptr++ = data object */
-        st      xarg, POSTINC(allocptr, WORD_SZB)   /* *allocptr++ = tagged length */
+        str     xtmp3, POSTINC(allocptr, WORD_SZB)  /* *allocptr++ = data object */
+        str     xarg, POSTINC(allocptr, WORD_SZB)   /* *allocptr++ = tagged length */
         mov     xarg, xtmp1
         CONTINUE
 
 L_create_s_large:                                   /* else (xtmp2 > SMALL_OBJ_SZW) */
 	mov	requestId,IM(REQ_ALLOC_STRING)
-        mov     pc,stdlink
+        mov     xpc,xlink
 	b	CSYM(set_request)
 
 
@@ -356,12 +358,12 @@ L_create_s_large:                                   /* else (xtmp2 > SMALL_OBJ_S
  * Create an uninitialized real64 array of the given length.
  */
 ALIGNED_ENTRY(create_r_a)
-	CHECKLIMIT(L_create_r_a_limit)
+	CHECKLIMIT(L_create_r_limit)
 /* TODO */
 
 L_create_r_large:                                   /* else (xtmp2 > SMALL_OBJ_SZW) */
 	mov	requestId,IM(REQ_ALLOC_REALDARRAY)
-        mov     pc,stdlink
+        mov     xpc,xlink
 	b	CSYM(set_request)
 
 /**********************************************************************/
@@ -413,9 +415,9 @@ ALIGNED_ENTRY(scalb_a)
 L_scalb_alloc:
         /* here we have the result in xtmp1 */
         mov     xtmp2, IM(DESC_reald)
-        st      xtmp2, POSTINC(allocptr, 0) /* *allocptr++ = DESC_reald */
+        str     xtmp2, POSTINC(allocptr, 0) /* *allocptr++ = DESC_reald */
         mov     xarg, allocptr              /* arg = allocptr */
-        st      xtmp1, POSTINC(allocptr, 0) /* *allocptr++ = tmp1 */
+        str     xtmp1, POSTINC(allocptr, 0) /* *allocptr++ = tmp1 */
 
 L_scalb_return:
         /* here the biased exponent was 0, which means that `x` is either 0.0 or

@@ -100,6 +100,22 @@
 #elif defined(ARCH_X86) || defined(ARCH_AMD64)
 #  error use x86-syntax.h instead if ml-base.h
 
+#elif defined(ARCH_ARM64)
+#  if defined(OPSYS_DARWIN)
+#    define CFUNSYM(ID) CSYM(ID)
+#    define GLOBAL(ID)  .globl  ID
+#    define TEXT        .text
+#    define DATA        .data
+#    define RO_DATA     .data
+#    define ALIGN4      .align 2
+#    define ALIGN8	.align 3
+#    define LABEL(ID)	ID:
+#    define IM(x)	CONCAT(#,x)
+#    define __SC__      ;
+#  else
+#    error missing asm definitions for arm64
+#  endif
+
 #else
 #  error missing asm definitions
 
