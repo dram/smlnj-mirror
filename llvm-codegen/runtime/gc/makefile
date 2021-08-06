@@ -8,7 +8,6 @@ ARFLAGS =	rcv
 RANLIB =	ranlib
 
 LIB =		libgc.a
-MP_LIB =	libmp-gc.a
 
 GC_OBJS =	init-gc.o call-gc.o minor-gc.o major-gc.o flip.o gc-util.o \
 		big-objects.o ml-objects.o obj-info.o build-literals.o \
@@ -22,10 +21,7 @@ HEAP_IO_OBJS =	import-heap.o export-heap.o \
 		writer.o mem-writer.o \
 		addr-hash.o c-globals-tbl.o
 
-MP_GC_OBJS =	mp-gc.o
-
 OBJS =		$(GC_OBJS) $(HEAP_IO_OBJS)
-MP_OBJS =	$(OBJS) $(MP_GC_OBJS)
 
 VERSION =	v-dummy
 
@@ -39,11 +35,6 @@ $(LIB) :	$(VERSION) $(OBJS)
 	$(AR) $(ARFLAGS) $(LIB) $(OBJS)
 	$(RANLIB) $(LIB)
 
-$(MP_LIB) :	$(VERSION) $(MP_OBJS)
-	rm -rf $(MP_LIB)
-	$(AR) $(ARFLAGS) $(MP_LIB) $(MP_OBJS)
-	$(RANLIB) $(MP_LIB)
-
 $(VERSION) :
 	($(MAKE) MAKE="$(MAKE)" clean)
 	echo "$(VERSION)" > $(VERSION)
@@ -55,7 +46,7 @@ init-gc.o:	init-gc.c \
 		$(OBJS_DIR)/ml-sizes.h \
 		$(INC_DIR)/ml-base.h $(INC_DIR)/ml-limits.h \
 		$(INC_DIR)/ml-state.h $(INC_DIR)/ml-values.h  $(INC_DIR)/cntr.h \
-		$(INC_DIR)/bibop.h $(INC_DIR)/memory.h $(INC_DIR)/ml-mp.h \
+		$(INC_DIR)/bibop.h $(INC_DIR)/memory.h \
 		heap.h arena-id.h heap-monitor.h \
 		$(INC_DIR)/stats-data.h
 	$(CC) -c $(CFLAGS) $(DEFS) $(INCLUDES) init-gc.c
@@ -64,7 +55,7 @@ call-gc.o:	call-gc.c \
 		$(OBJS_DIR)/ml-sizes.h \
 		$(INC_DIR)/ml-base.h $(INC_DIR)/ml-limits.h \
 		$(INC_DIR)/ml-state.h $(INC_DIR)/ml-values.h  $(INC_DIR)/cntr.h \
-		$(INC_DIR)/bibop.h $(INC_DIR)/memory.h $(INC_DIR)/ml-mp.h \
+		$(INC_DIR)/bibop.h $(INC_DIR)/memory.h \
 		heap.h arena-id.h heap-monitor.h \
 		$(INC_DIR)/stats-data.h
 	$(CC) -c $(CFLAGS) $(DEFS) $(INCLUDES) call-gc.c
@@ -157,15 +148,6 @@ gc-stats.o:	gc-stats.c \
 		gc-stats.h
 	$(CC) -c $(CFLAGS) $(DEFS) $(INCLUDES) gc-stats.c
 
-mp-gc.o:	mp-gc.c \
-		$(OBJS_DIR)/ml-sizes.h \
-		$(INC_DIR)/ml-base.h $(INC_DIR)/ml-limits.h \
-		$(INC_DIR)/ml-state.h $(INC_DIR)/ml-values.h  $(INC_DIR)/cntr.h \
-		$(INC_DIR)/bibop.h $(INC_DIR)/memory.h $(INC_DIR)/ml-mp.h \
-		heap.h arena-id.h heap-monitor.h \
-		$(INC_DIR)/stats-data.h
-	$(CC) -c $(CFLAGS) $(DEFS) $(INCLUDES) mp-gc.c
-
 
 #
 # Heap I/O objects
@@ -190,5 +172,5 @@ import-heap.o:	import-heap.c \
 	$(CC) -c $(CFLAGS) $(DEFS) $(INCLUDES) $<
 
 clean :
-	rm -f v-* *.o $(LIB) $(MP_LIB)
+	rm -f v-* *.o $(LIB)
 

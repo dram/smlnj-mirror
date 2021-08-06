@@ -54,22 +54,8 @@ void InvokeGC (ml_state_t *msp, int level)
     ml_val_t	**rootsPtr = roots;
     heap_t	*heap;
     int		i;
-#ifdef MP_SUPPORT
-    int		nProcs;
-#endif
 
     ASSIGN(ProfCurrent, PROF_MINOR_GC);
-
-#ifdef MP_SUPPORT
-#ifdef MP_DEBUG
-    SayDebug ("igc %d\n", msp->ml_mpSelf);
-#endif
-    if ((nProcs = MP_StartCollect (msp)) == 0) {
-      /* a waiting proc */
-	ASSIGN(ProfCurrent, PROF_RUNTIME);
-	return;
-    }
-#endif
 
     START_GC_PAUSE(msp->ml_heap);
 
@@ -77,41 +63,10 @@ void InvokeGC (ml_state_t *msp, int level)
     *rootsPtr++ = &CInterfaceRootList;
 #endif
 
-#ifdef MP_SUPPORT
-  /* get extra roots from procs that entered through InvokeGCWithRoots */
-    for (i = 0;  mpExtraRoots[i] != NIL(ml_val_t *); i++)
-	*rootsPtr++ = mpExtraRoots[i];
-#endif
-
   /* Gather the roots */
-    for (i = 0;  i < NumCRoots;  i++)
+    for (i = 0;  i < NumCRoots;  i++) {
 	*rootsPtr++ = CRoots[i];
-#ifdef MP_SUPPORT
-    {
-	vproc_state_t   *vsp;
-	ml_state_t	*msp;
-	int		j;
-
-	for (j = 0; j < MAX_NUM_PROCS; j++) {
-	    vsp = VProc[j];
-	    msp = vsp->vp_state;
-#ifdef MP_DEBUG
-	SayDebug ("msp[%d] alloc/limit was %x/%x\n",
-	    j, msp->ml_allocPtr, msp->ml_limitPtr);
-#endif
-	    if (vsp->vp_mpState == MP_PROC_RUNNING) {
-		*rootsPtr++ = &(msp->ml_arg);
-		*rootsPtr++ = &(msp->ml_cont);
-		*rootsPtr++ = &(msp->ml_closure);
-		*rootsPtr++ = &(msp->ml_exnCont);
-		*rootsPtr++ = &(msp->ml_varReg);
-		*rootsPtr++ = &(msp->ml_calleeSave[0]);
-		*rootsPtr++ = &(msp->ml_calleeSave[1]);
-		*rootsPtr++ = &(msp->ml_calleeSave[2]);
-	    }
-	} /* for */
     }
-#else /* !MP_SUPPORT */
     *rootsPtr++ = &(msp->ml_linkReg);
     *rootsPtr++ = &(msp->ml_arg);
     *rootsPtr++ = &(msp->ml_cont);
@@ -121,7 +76,6 @@ void InvokeGC (ml_state_t *msp, int level)
     *rootsPtr++ = &(msp->ml_calleeSave[0]);
     *rootsPtr++ = &(msp->ml_calleeSave[1]);
     *rootsPtr++ = &(msp->ml_calleeSave[2]);
-#endif /* MP_SUPPORT */
     *rootsPtr = NIL(ml_val_t *);
 
     MinorGC (msp, roots);
@@ -143,19 +97,7 @@ void InvokeGC (ml_state_t *msp, int level)
     }
 
     if (level > 0) {
-#ifdef MP_SUPPORT
-	vproc_state_t   *vsp;
-	ml_state_t	*msp;
-
-	for (i = 0; i < MAX_NUM_PROCS; i++) {
-	    vsp = VProc[i];
-	    msp = vsp->vp_state;
-	    if (vsp->vp_mpState == MP_PROC_RUNNING)
-		*rootsPtr++ = &(msp->ml_linkReg);
-	}
-#else
 	ASSIGN(ProfCurrent, PROF_MAJOR_GC);
-#endif
 	*rootsPtr = NIL(ml_val_t *);
 	MajorGC (msp, roots, level);
     }
@@ -188,7 +130,7 @@ void InvokeGC (ml_state_t *msp, int level)
  */
 void InvokeGCWithRoots (ml_state_t *msp, int level, ...)
 {
-    ml_val_t	*roots[NUM_GC_ROOTS+NUM_EXTRA_ROOTS];	/* registers and globals */
+    ml_val_t	*roots[NUM_GC_ROOTS];
     ml_val_t	**rootsPtr = roots, *p;
     heap_t	*heap;
     int		i;

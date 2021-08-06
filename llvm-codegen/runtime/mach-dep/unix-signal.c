@@ -22,13 +22,7 @@
 #include "unix-sigtbl.c"
 
 
-#ifndef MP_SUPPORT
 #define SELF_VPROC	(VProc[0])
-#else
-/** for MP_SUPPORT, we'll use SELF_VPROC for now **/
-#define SELF_VPROC	(VProc[0])
-#endif
-
 
 #ifdef USE_ZERO_LIMIT_PTR_FN
 Addr_t		SavedPC;

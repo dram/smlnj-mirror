@@ -38,10 +38,6 @@ C_LIBRARY(WIN32_FileSys_Library)
 C_LIBRARY(WIN32_Process_Library)
 #endif
 
-#ifdef MP_SUPPORT
-C_LIBRARY(SMLNJ_MP_Library)
-#endif
-
 #ifdef C_CALLS
 C_LIBRARY(SMLNJ_CCalls_Library)
 #endif

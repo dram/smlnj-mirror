@@ -652,7 +652,7 @@ L_scalb_over:
         MOV     (SIGN_MASK, temp2)              /* temp2 := bits & SIGN_MASK */
 
         AND     (temp2, temp1)                  /* temp1 := sign(bits) */
-        ORB     (temp3, temp1)                  /* temp1 := temp1 | exponent(2047) */
+        OR      (temp3, temp1)                  /* temp1 := temp1 | exponent(2047) */
         JMP	(L_scalb_alloc)
 #undef temp1
 #undef temp2
