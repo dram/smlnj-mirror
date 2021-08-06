@@ -14,6 +14,15 @@
 #include "mlstate-offsets.h"	/** this file is generated **/
 #include "ml-limits.h"
 
+/* reference memory at address `base + offset` */
+#define MEM(base,offset)	[base, IM(offset)]
+/* reference a stack location */
+#define STK(offset)		MEM(sp,offset)
+/* pre-increment memory reference; address is base + offset and base := base + offset */
+#define PREINC(base,offset)     [base, IM(offset)]!
+/* post-increment memory reference; address is base and base := base + offset */
+#define POSTINC(base,offset)     [base], IM(offset)
+
 /* Register usage and C function calling conventions:
  *
  *	r0-r7		-- argument/result registers
@@ -81,14 +90,33 @@
 #define         xzero           xzr
 #define         wzero           wzr
 
-/* reference memory at address `base + offset` */
-#define MEM(base,offset)	[base, IM(offset)]
-/* reference a stack location */
-#define STK(offset)		MEM(sp,offset)
-/* pre-increment memory reference; address is base + offset and base := base + offset */
-#define PREINC(base,offset)     [base, IM(offset)]!
-/* post-increment memory reference; address is base and base := base + offset */
-#define POSTINC(base,offset)     [base], IM(offset)
+/* Stack frame offsets are w.r.t. the stack pointer.  See
+ *
+ *	https://smlnj-gforge.cs.uchicago.edu/svn/smlnj/dev-notes/stack-layout.numbers
+ *
+ * for details.
+ */
+#define negateSignBit	REGOFF(8264,RSP)
+#define signBit		REGOFF(8256,RSP)
+#define overflowFn	REGOFF(8248,RSP)
+#define start_gc	REGOFF(8240,RSP)	/* holds address of saveregs */
+#define varptr		REGOFF(8232,RSP)
+#define exncont		REGOFF(8224,RSP)
+#define baseptr		REGOFF(8216,RSP)	/* start address of module */
+#define tempmem0	REGOFF(8192,RSP)
+#define pc		REGOFF(8208,RSP)	/* gcLink */
+#define mlStatePtr	REGOFF(8200,RSP)
+
+/* space reserved for spilling registers */
+#define ML_SPILL_SIZE	8192
+
+/* size of stack-frame region where ML stuff is stored. */
+#define ML_AREA_SIZE	80
+
+/* the amount to bump up the frame after the callee save registers have been
+ * pushed onto the stack.
+ */
+#define ML_FRAME_SIZE	(ML_SPILL_SIZE+ML_AREA_SIZE)
 
 /* macro for returning from an SML compatible function via a return continuation */
 #define CONTINUE					\
