@@ -13,6 +13,8 @@
 
 #if defined(ARCH_AMD64)
 #  define MACHINE_ID	"amd64"
+#elif defined(ARCH_ARM64)
+#  define MACHINE_ID	"arm64"
 #elif defined(ARCH_PPC)
 #  define MACHINE_ID	"ppc"
 #elif defined(ARCH_SPARC)

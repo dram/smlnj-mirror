@@ -48,7 +48,7 @@ void InitFaultHandlers (ml_state_t *msp)
 #ifdef SIG_OVERFLOW
     SIG_SetHandler (SIG_OVERFLOW, FaultHandler);
 #else
-# error now signal for Overflow specified
+# error no signal for Overflow specified
 #endif
 #ifdef SIG_OVERFLOW2
     SIG_SetHandler (SIG_OVERFLOW2, FaultHandler);
