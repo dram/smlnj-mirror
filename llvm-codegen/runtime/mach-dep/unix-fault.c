@@ -30,6 +30,7 @@
 
 
 /* local routines */
+#ifdef SIG_OVERFLOW
 #if defined(HAS_POSIX_SIGS) && defined(HAS_UCONTEXT)
 PVT SigReturn_t FaultHandler (int sig, SigInfo_t code, void *scp);
 #elif (defined(ARCH_PPC) && defined(OPSYS_LINUX))
@@ -37,18 +38,18 @@ PVT SigReturn_t FaultHandler (int sig, SigContext_t *scp);
 #else
 PVT SigReturn_t FaultHandler (int sig, SigInfo_t code, SigContext_t *scp);
 #endif
-
+#endif /* SIG_OVERFLOW */
 
 /* InitFaultHandlers:
  */
 void InitFaultHandlers (ml_state_t *msp)
 {
 
-  /** Set up the Overflow fault(s) **/
+  /** Set up the Overflow fault(s).  Note that on some systems (e.g., arm64),
+   ** we do not use traps to signal overflow.
+   **/
 #ifdef SIG_OVERFLOW
     SIG_SetHandler (SIG_OVERFLOW, FaultHandler);
-#else
-# error no signal for Overflow specified
 #endif
 #ifdef SIG_OVERFLOW2
     SIG_SetHandler (SIG_OVERFLOW2, FaultHandler);
@@ -59,6 +60,8 @@ void InitFaultHandlers (ml_state_t *msp)
 
 } /* end of InitFaultHandlers */
 
+
+#ifdef SIG_OVERFLOW
 
 /* FaultHandler:
  *
@@ -134,6 +137,7 @@ PVT SigReturn_t FaultHandler (
 } /* end of FaultHandler */
 
 #endif
+#endif /* SIG_OVERFLOW */
 
 #if ((defined(ARCH_RS6000) || defined(ARCH_PPC)) && defined(OPSYS_AIX))
 
