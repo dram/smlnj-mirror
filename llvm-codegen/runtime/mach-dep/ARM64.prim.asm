@@ -96,14 +96,21 @@
  *
  * for details.
  */
-#define saveX19_20      STK(8296)       /* save offset for x19 and x20 */
-#define saveX21_22      STK(8296)       /* save offset for x21 and x22 */
-#define saveX23_24      STK(8296)       /* save offset for x23 and x24 */
-#define saveX25_26      STK(8296)       /* save offset for x25 and x26 */
-#define saveX27_28      STK(8296)       /* save offset for x27 and x28 */
-#define saveX29_LR      STK(8304)       /* save offset for x29 (frame ptr) and LR */
-#define overflowFn	STK(8204)
+#define saveX19         STK(8296)       /* save location for x19 */
+#define saveX20         STK(8288)       /* save location for x20 */
+#define saveX21         STK(8280)       /* save location for x21 */
+#define saveX22         STK(8272)       /* save location for x22 */
+#define saveX23         STK(8264)       /* save location for x23 */
+#define saveX24         STK(8256)       /* save location for x24 */
+#define saveX25         STK(8248)       /* save location for x25 */
+#define saveX26         STK(8240)       /* save location for x26 */
+#define saveX27         STK(8232)       /* save location for x27 */
+#define saveX28         STK(8224)       /* save location for x28 */
+#define saveX29         STK(8304)       /* save location for x29 (frame ptr) */
+#define saveLR          STK(8312)       /* save location for lr (link reg) */
+
 #define startGC 	STK(8216)	/* holds address of saveregs */
+#define overflowFn	STK(8208)
 #define resumePC	STK(8200)	/* gcLink */
 #define mlStatePtr	STK(8192)
 
@@ -137,7 +144,9 @@
 /**********************************************************************/
 	TEXT
 
-#define requestId	wtmp4
+/* use the tmp4 register for the request ID */
+#define wreqId	wtmp4
+#define xreqId	xtmp4
 
 /* sigh_return:
  */
@@ -145,7 +154,7 @@ ALIGNED_ENTRY(sigh_return_a)
 	mov	wlink,IM(ML_unit)		/* stdlink = UNIT */
 	mov	wclos,IM(ML_unit)		/* stdclos = UNIT */
 	mov	wpc,IM(ML_unit)		/* pc = UNIT */
-	mov	requestId,IM(REQ_SIG_RETURN)	/* requestId = REQ_SIG_RETURN */
+	mov	wreqId,IM(REQ_SIG_RETURN)	/* wreqId = REQ_SIG_RETURN */
 	b	CSYM(set_request)
 
 /* sigh_resume:
@@ -153,7 +162,7 @@ ALIGNED_ENTRY(sigh_return_a)
  * standard two-argument function, thus the closure is in ml_cont.
  */
 ALIGNED_ENTRY(sigh_resume)
-	mov	requestId,IM(REQ_SIG_RESUME)	/* requestId = REQ_SIG_RESUME */
+	mov	wreqId,IM(REQ_SIG_RESUME)	/* wreqId = REQ_SIG_RESUME */
 	b	CSYM(set_request)
 
 /* pollh_return_a:
@@ -163,21 +172,21 @@ ALIGNED_ENTRY(pollh_return_a)
 	mov	w3,IM(ML_unit)			/* stdlink = UNIT */
 	mov	w2,IM(ML_unit)			/* stdclos = UNIT */
 	mov	wpc,IM(ML_unit)		/* pc = UNIT */
-	mov	requestId,IM(REQ_POLL_RETURN)	/* requestId = REQ_POLL_RETURN */
+	mov	wreqId,IM(REQ_POLL_RETURN)	/* wreqId = REQ_POLL_RETURN */
 	b	CSYM(set_request)
 
 /* pollh_resume:
  * Resume execution at the point at which a poll event occurred.
  */
 ALIGNED_ENTRY(pollh_resume)
-	mov	requestId,IM(REQ_POLL_RESUME)	/* requestId = REQ_POLL_RESUME */
+	mov	wreqId,IM(REQ_POLL_RESUME)	/* wreqId = REQ_POLL_RESUME */
 	b	CSYM(set_request)
 
 /* handle:
  */
 ALIGNED_ENTRY(handle_a)
 	mov	xpc,xlink
-	mov	requestId,IM(REQ_EXN)		/* requestId = REQ_RETURN */
+	mov	wreqId,IM(REQ_EXN)		/* wreqId = REQ_RETURN */
 	b	CSYM(set_request)
 
 /* return:
@@ -186,34 +195,34 @@ ALIGNED_ENTRY(return_a)
 	mov	wlink,IM(ML_unit)		/* stdlink = UNIT */
 	mov	wclos,IM(ML_unit)		/* stdclos = UNIT */
 	mov	wpc,IM(ML_unit)		/* pc = UNIT */
-	mov	requestId,IM(REQ_RETURN)	/* requestId = REQ_RETURN */
+	mov	wreqId,IM(REQ_RETURN)	/* wreqId = REQ_RETURN */
 	b	CSYM(set_request)
 
 /* Request a fault. */
 ALIGNED_ENTRY(request_fault)
 	mov	xpc,xlink
-	mov	requestId,IM(REQ_FAULT)		/* requestId = REQ_FAULT */
+	mov	wreqId,IM(REQ_FAULT)		/* wreqId = REQ_FAULT */
 	b	CSYM(set_request)
 
 /* bind_cfun : (string * string) -> c_function
  */
 ALIGNED_ENTRY(bind_cfun_a)
 	CHECKLIMIT(bind_cfun_limit)
-	mov	requestId,IM(REQ_BIND_CFUN)	/* requestId = REQ_BIND_CFUN */
+	mov	wreqId,IM(REQ_BIND_CFUN)	/* wreqId = REQ_BIND_CFUN */
 	b	CSYM(set_request)
 
 /* build_literals:
  */
 ALIGNED_ENTRY(build_literals_a)
 	CHECKLIMIT(build_literals_limit)
-	mov	requestId,IM(REQ_BUILD_LITERALS)	/* requestId = REQ_BUILD_LITERALS */
+	mov	wreqId,IM(REQ_BUILD_LITERALS)	/* wreqId = REQ_BUILD_LITERALS */
 	b	CSYM(set_request)
 
 /* callc:
  */
 ALIGNED_ENTRY(callc_a)
 	CHECKLIMIT(callc_limit)
-	mov	requestId,IM(REQ_CALLC)		/* requestId = REQ_CALLC */
+	mov	wreqId,IM(REQ_CALLC)		/* wreqId = REQ_CALLC */
 	b	CSYM(set_request)
 
 /* saveregs:
@@ -221,12 +230,12 @@ ALIGNED_ENTRY(callc_a)
  * so the return address is on the top of the stack.
  */
 ALIGNED_ENTRY(saveregs)
-	mov	requestId,IM(REQ_GC)		/* requestId = REQ_GC */
+	mov	wreqId,IM(REQ_GC)		/* wreqId = REQ_GC */
 	/* fall into set_request */
 
 /* set_request:
  * common code to switch execution from SML to runtime system.  The request
- * code will be in `requestId` (aka tmp4).
+ * code will be in `wreqId` (aka tmp4).
  */
 ENTRY(set_request)
     /* xtmp1 := pointer to MLState struct */
@@ -261,18 +270,27 @@ ENTRY(set_request)
         str     xzero, MEM(xtmp2, InMLOffVSP)
 
     /* return result is request code */
-        mov     r0, requestId
+        mov     x0, xreqId
 
-    /* restore C callee-save registers */
-        ldp     x19, x20, saveX19_20
-        ldp     x21, x22, saveX21_22
-        ldp     x23, x24, saveX23_24
-        ldp     x25, x26, saveX25_26
-        ldp     x27, x28, saveX27_28
-        ldp     x29, lr, saveX29_LR
+    /* restore C callee-save registers; note that we cannot use ldp instructions
+     * here because the offsets are too big.
+     */
+        ldr     x19, saveX19
+	ldr     x20, saveX20
+        ldr     x21, saveX21
+	ldr     x22, saveX22
+        ldr     x23, saveX23
+	ldr     x24, saveX24
+        ldr     x25, saveX25
+	ldr     x26, saveX26
+        ldr     x27, saveX27
+	ldr     x28, saveX28
+        ldr     x29, saveX29
+	ldr     lr, saveLR
 
     /* pop the stack frame and return */
-        add     sp, sp, FRAME_SIZE
+	mov	wtmp1, IM(FRAME_SIZE)
+	sub	sp, sp, xtmp1
         ret
 
 /**********************************************************************/
@@ -282,13 +300,38 @@ ENTRY(set_request)
  * Switch from C to SML.
  */
 ALIGNED_ENTRY(restoreregs)
-    /* set up stack frame */
-    /* save C callee-save registers */
-        stp     r19, r20, saveX19
-        stp     r21, r22, saveX21
-        stp     r23, r24, saveX23
-        stp     r25, r26, saveX25
-        stp     r27, r28, saveX27
+    /* allocate the stack frame */
+	mov	wtmp1, IM(FRAME_SIZE)
+	add	sp, sp, xtmp1
+
+    /* save C callee-save registers; note that we cannot use stp instructions
+     * here because the offsets are too big.
+     */
+        str     x19, saveX19
+	str     x20, saveX20
+        str     x21, saveX21
+	str     x22, saveX22
+        str     x23, saveX23
+	str     x24, saveX24
+        str     x25, saveX25
+	str     x26, saveX26
+        str     x27, saveX27
+	str     x28, saveX28
+        str     x29, saveX29
+	str     lr, saveLR
+
+    /* put the MLState struct pointer in tmp1 */
+	mov	xtmp1, x0
+
+    /* load the SML state from the MLState struct */
+	ldp	allocptr, limitptr, MEM(xtmp1, AllocPtrOffMSP)
+	ldp	storeptr, exnptr, MEM(xtmp1, StorePtrOffMSP)
+	ldp	varptr, xlink, MEM(xtmp1, VarPtrOffMSP)
+	ldp	xclos, xcont, MEM(xtmp1, StdClosOffMSP)
+	ldp	misc0, misc1, MEM(xtmp1, Misc0OffMSP)
+	ldp	misc2, xarg, MEM(xtmp1, Misc2OffMSP)
+	ldr	xpc, MEM(xtmp1, PCOffMSP)
+
 /* TODO */
 
 
@@ -330,7 +373,7 @@ L_array_lp:
 
 /* TODO */
 L_array_large:                          /* else (xtmp2 > SMALL_OBJ_SZW) */
-	mov	requestId,IM(REQ_ALLOC_ARRAY)
+	mov	wreqId,IM(REQ_ALLOC_ARRAY)
         mov     xpc,xlink
 	b	CSYM(set_request)
 
@@ -367,7 +410,7 @@ ALIGNED_ENTRY(create_b_a)
         CONTINUE
 
 L_create_b_large:                                   /* else (xtmp2 > SMALL_OBJ_SZW) */
-	mov	requestId,IM(REQ_ALLOC_BYTEARRAY)
+	mov	wreqId,IM(REQ_ALLOC_BYTEARRAY)
         mov     xpc,xlink
 	b	CSYM(set_request)
 
@@ -399,7 +442,7 @@ ALIGNED_ENTRY(create_s_a)
         CONTINUE
 
 L_create_s_large:                                   /* else (xtmp2 > SMALL_OBJ_SZW) */
-	mov	requestId,IM(REQ_ALLOC_STRING)
+	mov	wreqId,IM(REQ_ALLOC_STRING)
         mov     xpc,xlink
 	b	CSYM(set_request)
 
@@ -412,7 +455,7 @@ ALIGNED_ENTRY(create_r_a)
 /* TODO */
 
 L_create_r_large:                                   /* else (xtmp2 > SMALL_OBJ_SZW) */
-	mov	requestId,IM(REQ_ALLOC_REALDARRAY)
+	mov	wreqId,IM(REQ_ALLOC_REALDARRAY)
         mov     xpc,xlink
 	b	CSYM(set_request)
 
