@@ -276,6 +276,12 @@ or raise exceptions.
           * `FCOPYSIGN` -- floating-point copysign operation: returns its first argument with
             the sign set to the sign of its second argument.
 
+	  * `FLOAT_TO_BITS` -- bitcast a floating-point value to the equivalently sized
+	    word value.
+
+	  * `BITS_TO_FLOAT` -- bitcast a word value to the equivalently sized
+	    float-point value.
+
     * `EXTEND{signed, from, to}` -- extend a smaller integer representation
       (`from` bits) to a larger size (`to` bits); if `signed` is `true`, then
       the extension uses the sign bit, otherwise it uses zero to extend the value.
