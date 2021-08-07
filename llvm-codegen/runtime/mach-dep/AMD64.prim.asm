@@ -56,7 +56,7 @@
 
 /* Stack frame offsets are w.r.t. the stack pointer.  See
  *
- *	https://smlnj-gforge.cs.uchicago.edu/svn/smlnj/dev-notes/stack-layout.numbers
+ *	dev-notes/stack-layout.numbers
  *
  * for details.
  */

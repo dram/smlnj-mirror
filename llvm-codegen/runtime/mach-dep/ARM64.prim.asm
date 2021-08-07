@@ -92,26 +92,31 @@
 
 /* Stack frame offsets are w.r.t. the stack pointer.  See
  *
- *	https://smlnj-gforge.cs.uchicago.edu/svn/smlnj/dev-notes/stack-layout.numbers
+ *	dev-notes/stack-layout.numbers
  *
  * for details.
  */
-#define negateSignBit	REGOFF(8264,RSP)
-#define signBit		REGOFF(8256,RSP)
-#define overflowFn	REGOFF(8248,RSP)
-#define start_gc	REGOFF(8240,RSP)	/* holds address of saveregs */
-#define varptr		REGOFF(8232,RSP)
-#define exncont		REGOFF(8224,RSP)
-#define baseptr		REGOFF(8216,RSP)	/* start address of module */
-#define tempmem0	REGOFF(8192,RSP)
-#define pc		REGOFF(8208,RSP)	/* gcLink */
-#define mlStatePtr	REGOFF(8200,RSP)
+#define saveX19_20      STK(8296)       /* save offset for x19 and x20 */
+#define saveX21_22      STK(8296)       /* save offset for x21 and x22 */
+#define saveX23_24      STK(8296)       /* save offset for x23 and x24 */
+#define saveX25_26      STK(8296)       /* save offset for x25 and x26 */
+#define saveX27_28      STK(8296)       /* save offset for x27 and x28 */
+#define saveX29_LR      STK(8304)       /* save offset for x29 (frame ptr) and LR */
+#define overflowFn	STK(8204)
+#define startGC 	STK(8216)	/* holds address of saveregs */
+#define resumePC	STK(8200)	/* gcLink */
+#define mlStatePtr	STK(8192)
+
+/* C callee-save register save-area size */
+#define C_SAVEREG_SIZE  96
 
 /* space reserved for spilling registers */
 #define ML_SPILL_SIZE	8192
 
 /* size of stack-frame region where ML stuff is stored. */
-#define ML_AREA_SIZE	80
+#define ML_AREA_SIZE	32
+
+#define FRAME_SIZE      (C_SAVEREG_SIZE+ML_SPILL_SIZE+ML_AREA_SIZE)
 
 /* the amount to bump up the frame after the callee save registers have been
  * pushed onto the stack.
@@ -224,7 +229,8 @@ ALIGNED_ENTRY(saveregs)
  * code will be in `requestId` (aka tmp4).
  */
 ENTRY(set_request)
-	ldr	xtmp1, STK(MSP_OFFSET)
+    /* xtmp1 := pointer to MLState struct */
+	ldr	xtmp1, mlStatePtr
     /* WARNING: here we use the "store pair" instructions to save registers
      * in the MLState struct, which means that this code depends on the layout
      * of the struct, which is as follows:
@@ -249,14 +255,25 @@ ENTRY(set_request)
 	stp	misc0, misc1, MEM(xtmp1, Misc0OffMSP)
 	stp	misc2, xarg, MEM(xtmp1, Misc2OffMSP)
 	str	xpc, MEM(xtmp1, PCOffMSP)
+
     /* note that we are leaving SML mode */
-/* TODO */
+        ldr     xtmp2, MEM(xtmp1, VProcOffMSP)
+        str     xzero, MEM(xtmp2, InMLOffVSP)
 
     /* return result is request code */
-/* TODO */
+        mov     r0, requestId
 
     /* restore C callee-save registers */
-/* TODO */
+        ldp     x19, x20, saveX19_20
+        ldp     x21, x22, saveX21_22
+        ldp     x23, x24, saveX23_24
+        ldp     x25, x26, saveX25_26
+        ldp     x27, x28, saveX27_28
+        ldp     x29, lr, saveX29_LR
+
+    /* pop the stack frame and return */
+        add     sp, sp, FRAME_SIZE
+        ret
 
 /**********************************************************************/
 
@@ -267,6 +284,11 @@ ENTRY(set_request)
 ALIGNED_ENTRY(restoreregs)
     /* set up stack frame */
     /* save C callee-save registers */
+        stp     r19, r20, saveX19
+        stp     r21, r22, saveX21
+        stp     r23, r24, saveX23
+        stp     r25, r26, saveX25
+        stp     r27, r28, saveX27
 /* TODO */
 
 
