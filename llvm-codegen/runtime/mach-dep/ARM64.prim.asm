@@ -1,9 +1,18 @@
 /*! \file ARM64.prim.asm
  *
- * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2021 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
  * Assembly code for the ARM64 (aka AARCH64) target.
+ *
+ * Note: this code will require some cleanup (especially to support other
+ * operating systems), since it is currently specific to Apple's
+ * assembler.  Unfortunately, Apple's assembler breaks on a couple of
+ * things that we rely on. First, using ";" to put multiple things on
+ * a line does not appear to work.  Second, while it has a GNU "as"
+ * like macro mechanism, parameter expansion does not match the spec.
+ * We have worked around these problems by hand expanding some of the
+ * usual macros.
  */
 
 #include "ml-base.h"
