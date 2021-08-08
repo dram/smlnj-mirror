@@ -378,25 +378,25 @@ ALIGNED_ENTRY(restoreregs)
      *      Word_t      nHandled;
      */
         ldp     xtmp2, xtmp3, MEM(xtmp1, SigsRecvOffVSP)
-        cmp     xtmp2. xtmp3
+        cmp     xtmp2, xtmp3
         b.ne    pending
 
     /* transfer control to the SML code */
 jmp_ml:
+/* QUESTION: would using a `ret` instruction be a better bet here? */
+	br	lr
 
     /* here we have pending signals */
 pending:
-    /* are we currently handling a signal? */
+    /* if (we are in a signal handler) then limitptr := 0 */
         ldr     xtmp2, MEM(xtmp1, InSigHandlerOffVSP)
-        cmp     xzero, xtmp2
-/* FIXME: can probably use a conditional move here! */
-        b.ne    jmp_ml                  /* if (! in signal handler) goto jmp_ml */
-    /* zero out the limit pointer to force a GC */
-        mov     limitptr, xzero
+        cmp     xtmp2, IM(0)
+	csel	limitptr, limitptr, xzero, eq
         b       jmp_ml
 
 
 /**********************************************************************/
+        TEXT
 
 /** Primitive object allocation routines **/
 
