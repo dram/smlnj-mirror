@@ -68,7 +68,7 @@
 #define exncont		REGOFF(8224,RSP)
 #define baseptr		REGOFF(8216,RSP)	/* start address of module */
 #define tempmem0	REGOFF(8192,RSP)
-#define pc		REGOFF(8208,RSP)	/* gcLink */
+#define pc		REGOFF(8208,RSP)	/* aka gcLink */
 #define mlStatePtr	REGOFF(8200,RSP)
 
 /* space reserved for spilling registers */
@@ -151,9 +151,11 @@ ALIGNED_ENTRY(request_fault)
 	MOVE	(stdlink,temp,pc)
 	JMP	(CSYM(set_request))
 
-/* Raise the Overflow exception */
+/* Raise the Overflow exception; note that the top of the stack contains an
+ * address in the code object containing the raising code.
+ */
 ALIGNED_ENTRY(raise_overflow)
-	POP	(pc)			/* a PC in the raising code object */
+	POP	(pc)
 	MOV	(IM(REQ_RAISE_OVERFLOW), request_w)
 	JMP	(CSYM(set_request))
 
@@ -192,8 +194,9 @@ ALIGNED_ENTRY(saveregs)
  * code will be in `tempmem` (on the stack).
  */
 ENTRY(set_request)
-	/* temp holds mlStatePtr, valid request in request_w  */
-	/* Save registers */
+        /* here the request is in request_w */
+
+	/* Save registers in MLState struct (temp is pointer to struct) */
 	MOV	(mlStatePtr, temp)
 	MOV	(allocptr, REGOFF(AllocPtrOffMSP,temp))
 	MOV	(stdarg, REGOFF(StdArgOffMSP,temp))
@@ -266,7 +269,7 @@ ALIGNED_ENTRY(restoreregs)
 	MOVE	(REGOFF(ExnPtrOffMSP, temp), temp2, exncont)
 	MOVE	(REGOFF(VarPtrOffMSP, temp), temp2, varptr)
 	MOVE    (REGOFF(PCOffMSP, temp),     temp2, pc)
-      /* Store address of "Overflow" exception in stack */
+      /* Store address of code to raise the "Overflow" exception in stack */
 	LEA	(CODEADDR(CSYM(saveregs)), temp2)
 	MOV	(temp2, start_gc)
 	LEA	(CODEADDR(CSYM(raise_overflow)),temp2)
@@ -313,6 +316,7 @@ restore_and_jmp_ml:
 	POP	(misc2)
 
 jmp_ml:
+/* FIXME: we may be able to get rid of this jump with the LLVM code generator */
 	CMP	(limitptr, allocptr)
 	JMP	(CODEPTR(REGOFF(PCOffMSP,temp)))	/* Jump to ML code. */
 

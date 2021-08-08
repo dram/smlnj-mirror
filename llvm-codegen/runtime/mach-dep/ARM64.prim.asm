@@ -222,6 +222,13 @@ ALIGNED_ENTRY(request_fault)
         mov     wreqId,IM(REQ_FAULT)            /* wreqId = REQ_FAULT */
         b       CSYM(set_request)
 
+/* Raise the Overflow exception; note that the lr register contains an
+ * address in the code object containing the raising code.
+ */
+ALIGNED_LABEL(raise_overflow)
+        mov     wreqId,IM(REQ_RAISE_OVERFLOW)   /* wreqId = REQ_RAISE_OVERFLOW */
+	b	CSYM(set_request)
+
 /* bind_cfun : (string * string) -> c_function
  */
 ALIGNED_ENTRY(bind_cfun_a)
@@ -338,10 +345,9 @@ ALIGNED_ENTRY(restoreregs)
         str     x29, saveX29
         str     lr, saveLR
 
-      /* Store address of saveregs */
+    /* initialize the stack frame with the necessary code addresses */
         LOAD_ADDR(xtmp2,saveregs)
         str     xtmp2, startGC
-      /* Store address of raise_overflow */
         LOAD_ADDR(xtmp2,raise_overflow)
         str     xtmp2, overflowFn
 
@@ -356,6 +362,26 @@ ALIGNED_ENTRY(restoreregs)
         ldp     misc0, misc1, MEM(xtmp1, Misc0OffMSP)
         ldp     misc2, xarg, MEM(xtmp1, Misc2OffMSP)
         ldr     xpc, MEM(xtmp1, PCOffMSP)
+
+    /* put the VProc state pointer in xtmp1 */
+        ldr     xtmp1, MEM(xtmp1, VProcOffMSP)
+    /* note that we are entering SML execution */
+        mov     wtmp2, IM(1)
+        str     wtmp2, MEM(xtmp1, InMLOffVSP)
+
+    /* handle any signals that might have arrived while we were in the runtime.
+     *
+     * WARNING: this code depends on the fact that the vp_totalSigCount struct has the
+     * following layout:
+     *
+     *      Word_t      nReceived;
+     *      Word_t      nHandled;
+     */
+        ldp     xtmp2, xtmp3, MEM(xtmp1, SigsRecvOffVSP)
+        cmp     xtmp2. xtmp3
+        b.ne    pending
+
+    /* transfer control to the SML code */
 
 /* TODO */
 
