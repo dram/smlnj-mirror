@@ -320,6 +320,13 @@ ALIGNED_ENTRY(restoreregs)
         str     x29, saveX29
 	str     lr, saveLR
 
+      /* Store address of saveregs */
+	adr	xtmp2, CSYM(saveregs)
+	str	xtmp2, start_gc
+      /* Store address of raise_overflow */
+	adr	xtmp2, CSYM(raise_overflow)
+	str	xtmp2, overflowFn
+
     /* put the MLState struct pointer in tmp1 */
 	mov	xtmp1, x0
 
