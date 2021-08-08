@@ -199,9 +199,9 @@ ALIGNED_LABEL(raise_overflow)
  */
 ALIGNED_ENTRY(bind_cfun_a)
 	cmp	allocptr, limitptr
-	b.hi	L_bind_cfun_gc
+	b.hi	L_bind_cfun_nogc
 	bl	saveregs
-L_bind_cfun_gc:
+L_bind_cfun_nogc:
         mov     wreqId,IM(REQ_BIND_CFUN)        /* wreqId = REQ_BIND_CFUN */
         b       CSYM(set_request)
 
@@ -209,9 +209,9 @@ L_bind_cfun_gc:
  */
 ALIGNED_ENTRY(build_literals_a)
 	cmp	allocptr, limitptr
-	b.hi	L_build_literals_gc
+	b.hi	L_build_literals_nogc
 	bl	saveregs
-L_build_literals_gc:
+L_build_literals_nogc:
         mov     wreqId,IM(REQ_BUILD_LITERALS)   /* wreqId = REQ_BUILD_LITERALS */
         b       CSYM(set_request)
 
@@ -219,9 +219,9 @@ L_build_literals_gc:
  */
 ALIGNED_ENTRY(callc_a)
 	cmp	allocptr, limitptr
-	b.hi	L_callc_gc
+	b.hi	L_callc_nogc
 	bl	saveregs
-L_callc_gc:
+L_callc_nogc:
         mov     wreqId,IM(REQ_CALLC)            /* wreqId = REQ_CALLC */
         b       CSYM(set_request)
 
@@ -383,9 +383,9 @@ pending:
  */
 ALIGNED_ENTRY(array_a)
 	cmp	allocptr, limitptr
-	b.hi	L_array_gc
+	b.hi	L_array_nogc
 	bl	saveregs
-L_array_gc:
+L_array_nogc:
         ldr     xtmp1, MEM(xarg, 0)     /* xtmp1 := length of array (tagged) */
         asr     xtmp2, xtmp1, IM(1)     /* xtmp2 := (xtmp1 >> 1) -- untag length */
         cmp     xtmp2, IM(SMALL_OBJ_SZW) /* if (xtmp2 <= SMALL_OBJ_SZW) goto array_large */
@@ -423,9 +423,9 @@ L_array_large:                          /* else (xtmp2 > SMALL_OBJ_SZW) */
  */
 ALIGNED_ENTRY(create_v_a)
 	cmp	allocptr, limitptr
-	b.hi	L_create_v_gc
+	b.hi	L_create_v_nogc
 	bl	saveregs
-L_create_v_gc:
+L_create_v_nogc:
 /* TODO */
 
 /* create_b : int -> bytearray
@@ -433,9 +433,9 @@ L_create_v_gc:
  */
 ALIGNED_ENTRY(create_b_a)
 	cmp	allocptr, limitptr
-	b.hi	L_create_b_gc
+	b.hi	L_create_b_nogc
 	bl	saveregs
-L_create_b_gc:
+L_create_b_nogc:
         asr     xtmp1, xarg, IM(1)              /* tmp1 := untagged length */
         add     xtmp1, xtmp1, IM(7)
         asr     xtmp1, xtmp1, IM(3)             /* tmp1 := length in words */
@@ -467,9 +467,9 @@ L_create_b_large:                                   /* else (xtmp2 > SMALL_OBJ_S
  */
 ALIGNED_ENTRY(create_s_a)
 	cmp	allocptr, limitptr
-	b.hi	L_create_s_gc
+	b.hi	L_create_s_nogc
 	bl	saveregs
-L_create_s_gc:
+L_create_s_nogc:
         asr     xtmp1, xarg, IM(1)              /* tmp1 := untagged length */
         add     xtmp1, xtmp1, IM(8)
         asr     xtmp1, xtmp1, IM(3)             /* tmp1 := length in words (incl. null) */
@@ -502,9 +502,9 @@ L_create_s_large:                                   /* else (xtmp2 > SMALL_OBJ_S
  */
 ALIGNED_ENTRY(create_r_a)
 	cmp	allocptr, limitptr
-	b.hi	L_create_r_gc
+	b.hi	L_create_r_nogc
 	bl	saveregs
-L_create_r_gc:
+L_create_r_nogc:
 /* TODO */
 
 L_create_r_large:                                   /* else (xtmp2 > SMALL_OBJ_SZW) */
