@@ -316,12 +316,10 @@ restore_and_jmp_ml:
 	POP	(misc2)
 
 jmp_ml:
-/* FIXME: we may be able to get rid of this jump with the LLVM code generator */
+/* FIXME: we may be able to get rid of this CMP with the LLVM code generator */
 	CMP	(limitptr, allocptr)
 	JMP	(CODEPTR(REGOFF(PCOffMSP,temp)))	/* Jump to ML code. */
 
-
-/* QUESTION: are these fields 32-bits? */
 pending:
 					/* Currently handling signal? */
 	CMP	(IM(0), REGOFF(InSigHandlerOffVSP,vsp))

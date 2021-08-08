@@ -382,9 +382,18 @@ ALIGNED_ENTRY(restoreregs)
         b.ne    pending
 
     /* transfer control to the SML code */
+jmp_ml:
 
-/* TODO */
-
+    /* here we have pending signals */
+pending:
+    /* are we currently handling a signal? */
+        ldr     xtmp2, MEM(xtmp1, InSigHandlerOffVSP)
+        cmp     xzero, xtmp2
+/* FIXME: can probably use a conditional move here! */
+        b.ne    jmp_ml                  /* if (! in signal handler) goto jmp_ml */
+    /* zero out the limit pointer to force a GC */
+        mov     limitptr, xzero
+        b       jmp_ml
 
 
 /**********************************************************************/
