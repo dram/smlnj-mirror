@@ -322,7 +322,7 @@ ALIGNED_ENTRY(restoreregs)
 
       /* Store address of saveregs */
 	adr	xtmp2, CSYM(saveregs)
-	str	xtmp2, start_gc
+	str	xtmp2, startGC
       /* Store address of raise_overflow */
 	adr	xtmp2, CSYM(raise_overflow)
 	str	xtmp2, overflowFn
