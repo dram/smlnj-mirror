@@ -139,7 +139,10 @@
 	    CGLOBAL(name) __SC__		\
 	    ALIGN4 __SC__			\
     LABEL(CSYM(name))
-#define IMMED(x) CONST(x)
+
+#define ALIGNED_LABEL(name)			\
+	    ALIGN4 __SC__			\
+    LABEL(name)
 
 #endif /* !_ASM_BASE_ */
 
