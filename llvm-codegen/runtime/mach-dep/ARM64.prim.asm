@@ -7,39 +7,11 @@
  */
 
 #include "ml-base.h"
-#include "asm-base.h"
 #include "ml-values.h"
 #include "tags.h"
 #include "ml-request.h"
 #include "mlstate-offsets.h"    /** this file is generated **/
 #include "ml-limits.h"
-
-/* reference memory at address `base + offset` */
-#define MEM(base,offset)        [base, IM(offset)]
-/* reference a stack location */
-#define STK(offset)             MEM(sp,offset)
-/* pre-increment memory reference; address is base + offset and base := base + offset */
-#define PREINC(base,offset)     [base, IM(offset)]!
-/* post-increment memory reference; address is base and base := base + offset */
-#define POSTINC(base,offset)     [base], IM(offset)
-
-/* macro for loading a code address into a register, which requires system-dependent
- * assembly syntax for first loading the page address of the symbol and then loading
- * the page offset.
- */
-#if defined(OPSYS_DARWIN)
-/* on Darwin, we can include a linker-optimization hint to get the expected single
- * instruction in the object code (see Target/AArch64/AArch64CollectLOH.cpp in LLVM)
- */
-#define LOAD_ADDR(reg,addr)                                                     \
-        CONCAT3(L_lea_,addr,0):                                                 \
-                adrp reg, addr@PAGE __SC__                                      \
-        CONCAT3(L_lea_,addr,1):                                                 \
-                add reg, reg, addr@PAGEOFF __SC__                               \
-                .loh AdrpAdd CONCAT3(L_lea_,addr,0), CONCAT3(L_lea_,addr,1)
-#else
-#  error unsupported system for Arm64
-#endif
 
 /* Register usage and C function calling conventions:
  *
@@ -108,6 +80,11 @@
 #define         xzero           xzr
 #define         wzero           wzr
 
+/* NOTE: this include must come after the definition of stdlink, etc., but before
+ * the use of the STK/MEM macros.
+ */
+#include "arm64-macros.h"
+
 /* Stack frame offsets are w.r.t. the stack pointer.  See
  *
  *      dev-notes/stack-layout.numbers
@@ -132,8 +109,8 @@
 #define resumePC        STK(8200)       /* gcLink */
 #define mlStatePtr      STK(8192)
 
-/* C callee-save register save-area size */
-#define C_SAVEREG_SIZE  96
+/* C callee-save register save-area size (not including x29 and LR) */
+#define C_SAVEREG_SIZE  80
 
 /* space reserved for spilling registers */
 #define ML_SPILL_SIZE   8192
@@ -147,17 +124,6 @@
  * pushed onto the stack.
  */
 #define ML_FRAME_SIZE   (ML_SPILL_SIZE+ML_AREA_SIZE)
-
-/* macro for returning from an SML compatible function via a return continuation */
-#define CONTINUE                                        \
-            br          xcont
-
-/* macro for checking the heap limit before  */
-#define CHECKLIMIT(label)                               \
-            cmp         limitptr,allocptr __SC__        \
-            b.hi        label __SC__                    \
-            bl          saveregs __SC__         \
-    label:
 
 /**********************************************************************/
         TEXT
@@ -232,21 +198,30 @@ ALIGNED_LABEL(raise_overflow)
 /* bind_cfun : (string * string) -> c_function
  */
 ALIGNED_ENTRY(bind_cfun_a)
-        CHECKLIMIT(bind_cfun_limit)
+	cmp	allocptr, limitptr
+	b.hi	L_bind_cfun_gc
+	bl	saveregs
+L_bind_cfun_gc:
         mov     wreqId,IM(REQ_BIND_CFUN)        /* wreqId = REQ_BIND_CFUN */
         b       CSYM(set_request)
 
 /* build_literals:
  */
 ALIGNED_ENTRY(build_literals_a)
-        CHECKLIMIT(build_literals_limit)
+	cmp	allocptr, limitptr
+	b.hi	L_build_literals_gc
+	bl	saveregs
+L_build_literals_gc:
         mov     wreqId,IM(REQ_BUILD_LITERALS)   /* wreqId = REQ_BUILD_LITERALS */
         b       CSYM(set_request)
 
 /* callc:
  */
 ALIGNED_ENTRY(callc_a)
-        CHECKLIMIT(callc_limit)
+	cmp	allocptr, limitptr
+	b.hi	L_callc_gc
+	bl	saveregs
+L_callc_gc:
         mov     wreqId,IM(REQ_CALLC)            /* wreqId = REQ_CALLC */
         b       CSYM(set_request)
 
@@ -310,12 +285,13 @@ ENTRY(set_request)
         ldr     x26, saveX26
         ldr     x27, saveX27
         ldr     x28, saveX28
-        ldr     x29, saveX29
-        ldr     lr, saveLR
 
-    /* pop the stack frame and return */
-        mov     wtmp1, IM(FRAME_SIZE)
-        sub     sp, sp, xtmp1
+    /* reset the sp to the frame pointer and then pop the frame pointer and return
+     * address off the stack.
+     */
+	mov	sp, x29
+	ldp	x29, x30, POSTINC(sp, 16)
+
         ret
 
 /**********************************************************************/
@@ -325,7 +301,11 @@ ENTRY(set_request)
  * Switch from C to SML.
  */
 ALIGNED_ENTRY(restoreregs)
-    /* allocate the stack frame */
+    /* first we save the frame pointer and return address in the stack */
+	stp	x29, x30, PREINC(sp, -16)
+    /* set the frame pointer */
+	mov	x29, sp
+    /* allocate the rest of the stack frame */
         mov     wtmp1, IM(FRAME_SIZE)
         add     sp, sp, xtmp1
 
@@ -342,8 +322,6 @@ ALIGNED_ENTRY(restoreregs)
         str     x26, saveX26
         str     x27, saveX27
         str     x28, saveX28
-        str     x29, saveX29
-        str     lr, saveLR
 
     /* initialize the stack frame with the necessary code addresses */
         LOAD_ADDR(xtmp2,saveregs)
@@ -383,7 +361,7 @@ ALIGNED_ENTRY(restoreregs)
 
     /* transfer control to the SML code */
 jmp_ml:
-/* QUESTION: would using a `ret` instruction be a better bet here? */
+/* QUESTION: would using a `ret` instruction be better here? */
 	br	lr
 
     /* here we have pending signals */
@@ -404,7 +382,10 @@ pending:
  * Allocate and initialize a new array
  */
 ALIGNED_ENTRY(array_a)
-        CHECKLIMIT(L_array_limit)
+	cmp	allocptr, limitptr
+	b.hi	L_array_gc
+	bl	saveregs
+L_array_gc:
         ldr     xtmp1, MEM(xarg, 0)     /* xtmp1 := length of array (tagged) */
         asr     xtmp2, xtmp1, IM(1)     /* xtmp2 := (xtmp1 >> 1) -- untag length */
         cmp     xtmp2, IM(SMALL_OBJ_SZW) /* if (xtmp2 <= SMALL_OBJ_SZW) goto array_large */
@@ -441,14 +422,20 @@ L_array_large:                          /* else (xtmp2 > SMALL_OBJ_SZW) */
  * Create a vector with elements taken from a non-null list.
  */
 ALIGNED_ENTRY(create_v_a)
-        CHECKLIMIT(L_create_v_limit)
+	cmp	allocptr, limitptr
+	b.hi	L_create_v_gc
+	bl	saveregs
+L_create_v_gc:
 /* TODO */
 
 /* create_b : int -> bytearray
  * Create an uninitialized byte array of the given length.
  */
 ALIGNED_ENTRY(create_b_a)
-        CHECKLIMIT(L_create_b_limit)
+	cmp	allocptr, limitptr
+	b.hi	L_create_b_gc
+	bl	saveregs
+L_create_b_gc:
         asr     xtmp1, xarg, IM(1)              /* tmp1 := untagged length */
         add     xtmp1, xtmp1, IM(7)
         asr     xtmp1, xtmp1, IM(3)             /* tmp1 := length in words */
@@ -479,7 +466,10 @@ L_create_b_large:                                   /* else (xtmp2 > SMALL_OBJ_S
  * This function includes an additional byte at the end to hold a null character.
  */
 ALIGNED_ENTRY(create_s_a)
-        CHECKLIMIT(L_create_s_limit)
+	cmp	allocptr, limitptr
+	b.hi	L_create_s_gc
+	bl	saveregs
+L_create_s_gc:
         asr     xtmp1, xarg, IM(1)              /* tmp1 := untagged length */
         add     xtmp1, xtmp1, IM(8)
         asr     xtmp1, xtmp1, IM(3)             /* tmp1 := length in words (incl. null) */
@@ -511,7 +501,10 @@ L_create_s_large:                                   /* else (xtmp2 > SMALL_OBJ_S
  * Create an uninitialized real64 array of the given length.
  */
 ALIGNED_ENTRY(create_r_a)
-        CHECKLIMIT(L_create_r_limit)
+	cmp	allocptr, limitptr
+	b.hi	L_create_r_gc
+	bl	saveregs
+L_create_r_gc:
 /* TODO */
 
 L_create_r_large:                                   /* else (xtmp2 > SMALL_OBJ_SZW) */
