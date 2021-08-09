@@ -82,6 +82,7 @@
 #define         xtmp2           x21     /* also misc14 */
 #define         wtmp2           w21
 #define         xtmp3           x22     /* also misc15 */
+#define         wtmp3           w22     /* also misc15 */
 #define         xtmp4           x23     /* also misc16 */
 #define         wtmp4           w23     /* also misc17 (32-bit view) */
 
@@ -395,8 +396,8 @@ ALIGNED_ENTRY(array_a)
 	b.hi	L_array_nogc
 	bl	saveregs
 L_array_nogc:
-        ldr     xtmp1, MEM(xarg, 0)     /* xtmp1 := length of array (tagged) */
-        asr     xtmp2, xtmp1, IM(1)     /* xtmp2 := (xtmp1 >> 1) -- untag length */
+        ldr     xtmp1, MEM(xarg, 0)      /* xtmp1 := length of array (tagged) */
+        asr     xtmp2, xtmp1, IM(1)      /* xtmp2 := (xtmp1 >> 1) -- untag length */
         cmp     xtmp2, IM(SMALL_OBJ_SZW) /* if (xtmp2 <= SMALL_OBJ_SZW) goto array_large */
         b.hi    L_array_large
 
@@ -421,7 +422,6 @@ L_array_lp:
         str     xtmp1, POSTINC(allocptr, WORD_SZB)  /* *allocptr++ = tagged length */
         CONTINUE
 
-/* TODO */
 L_array_large:                          /* else (xtmp2 > SMALL_OBJ_SZW) */
         mov     wreqId,IM(REQ_ALLOC_ARRAY)
         mov     xpc,xlink
@@ -435,7 +435,40 @@ ALIGNED_ENTRY(create_v_a)
 	b.hi	L_create_v_nogc
 	bl	saveregs
 L_create_v_nogc:
-/* TODO */
+        ldr     xtmp1, MEM(xarg, 0)      	/* xtmp1 := tagged length */
+	asr	xtmp2, xtmp1, IM(1)		/* xtmp2 := untagged length */
+        cmp     xtmp2, IM(SMALL_OBJ_SZW)        /* if (xtmp2 <= SMALL_OBJ_SZW) */
+        b.hi    L_vector_large                  /*    then goto vector_large */
+
+	ldr	xtmp2, MEM(xarg, WORD_SZB)	/* xtmp2 := initialization list */
+
+        /* build descriptor in tmp3 and then write it to the heap */
+        mov     wtmp3, IM(MAKE_TAG(DTAG_vec_data))
+        orr     xtmp3, xtmp3, xtmp1, lsl IM(TAG_SHIFTW)
+        str     xtmp3, POSTINC(allocptr, WORD_SZB)	/* *allocptr++ = descriptor */
+        mov     xtmp4, allocptr                 	/* tmp4 := array data object */
+
+L_vector_lp:
+	cmp	xtmp2, IM(ML_nil)			/* while (xtmp2 != NIL) do */
+	b.eq	L_vector_lp_exit
+	ldp	xtmp3, xtmp2, MEM(xtmp2, 0)		/* xtmp3 = hd(xtmp2);
+							 * xtmp2 = tl(xtmp2) */
+	str	xtmp3, POSTINC(allocptr, WORD_SZB)	/* *allocptr++ = xtmp3 */
+	b	L_vector_lp
+
+L_vector_lp_exit:
+	/* allocate vector header object */
+	mov     wtmp3, IM(DESC_polyvec)
+        str     xtmp3, POSTINC(allocptr, WORD_SZB)  /* *allocptr++ = DESC_polyvec */
+        mov     xarg, allocptr                      /* arg = header object */
+        str     xtmp4, POSTINC(allocptr, WORD_SZB)  /* *allocptr++ = data object */
+        str     xtmp1, POSTINC(allocptr, WORD_SZB)  /* *allocptr++ = tagged length */
+        CONTINUE
+
+L_vector_large:					/* else (xtmp2 > SMALL_OBJ_SZW) */
+        mov     wreqId,IM(REQ_ALLOC_VECTOR)
+        mov     xpc,xlink
+        b       CSYM(set_request)
 
 /* create_b : int -> bytearray
  * Create an uninitialized byte array of the given length.
@@ -444,18 +477,21 @@ ALIGNED_ENTRY(create_b_a)
 	cmp	allocptr, limitptr
 	b.hi	L_create_b_nogc
 	bl	saveregs
+
 L_create_b_nogc:
         asr     xtmp1, xarg, IM(1)              /* tmp1 := untagged length */
         add     xtmp1, xtmp1, IM(7)
         asr     xtmp1, xtmp1, IM(3)             /* tmp1 := length in words */
-        cmp     xtmp1, IM(SMALL_OBJ_SZW)        /* if (xtmp2 <= SMALL_OBJ_SZW) */
+        cmp     xtmp1, IM(SMALL_OBJ_SZW)        /* if (xtmp1 <= SMALL_OBJ_SZW) */
         b.hi    L_create_b_large                /*    then goto create_b_large */
+
         /* build descriptor in tmp2 */
         mov     wtmp2, IM(MAKE_TAG(DTAG_raw))
         orr     xtmp2, xtmp2, xarg, lsl IM(TAG_SHIFTW)
         str     xtmp2, POSTINC(allocptr, WORD_SZB)  /* *allocptr++ = descriptor */
         mov     xtmp3, allocptr                     /* tmp3 = data object */
         add     allocptr, allocptr, xtmp1, lsl IM(3) /* allocptr += length */
+
         /* allocate header object */
         mov     wtmp4, IM(DESC_word8arr)
         str     xtmp4, POSTINC(allocptr, WORD_SZB)  /* *allocptr++ = DESC_word8arr */
@@ -465,7 +501,7 @@ L_create_b_nogc:
         mov     xarg, xtmp1
         CONTINUE
 
-L_create_b_large:                                   /* else (xtmp2 > SMALL_OBJ_SZW) */
+L_create_b_large:                                   /* else (xtmp1 > SMALL_OBJ_SZW) */
         mov     wreqId,IM(REQ_ALLOC_BYTEARRAY)
         mov     xpc,xlink
         b       CSYM(set_request)
@@ -478,12 +514,14 @@ ALIGNED_ENTRY(create_s_a)
 	cmp	allocptr, limitptr
 	b.hi	L_create_s_nogc
 	bl	saveregs
+
 L_create_s_nogc:
         asr     xtmp1, xarg, IM(1)              /* tmp1 := untagged length */
         add     xtmp1, xtmp1, IM(8)
         asr     xtmp1, xtmp1, IM(3)             /* tmp1 := length in words (incl. null) */
-        cmp     xtmp1, IM(SMALL_OBJ_SZW)        /* if (xtmp2 <= SMALL_OBJ_SZW) */
+        cmp     xtmp1, IM(SMALL_OBJ_SZW)        /* if (xtmp1 <= SMALL_OBJ_SZW) */
         b.hi    L_create_b_large                /*    then goto create_b_large */
+
         /* build descriptor in tmp2 */
         mov     wtmp2, IM(MAKE_TAG(DTAG_raw))
         orr     xtmp2, xtmp2, xarg, lsl IM(TAG_SHIFTW)
@@ -491,6 +529,7 @@ L_create_s_nogc:
         mov     xtmp3, allocptr                     /* tmp3 = data object */
         add     allocptr, allocptr, xtmp1, lsl IM(3) /* allocptr += length */
         str     xzero, MEM(allocptr, -8)            /* zero out last word */
+
         /* allocate header object */
         mov     wtmp4, IM(DESC_string)
         str     xtmp4, POSTINC(allocptr, WORD_SZB)  /* *allocptr++ = DESC_word8arr */
@@ -500,7 +539,7 @@ L_create_s_nogc:
         mov     xarg, xtmp1
         CONTINUE
 
-L_create_s_large:                                   /* else (xtmp2 > SMALL_OBJ_SZW) */
+L_create_s_large:                                   /* else (xtmp1 > SMALL_OBJ_SZW) */
         mov     wreqId,IM(REQ_ALLOC_STRING)
         mov     xpc,xlink
         b       CSYM(set_request)
@@ -514,9 +553,27 @@ ALIGNED_ENTRY(create_r_a)
 	b.hi	L_create_r_nogc
 	bl	saveregs
 L_create_r_nogc:
-/* TODO */
+        asr     xtmp1, xarg, IM(1)              /* tmp1 := untagged length */
+        cmp     xtmp1, IM(SMALL_OBJ_SZW)        /* if (xtmp1 <= SMALL_OBJ_SZW) */
+        b.hi    L_create_r_large                /*    then goto create_r_large */
 
-L_create_r_large:                                   /* else (xtmp2 > SMALL_OBJ_SZW) */
+        /* build descriptor in tmp2 */
+        mov     wtmp2, IM(MAKE_TAG(DTAG_raw64))
+        orr     xtmp2, xtmp2, xarg, lsl IM(TAG_SHIFTW)
+        str     xtmp2, POSTINC(allocptr, WORD_SZB)  /* *allocptr++ = descriptor */
+        mov     xtmp3, allocptr                     /* tmp3 = data object */
+        add     allocptr, allocptr, xtmp1, lsl IM(3) /* allocptr += length */
+
+        /* allocate header object */
+        mov     wtmp4, IM(DESC_real64arr)
+        str     xtmp4, POSTINC(allocptr, WORD_SZB)  /* *allocptr++ = DESC_real64arr */
+        mov     xtmp1, allocptr                     /* xtmp1 = header object */
+        str     xtmp3, POSTINC(allocptr, WORD_SZB)  /* *allocptr++ = data object */
+        str     xarg, POSTINC(allocptr, WORD_SZB)   /* *allocptr++ = tagged length */
+        mov     xarg, xtmp1
+        CONTINUE
+
+L_create_r_large:                                   /* else (xtmp1 > SMALL_OBJ_SZW) */
         mov     wreqId,IM(REQ_ALLOC_REALDARRAY)
         mov     xpc,xlink
         b       CSYM(set_request)
