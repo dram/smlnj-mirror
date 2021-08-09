@@ -25,9 +25,10 @@ SML_ROOT =      /Users/jhr/Work/smlnj/sml-llvm
 LLVM_DIR =      $(SML_ROOT)/llvm-codegen/llvm-release
 #LLVM_DIR =      $(SML_ROOT)/llvm-codegen/llvm-debug
 LLVM_CONFIG =	$(LLVM_DIR)/bin/llvm-config
+TARGET_ARCHS =	aarch64
 
 LLVM_LD_FLAGS =	$(shell $(LLVM_CONFIG) --ldflags)
-LLVM_LIBS =	$(shell $(LLVM_CONFIG) --libs x86) \
+LLVM_LIBS =	$(shell $(LLVM_CONFIG) --libs $(TARGET_ARCHS)) \
 		$(shell $(LLVM_CONFIG) --system-libs)
 
 #
