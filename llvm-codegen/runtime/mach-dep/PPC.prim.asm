@@ -719,16 +719,6 @@ ALIGNED_ENTRY(floor_a)
 	CONTINUE
 
 
-ALIGNED_ENTRY(logb_a)
-	lwz	stdarg,0(stdarg)  	/* most significant part */
-	srawi 	stdarg,stdarg,20	/* throw out 20 low bits */
-	andi.	stdarg,stdarg,0x07ff	/* clear all but 11 low bits */
-	addi	stdarg,stdarg,-1023	/* subtract 1023 */
-	slwi	stdarg,stdarg,1		/* make room for tag bit */
-	addi	stdarg,stdarg,1		/* add the tag bit */
-	CONTINUE
-
-
 /*
 ** scalb : real * int -> real
 **	scalb(x,y) = x * 2^y
@@ -774,23 +764,6 @@ scalb_underflow:
 
 LABEL(scalb_overflow)
 	mtfsb1 	3
-
-
-
-ALIGNED_ENTRY(try_lock_a)
-	lwz	atmp1,0(stdarg)
-	li	atmp2,1			/* ML_false */
-	stw	atmp2,0(stdarg)
-	addi	stdarg,atmp1,0
-	CONTINUE
-
-
-ALIGNED_ENTRY(unlock_a)
-	li	atmp1,3			/* ML_true */
-	stw	atmp1,0(stdarg)
-	li	stdarg,1		/* just return unit */
-	CONTINUE
-
 
 
 CENTRY(set_fsr)

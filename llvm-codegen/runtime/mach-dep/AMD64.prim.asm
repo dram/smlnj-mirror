@@ -545,31 +545,6 @@ LABEL(L_create_v_large)
 	MOV	(IM(REQ_ALLOC_VECTOR),request_w)
 	JMP	(CSYM(set_request))
 
-/* try_lock: spin_lock -> bool.
- * low-level test-and-set style primitive for mutual-exclusion among
- * processors.	For now, we only provide a uni-processor trivial version.
- */
-ALIGNED_ENTRY(try_lock_a)
-#if (MAX_PROCS > 1)
-#  error multiple processors not supported
-#else /* (MAX_PROCS == 1) */
-	MOV	(REGIND(stdarg), temp)		/* Get old value of lock. */
-	MOV	(IM(1), REGIND(stdarg))	/* Set the lock to ML_false. */
-	MOV	(temp, stdarg)			/* Return old value of lock. */
-	CONTINUE
-#endif
-
-/* unlock : releases a spin lock
- */
-ALIGNED_ENTRY(unlock_a)
-#if (MAX_PROCS > 1)
-#  error multiple processors not supported
-#else /* (MAX_PROCS == 1) */
-	MOV	(IM(3), REGIND(stdarg))	/* Store ML_true into lock. */
-	MOV	(IM(1), stdarg)		/* Return unit. */
-	CONTINUE
-#endif
-
 
 /********************* Floating point functions. *********************/
 
@@ -591,14 +566,6 @@ ALIGNED_ENTRY(floor_a)
 	CVTTSD2SI	(XMM0, stdarg)
 	SAL		(IM(1),stdarg)	/* convert result to tagged representation */
 	INC		(stdarg)
-	CONTINUE
-
-/* logb : real -> int
- * Extract the unbiased exponent pointed to by stdarg.
- * Note: Using fxtract, and fistl does not work for inf's and nan's.
- */
-ALIGNED_ENTRY(logb_a)
-	/* DEPRECATED */
 	CONTINUE
 
 #define SIGN_MASK	IM(0x8000000000000000)

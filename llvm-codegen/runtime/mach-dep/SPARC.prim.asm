@@ -509,17 +509,6 @@ ALIGNED_ENTRY(floor_a)
 	add	TMPREG2,1,STDARG
 	CONTINUE
 
-/* logb : real -> int
- * Extract and unbias the exponent.
- * The IEEE bias is 1023.
- */
-ALIGNED_ENTRY(logb_a)
-	ld	[STDARG],TMPREG2		/* extract exponent. */
-	srl	TMPREG2,19,TMPREG2
-	and	TMPREG2,2047*2,TMPREG2		/* unbias and cvt to ML int. */
-	sub	TMPREG2,2045,STDARG	  	/* 2(n-1023)+1 == 2n-2045. */
-	CONTINUE
-
 
 /* scalb : (real * int) -> real
  * Scale the first argument by 2 raised to the second argument.	 Raise
@@ -567,33 +556,6 @@ under:				/* handle underflow */
 	set	0,TMPREG1
 	ba	7b
 	nop
-
-/* try_lock : spin_lock -> bool
- * low-level test-and-set style primitive for mutual-exclusion among
- * processors.
- */
-ALIGNED_ENTRY(try_lock_a)
-#if (MAX_PROCS > 1)
-	???
-#else (MAX_PROCS == 1)
-	ld	[STDARG],TMPREG1	/* load previous value into tmpreg1 */
-	set	ML_false,TMPREG4	/* ML_false */
-	st	TMPREG4,[STDARG]	/* store ML_false into the lock */
-	mov	TMPREG1,STDARG		/* return previous value of lock */
-	CONTINUE
-#endif
-
-/* unlock : releases a spin lock
- */
-ALIGNED_ENTRY(unlock_a)
-#if (MAX_PROCS > 1)
-	???
-#else (MAX_PROCS == 1)
-	set	ML_true,TMPREG1		/* store ML_true ... */
-	st	TMPREG1,[STDARG]		/* into the lock */
-	set	ML_unit,STDARG		/* return unit */
-	CONTINUE
-#endif
 
 
 /* SetFSR:

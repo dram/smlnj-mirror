@@ -678,22 +678,6 @@ ALIGNED_ENTRY(floor_a)
 	CONTINUE
 
 
-	/* DEPRECATED */
-/* logb : real -> int
- * Extract the unbiased exponent pointed to by stdarg.
- * Note: Using fxtract, and fistl does not work for inf's and nan's.
- */
-ALIGNED_ENTRY(logb_a)
-	MOV	(REGOFF(4,stdarg),temp)	/* msb for little endian arch */
-	SAR	(IM(20),temp)		/* throw out 20 bits */
-	AND	(IM(HEXLIT(7ff)),temp)	/* clear all but 11 low bits */
-	SUB	(IM(1023),temp)		/* unbias */
-	SAL	(IM(1),temp)		/* room for tag bit */
-	ADD	(IM(1),temp)		/* tag bit */
-	MOV	(temp,stdarg)
-	CONTINUE
-
-
 /* scalb : (real * int) -> real
  * Scale the first argument by 2 raised to the second argument.
  * NB: We assume the first floating point "register" is

@@ -31,11 +31,7 @@
  * the actual cast.  This causes problems, however, for gcc when used in
  * a static initialization; hence the PTR_CAST macro.
  */
-#ifdef SIZES_C64_ML32
-#define PTR_CAST(ty, p)		((ty)(Addr_t)(p))
-#else
 #define PTR_CAST(ty, p)		((ty)(p))
-#endif
 
 #define INT_MLtoC(n)		(((Int_t)(n)) >> 1)
 #define INT_CtoML(n)		((ml_val_t)(Int_t)(2*(n) + 1))

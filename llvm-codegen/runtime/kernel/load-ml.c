@@ -30,11 +30,6 @@ void LoadML (const char *loadImage, heap_params_t *heapParams)
 
     InitFaultHandlers ();
 
-#ifdef SIZES_C64_ML32
-  /* patch the 32-bit addresses */
-    PatchAddrs ();
-#endif
-
     RunML (msp);
 
 } /* end of LoadML */
