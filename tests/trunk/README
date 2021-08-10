@@ -16,7 +16,7 @@ There are 5 active test suites, found in the directories:
 
 Each test suite directory contains two subdirectories
 
-  tests	      source files for tests
+  tests	      source files for tests [Note: test variants]
   outputs     corresponding output files [Note: output variants]
 
 and a file
@@ -44,14 +44,14 @@ sharing the file system containing this directory.
 For a particular architecture and operating system, arch-os,
 bin/testml.sh produces a file <testdir>/LOG.arch-os and
 a directory <testdir>/bad.arch-os.  process.sh <testdir> then
-produces a file <testdir>/RESULTS.arch-os.  
+produces a file <testdir>/RESULTS.arch-os.
 
 Before running a regression test suite, any old copies of these files
 and directories should be removed (if not, the scripts will complain).
 
 --------------------------------------------------------------------
 bin/dotest.sh <testdir> [-diff] [-sml <filename>]  -  run tests in <testdir>
-     
+
   <testdir>
     the name of the test suite to be run (coresml, typing, etc).
 
@@ -61,8 +61,8 @@ bin/dotest.sh <testdir> [-diff] [-sml <filename>]  -  run tests in <testdir>
     is used instead, and if that is not defined, the default command
     name "/usr/local/sml/bin/sml" is used.
 
-  -diff 
-    this option causes the diff between the test output and 
+  -diff
+    this option causes the diff between the test output and
     the corresponding reference output (in <testdir>/outputs) to be
     used in the RESULT file, overriding the default behavior, which
     is to include the old and new outputs in full.
@@ -102,23 +102,23 @@ out from the Chicago gforge SVN repository), be sure to read the instructions
 in tests/basis/tests/README.  This file explains how to set up some
 symbolic and hard links needed by the filesys.sml test.
 
-[output variants] There are actually two versions of the outputs directory
-for each test suite.  These are named
+[test variants] Some tests depend on the word size of the target
+architecture (i.e., 32 vs 64 bit).  For these, we use the convention
+of appending a suffix of either "-32bit" or "-64bit" to the test
+file name (and to the corresponding output file name).  Such tests
+are only run when the SML wordsize matches the size specified by
+the suffix.
 
-  outputs.pre-110.5
-  outputs.post-110.5
+[output variants] There are actually three versions of the outputs directory
+for each test suite.  These are named with the SML/NJ versions that they
+match as follows:
 
-The first of these should be used for testing versions before 110.5,
-while the second should be used for versions >= 110.5.  Before running
-any of the test scripts, output should be defined as a symbolic link
-to one of these two directories.  E.g. if testing 110.0.6, in each
-test suite directory do:
+  outputs.pre-110.5             -- for versions before 110.5
+  outputs.post-110.5            -- for versions from 110.5 through 110.96
+  outputs                       -- for versions from 110.97 and later
 
-  rm outputs
-  ln -s outputs.pre-110.5 outputs
-
-The reason for the two versions of outputs is that printing changed with
-110.5 and there is an extra blank line at the end of each output file.
+Note that the older outputs are preserved for historical reasons, but
+the dotest.sh script does not support testing the older systems directly.
 
 Authors: Dave MacQueen <dbm@research.bell-labs.com>,
 	 Lal George <george@research.bell-labs.com>

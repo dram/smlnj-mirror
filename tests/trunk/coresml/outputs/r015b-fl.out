@@ -1,7 +1,7 @@
 val it = () : unit
-r015b-fl.sml:13.9-15.22 Error: types of rules do not agree [overload conflict]
+r015b-fl.sml:13.9-15.22 Error: types of rules do not agree [overload - bad instantiation]
   earlier rule(s): bool -> bool
-  this rule: [+ ty] -> [+ ty]
+  this rule: 'Z[INT] -> 'Z[INT]
   in rule:
     y => y + 3
 

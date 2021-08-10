@@ -1,7 +1,7 @@
 val it = () : unit
-r017i-fl.sml:21.29-21.38 Error: operator and operand do not agree [overload conflict]
-  operator domain: [int ty] ref * [int ty]
-  operand:         [int ty] ref * bool
+r017i-fl.sml:21.29-21.38 Error: operator and operand do not agree [overload - bad instantiation]
+  operator domain: 'Z[INT] ref * 'Z[INT]
+  operand:         'Z[INT] ref * bool
   in expression:
     y := true
 

@@ -1,7 +1,7 @@
 val it = () : unit
-r026a-fl.sml:13.5-13.18 Error: pattern and expression in val dec do not agree [overload conflict]
+r026a-fl.sml:13.5-13.18 Error: pattern and expression in val dec do not agree [overload - bad instantiation]
   pattern:    real
-  expression:    [int ty]
+  expression:    'Z[INT]
   in declaration:
     x : real = 12
 

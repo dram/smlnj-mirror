@@ -1,17 +1,17 @@
 val it = () : unit
-r017h-fl.sml:33.26-33.32 Error: operator and operand do not agree [overload conflict]
-  operator domain: [int ty]
+r017h-fl.sml:33.26-33.32 Error: operator and operand do not agree [overload - bad instantiation]
+  operator domain: 'Z[INT]
   operand:         bool
   in expression:
     f true
-r017h-fl.sml:35.27-35.38 Error: operator and operand do not agree [overload conflict]
-  operator domain: [int ty] list ref * [int ty] list
-  operand:         [int ty] list ref * bool list
+r017h-fl.sml:35.27-35.38 Error: operator and operand do not agree [overload - bad instantiation]
+  operator domain: 'Z[INT] list ref * 'Z[INT] list
+  operand:         'Z[INT] list ref * bool list
   in expression:
     y := true :: nil
-r017h-fl.sml:35.40-35.51 Error: operator and operand do not agree [overload conflict]
+r017h-fl.sml:35.40-35.51 Error: operator and operand do not agree [overload - bad instantiation]
   operator domain: bool list * bool list
-  operand:         bool list * [int ty] list
+  operand:         bool list * 'Z[INT] list
   in expression:
     true :: nil = ! y
 

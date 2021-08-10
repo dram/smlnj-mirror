@@ -12,7 +12,8 @@
 # is concatenated.
 
 #
-# Usage process.sh  [-log <log-file>] [-test <test-dir>] [-bad <baddir>]
+# Usage process.sh  <testdir> <heap-suffix> [options]
+# [-log <log-file>] [-test <test-dir>] [-bad <baddir>]
 #
 
 #
@@ -26,11 +27,12 @@ LOGFILE=$TESTDIR/LOG.$SUFFIX
 DIFF=0
 
 function printUsage {
-  echo "Usage: process.sh <testdir> <heap-suffix>"
-  echo "                  [-log <log-file>]     default=$LOGFILE"
-  echo "                  [-bad <baddir>]       default=$BADDIR"
-  echo "                  [-diff]               default=<no diffs>"
-  echo "                  [-help]"
+  echo "Usage: process.sh <testdir> <heap-suffix> [ options ]"
+  echo "Options:"
+  echo "    -log <log-file>     default=$LOGFILE"
+  echo "    -bad <baddir>       default=$BADDIR"
+  echo "    -diff               default=<no diffs>"
+  echo "    -help               print this message"
 }
 
 #

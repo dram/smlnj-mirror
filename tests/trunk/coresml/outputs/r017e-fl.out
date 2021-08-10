@@ -1,7 +1,7 @@
 val it = () : unit
-r017e-fl.sml:22.36-22.42 Error: operator and operand do not agree [overload conflict]
+r017e-fl.sml:22.36-22.42 Error: operator and operand do not agree [overload - bad instantiation]
   operator domain: bool * bool
-  operand:         bool * [int ty]
+  operand:         bool * 'Z[INT]
   in expression:
     ! y = 5
 

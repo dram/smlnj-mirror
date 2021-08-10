@@ -1,11 +1,11 @@
 val it = () : unit
 exception exc_test
-r012b-fl.sml:15.5-15.34 Error: expression and handler do not agree [overload conflict]
-  body:          [int ty]
+r012b-fl.sml:15.5-15.34 Error: expression and handler do not agree [overload - bad instantiation]
+  body:          'Z[INT]
   handler range:          bool
   in expression:
     1
-    handle 
-        exc_test => true
-    | exn => raise exn
+  handle
+      exc_test => true
+  | exn => raise exn
 

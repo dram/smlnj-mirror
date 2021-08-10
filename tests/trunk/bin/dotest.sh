@@ -21,7 +21,7 @@ DIFFS=
 
 function printUsage {
  $ECHO -u2 "dotest.sh [options] testdir "
- $ECHO -u2 "    -sml <sml-path>]     default=$SMLX"
+ $ECHO -u2 "    -sml <sml-path>     default=$SMLX"
  $ECHO -u2 "    -diff               default=off"
  $ECHO -u2 "    -help"
 }
@@ -56,7 +56,9 @@ if [ x"$TESTDIR" = x ] ; then
     exit 1
 fi
 
-SUFFIX=`$SMLX @SMLsuffix`
+# get the suffix from the sml executable
+#
+SUFFIX=$($SMLX @SMLsuffix)
 
 #
 # Make sure output files do not exist

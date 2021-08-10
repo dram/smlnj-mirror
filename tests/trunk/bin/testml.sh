@@ -139,7 +139,15 @@ do
 	esac
 done
 
-SUFFIX=`$SML @SMLsuffix`
+#
+# get the heap suffix
+#
+SUFFIX=$($SML @SMLsuffix)
+
+#
+# get the word size
+#
+WORDSIZE=$($SML @SMLwordsize)
 
 if [ x"$BADDIR" = x ] ; then
   BADDIR=$TESTDIR/bad.$SUFFIX
@@ -286,6 +294,21 @@ do
 	then continue;
 	fi
 
+        # is the test wordsize specific and, if so, does it match the
+        # system wordsize?
+        #
+        case $srcFile in
+          *-32bit.sml)
+            if [[ $WORDSIZE -ne 32 ]]
+            then continue
+            fi ;;
+          *-64bit.sml)
+            if [[ $WORDSIZE -ne 64 ]]
+            then continue
+            fi ;;
+          *) ;;
+        esac
+
 	case $TESTMODE in
 	  "TESTONLY")
 		$ECHO -n "${CMD}  Testing ${file##*/tests/} 	   ... "
@@ -319,6 +342,5 @@ done
 # cleanup
 #
 rm -f $TSML.$SUFFIX $TMPFILE /tmp/testblast
-
 
 exit 0
