@@ -1,0 +1,15 @@
+../compiler/FLINT/opt/fcontract.sml:1024.12-1024.23 Error: variable found where constructor is required: F.RK_STRUCT
+
+  a variable could never have the lexical form "F.RK_STRUCT" (i.e. no qualified identifier should
+  be considered a variable
+
+
+../compiler/FLINT/opt/loopify.sml:73.15-73.34 Error: pattern and constraint do not agree [type mismatch]
+  pattern:    {isrec:'Y; 'Z}
+  constraint:    [E]
+  in pattern:
+    {isrec=isrec,...} : [E]
+)
+  Here [E] denotes a type constraint F.fkind where F.fkind is not
+  defined (should have been LT.fkind).
+  
