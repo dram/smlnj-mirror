@@ -142,11 +142,41 @@ ml_val_t llvm_codegen (ml_state_t *msp, const char *src, const char *pkl, size_t
     double objGenT = objGenTimer.msec();
 
     if (obj != nullptr) {
-      // copy the sections to a heap-allocated code object
+      // copy the sections to a heap-allocated code object.  At the very end, we add the
+      // name of ths source file.  The name string is word-aligned, nul-terminated,
+      // and padded to a multiple of the word size.  It is followed by a byte
+      // specifying its length in words (if the name is longer than 255*WORD_SZB,
+      // then we omit the source file name).  This layout must be consistent with
+      // the function BO_GetCodeObjTag in runtime/gc/big-objects.c.
+// FIXME: it does not make any sense to restrict the length field to a byte, since
+// the code object is going to occupy a multiple of big-object pages in memory!!!
+
 	Timer relocTimer = Timer::start();
+
 	size_t codeSzb = obj->size();
-	auto codeObj = ML_AllocCode (msp, obj->size());
+        // first we round the code size up to a multiple of the word size
+        size_t alignedCodeSzb = CodeBuf->roundToWordSzInBytes (codeSzb);
+        // compute the padded size of the source-file name
+        size_t srcFileLen = strlen(src);
+        size_t paddedSrcFileLen = CodeBuf->roundToWordSzInBytes (srcFileLen + 1);
+        if (paddedSrcFileLen > 255 * CodeBuf->wordSzInBytes()) {
+            // if the file name is too long, which is unexpected, omit it
+            paddedSrcFileLen = 0;
+        }
+        // size of code-object with extras
+        size_t codeObjSzb = alignedCodeSzb      // code + alignment padding
+            + paddedSrcFileLen                  // src name
+            + 1;                                // src name length
+	auto codeObj = ML_AllocCode (msp, codeObjSzb);
 	obj->getCode (PTR_MLtoC(unsigned char, codeObj));
+        // now add the source-file name to the end of the code object
+        char *srcNameLoc = PTR_MLtoC(char, codeObj) + alignedCodeSzb;
+        // copy the source-file name; note that `strncpy` pads with zeros
+        strncpy (srcNameLoc + alignedCodeSzb, src, paddedSrcFileLen);
+        // add the length in words at the end
+        *reinterpret_cast<unsigned char *>(srcNameLoc + paddedSrcFileLen) =
+            (paddedSrcFileLen / CodeBuf->wordSzInBytes());
+
 	double relocT = relocTimer.msec();
 
 #ifdef NDEBUG

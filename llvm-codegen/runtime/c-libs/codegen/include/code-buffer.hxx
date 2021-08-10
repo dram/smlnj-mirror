@@ -145,6 +145,10 @@ class code_buffer {
 
   // target parameters
     int wordSzInBytes () const { return this->_wordSzB; }
+    size_t roundToWordSzInBytes (size_t nb) const
+    {
+        return (nb + (this->_wordSzB - 1)) & ~(this->_wordSzB - 1);
+    }
     bool is64Bit () const { return (this->_wordSzB == 8); }
     target_info const *targetInfo () const { return this->_target; }
 
@@ -831,7 +835,7 @@ class code_buffer {
   // add the "extra" arguments (plus optional base pointer) to an argument vector
     void _addExtraArgs (Args_t &args, arg_info const &info) const;
 
-  // constructor
+  // private constructor
     code_buffer (struct target_info const *target);
 
 };
