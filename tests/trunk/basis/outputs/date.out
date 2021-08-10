@@ -14,6 +14,6 @@ This is the name of this month: May
 val test1 = "OK" : string
 val test2 = "OK" : string
 val test3 = "OK" : string
-val test4 = "WRONG" : string
+val test4 = "OK" : string
 val test5 = "OK" : string
 
