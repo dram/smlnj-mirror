@@ -1,0 +1,15 @@
+val it = () : unit
+val minInt1 = ~4611686018427387904 : int
+val maxInt1 = 4611686018427387903 : int
+val minInt2 = ~4611686018427387904 : int
+val maxInt21 = 4611686018427387903 : int
+val maxInt22 = 4611686018427387903 : int
+val test1 = "OK" : string
+val test2 = "OK" : string
+val maxWord1 = 0wx7FFFFFFFFFFFFFFF : word
+val maxWord2 = 0wx7FFFFFFFFFFFFFFF : word
+val test3 = "OK" : string
+val maxWord8_1 = 0wxFF : word
+val maxWord8_2 = 0wxFF : word
+val test4 = "OK" : string
+
