@@ -99,6 +99,17 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Version 1021.1; 2021/??/??
 
 //--------------------------------------------------------------------
+[2021/08/10]::
++
+Split out the `Real.toLargeInt` implementation into target-word-size
+versions (the `Real64ToIntInf` module).  For 64-bit targets, the new
+version uses the bit representation of the real number to compute the
+result.  The 32-bit version is the old code that uses floating-point
+operations.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2021/04/29]::
 +
 In the translation from Absyn to PLambda, there was a function (`inlops`)
