@@ -88,27 +88,29 @@ structure Real64ToIntInf : sig
                                   then truncPlusOne mant
                                 (* < 0 so we can ignore any fractional bits *)
                                   else trunc mant
-                            | IEEEReal.TO_NEAREST => let
-                                val w = W64.chkRshiftl(mant, shiftAmt)
-                                val frac = W64.andb(mant, W64.chkLshift(0w1, shiftAmt) - 0w1)
-                                val whole =
-                                      if frac = 0w0
-                                        then w
-                                        else let
-                                          val mid = W64.chkLshift(0w1, shiftAmt - 0w1)
-                                          in
-                                            if (frac < mid)
-                                              then w (* round absolute value down *)
-                                            else if (frac > mid)
-                                              then w + 0w1 (* round absolute value up *)
-                                            (* round to even for ties *)
-                                            else if (W64.andb(w, 0w1) = 0w0)
-                                              then w
-                                              else w + 0w1 (* round to even *)
-                                          end
-                                in
-                                  mkIntInf (neg, whole)
-                                end
+                            | IEEEReal.TO_NEAREST => if (shiftAmt > 0w52)
+                                then 0 (* all mantissa bits are shifted away *)
+                                else let
+                                  val w = W64.chkRshiftl(mant, shiftAmt)
+                                  val frac = W64.andb(mant, W64.chkLshift(0w1, shiftAmt) - 0w1)
+                                  val whole =
+                                        if frac = 0w0
+                                          then w
+                                          else let
+                                            val mid = W64.chkLshift(0w1, shiftAmt - 0w1)
+                                            in
+                                              if (frac < mid)
+                                                then w (* round absolute value down *)
+                                              else if (frac > mid)
+                                                then w + 0w1 (* round absolute value up *)
+                                              (* round to even for ties *)
+                                              else if (W64.andb(w, 0w1) = 0w0)
+                                                then w
+                                                else w + 0w1 (* round to even *)
+                                            end
+                                  in
+                                    mkIntInf (neg, whole)
+                                  end
                           (* end case *)
                         end
                       else let
