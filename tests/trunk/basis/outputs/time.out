@@ -15,7 +15,7 @@ val test8a = "OK" : string
 val test9a = "OK" : string
 val test9b = "OK" : string
 val test9c = "OK" : string
-val test10a = ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"]
-  : string list
+val test10a = ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"] :
+  string list
 val test10b = ["OK","OK","OK"] : string list
 

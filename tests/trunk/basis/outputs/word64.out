@@ -1,0 +1,68 @@
+val it = () : unit
+check (Word64.toLargeInt 0wx0): ok
+check (Word64.toLargeInt 0wx1): ok
+check (Word64.toLargeInt 0wx2): ok
+check (Word64.toLargeInt 0wx3): ok
+check (Word64.toLargeInt 0wxF): ok
+check (Word64.toLargeInt 0wx11): ok
+check (Word64.toLargeInt 0wxFFFF): ok
+check (Word64.toLargeInt 0wx10000): ok
+check (Word64.toLargeInt 0wx1FFFF): ok
+check (Word64.toLargeInt 0wx100000001): ok
+check (Word64.toLargeInt 0wx800080008000): ok
+check (Word64.toLargeInt 0wx1000100010001): ok
+check (Word64.toLargeInt 0wx7FFF00000000FFFF): ok
+check (Word64.toLargeInt 0wxFFFFFFFF0000): ok
+check (Word64.toLargeInt 0wxFFFF0000FFFF0000): ok
+check (Word64.toLargeInt 0wx7FFFFFFFFFFFFFFF): ok
+check (Word64.toLargeInt 0wx7FFFFFFFFFFFFFFE): ok
+check (Word64.toLargeInt 0wx8000000000000000): ok
+check (Word64.toLargeInt 0wx8000000000000001): ok
+check (Word64.toLargeInt 0wxFFFFFFFFFFFFFFFE): ok
+check (Word64.toLargeInt 0wxFFFFFFFFFFFFFFFF): ok
+all 21 tests passed
+check (Word64.toLargeIntX 0wx0): ok
+check (Word64.toLargeIntX 0wx1): ok
+check (Word64.toLargeIntX 0wx2): ok
+check (Word64.toLargeIntX 0wx3): ok
+check (Word64.toLargeIntX 0wxF): ok
+check (Word64.toLargeIntX 0wx11): ok
+check (Word64.toLargeIntX 0wxFFFF): ok
+check (Word64.toLargeIntX 0wx10000): ok
+check (Word64.toLargeIntX 0wx1FFFF): ok
+check (Word64.toLargeIntX 0wx100000001): ok
+check (Word64.toLargeIntX 0wx800080008000): ok
+check (Word64.toLargeIntX 0wx1000100010001): ok
+check (Word64.toLargeIntX 0wx7FFF00000000FFFF): ok
+check (Word64.toLargeIntX 0wxFFFFFFFF0000): ok
+check (Word64.toLargeIntX 0wxFFFF0000FFFF0000): ok
+check (Word64.toLargeIntX 0wx7FFFFFFFFFFFFFFF): ok
+check (Word64.toLargeIntX 0wx7FFFFFFFFFFFFFFE): ok
+check (Word64.toLargeIntX 0wx8000000000000000): ok
+check (Word64.toLargeIntX 0wx8000000000000001): ok
+check (Word64.toLargeIntX 0wxFFFFFFFFFFFFFFFE): ok
+check (Word64.toLargeIntX 0wxFFFFFFFFFFFFFFFF): ok
+all 21 tests passed
+check ((Word64.fromLargeInt o Word64.toLargeInt) 0wx0): ok
+check ((Word64.fromLargeInt o Word64.toLargeInt) 0wx1): ok
+check ((Word64.fromLargeInt o Word64.toLargeInt) 0wx2): ok
+check ((Word64.fromLargeInt o Word64.toLargeInt) 0wx3): ok
+check ((Word64.fromLargeInt o Word64.toLargeInt) 0wxF): ok
+check ((Word64.fromLargeInt o Word64.toLargeInt) 0wx11): ok
+check ((Word64.fromLargeInt o Word64.toLargeInt) 0wxFFFF): ok
+check ((Word64.fromLargeInt o Word64.toLargeInt) 0wx10000): ok
+check ((Word64.fromLargeInt o Word64.toLargeInt) 0wx1FFFF): ok
+check ((Word64.fromLargeInt o Word64.toLargeInt) 0wx100000001): ok
+check ((Word64.fromLargeInt o Word64.toLargeInt) 0wx800080008000): ok
+check ((Word64.fromLargeInt o Word64.toLargeInt) 0wx1000100010001): ok
+check ((Word64.fromLargeInt o Word64.toLargeInt) 0wx7FFF00000000FFFF): ok
+check ((Word64.fromLargeInt o Word64.toLargeInt) 0wxFFFFFFFF0000): ok
+check ((Word64.fromLargeInt o Word64.toLargeInt) 0wxFFFF0000FFFF0000): ok
+check ((Word64.fromLargeInt o Word64.toLargeInt) 0wx7FFFFFFFFFFFFFFF): ok
+check ((Word64.fromLargeInt o Word64.toLargeInt) 0wx7FFFFFFFFFFFFFFE): ok
+check ((Word64.fromLargeInt o Word64.toLargeInt) 0wx8000000000000000): ok
+check ((Word64.fromLargeInt o Word64.toLargeInt) 0wx8000000000000001): ok
+check ((Word64.fromLargeInt o Word64.toLargeInt) 0wxFFFFFFFFFFFFFFFE): ok
+check ((Word64.fromLargeInt o Word64.toLargeInt) 0wxFFFFFFFFFFFFFFFF): ok
+all 21 tests passed
+
