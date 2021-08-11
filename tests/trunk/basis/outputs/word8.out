@@ -58,39 +58,39 @@ val test13a =
   ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK",
    "OK","OK","OK","OK","OK","OK","OK","OK","WRONG","OK","OK","OK","OK","OK",
    "OK","OK"] : string list
-val test13b = ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"]
-  : string list
+val test13b = ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"] :
+  string list
 val test13c = "OK" : string
 val test13d = "OK" : string
 val test14a =
   ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK",
    "OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"] : string list
-val test14b = ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"]
-  : string list
+val test14b = ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"] :
+  string list
 val test14c = "OK" : string
 val test14d = "OK" : string
 val test15a =
   ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"]
   : string list
 val test15b =
-  ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"]
-  : string list
+  ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"] :
+  string list
 val test15c = "OK" : string
 val test15d = "OK" : string
 val test16a =
   ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK",
    "OK","OK","OK","OK"] : string list
 val test16b =
-  ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"]
-  : string list
+  ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"] :
+  string list
 val test16c = "OK" : string
 val test16d = "OK" : string
 val test17a =
   ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK",
    "OK","OK","OK","OK","OK","OK","OK","OK","WRONG","OK","OK","OK","OK","OK",
    "OK","OK"] : string list
-val test17b = ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"]
-  : string list
+val test17b = ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"] :
+  string list
 val test17c = "OK" : string
 val test17d = "OK" : string
 val test18 = "OK" : string
