@@ -1,5 +1,10 @@
 {
     "version" : 2,
+    "cmakeMinimumRequired": {
+      "major": 3,
+      "minor": 20,
+      "patch": 0
+    },
     "configurePresets": [
         {
             "name" : "smlnj-llvm-base",
@@ -86,7 +91,7 @@
         {
             "name" : "smlnj-llvm-debug",
             "displayName" : "smlnj-llvm-debug",
-	    "inherit" : "smlnj-llvm-base",
+	    "inherits" : "smlnj-llvm-base",
             "binaryDir" : "${sourceParentDir}/build-llvm-debug",
             "cacheVariables" : {
                 "CMAKE_BUILD_TYPE": "Debug",
@@ -96,7 +101,7 @@
         {
             "name" : "smlnj-llvm-release",
             "displayName" : "smlnj-llvm-release",
-	    "inherit" : "smlnj-llvm-base",
+	    "inherits" : "smlnj-llvm-base",
             "binaryDir" : "${sourceParentDir}/build-llvm-release",
             "cacheVariables" : {
                 "CMAKE_BUILD_TYPE": "Release",
