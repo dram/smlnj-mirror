@@ -137,7 +137,7 @@ class reg_state {
 	this->_basePtr = v;
     }
 
-#ifndef NDEBUG
+#ifdef _DEBUG
     void clearBasePtr () { this->_basePtr = nullptr; }
 #endif
 
