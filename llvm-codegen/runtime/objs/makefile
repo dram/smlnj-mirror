@@ -22,8 +22,8 @@ CXX_FLAGS =     -g -O2
 # LLVM configuration
 #
 SML_ROOT =      /Users/jhr/Work/smlnj/sml-llvm
-LLVM_DIR =      $(SML_ROOT)/llvm-codegen/llvm-release
-#LLVM_DIR =      $(SML_ROOT)/llvm-codegen/llvm-debug
+#LLVM_DIR =      $(SML_ROOT)/llvm-codegen/llvm-release
+LLVM_DIR =      $(SML_ROOT)/llvm-codegen/llvm-debug
 LLVM_CONFIG =	$(LLVM_DIR)/bin/llvm-config
 
 # the LLVM target architecture
