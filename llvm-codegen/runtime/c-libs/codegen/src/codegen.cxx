@@ -148,33 +148,36 @@ ml_val_t llvm_codegen (ml_state_t *msp, const char *src, const char *pkl, size_t
       // specifying its length in words (if the name is longer than 255*WORD_SZB,
       // then we omit the source file name).  This layout must be consistent with
       // the function BO_GetCodeObjTag in runtime/gc/big-objects.c.
-// FIXME: it does not make any sense to restrict the length field to a byte, since
-// the code object is going to occupy a multiple of big-object pages in memory!!!
+// FIXME: this code is more complicated than necessary, and we could use larger
+//   length field specified in bytes, but it is consistent with the MLRisc code in
+//   compiler/CodeGen/cpscompile/smlnj-pseudoOps.sml and with the BO_GetCodeObjTag
+//   runtime function.
 
 	Timer relocTimer = Timer::start();
 
 	size_t codeSzb = obj->size();
         // first we round the code size up to a multiple of the word size
         size_t alignedCodeSzb = CodeBuf->roundToWordSzInBytes (codeSzb);
-        // compute the padded size of the source-file name
-        size_t srcFileLen = strlen(src);
-        size_t paddedSrcFileLen = CodeBuf->roundToWordSzInBytes (srcFileLen + 1);
+        // compute the padded size of the source-file name; the computed length includes
+	// the nul terminator and the length byte
+        size_t srcFileLen = strlen(src) + 2;
+        size_t paddedSrcFileLen = CodeBuf->roundToWordSzInBytes (srcFileLen);
+llvm::dbgs() << "src = \"" << src << "\"; paddedSrcFileLen = " << paddedSrcFileLen << "\n";
         if (paddedSrcFileLen > 255 * CodeBuf->wordSzInBytes()) {
             // if the file name is too long, which is unexpected, omit it
             paddedSrcFileLen = 0;
         }
         // size of code-object with extras
         size_t codeObjSzb = alignedCodeSzb      // code + alignment padding
-            + paddedSrcFileLen                  // src name
-            + 1;                                // src name length
+            + paddedSrcFileLen;                 // src name (including nul and length byte)
 	auto codeObj = ML_AllocCode (msp, codeObjSzb);
 	obj->getCode (PTR_MLtoC(unsigned char, codeObj));
         // now add the source-file name to the end of the code object
         char *srcNameLoc = PTR_MLtoC(char, codeObj) + alignedCodeSzb;
         // copy the source-file name; note that `strncpy` pads with zeros
-        strncpy (srcNameLoc + alignedCodeSzb, src, paddedSrcFileLen);
+        strncpy (srcNameLoc, src, paddedSrcFileLen);
         // add the length in words at the end
-        *reinterpret_cast<unsigned char *>(srcNameLoc + paddedSrcFileLen) =
+        *reinterpret_cast<unsigned char *>(srcNameLoc + paddedSrcFileLen - 1) =
             (paddedSrcFileLen / CodeBuf->wordSzInBytes());
 
 	double relocT = relocTimer.msec();
