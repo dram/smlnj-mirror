@@ -84,11 +84,21 @@ namespace CFG_Prim {
 		offset = (offset + (szb - 1)) & ~(szb - 1);
 	    }
 	    Type *elemTy = numType (buf, fld->get_kind(), fld->get_sz());
-	  // get a pointer to obj+offset that has the right type
-	    Value *adr = buf->createBitCast (
-		buf->createGEP (initPtr, offset),
-		elemTy->getPointerTo());
-	    buf->createStore (args[i], adr, szb);
+            Type *argTy = args[i]->getType();
+	  // get a `char *` pointer to obj+offset
+            auto adr = buf->createGEP (initPtr, offset);
+            if (argTy == buf->mlValueTy) {
+              // the field should be an native-sized integer
+                assert (elemTy == buf->intTy && "expected native integer field");
+                buf->createStoreML (args[i], adr);
+            }
+            else {
+                assert (args[i]->getType() == elemTy && "type mismatch");
+                buf->createStore (
+                    args[i],
+                    buf->createBitCast (adr, elemTy->getPointerTo()),
+                    szb);
+            }
 	    offset += szb;
 	}
       // align the final offset to the native word size
@@ -264,11 +274,21 @@ namespace CFG_Prim {
 
     Value *EXTEND::codegen (code_buffer * buf, Args_t const &args)
     {
-	if (this->_v_signed) {
-	    return buf->createSExt (args[0], buf->iType(this->_v_to));
-	} else {
-	    return buf->createZExt (args[0], buf->iType(this->_v_to));
-	}
+        // the current handling of smaller integer types in the SML/NJ backend is
+        // kind of broken, since small-integers are usually represented as tagged
+        // values.  This means that if the argument is an MLvalue this operation
+        // is a no-op
+        if (args[0]->getType() != buf->mlValueTy) {
+            if (this->_v_signed) {
+                return buf->createSExt (args[0], buf->iType(this->_v_to));
+            } else {
+                return buf->createZExt (args[0], buf->iType(this->_v_to));
+            }
+        }
+        else {
+            assert (buf->iType(this->_v_to) == buf->intTy);
+            return args[0];
+        }
 
     } // EXTEND::codegen
 
@@ -445,7 +465,13 @@ namespace CFG_Prim {
 
 	Value *adr = buf->createGEP (elemTy->getPointerTo(), args[0], args[1]);
 
-	return buf->createStore (args[2], adr, bitsToBytes(this->_v_sz));
+        if (args[2]->getType() == buf->mlValueTy) {
+            assert (elemTy == buf->intTy && "expected native integer field");
+            return buf->createStoreML (args[2], adr);
+        }
+        else {
+	    return buf->createStore (args[2], adr, bitsToBytes(this->_v_sz));
+        }
 
     } // RAW_UPDATE::codegen
 
