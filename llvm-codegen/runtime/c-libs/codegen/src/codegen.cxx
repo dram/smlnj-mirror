@@ -162,7 +162,6 @@ ml_val_t llvm_codegen (ml_state_t *msp, const char *src, const char *pkl, size_t
 	// the nul terminator and the length byte
         size_t srcFileLen = strlen(src) + 2;
         size_t paddedSrcFileLen = CodeBuf->roundToWordSzInBytes (srcFileLen);
-llvm::dbgs() << "src = \"" << src << "\"; paddedSrcFileLen = " << paddedSrcFileLen << "\n";
         if (paddedSrcFileLen > 255 * CodeBuf->wordSzInBytes()) {
             // if the file name is too long, which is unexpected, omit it
             paddedSrcFileLen = 0;
