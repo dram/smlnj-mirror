@@ -1202,7 +1202,7 @@ namespace CFG {
 	bool isNUMt () { return this->_tag == _con_NUMt; }
 	bool isFLTt () { return this->_tag == _con_FLTt; }
 
-    
+
       protected:
         enum _tag_t {_con_LABt = 1, _con_PTRt, _con_TAGt, _con_NUMt, _con_FLTt};
         ty (_tag_t tag)
@@ -1287,7 +1287,7 @@ namespace CFG {
         virtual Value *codegen (code_buffer *buf) = 0;
 	bool isLABEL () { return (this->_tag == _con_LABEL); }
 
-    
+
       protected:
         enum _tag_t {
             _con_VAR = 1,
@@ -1532,7 +1532,7 @@ namespace CFG {
         virtual void codegen (code_buffer *buf) = 0;
         llvm::BasicBlock *bb () { return this->_bb; }
 
-    
+
       protected:
         enum _tag_t {
             _con_LET = 1,
@@ -1589,7 +1589,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-    
+
       private:
         exp * _v0;
         param * _v1;
@@ -1637,7 +1637,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-    
+
       private:
         CFG_Prim::alloc * _v0;
         std::vector<exp *> _v1;
@@ -1678,7 +1678,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-    
+
       private:
         exp * _v0;
         std::vector<exp *> _v1;
@@ -1718,7 +1718,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-    
+
       private:
         exp * _v0;
         std::vector<exp *> _v1;
@@ -1750,7 +1750,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-    
+
       private:
         LambdaVar::lvar _v0;
         std::vector<exp *> _v1;
@@ -1781,7 +1781,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-    
+
       private:
         exp * _v0;
         std::vector<stm *> _v1;
@@ -1836,7 +1836,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-    
+
       private:
         CFG_Prim::branch * _v0;
         std::vector<exp *> _v1;
@@ -1886,7 +1886,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-    
+
       private:
         CFG_Prim::arith * _v0;
         std::vector<exp *> _v1;
@@ -1927,7 +1927,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-    
+
       private:
         CFG_Prim::setter * _v0;
         std::vector<exp *> _v1;
@@ -1967,7 +1967,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-    
+
       private:
         std::vector<exp *> _v0;
         std::vector<LambdaVar::lvar> _v1;
@@ -2041,7 +2041,7 @@ namespace CFG {
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
-    
+
       private:
         bool _v_reentrant;
         std::string _v_linkage;
@@ -2105,7 +2105,7 @@ namespace CFG {
 	    this->_phiNodes[i]->addIncoming(v, bblk);
 	}
 
-    
+
       private:
         frag_kind _v_kind;
         LambdaVar::lvar _v_lab;
@@ -2192,7 +2192,7 @@ namespace CFG {
 	llvm::Function *fn () const { return this->_fn; }
 	frag *entry () const { return this->_v_frags[0]; }
 
-    
+
       private:
         attrs * _v_attrs;
         std::vector<frag *> _v_frags;
