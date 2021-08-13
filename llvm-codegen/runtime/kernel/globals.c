@@ -59,11 +59,15 @@ ASM_CLOSURE(create_r);
 ASM_CLOSURE(create_s);
 ASM_CLOSURE(create_v);
 ASM_CLOSURE(floor);
+ASM_CLOSURE(logb);              /* DEPRECATED */
 ASM_CLOSURE(scalb);
+ASM_CLOSURE(try_lock);          /* DEPRECATED */
+ASM_CLOSURE(unlock);            /* DEPRECATED */
 ASM_CLOSURE(handle);
 
 ASM_CONT(return);
 ASM_CONT(sigh_return);  /* QUESION: maybe this should be ASM_CLOSURE? */
+ASM_CONT(pollh_return);         /* DEPRECATED */
 
 
 /* A ref cell initialized to unit. */
@@ -72,6 +76,10 @@ ASM_CONT(sigh_return);  /* QUESION: maybe this should be ASM_CLOSURE? */
 REFCELL(_ProfCurrent);
 REFCELL(_PervStruct);
 REFCELL(_MLSignalHandler);
+REFCELL(_MLPollHandler);        /* DEPRECATED */
+REFCELL(_PollEvent0);           /* DEPRECATED */
+REFCELL(_PollFreq0);            /* DEPRECATED */
+REFCELL(_ActiveProcs0);         /* DEPRECATED */
 
 ml_val_t		RunTimeCompUnit = ML_unit;
 #ifdef ASM_MATH
@@ -198,7 +206,10 @@ void RecordGlobals ()
     RecordCSymbol ("RunVec.create_s",	PTR_CtoML(create_s_v+1));
     RecordCSymbol ("RunVec.create_v",	PTR_CtoML(create_v_v+1));
     RecordCSymbol ("RunVec.floor",	PTR_CtoML(floor_v+1));
+    RecordCSymbol ("RunVec.logb",	PTR_CtoML(logb_v+1));           /* DEPRECATED */
     RecordCSymbol ("RunVec.scalb",	PTR_CtoML(scalb_v+1));
+    RecordCSymbol ("RunVec.try_lock",	PTR_CtoML(try_lock_v+1));       /* DEPRECATED */
+    RecordCSymbol ("RunVec.unlock",	PTR_CtoML(unlock_v+1));         /* DEPRECATED */
 
   /* CStruct */
     RecordCSymbol ("CStruct.DivId",		DivId); /* FIXME: we can remove this */
@@ -208,6 +219,10 @@ void RecordGlobals ()
     RecordCSymbol ("CStruct.MLSignalHandler",	MLSignalHandler);
     RecordCSymbol ("CStruct.vector0",		ML_vector0);
     RecordCSymbol ("CStruct.profCurrent",	ProfCurrent);
+    RecordCSymbol ("CStruct.MLPollHandler",     MLPollHandler); /* DEPRECATED */
+    RecordCSymbol ("CStruct.pollEvent",		PollEvent);     /* DEPRECATED */
+    RecordCSymbol ("CStruct.pollFreq",		PollFreq);      /* DEPRECATED */
+    RecordCSymbol ("CStruct.activeProcs",	ActiveProcs);   /* DEPRECATED */
 
   /* null string */
     RecordCSymbol ("string0",			ML_string0);

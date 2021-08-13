@@ -60,6 +60,8 @@
  *
  * for details.
  */
+#ifdef LLVM_LAYOUT
+
 #define negateSignBit	REGOFF(8264,RSP)
 #define signBit		REGOFF(8256,RSP)
 #define overflowFn	REGOFF(8248,RSP)
@@ -81,6 +83,31 @@
  * pushed onto the stack.
  */
 #define ML_FRAME_SIZE	(ML_SPILL_SIZE+ML_AREA_SIZE)
+
+#else /* MLRISC_LAYOUT */
+
+#define tempmem0	REGOFF(0,RSP)
+#define mlStatePtr	REGOFF(8, RSP)
+#define signBit		REGOFF(16,RSP)
+#define negateSignBit	REGOFF(24,RSP)
+#define baseptr		REGOFF(32,RSP)	/* start address of module */
+#define exncont		REGOFF(40,RSP)
+#define pc		REGOFF(48,RSP)	/* gcLink */
+#define varptr		REGOFF(56,RSP)
+#define start_gc	REGOFF(64,RSP)	/* holds address of saveregs */
+
+/* space reserved for spilling registers */
+#define ML_SPILL_SIZE	8192
+
+/* size of stack-frame region where ML stuff is stored (includes alignment padding). */
+#define ML_AREA_SIZE	88
+
+/* the amount to bump up the frame after the callee save registers have been
+ * pushed onto the stack.
+ */
+#define ML_FRAME_SIZE	(ML_SPILL_SIZE+ML_AREA_SIZE)
+
+#endif /* LLVM_LAYOUT */
 
 /* we put the request code in tempmem before jumping to set_request */
 #define request_w	tempmem0
@@ -545,6 +572,11 @@ LABEL(L_create_v_large)
 	MOV	(IM(REQ_ALLOC_VECTOR),request_w)
 	JMP	(CSYM(set_request))
 
+/* MP support is deprecated, but we need to these global symbols for linking */
+ALIGNED_ENTRY(try_lock_a)
+ALIGNED_ENTRY(unlock_a)
+	CONTINUE
+
 
 /********************* Floating point functions. *********************/
 
@@ -554,7 +586,6 @@ LABEL(L_create_v_large)
 #define RND_TO_ZERO	IM(11)
 
 	TEXT
-	.align 8
 
 /* floor : real -> int
  * Return the nearest integer that is less or equal to the argument.
@@ -566,6 +597,10 @@ ALIGNED_ENTRY(floor_a)
 	CVTTSD2SI	(XMM0, stdarg)
 	SAL		(IM(1),stdarg)	/* convert result to tagged representation */
 	INC		(stdarg)
+	CONTINUE
+
+/* DEPRECATED, but required for linking */
+ALIGNED_ENTRY(logb_a)
 	CONTINUE
 
 #define SIGN_MASK	IM(0x8000000000000000)
