@@ -107,7 +107,7 @@ structure PrintPkl : sig
 	  concat[prefix, "_", i2s from, "_to_", i2s to]
 
     fun arithToString (P.ARITH{oper, sz}) = arithopToString oper ^ i2s sz
-      | arithToString (P.REAL_TO_INT{mode, from, to}) = let
+      | arithToString (P.FLOAT_TO_INT{mode, from, to}) = let
 	  fun toS prefix = concat[prefix, i2s from, "_i", i2s to]
 	  in
 	    case mode
@@ -140,6 +140,7 @@ structure PrintPkl : sig
 	    | P.FNEG => "fneg"
 	    | P.FABS => "fabs"
 	    | P.FSQRT => "fsqrt"
+	    | P.FCOPYSIGN => "fcopysign"
 	  (* end case *))
 
     fun pureToString (P.PURE_ARITH{oper, sz}) = pureopToString oper ^ i2s sz
@@ -148,7 +149,9 @@ structure PrintPkl : sig
       | pureToString (P.EXTEND{signed=false, from, to}) =
 	  cvtParams ("zero_extend_", from, to)
       | pureToString (P.TRUNC{from, to}) = cvtParams ("trunc_", from, to)
-      | pureToString (P.INT_TO_REAL{from, to}) = cvtParams ("real", from, to)
+      | pureToString (P.INT_TO_FLOAT{from, to}) = cvtParams ("float", from, to)
+      | pureToString (P.FLOAT_TO_BITS{sz}) = concat["float_", i2s sz, "_to_bits"]
+      | pureToString (P.BITS_TO_FLOAT{sz}) = concat["float_", i2s sz, "_from_bits"]
       | pureToString P.PURE_SUBSCRIPT = "vector_sub"
       | pureToString (P.PURE_RAW_SUBSCRIPT{kind, sz}) =
 	  concat("vector_sub_" :: numkind2s(kind, sz))
@@ -301,6 +304,11 @@ structure PrintPkl : sig
     fun main (_, [file]) = if OS.FileSys.access(file, [OS.FileSys.A_READ])
 	  then let
 	    val cu = ASDLFilePickle.fromFile CFGFilePickle.read_comp_unit file
+		  handle exn => (
+		    TextIO.output(TextIO.stdErr, concat[
+			file, ": uncaught exception ", exnMessage exn, "\n"
+		      ]);
+		    OS.Process.exit OS.Process.failure)
 	    in
 	      prCompUnit cu;
 	      OS.Process.success
@@ -311,7 +319,7 @@ structure PrintPkl : sig
 	      ]);
 	    OS.Process.failure)
       | main _ = (
-	  TextIO.output(TextIO.stdErr, "usage: print-[kl <file>\n");
+	  TextIO.output(TextIO.stdErr, "usage: print-pkl <file>\n");
 	  OS.Process.failure)
 
   end

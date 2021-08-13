@@ -344,7 +344,8 @@ structure CFG_PrimFilePickle : CFG__PRIM_PICKLE
             | CFG_Prim.FDIV => ASDLFilePickle.writeTag8 (outS, 0w18)
             | CFG_Prim.FNEG => ASDLFilePickle.writeTag8 (outS, 0w19)
             | CFG_Prim.FABS => ASDLFilePickle.writeTag8 (outS, 0w20)
-            | CFG_Prim.FSQRT => ASDLFilePickle.writeTag8 (outS, 0w21))
+            | CFG_Prim.FSQRT => ASDLFilePickle.writeTag8 (outS, 0w21)
+            | CFG_Prim.FCOPYSIGN => ASDLFilePickle.writeTag8 (outS, 0w22))
     fun read_pureop inS = (case ASDLFilePickle.readTag8 inS
            of 0w1 => CFG_Prim.ADD
             | 0w2 => CFG_Prim.SUB
@@ -367,6 +368,7 @@ structure CFG_PrimFilePickle : CFG__PRIM_PICKLE
             | 0w19 => CFG_Prim.FNEG
             | 0w20 => CFG_Prim.FABS
             | 0w21 => CFG_Prim.FSQRT
+            | 0w22 => CFG_Prim.FCOPYSIGN
             | _ => raise ASDL.DecodeError)
     fun write_pure (outS, obj) = (case obj
            of CFG_Prim.PURE_ARITH{oper, sz} => (
@@ -382,17 +384,23 @@ structure CFG_PrimFilePickle : CFG__PRIM_PICKLE
               ASDLFilePickle.writeTag8 (outS, 0w3);
               ASDLFilePickle.writeInt (outS, from);
               ASDLFilePickle.writeInt (outS, to))
-            | CFG_Prim.INT_TO_REAL{from, to} => (
+            | CFG_Prim.INT_TO_FLOAT{from, to} => (
               ASDLFilePickle.writeTag8 (outS, 0w4);
               ASDLFilePickle.writeInt (outS, from);
               ASDLFilePickle.writeInt (outS, to))
-            | CFG_Prim.PURE_SUBSCRIPT => ASDLFilePickle.writeTag8 (outS, 0w5)
-            | CFG_Prim.PURE_RAW_SUBSCRIPT{kind, sz} => (
+            | CFG_Prim.FLOAT_TO_BITS{sz} => (
+              ASDLFilePickle.writeTag8 (outS, 0w5);
+              ASDLFilePickle.writeInt (outS, sz))
+            | CFG_Prim.BITS_TO_FLOAT{sz} => (
               ASDLFilePickle.writeTag8 (outS, 0w6);
+              ASDLFilePickle.writeInt (outS, sz))
+            | CFG_Prim.PURE_SUBSCRIPT => ASDLFilePickle.writeTag8 (outS, 0w7)
+            | CFG_Prim.PURE_RAW_SUBSCRIPT{kind, sz} => (
+              ASDLFilePickle.writeTag8 (outS, 0w8);
               write_numkind (outS, kind);
               ASDLFilePickle.writeInt (outS, sz))
             | CFG_Prim.RAW_SELECT{kind, sz, offset} => (
-              ASDLFilePickle.writeTag8 (outS, 0w7);
+              ASDLFilePickle.writeTag8 (outS, 0w9);
               write_numkind (outS, kind);
               ASDLFilePickle.writeInt (outS, sz);
               ASDLFilePickle.writeInt (outS, offset)))
@@ -420,16 +428,24 @@ structure CFG_PrimFilePickle : CFG__PRIM_PICKLE
               val from = ASDLFilePickle.readInt inS
               val to = ASDLFilePickle.readInt inS
               in
-                  CFG_Prim.INT_TO_REAL {from = from, to = to}
+                  CFG_Prim.INT_TO_FLOAT {from = from, to = to}
               end
-            | 0w5 => CFG_Prim.PURE_SUBSCRIPT
+            | 0w5 => let
+              val sz = ASDLFilePickle.readInt inS
+              in CFG_Prim.FLOAT_TO_BITS {sz = sz}
+              end
             | 0w6 => let
+              val sz = ASDLFilePickle.readInt inS
+              in CFG_Prim.BITS_TO_FLOAT {sz = sz}
+              end
+            | 0w7 => CFG_Prim.PURE_SUBSCRIPT
+            | 0w8 => let
               val kind = read_numkind inS
               val sz = ASDLFilePickle.readInt inS
               in
                   CFG_Prim.PURE_RAW_SUBSCRIPT {kind = kind, sz = sz}
               end
-            | 0w7 => let
+            | 0w9 => let
               val kind = read_numkind inS
               val sz = ASDLFilePickle.readInt inS
               val offset = ASDLFilePickle.readInt inS
@@ -466,7 +482,7 @@ structure CFG_PrimFilePickle : CFG__PRIM_PICKLE
               ASDLFilePickle.writeTag8 (outS, 0w1);
               write_arithop (outS, oper);
               ASDLFilePickle.writeInt (outS, sz))
-            | CFG_Prim.REAL_TO_INT{mode, from, to} => (
+            | CFG_Prim.FLOAT_TO_INT{mode, from, to} => (
               ASDLFilePickle.writeTag8 (outS, 0w2);
               write_rounding_mode (outS, mode);
               ASDLFilePickle.writeInt (outS, from);
@@ -483,7 +499,7 @@ structure CFG_PrimFilePickle : CFG__PRIM_PICKLE
               val from = ASDLFilePickle.readInt inS
               val to = ASDLFilePickle.readInt inS
               in
-                  CFG_Prim.REAL_TO_INT {mode = mode, from = from, to = to}
+                  CFG_Prim.FLOAT_TO_INT {mode = mode, from = from, to = to}
               end
             | _ => raise ASDL.DecodeError)
     fun write_raw_ty (outS, obj) = let
