@@ -150,8 +150,10 @@ structure Math64Common : sig
 	    | _ => ~a
 	  (* end case *))
 
-   (* may be applied to inf's and nan's *)
-    fun abs x = if x < zero then ~x else x
+  (* note that this operation clears the sign bit of NaNs; the previous implementation
+   * left NaNs unchanged.
+   *)
+    val abs = Real64.abs
 
     fun op mod (a, b) = I.-(a, I.*(I.div(a, b), b))
 
@@ -268,7 +270,7 @@ structure Math64Common : sig
 	  val zz = z*z
 	  in
 	    if y=I.+(h,h) then zz else x*zz
-		      end
+	  end
 
   (* SML/NJ doesn't properly handle negative zeros.
     Also, the copysign function works incorrectly on negative zero.
