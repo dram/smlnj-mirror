@@ -13,12 +13,6 @@
 #include "ml-limits.h"
 #include "c-globals-tbl.h"
 
-#ifdef SIZES_C64_ML32
-void PatchAddrs ();
-#endif
-
-#ifndef SIZES_C64_ML32
-
 typedef struct {
     ml_val_t	desc;
     char	*s;
@@ -46,47 +40,6 @@ typedef struct {
 	MAKE_DESC(1,DTAG_record),			\
 	PTR_CtoML(CONCAT(name,_a))			\
     }
-
-#else /* SIZES_C64_ML32 */
-/* When the size of Addr_t is bigger than the size of an Word_t, we need
- * to dynamically patch the static ML objects.
- */
-
-typedef struct {
-    ml_val_t	desc;
-    ml_val_t	s;
-    ml_val_t	len;
-} ml_string_t;
-
-#define ML_STRING(id,s)					\
-    PVT char CONCAT(id,_data)[] = s;			\
-    ml_string_t id = {					\
-	DESC_string, ML_unit, INT_CtoML(sizeof(s)-1)	\
-    }
-
-#define PATCH_ML_STRING(id)				\
-    id.s = PTR_CtoML(CONCAT(id,_data))
-
-/* Exceptions are identified by (string ref) values */
-#define ML_EXNID(ex,name)				\
-    ML_STRING(CONCAT(ex,_s),name);			\
-    ml_val_t CONCAT(ex,_id0) [2] = { DESC_ref, }
-
-#define PATCH_ML_EXNID(ex)				\
-    PATCH_ML_STRING(CONCAT(ex,_s));			\
-    CONCAT(ex,_id0)[1] = PTR_CtoML(&(CONCAT(ex,_s).s))
-
-#define ASM_CLOSURE(name)				\
-    extern ml_val_t CONCAT(name,_a)[];			\
-    ml_val_t CONCAT(name,_v)[2] = {			\
-	MAKE_DESC(1, DTAG_record),			\
-    }
-
-#define PATCH_ASM_CLOSURE(name)				\
-    CONCAT(name,_v)[1] = PTR_CtoML(CONCAT(name,_a))
-
-#endif
-
 
 #if (CALLEESAVE > 0)
 #define ASM_CONT(name) 							\
@@ -176,10 +129,6 @@ void AllocGlobals (ml_state_t *msp)
 {
     ml_val_t	RunVec;
     ml_val_t    CStruct;
-
-#ifdef SIZES_C64_ML32
-    PatchAddrs ();
-#endif
 
   /* allocate the RunVec */
 #define RUNVEC_SZ	12
@@ -292,39 +241,3 @@ void RecordGlobals ()
 #endif
 
 } /* end of RecordGlobals. */
-
-#ifdef SIZES_C64_ML32
-
-/* PatchAddrs:
- *
- * On machines where the size of Addr_t is bigger than the size of an Word_t,
- * we need to dynamically patch the static ML objects.
- */
-void PatchAddrs ()
-{
-    PATCH_ML_EXNID(_Div);
-    PATCH_ML_EXNID(_Overflow);
-    PATCH_ML_EXNID(SysErr);
-
-    PATCH_ASM_CLOSURE(array);
-    PATCH_ASM_CLOSURE(bind_cfun);
-    PATCH_ASM_CLOSURE(callc);
-    PATCH_ASM_CLOSURE(create_b);
-    PATCH_ASM_CLOSURE(create_r);
-    PATCH_ASM_CLOSURE(create_s);
-    PATCH_ASM_CLOSURE(create_v);
-    PATCH_ASM_CLOSURE(floor);
-    PATCH_ASM_CLOSURE(logb);
-    PATCH_ASM_CLOSURE(scalb);
-    PATCH_ASM_CLOSURE(try_lock);
-    PATCH_ASM_CLOSURE(unlock);
-    PATCH_ASM_CLOSURE(handle);
-
-#if (CALLEESAVE <= 0)
-    PATCH_ASM_CLOSURE(return);
-    PATCH_ASM_CLOSURE(sigh_return);
-#endif
-
-} /* end of PatchAddrs */
-
-#endif /* SIZES_C64_ML32 */
