@@ -505,40 +505,54 @@ C.NUMt{sz=sz}
 		 of (P.PURE_ARITH{oper, kind=P.INT sz}, _) =>
 		      if isTaggedInt sz
 			then genPureTagged (oper, true, sz, vs)
-			else (case (oper, List.map genV vs)
-			   of (P.NEG, [v]) => pureOp (TP.SUB, sz, [zero sz, v])
-			    | (P.ADD, vs) => pureOp (TP.ADD, sz, vs)
-			    | (P.SUB, vs) => pureOp (TP.SUB, sz, vs)
-			    | (P.MUL, vs) => pureOp (TP.SMUL, sz, vs)
-			    | (P.QUOT, vs) => pureOp (TP.SDIV, sz, vs)
-			    | (P.REM, vs) => pureOp (TP.SREM, sz, vs)
-			    | (P.LSHIFT, vs) => pureOp (TP.LSHIFT, sz, vs)
-			    | (P.RSHIFT, vs) => pureOp (TP.RSHIFT, sz, vs)
-			    | (P.RSHIFTL, vs) => pureOp (TP.RSHIFTL, sz, vs)
-			    | (P.ORB, vs) => pureOp (TP.ORB, sz, vs)
-			    | (P.XORB, vs) => pureOp (TP.XORB, sz, vs)
-			    | (P.ANDB, vs) => pureOp (TP.ANDB, sz, vs)
-			    | _ => error ["genPure: ", PPCps.pureToString p]
-			  (* end case *))
+			else let
+                          fun binOp (rator, a, b) = pureOp (rator, sz, [genV a, genV b])
+                        (* note that the shift amount is always a tagged word value *)
+                          fun shiftOp (rator, a, b) =
+                                pureOp (rator, sz, [genV a, untagUnsigned b])
+                          in
+                            case (oper, vs)
+                             of (P.NEG, [v]) => pureOp (TP.SUB, sz, [zero sz, genV v])
+                              | (P.ADD, [v1, v2]) => binOp (TP.ADD, v1, v2)
+                              | (P.SUB, [v1, v2]) => binOp (TP.SUB, v1, v2)
+                              | (P.MUL, [v1, v2]) => binOp (TP.SMUL, v1, v2)
+                              | (P.QUOT, [v1, v2]) => binOp (TP.SDIV, v1, v2)
+                              | (P.REM, [v1, v2]) => binOp (TP.SREM, v1, v2)
+                              | (P.LSHIFT, [v1, v2]) => shiftOp (TP.LSHIFT, v1, v2)
+                              | (P.RSHIFT, [v1, v2]) => shiftOp (TP.RSHIFT, v1, v2)
+                              | (P.RSHIFTL, [v1, v2]) => shiftOp (TP.RSHIFTL, v1, v2)
+                              | (P.ORB, [v1, v2]) => binOp (TP.ORB, v1, v2)
+                              | (P.XORB, [v1, v2]) => binOp (TP.XORB, v1, v2)
+                              | (P.ANDB, [v1, v2]) => binOp (TP.ANDB, v1, v2)
+                              | _ => error ["genPure: ", PPCps.pureToString p]
+                            (* end case *)
+                          end
 		  | (P.PURE_ARITH{oper, kind=P.UINT sz}, _) =>
 		      if isTaggedInt sz
 			then genPureTagged (oper, false, sz, vs)
-			else (case (oper, List.map genV vs)
-			   of (P.NEG, [v]) => pureOp (TP.SUB, sz, [zero sz, v])
-			    | (P.NOTB, [v]) => pureOp (TP.XORB, sz, [v, allOnes sz])
-			    | (P.ADD, vs) => pureOp (TP.ADD, sz, vs)
-			    | (P.SUB, vs) => pureOp (TP.SUB, sz, vs)
-			    | (P.MUL, vs) => pureOp (TP.UMUL, sz, vs)
-			    | (P.QUOT, vs) => pureOp (TP.UDIV, sz, vs)
-			    | (P.REM, vs) => pureOp (TP.UREM, sz, vs)
-			    | (P.LSHIFT, vs) => pureOp (TP.LSHIFT, sz, vs)
-			    | (P.RSHIFT, vs) => pureOp (TP.RSHIFT, sz, vs)
-			    | (P.RSHIFTL, vs) => pureOp (TP.RSHIFTL, sz, vs)
-			    | (P.ORB, vs) => pureOp (TP.ORB, sz, vs)
-			    | (P.XORB, vs) => pureOp (TP.XORB, sz, vs)
-			    | (P.ANDB, vs) => pureOp (TP.ANDB, sz, vs)
-			    | _ => error ["genPure: ", PPCps.pureToString p]
-			  (* end case *))
+			else let
+                          fun binOp (rator, a, b) = pureOp (rator, sz, [genV a, genV b])
+                        (* note that the shift amount is always a tagged word value *)
+                          fun shiftOp (rator, a, b) =
+                                pureOp (rator, sz, [genV a, untagUnsigned b])
+                          in
+                            case (oper, vs)
+                             of (P.NEG, [v]) => pureOp (TP.SUB, sz, [zero sz, genV v])
+                              | (P.NOTB, [v]) => pureOp (TP.XORB, sz, [genV v, allOnes sz])
+                              | (P.ADD, [v1, v2]) => binOp (TP.ADD, v1, v2)
+                              | (P.SUB, [v1, v2]) => binOp (TP.SUB, v1, v2)
+                              | (P.MUL, [v1, v2]) => binOp (TP.UMUL, v1, v2)
+                              | (P.QUOT, [v1, v2]) => binOp (TP.UDIV, v1, v2)
+                              | (P.REM, [v1, v2]) => binOp (TP.UREM, v1, v2)
+                              | (P.LSHIFT, [v1, v2]) => shiftOp (TP.LSHIFT, v1, v2)
+                              | (P.RSHIFT, [v1, v2]) => shiftOp (TP.RSHIFT, v1, v2)
+                              | (P.RSHIFTL, [v1, v2]) => shiftOp (TP.RSHIFTL, v1, v2)
+                              | (P.ORB, [v1, v2]) => binOp (TP.ORB, v1, v2)
+                              | (P.XORB, [v1, v2]) => binOp (TP.XORB, v1, v2)
+                              | (P.ANDB, [v1, v2]) => binOp (TP.ANDB, v1, v2)
+                              | _ => error ["genPure: ", PPCps.pureToString p]
+                            (* end case *)
+                          end
 		  | (P.PURE_ARITH{oper, kind=P.FLOAT sz}, _) => (
 		      case (oper, List.map genV vs)
 		       of (P.ADD, args) => pureOp (TP.FADD, sz, args)

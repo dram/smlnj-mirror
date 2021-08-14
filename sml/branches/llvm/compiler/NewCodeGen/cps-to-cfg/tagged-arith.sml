@@ -103,10 +103,10 @@ structure TaggedArith : sig
 		  pureOp (P.UREM, ity, [e1, e2])
 		end
 	    | (NEG, [v]) => pureOp (P.SUB, ity, [two, comp v])
-	    | (LSHIFT, [NUM{ival, ...}, v2]) =>
-		addTag (pureOp (P.LSHIFT, ity, [num(ival+ival), untagUInt(comp v2)]))
 	    | (LSHIFT, [v1, NUM{ival, ...}]) =>
 		addTag (pureOp (P.LSHIFT, ity, [comp v1, num ival]))
+	    | (LSHIFT, [NUM{ival, ...}, v2]) =>
+		addTag (pureOp (P.LSHIFT, ity, [num(ival+ival), untagUInt(comp v2)]))
 	    | (LSHIFT, [v1, v2]) =>
 		addTag (pureOp (P.LSHIFT, ity, [stripTag(comp v1), untagUInt(comp v2)]))
 	    | (RSHIFT, [v1, NUM{ival, ...}]) =>
