@@ -6,6 +6,9 @@ SML/NJ 2021.1
 -------------------
 
 [2021-07-28]
+        Added convenience function `int` to the `JSON_STREAM_OUTPUT` interface.
+
+[2021-07-28]
         Refactored the output modules in the JSON library.  These changes should
         not affect current clients of the library, but allow the addition of
         printing JSON to a `CharBuffer.buf`.
