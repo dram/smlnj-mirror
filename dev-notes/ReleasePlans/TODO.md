@@ -67,14 +67,6 @@ We divide future work into small and big projects.
     type to represent variables.  There should be distinct types for these to avoid
     potential confusion and errors.
 
-  * The handling of int/word types in FLINT/CPS should be overhauled.  Currently we
-    make a distinction between wrapped and unwrapped native integers, which allows
-    them to be represented in unboxed form across function applications.  We should
-    do something similar for tagged int/word types (e.g., Word8).  In particular,
-    this could avoid some overhead when reading/writing 8-bit data from vectors
-    and arrays, but should also allow us to take advantage of native hardware
-    support for 32-bit arithmetic on 64-bit hardware.
-
   * FLINT types (`FLINT/kernel`) need a thorough overhaul. There are too
     many layers of type representations, and the complexity of Nadathur
     closures is probably unjustified. Even the hash-consing of types may
@@ -148,4 +140,10 @@ We divide future work into small and big projects.
 
   * FLINT replacement/cleanup (switch to 3CPS?)
 
-
+  * The handling of int/word types in FLINT/CPS should be overhauled.  Currently we
+    make a distinction between wrapped and unwrapped native integers, which allows
+    them to be represented in unboxed form across function applications.  We should
+    do something similar for tagged int/word types (e.g., Word8).  In particular,
+    this could avoid some overhead when reading/writing 8-bit data from vectors
+    and arrays, but should also allow us to take advantage of native hardware
+    support for 32-bit arithmetic on 64-bit hardware.
