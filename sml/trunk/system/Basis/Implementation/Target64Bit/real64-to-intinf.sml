@@ -89,7 +89,12 @@ structure Real64ToIntInf : sig
                                 (* < 0 so we can ignore any fractional bits *)
                                   else trunc mant
                             | IEEEReal.TO_NEAREST => if (shiftAmt > 0w52)
-                                then 0 (* all mantissa bits are shifted away *)
+                                then if (shiftAmt = 0w53)
+                                  (* 0.5 <= abs(x) < 1 *)
+                                  then if (mant = 0wx10000000000000)
+                                    then 0 (* abs(x) = 0.5, so round to 0 *)
+                                    else mkIntInf (neg, 0w1)
+                                  else 0 (* all mantissa bits are shifted away *)
                                 else let
                                   val w = W64.chkRshiftl(mant, shiftAmt)
                                   val frac = W64.andb(mant, W64.chkLshift(0w1, shiftAmt) - 0w1)
