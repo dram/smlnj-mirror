@@ -589,7 +589,7 @@ C.NUMt{sz=sz}
 		      else if (from = defaultIntSz) andalso (to = ity)
 		      (* shift right by one preserves sign and nukes tag bit *)
 			then pureOp (TP.RSHIFT, ity, [genV v, one])
-		      else if isTaggedInt from
+		      else if (from < defaultIntSz)
 			then let
 (* QUESTION: do we need to zero-extend the argument to ity width? *)
 			(* shift left amount so that sign bit is leftmost bit *)
@@ -602,7 +602,7 @@ C.NUMt{sz=sz}
 			    (* shift by one more bit to nuke the tag *)
 			      else pureOp (TP.RSHIFT, ity, [exp, num(sa+1)])
 			  end
-			else sExt(from, to, genV v)
+			else error [".genPure: ", PPCps.pureToString p]
 		  | (P.TRUNC{from, to}, [v]) =>
 		      if (from = to)
 			then genV v
