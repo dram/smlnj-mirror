@@ -53,6 +53,7 @@ structure TaggedArith : sig
     fun orTag e = pureOp (P.ORB, ity, [e, one])
     fun untagInt e = pureOp (P.RSHIFT, ity, [e, one])
     fun untagUInt e = pureOp (P.RSHIFTL, ity, [e, one])
+    fun tagUnsigned e = orTag (pureOp (P.LSHIFT, ity, [e, one]))
 
   (* pure tagged arithmetic; a number "n" is represented as "2*n+1" *)
     fun pure comp (rator, signed, sz, args) = (case (rator, args)
@@ -88,7 +89,7 @@ structure TaggedArith : sig
 			| _ => untagUInt (comp v2)
 		      (* end case *))
 		in
-		  pureOp (P.UDIV, ity, [e1, e2])
+		  tagUnsigned (pureOp (P.UDIV, ity, [e1, e2]))
 		end
 	    | (REM, [v1, v2]) => let
 		val e1 = (case v1
@@ -100,7 +101,7 @@ structure TaggedArith : sig
 			| _ => untagUInt (comp v2)
 		      (* end case *))
 		in
-		  pureOp (P.UREM, ity, [e1, e2])
+		  tagUnsigned (pureOp (P.UREM, ity, [e1, e2]))
 		end
 	    | (NEG, [v]) => pureOp (P.SUB, ity, [two, comp v])
 	    | (LSHIFT, [v1, NUM{ival, ...}]) =>
