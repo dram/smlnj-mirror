@@ -77,7 +77,9 @@ Library
 	signature SML_OF_NJ
 
 	signature UNSAFE_OBJECT
+(* DEPRECATED
 	signature POLL
+*)
 	signature UNSAFE_ARRAY
 	signature UNSAFE_VECTOR
 	signature UNSAFE_MONO_ARRAY
