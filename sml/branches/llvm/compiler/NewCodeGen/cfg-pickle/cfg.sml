@@ -96,11 +96,14 @@ structure CFG_Prim = struct
       | FNEG
       | FABS
       | FSQRT
+      | FCOPYSIGN
     datatype pure
       = PURE_ARITH of {oper : pureop, sz : int}
       | EXTEND of {signed : bool, from : int, to : int}
       | TRUNC of {from : int, to : int}
-      | INT_TO_REAL of {from : int, to : int}
+      | INT_TO_FLOAT of {from : int, to : int}
+      | FLOAT_TO_BITS of {sz : int}
+      | BITS_TO_FLOAT of {sz : int}
       | PURE_SUBSCRIPT
       | PURE_RAW_SUBSCRIPT of {kind : numkind, sz : int}
       | RAW_SELECT of {kind : numkind, sz : int, offset : int}
@@ -117,7 +120,7 @@ structure CFG_Prim = struct
       | TO_ZERO
     datatype arith
       = ARITH of {oper : arithop, sz : int}
-      | REAL_TO_INT of {mode : rounding_mode, from : int, to : int}
+      | FLOAT_TO_INT of {mode : rounding_mode, from : int, to : int}
     type raw_ty = {kind : numkind, sz : int}
     datatype alloc
       = SPECIAL

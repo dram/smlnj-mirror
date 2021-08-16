@@ -147,10 +147,10 @@ structure PPCfg : sig
 	  cvtParams ("zero_extend_", from, to)
       | pureToString (P.TRUNC{from, to}) = cvtParams ("trunc", from, to)
       | pureToString (P.INT_TO_FLOAT{from, to}) = concat [
-	    "f", Int.toString from, "_to_i", Int.toString to
+	    "i", Int.toString from, "_to_f", i2s to
 	  ]
-      | pureToString (P.FLOAT_TO_BITS{sz}) = concat ["f", Int.toString sz, "_to_bits"]
-      | pureToString (P.BITS_TO_FLOAT{sz}) = concat ["f", Int.toString sz, "_from_bits"]
+      | pureToString (P.FLOAT_TO_BITS{sz}) = concat ["f", i2s sz, "_to_bits"]
+      | pureToString (P.BITS_TO_FLOAT{sz}) = concat ["f", i2s sz, "_from_bits"]
       | pureToString P.PURE_SUBSCRIPT = "vector_sub"
       | pureToString (P.PURE_RAW_SUBSCRIPT{kind, sz}) =
 	  concat("vector_sub_" :: numkind2s(kind, sz))
