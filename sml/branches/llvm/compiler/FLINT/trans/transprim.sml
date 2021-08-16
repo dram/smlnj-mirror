@@ -204,7 +204,7 @@ structure TransPrim : sig
     local
       fun pickName (cvt32, cvt64) sz =
 	    if (sz = 64) then cvt64
-	    else if (sz = Tgt.mlValueSz) then cvt32
+	    else if (sz = Tgt.mlValueSz) then cvt32 (* NOTE: sz must be 32 here! *)
 	    else if (sz > Tgt.defaultIntSz)
 	      then bug(concat["bogus size ", Int.toString sz, " for intinf conversion"])
 	    else if Tgt.is64
