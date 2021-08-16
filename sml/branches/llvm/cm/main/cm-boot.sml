@@ -374,7 +374,7 @@ functor LinkCM (structure HostBackend : BACKEND) = struct
 			       | GG.NOLIB n =>
 				   addSources (#subgroups n, sources,
 					       insert (a, p, x), v))
-		      
+
 		  val p = mkStdSrcPath group
 		  val gr = GroupReg.new ()
 		  val x0 = { class = "cm", derived = false }
@@ -517,7 +517,7 @@ functor LinkCM (structure HostBackend : BACKEND) = struct
 	  val al_managers =
 	      AutoLoad.mkManagers { get_ginfo = al_ginfo,
 				    dropPickles = dropPickles }
-	      
+
 	  fun reset () =
 	      (Compile.reset ();
 	       Link.reset ();
@@ -568,7 +568,7 @@ functor LinkCM (structure HostBackend : BACKEND) = struct
 				       (SOME p, SOME i) =>
 				       (case DE.look de p of
 					    NONE => pm
-					  | SOME obj => 
+					  | SOME obj =>
 					    IM.insert (pm, i,
 						       DE.singleton (p, obj)))
 				     | _ => pm)
@@ -590,7 +590,7 @@ functor LinkCM (structure HostBackend : BACKEND) = struct
 	      in
 		  system_values := m
 	      end
-	      
+
 	      val _ =
 		  SafeIO.perform { openIt = fn () => TextIO.openIn pidmapfile,
 				   closeIt = TextIO.closeIn,
@@ -736,9 +736,10 @@ functor LinkCM (structure HostBackend : BACKEND) = struct
 		     \\n\
 		     \  rtsargs:\n\
 		     \    @SMLversion      (echo the version of SML/NJ then exit)\n\
+		     \    @SMLwordsize     (echo the wordsze for the system then exit)\n\
+		     \    @SMLsuffix       (echo the heap suffix for the system then exit)\n\
 		     \    @SMLload=<h>     (load specified heap image)\n\
 		     \    @SMLcmdname=<n>  (set command name)\n\
-		     \    @SMLsuffix       (echo heap suffix for the system then exit)\n\
 		     \    @SMLalloc=<s>    (specify size of allocation area)\n\
                      \    @SMLrun=<rt>     (specify runtime system)\n\
 		     \    @SMLquiet        (load heap image silently)\n\
@@ -939,7 +940,7 @@ functor LinkCM (structure HostBackend : BACKEND) = struct
 	val sources = sources
 
 	val symval = SSV.symval
-	val load_plugin = cwd_load_plugin 
+	val load_plugin = cwd_load_plugin
 	val mk_standalone = mk_standalone
 
 	structure Graph = struct
