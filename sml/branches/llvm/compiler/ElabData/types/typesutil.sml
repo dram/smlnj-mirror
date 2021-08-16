@@ -1130,6 +1130,8 @@ structure TypesUtil : TYPESUTIL =
 	      (* end case *)
 	    end
 
+    fun dataconName (DATACON {name, ...}) = name
+
     fun dataconSign (DATACON{sign,...}) = sign
 
     fun dataconIsConst (DATACON{const,...}) = const

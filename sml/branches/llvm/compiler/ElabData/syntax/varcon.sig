@@ -27,6 +27,11 @@ signature VARCON =
 
     val mkVALvar : Symbol.symbol * Access.access ->  var
 
+    val varName : var -> Symbol.symbol
+
+    val varToLvar : var -> LambdaVar.lvar
+    val varToType : var -> Types.ty
+
     val bogusCON : datacon
     val bogusEXN : datacon
 
