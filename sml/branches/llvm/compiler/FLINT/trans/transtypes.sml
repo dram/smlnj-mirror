@@ -5,17 +5,18 @@
  *)
 
 signature TRANSTYPES =
-sig
-  val genTT  : unit -> {tpsKnd : Types.tycpath -> PLambdaType.tkind,
-                        tpsTyc : DebIndex.depth -> Types.tycpath
-                                 -> PLambdaType.tyc,
-                        toTyc  : DebIndex.depth -> Types.ty -> PLambdaType.tyc,
-                        toLty  : DebIndex.depth -> Types.ty -> PLambdaType.lty,
-                        strLty : Modules.Structure * DebIndex.depth
-                                 * ElabUtil.compInfo -> PLambdaType.lty,
-                        fctLty : Modules.Functor * DebIndex.depth
-                                 * ElabUtil.compInfo -> PLambdaType.lty}
-end (* signature TRANSTYPES *)
+  sig
+
+    val genTT  : unit -> {
+	    tpsKnd : Types.tycpath -> PLambdaType.tkind,
+	    tpsTyc : DebIndex.depth -> Types.tycpath -> PLambdaType.tyc,
+	    toTyc  : DebIndex.depth -> Types.ty -> PLambdaType.tyc,
+	    toLty  : DebIndex.depth -> Types.ty -> PLambdaType.lty,
+	    strLty : Modules.Structure * DebIndex.depth * ElabUtil.compInfo -> PLambdaType.lty,
+	    fctLty : Modules.Functor * DebIndex.depth * ElabUtil.compInfo -> PLambdaType.lty
+	  }
+
+  end (* signature TRANSTYPES *)
 
 structure TransTypes : TRANSTYPES =
   struct

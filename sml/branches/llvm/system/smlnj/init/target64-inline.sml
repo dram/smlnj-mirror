@@ -151,6 +151,11 @@ structure InlineT =
 	val fast_sub : int * int -> int = InLine.int_unsafe_sub
       end
 
+  (* On 64-bit systems, Int32.int is represented as Int.int (i.e., as a tagged 63-bit
+   * 2's complement number.  We manually check for overflow where necessary.
+   * TODO: once we have completely replaced MLRisc with LLVM in the backend, we can
+   * use hardware overflow detection for smaller integer precisions.
+   *)
     structure Int32 =
       struct
 	val toInt = InLine.int32_to_int
@@ -160,7 +165,7 @@ structure InlineT =
 
 	local
 	(* wrapper that checks the result for Overflow.  Note that
-         * this wrapper breaks the inlining of Word32 arithmetic!
+         * this wrapper breaks the inlining of Int32 arithmetic!
 	 *)
 	  fun i32chk oper args = let
 		val res = oper args
