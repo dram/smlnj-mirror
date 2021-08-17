@@ -176,7 +176,7 @@ structure TaggedArith : sig
 	      | (IADD, [a, b]) => continue (P.IADD, [comp a, stripTag(comp b)])
 	      | (ISUB, [NUM{ival, ...}, b]) => continue (P.ISUB, [num(ival+ival+2), comp b])
 	      | (ISUB, [a, NUM{ival, ...}]) => continue (P.ISUB, [comp a, num(ival+ival)])
-	      | (ISUB, [a, b]) => tagResult (P.ISUB, [comp a, stripTag(comp b)])
+	      | (ISUB, [a, b]) => tagResult (P.ISUB, [comp a, comp b])
 	      | (IMUL, [NUM{ival=m, ...}, NUM{ival=n, ...}]) =>
 		  tagResult (P.IMUL, [num(m+m), num n])
 	      | (IMUL, [NUM{ival, ...}, b]) =>

@@ -331,6 +331,7 @@ C.NUMt{sz=sz}
 		  | PURE(P.NEWARRAY0, [_], x, _, k) => let
 		      val dataP = LV.mkLvar()
 		      in
+                        (* use `ref()` as the data representation *)
 			C.ALLOC(mutRecord D.desc_ref, [mlInt' 0], dataP,
 			C.ALLOC(record D.desc_polyarr, [mlInt' 0, var dataP], x,
 			  bindVarIn(x, k)))
@@ -694,7 +695,16 @@ C.NUMt{sz=sz}
 		pure(TP.PURE_RAW_SUBSCRIPT{kind=kind, sz=sz}, [
 		    getSeqData(genV vec), untagSigned idx
 		  ])
-	  and genRawIntSubscript (sz, vec, idx) =
+(* FIXME: for some reason, `INT 8` has been used for word8/char vectors; we
+ * keep it around for now to support porting, but it really should be
+ * sign extending the result.
+ *)
+	  and genRawIntSubscript (8, vec, idx) =
+                toMLWord (genRawSubscript (TP.INT, 8, vec, idx))
+(* NOTE: the following code doesn't ever get used, but will be necessary
+ * if we add monomorphic array types of smaller integer sizes
+ *)
+            | genRawIntSubscript (sz, vec, idx) =
 		if (sz < defaultIntSz)
 		  then toMLWord (signExtend (sz, genRawSubscript (TP.INT, sz, vec, idx)))
 		else if (sz = defaultIntSz)
