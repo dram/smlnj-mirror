@@ -41,7 +41,7 @@ structure Reconstruct : sig
 	   in recordTy(map extract (sortFields fields))
 	  end
       | expType(RSELECTexp (var, index)) = bug "expType: SELECTexp"
-      | expType(VSELECTexp (var, index)) = bug "expType: SELECTexp"
+      | expType(VSELECTexp (var, _, index)) = bug "expType: SELECTexp"
           (* only produced in match compilation post type checking *)
       | expType(VECTORexp(nil,vty)) = CONty(vectorTycon,[vty])
       | expType(VECTORexp((a::_),vty)) = CONty(vectorTycon,[vty])

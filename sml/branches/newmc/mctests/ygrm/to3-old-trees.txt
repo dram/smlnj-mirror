@@ -1,0 +1,69 @@
+oldmc, tt/to3.sml
+
+ use "tt/to3.sml";
+[opening tt/to3.sml]
+** andor:
+  AND {}
+     OR {} CNIL
+        _2 {2} 
+        _1 {1} 
+        _0 {0} 
+     OR {2} CSIG(1,1)
+        :: {0,1} AND {}
+           AND {}
+              OR {} CSIG(6,1)
+                 C4 {1} VAR {1}
+                 C1 {0} VAR {0}
+              VAR {1}
+              VAR {0,1}
+           OR {} CSIG(1,1)
+              :: {0,1} AND {}
+                 AND {}
+                    OR {} CSIG(6,1)
+                       C2 {1} VAR {1}
+                    VAR {1}
+                    VAR {}
+                 OR {1} CSIG(1,1)
+                    :: {0} AND {}
+                       AND {}
+                          OR {} CSIG(6,1)
+                             C2 {0} VAR {0}
+                          VAR {}
+                          VAR {}
+                       OR {} CSIG(1,1)
+                          :: {0} AND {}
+                             AND {}
+                                OR {} CSIG(6,1)
+                                   C3 {0} VAR {0}
+                                VAR {0}
+                                VAR {}
+                             VAR {0}
+
+** dectree:
+  CASEdt 0 CNIL 
+     _2 RHS 2
+     _1 CASEdt 1 CSIG(1,1) 
+        :: CASEdt 1.::.1 CSIG(1,1) 
+           :: CASEdt 0.0.::.1 CSIG(6,1) 
+              C4 CASEdt 0.0.::.1.::.1 CSIG(6,1) 
+                 C2 RHS 1
+                 * RHS 3
+              * RHS 3
+           * RHS 3
+        * RHS 3
+     _0 CASEdt 1 CSIG(1,1) 
+        :: CASEdt 1.::.1 CSIG(1,1) 
+           :: CASEdt 0.0.::.1 CSIG(6,1) 
+              C1 CASEdt 1.::.1.::.1 CSIG(1,1) 
+                 :: CASEdt 0.0.::.1.::.1.::.1 CSIG(6,1) 
+                    C2 CASEdt 1.::.1.::.1.::.1 CSIG(1,1) 
+                       :: CASEdt 0.0.::.1.::.1.::.1.::.1 CSIG(6,1) 
+                          C3 RHS 0
+                          * RHS 3
+                       * RHS 3
+                    * RHS 3
+                 * RHS 3
+              * RHS 3
+           * RHS 3
+        * RHS 3
+     * RHS 3

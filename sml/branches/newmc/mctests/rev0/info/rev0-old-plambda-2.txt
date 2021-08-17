@@ -1,0 +1,50 @@
+FN(v50: STR([TYC(TCAP(PRIM(ETG), [{}]))]),
+   v20 = v50[0]   -- Match exn, appears in <raiseMatch> as EXNVAR(20)
+     v1 =
+       v13 = TFN((M,M)
+             FIX(v2: TYC(AR[rr]([{}], [{}])) ::
+		   FN(v45: TYC({}),
+		     v48 = FN(v49: TYC({}), RCD())
+		       v46 = <raiseMatch>
+			  APP(v48, RCD()))
+                 v3: TYC(AR[rr]([AR[cc]([TV(1,0)], [TV(1,1)])], [AR[rr]([TCAP(list, [TV(1,0)])], [{}])])) ::
+		   FN(v24: TYC(AR[cc]([TV(1,0)], [TV(1,1)])),
+		      v44 = FN(v9: TYC(AR[cc]([TV(1,0)], [TV(1,1)])),
+			       FN(v25: TYC(TCAP(list, [TV(1,0)])),
+				  v41 = FN(v10: TYC(TCAP(list, [TV(1,0)])),
+					   v26 = RCD(v9,v10)
+					     v32 = FN(v4: TYC(AR[cc]([TV(1,0)], [TV(1,1)])),RCD())
+					       v30 = FN(v31: TYC({AR[cc]([TV(1,0)], [TV(1,1)]),TV(1,0),TCAP(list, [TV(1,0)])}),
+							v7 = v31[0]
+							  v6 = v31[1]
+							    v5 = v31[2]
+							      v27 = APP(v7, v6)
+								APP(APP(v3, v7),
+								v5))
+						 v28 = <raiseMatch>
+						   v33 = v26[0]
+						     v34 = v26[1]
+						       SWI v34
+							of ::.v35 =>
+							     v36 = v35[0]
+							       v37 = v35[1]
+								 APP(v30, RCD(v33,v36,v37))
+							   nil.v38 =>
+							     APP(v32, v33))
+				    v39 = <raiseMatch>
+				      APP(v41, v25)))
+			v42 = <raiseMatch>
+			  APP(v44, v24))
+             IN RCD(v2,v3)))
+         v12 = TAPP(v13 [PRIM(VOID),PRIM(VOID)])[0]
+           v11 = TFN((M,M) TAPP(v13 [TV(1,0),TV(1,1)])[1])
+             v17 = TFN((M)
+		     v14 = FN(v19: TYC(TV(1,0)),
+			     v23 = FN(v15: TYC(TV(1,0)),RCD())
+			       v21 = <raiseMatch>
+				 APP(v23, v19))
+		       v14)
+               v18 = APP(APP(TAPP(v11 [PRIM(VOID),{}]), TAPP(v17 [PRIM(VOID)])), <nil> [PRIM(VOID)] ()
+                 APP(APP(TAPP(v11 [int * int, unit]), TAPP(v17 [int * int])),
+                     <::> [{PRIM(I63),PRIM(I63)}] ((0,0), <nil> [{PRIM(I63),PRIM(I63)}] ()))
+       SRCD(v1))

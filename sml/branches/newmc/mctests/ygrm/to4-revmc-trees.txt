@@ -1,0 +1,234 @@
+revmc:
+
+use "to4.sml";
+[opening to4.sml]
+** matchComp: andor
+  AND 0  {0-4}
+     OR 1 {4} : int {l 0-4} {d 4}
+        I0 CONST  {0;4}  {cr 0}
+        I1 CONST  {1;4}  {cr 1}
+        I2 CONST  {2;4}  {cr 2}
+        I3 CONST  {3;4}  {cr 3}
+     OR 2 {2,4}  : s list, {0-4}
+        :: AND 3 : s * s list, {l 0-4}
+         0: AND 4 : s, {0-4}                                   -- hd (1st)
+             0: OR 5 {2,4} : v {l 0-4}, {d 2,4}
+                   C2 VAR{x0a/0} 6 : unit {0; 2,4}  {cr 0}
+                   C4 VAR{x1a/1} 7 : unit {1; 2,4}  {cr 1}
+                   C5 VAR{x3/3}  8 : unit {3; 2,4}  {cr 3}
+             1: VAR{l11/1} 9 : int,  {0-4}
+             2: VAR{r0/0,r1/1,r3/3} 10 : int {0-4}
+         1: OR 11 {2,4}  : s list {0-4}                        -- hd.tl (2nd)
+              :: AND 12 : s * s list, {0,1,3; 2,4}
+               0: AND 13 : s, {0-4}
+                   0: OR 14 {0,2,3,4} : v {0-4}
+                        C3 VAR{x1b/1} 15 : v  {1; 0,2,3,4}
+                   1: VAR{l12/1} 16 {0-4}
+                   2: WC     {0-4}
+               1: OR 17 {1,2,3,4} : s list {0-4}               -- hd.tl.tl (3rd)
+                    :: AND 18 : s * s list {0; 1,2,3,4}} {cr 0,1,3}
+                     0: AND 19 : s  {0-4}
+                         0: OR 20 {1,2,3,4} : v
+                              C3 VAR{x0b/0} 21 {0; 1,2,3,4} {cr 0}
+                         1: WC
+                         2: WC
+                     1: OR 22 {1,2,3,4} : s list, {0; 1,2,3,4}  -- hd.tl.tl.tl (4th)
+                          :: AND 23 : s * s list, {0; 1,2,3,4}
+                            0: AND 24 : s = v * int * int
+                                0: OR 25 {1,2,3,4} : v,
+                                     C1 VAR{x0c/0} 26 : v, {0; 1,2,3,4} {cr 0}
+                                1: VAR{l0/0} 27
+                                2: WC
+                            1: VAR{t0/0} 28
+
+Outer switch on <1> eliminates 2 rules in each branch.
+
+** matchComp: dectree = 
+  SWITCH 1 @ <0> {0-4}
+     I0 SWITCH 2 @ <1>                   {l 0; 4}   -- 0 because I0 @ <0>, 4 because _, {1,2,3} dead
+        :: SWITCH 11 @ <1.tl>            {l 0; 4}
+           :: SWITCH 5 @ <1.hd.0>        {l 0; 4}
+              C2 SWITCH 17 @ <1.tl.tl>   {l 0; 4}
+                 :: SWITCH 20 @ <1.tl.tl.hd.0>   {l 0; 4}
+                    C3 SWITCH 22 @ <1.tl.tl.tl>	 {l 0; 4}
+                       :: SWITCH 25 @ <1.tl.tl.tl.hd.0>  {l 0; 4}
+                          C1 RHS 0  cr {0}     {l 0; 4}
+                          * RHS 4
+                       * RHS 4
+                    * RHS 4
+                 * RHS 4
+              C4 RHS 4   <-- cr {1}  ## I0 @ <0>  (~ 1 m {0; 4})  {1} /\ {0,4} = {} caseLive
+              C5 RHS 4   <-- cr {3}  ## I0 @ <0>  (~ 3 m {0; 4})  {3} /\ {0,4} = {} caseLive
+              * RHS 4
+           * RHS 4
+        * RHS 4
+     I1 SWITCH 2 @ <1>              {l 1; 4}
+        :: SWITCH 11 @ <1.tl>       {l 1; 4}
+           :: SWITCH 5 @ <1.hd.0>   {l 1; 4}
+              C2 RHS 4      <-- cr {0}, ## I1 @ <0> case (0 ~m live)
+              C4 SWITCH 14 @ <1.tl.hd.0>  {l 1; 4}
+                 C3 RHS 1  cr {1}
+                 * RHS 4
+              C5 RHS 4     <-- cr {3} $$ I1 @ <0> case (3 ~m live)
+              * RHS 4
+           * RHS 4
+        * RHS 4
+     I2 RHS 2  {0,1,3,4} not relevant
+     I3 SWITCH 2 @ <1>    live = {3,4}
+        :: SWITCH 11 @<1.tl>
+           :: SWITCH 5 @<1.tl.hd.0> 
+              C2 RHS 4   <-- cr = {0} ## I3 case  (~ 0 m live = {3,4})
+              C4 RHS 4   <-- cr = {1} ## I3 case  (~ 1 m live = {3,4})
+              C5 RHS 3   cr = {3},  cr /\ live \= {}
+              * RHS 4
+           * RHS 4
+        * RHS 4
+     * RHS 4
+
+** matchComp: code = 
+  v28 =
+        FN(v27:
+           TYC({{},PRIM(I63),{},{},PRIM(I63),TCAP(list,
+                                                  [{svalue,PRIM(I63),PRIM(I63)}])}),
+           v20 = v27[0]
+             v19 = v27[1]
+               v18 = v27[2]
+                 v17 = v27[3]
+                   v16 = v27[4]
+                     v15 = v27[5]
+                       (I63)0)
+    v30 =
+          FN(v29:
+             TYC({{},PRIM(I63),PRIM(I63),{},PRIM(I63),TCAP(list,
+                                                           [{svalue,PRIM(I63),PRIM(I63)}])}),
+             v14 = v29[0]
+               v13 = v29[1]
+                 v12 = v29[2]
+                   v11 = v29[3]
+                     v10 = v29[4]
+                       v9 = v29[5]
+                         (I63)1)
+      v31 = FN(v8: TYC(TCAP(list, [{svalue,PRIM(I63),PRIM(I63)}])),(I63)2)
+        v33 =
+              FN(v32:
+                 TYC({{},PRIM(I63),PRIM(I63),TCAP(list,
+                                                  [{svalue,PRIM(I63),PRIM(I63)}])}),
+                 v7 = v32[0]
+                   v6 = v32[1]
+                     v5 = v32[2]
+                       v4 = v32[3]
+                         (I63)3)
+          v35 = FN(v34: TYC({}),(I63)4)
+            v37 = v36[0]
+              v38 = v36[1]
+                SWIv37
+                   of (I63)0 =>
+                     SWIv38
+                        of ::.v39 =>
+                          v40 = v39[0]
+                            v41 = v40[0]
+                              v42 = v40[2]
+                                v43 = v39[1]
+                                  SWIv43
+                                     of ::.v44 =>
+                                       v45 = v44[1]
+                                         SWIv41
+                                            of C2.v46 =>
+                                              SWIv45
+                                                 of ::.v47 =>
+                                                   v48 = v47[0]
+                                                     v49 = v48[0]
+                                                       v50 = v47[1]
+                                                         SWIv49
+                                                            of C3.v51 =>
+                                                              SWIv50
+                                                                 of ::.v52 =>
+                                                                   v53 =
+                                                                         v52[0]
+                                                                     v54 =
+                                                                           v53[0]
+                                                                       v55 =
+                                                                             v53[1]
+                                                                         v56 =
+                                                                               v52[1]
+                                                                           SWIv54
+                                                                              of C1.v57 =>
+                                                                                APP(v28,
+                                                                                RCD(v46,v42,v51,v57,v55,v56))
+                                                                              _ =>
+                                                                                APP(v35,
+                                                                                RCD())
+                                                                 _ =>
+                                                                   APP(v35,
+                                                                   RCD())
+                                                            _ =>
+                                                              APP(v35, RCD())
+                                                 _ => APP(v35, RCD())
+                                            C4.v68 => APP(v35, RCD())
+                                            C5.v69 => APP(v35, RCD())
+                                            _ => APP(v35, RCD())
+                                     _ => APP(v35, RCD())
+                        _ => APP(v35, RCD())
+                   (I63)1 =>
+                     SWIv38
+                        of ::.v74 =>
+                          v75 = v74[0]
+                            v76 = v75[0]
+                              v77 = v75[1]
+                                v78 = v75[2]
+                                  v79 = v74[1]
+                                    SWIv79
+                                       of ::.v80 =>
+                                         v81 = v80[0]
+                                           v82 = v81[0]
+                                             v83 = v81[1]
+                                               v84 = v80[1]
+                                                 SWIv76
+                                                    of C2.v90 =>
+                                                      APP(v35, RCD())
+                                                    C4.v85 =>
+                                                      SWIv82
+                                                         of C3.v86 =>
+                                                           APP(v30,
+                                                           RCD(v85,v77,v78,v86,v83,v84))
+                                                         _ => APP(v35, RCD())
+                                                    C5.v92 => APP(v35, RCD())
+                                                    _ => APP(v35, RCD())
+                                       _ => APP(v35, RCD())
+                        _ => APP(v35, RCD())
+                   (I63)2 => APP(v31, v38)
+                   (I63)3 =>
+                     SWIv38
+                        of ::.v97 =>
+                          v98 = v97[0]
+                            v99 = v98[0]
+                              v100 = v98[2]
+                                v101 = v97[1]
+                                  SWIv101
+                                     of ::.v102 =>
+                                       v103 = v102[0]
+                                         v104 = v103[1]
+                                           v105 = v102[1]
+                                             SWIv99
+                                                of C2.v108 => APP(v35, RCD())
+                                                C4.v109 => APP(v35, RCD())
+                                                C5.v106 =>
+                                                  APP(v33,
+                                                  RCD(v106,v100,v104,v105))
+                                                _ => APP(v35, RCD())
+                                     _ => APP(v35, RCD())
+                        _ => APP(v35, RCD())
+                   _ => APP(v35, RCD())
+  
+  
+structure Y :
+  sig
+  datatype svalue
+    = C1 of unit | C2 of unit | C3 of unit | C4 of unit | C5 of unit
+  type s = svalue * int * int
+  val actions : int * s list -> int
+end
+
+val it = () : unit
+
+- 

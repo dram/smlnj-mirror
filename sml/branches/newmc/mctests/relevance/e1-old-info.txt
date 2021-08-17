@@ -1,0 +1,137 @@
+tt/e1.sml, oldmc
+
+use "e1.sml";
+[opening e1.sml]
+TIME[makeAndor, ]
+   usr: 3, sys: 0
+
+** andor:
+  OR {} CSIG(1,1)
+     nil {1} 
+     :: {0} AND {}
+        AND {}
+           VAR {}
+           VAR {}
+        OR {} CSIG(1,1)
+           :: {0} AND {}
+              AND {}
+                 VAR {}
+                 VAR {}
+              OR {} CSIG(1,1)
+                 :: {0} AND {}
+                    AND {}
+                       VAR {}
+                       VAR {}
+                    VAR {}
+
+TIME[mkDecision, ]
+   usr: 6, sys: 0
+
+** dectree:
+  CASEdt * CSIG(1,1) 
+     nil RHS 1
+     :: CASEdt 1.:: CSIG(1,1) 
+        :: CASEdt 1.::.1.:: CSIG(1,1) 
+           :: RHS 0
+           * RHS 2
+        * RHS 2
+
+TIME[generate, ]
+   usr: 17, sys: 0
+
+** matchComp: code = 
+  v12 = FN(v13: TYC({}),(I63)0)    -- v12 = RHS 0        -- v8 .. v13 pre-allocated (preprocess)
+    v10 = FN(v11: TYC({}),(I63)1)  -- v10 = RHS 1
+      v8 = FN(v9: TYC({}),         -- FAIL (raise Match)  (-- RHS 2)
+              RAISE(TYC(PRIM(I63)),
+                    APP(PRM(markexn, TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []),
+                        RCD(CON((Match,EXNLVAR(7),TYC(AR[rr]([{}], [PRIM(EXN)]))),[],RCD()),
+			    "e1.sml:6.17"))))
+        SWI v6                                           -- v6 = root lvar (pre-allocated)
+         of nil.v14 => APP(v10, RCD())                   -- RHS 1  (v14 unused)
+            ::.v15 =>
+               v16 = v15[1]
+                 SWI v16
+                  of ::.v17 =>
+                        v18 = v17[1]
+                          SWI v18
+                           of ::.v19 => APP(v12, RCD())  -- RHS 0
+                              _ => APP(v8, RCD())        -- FAIL
+                     _ => APP(v8, RCD())                 -- FAIL
+  
+andor stats:
+  total  = 16
+  #AND   = 6
+  #OR    = 3
+  #LEAF  = 7
+
+dectree stats:
+  #CASEdt = 3
+  #RHS    = 4     -- where are the other two RHSs?
+  #BINDdt = 0
+
+lvars:
+  initial = 14
+  final   = 19
+  total   = 6
+
+e1.sml:4.5-6.17 Warning: match nonexhaustive
+          (_,_) :: (_,_) :: (_,_) :: _ => ...
+          nil => ...
+  
+
+TIME[makeAndor, ]
+   usr: 1, sys: 1
+
+** andor:
+  VAR {0}
+
+TIME[mkDecision, ]
+   usr: 2, sys: 0
+
+** dectree:
+  RHS 0
+
+TIME[generate, ]
+   usr: 3, sys: 0
+
+** matchComp: code = 
+  v22 =
+        FN(v2:
+           TYC(TCAP(list, [{TV(1,0),TV(1,1)}])),
+           v6 = v2
+             v12 = FN(v13: TYC({}),(I63)0)
+               v10 = FN(v11: TYC({}),(I63)1)
+                 v8 =
+                       FN(v9:
+                          TYC({}),
+                          RAISE(TYC(PRIM(I63)),
+                          APP(PRM(markexn,
+                              TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])),
+                              []),
+                          RCD(CON((Match,EXNLVAR(7),TYC(AR[rr]([{}],
+                                   [PRIM(EXN)]))), [], RCD()),"e1.sml:6.17"))))
+                   SWIv6
+                      of nil.v14 => APP(v10, RCD())
+                      ::.v15 =>
+                        v16 = v15[1]
+                          SWIv16
+                             of ::.v17 =>
+                               v18 = v17[1]
+                                 SWIv18
+                                    of ::.v19 => APP(v12, RCD())
+                                    _ => APP(v8, RCD())
+                             _ => APP(v8, RCD()))
+    v20 =
+          FN(v21:
+             TYC({}),
+             RAISE(TYC(PRIM(I63)),
+             APP(PRM(markexn, TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])),
+                 []),
+             RCD(CON((Match,EXNLVAR(7),TYC(AR[rr]([{}], [PRIM(EXN)]))), [],
+                     RCD()),"e1.sml:6.17"))))
+      APP(v22, v5)
+  
+  
+
+val f = fn : ('a * 'b) list -> int

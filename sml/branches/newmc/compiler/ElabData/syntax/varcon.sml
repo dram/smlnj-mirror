@@ -49,6 +49,15 @@ in
     fun varToLvar (VALvar{access = A.LVAR lv, ...}) = lv
       | varToLvar var = bug ("varToLvar: " ^ S.name(varName var))
 
+    fun lvarToVar (lvar: LambdaVar.lvar) : var =
+	let val path = SP.SPATH [Symbol.varSymbol ("v" ^ LambdaVar.toString lvar)]
+	in VALvar {path = path,
+		   typ = ref T.UNDEFty,
+		   access = A.LVAR lvar,
+		   btvs = ref [],
+		   prim = PrimopId.NonPrim}
+	end
+
     fun mkVALvar (id, acc) =
 	  VALvar{path = SP.SPATH [id],
 		 typ = ref T.UNDEFty,
@@ -91,22 +100,23 @@ in
 
 (* Wildcard special "variable" *)
 
-val wildSymbol = S.varSymbol "%WILD%"
-			     
-(* a pseudo-variable used to represent wildcard patterns in the match compiler *)
-val wildVar = VALvar{path = SP.SPATH [wildSymbol],
-		     typ = ref(Types.UNDEFty),
-		     btvs = ref nil,
-		     access = A.NO_ACCESS,
-		     prim = PrimopId.NonPrim}
+    val wildSymbol = S.varSymbol "%WILD%"
 
-fun isWildVar (VALvar{path,...}) = S.eq (SymPath.last path, wildSymbol)
+    (* FIX: wildVar and isWildVar probably obsolete. *)
+    (* a pseudo-variable used to represent wildcard patterns in the match compiler *)
+    val wildVar = VALvar{path = SP.SPATH [wildSymbol],
+			 typ = ref(Types.UNDEFty),
+			 btvs = ref nil,
+			 access = A.NO_ACCESS,
+			 prim = PrimopId.NonPrim}
 
-(* toString : var -> string *)
-fun toString (VALvar{path, access, ...}) = 
-    concat [S.name(SymPath.last path), "[", A.prAcc access, "]"]
-  | toString (OVLDvar _) = "OVLD"
-  | toString ERRORvar = "ERROR"
+    fun isWildVar (VALvar{path,...}) = S.eq (SymPath.last path, wildSymbol)
+
+    (* toString : var -> string *)
+    fun toString (VALvar{path, access, ...}) = 
+	concat [S.name(SymPath.last path), "[", A.prAcc access, "]"]
+      | toString (OVLDvar _) = "OVLD"
+      | toString ERRORvar = "ERROR"
 
 end (* local *)
 end (* structure VarCon *)

@@ -27,8 +27,9 @@ local structure LD = LtyDef
 in
 
 val debugging = FLINT_Control.spdebugging
-val say = Control_Print.say
 fun bug s = ErrorMsg.impossible ("SpecializeNvar: " ^ s)
+
+val say = Control_Print.say
 fun pp_fflag (fflag : LD.fflag) =
     PP.with_default_pp (fn ppstrm => PPLty.ppFflag ppstrm fflag)
 fun pp_lvar (lvar : LambdaVar.lvar) =

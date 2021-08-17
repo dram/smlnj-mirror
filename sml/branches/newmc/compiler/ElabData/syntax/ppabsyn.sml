@@ -32,14 +32,19 @@ end (* signature PPABSYN *)
 structure PPAbsyn: PPABSYN =
 struct
 
-local structure EM = ErrorMsg
-      structure M = Modules
-      structure B = Bindings
-      structure S = Symbol
-      structure PP = PrettyPrint
-      structure PU = PPUtil
+local
+  structure EM = ErrorMsg
+  structure A = Access
+  structure AU = AbsynUtil
+  structure M = Modules
+  structure B = Bindings
+  structure S = Symbol
+  structure LV = LambdaVar
+  structure SP = SymPath
+  structure PP = PrettyPrint
+  structure PU = PPUtil
 
-      open Absyn Tuples Fixity VarCon Types PPType PPVal
+  open Absyn Tuples Fixity VarCon Types PPType PPVal
 in
 
 (* debugging *)
@@ -282,20 +287,20 @@ fun ppExp (context as (env,source_opt)) ppstrm =
 			   ppExp'(exp,false,d))),
 		      style=PU.INCONSISTENT}
 		     fields
-	  | ppExp' (RSELECTexp (var, index), atom, d) =
+	  | ppExp' (RSELECTexp (exp, index), atom, d) =
 	      (openHVBox 0;
 	        lpcond(atom);
 	        pps "#"; PP.string ppstrm (Int.toString index);
 	        PP.break ppstrm {nsp=1, offset=0};
-		ppVar ppstrm var;
+		ppExp' (exp, false, d-1);
 		rpcond(atom);
 	       closeBox ())
-	  | ppExp' (VSELECTexp (var, index), atom, d) =
+	  | ppExp' (VSELECTexp (exp, _, index), atom, d) =
 	      (openHVBox 0;
 	        lpcond(atom);
 	        pps "V#"; PP.string ppstrm (Int.toString index);
 	        PP.break ppstrm {nsp=1, offset=0};
-		ppVar ppstrm var;
+		ppExp' (exp,false,d-1);
 		rpcond(atom);
 	       closeBox ())
 	  | ppExp' (VECTORexp(nil,_),_,d) = pps "#[]"
@@ -321,9 +326,9 @@ fun ppExp (context as (env,source_opt)) ppstrm =
 		exps
 	  | ppExp' (e as APPexp _,atom,d) =
 	      let val infix0 = INfix(0,0)
-	       in lpcond(atom);
+	       in lpcond atom;
 		  ppAppExp(e,nullFix,nullFix,d);
-		  rpcond(atom)
+		  rpcond atom
 	      end
 	  | ppExp' (CONSTRAINTexp(e, t),atom,d) =
 	     (openHOVBox 0;
@@ -362,6 +367,25 @@ fun ppExp (context as (env,source_opt)) ppstrm =
 		PP.break ppstrm {nsp=1,offset=0};
 		pps "end";
 	       closeBox ())
+	  | ppExp' (LETVexp(var, defexp, bodyexp),_,d) =
+	    let val dec = VALdec [VB{pat=VARpat var, exp = defexp, typ = Types.UNDEFty, boundtvs = nil,
+				     tyvars = ref []}]
+		val exp = bodyexp
+	    in
+	      (openHVBox 0;
+		pps "letv ";
+		openHVBox 0;
+		 ppDec context ppstrm (dec,d-1);
+		closeBox ();
+		PP.break ppstrm {nsp=1,offset=0};
+		pps "in ";
+		openHVBox 0;
+		 ppExp'(exp,false,d-1);
+		closeBox ();
+		PP.break ppstrm {nsp=1,offset=0};
+		pps "end";
+	       closeBox ())
+	    end
 	  | ppExp' (CASEexp(exp, (rules,_,_)), _, d) =
 	      (openHVBox 0;
 	       pps "(case "; ppExp'(exp,true,d-1); PU.nl_indent ppstrm 2;
@@ -370,29 +394,26 @@ fun ppExp (context as (env,source_opt)) ppstrm =
                   (* trim *) rules);
 	       rparen();
 	       closeBox ())
-	  | ppExp' (SWITCHexp(var, rules, defaultOp),_,d) =
-	      let val rules' =
-		      (case defaultOp
-			 of NONE => rules
-			  | SOME exp => rules @ [RULE(WILDpat, exp)])
-	       in openHVBox 0;
-	          pps "(SWITCH "; ppVar ppstrm var; PU.nl_indent ppstrm 2;
-		  PU.ppvlist ppstrm ("of ","   | ",
-		    (fn ppstrm => fn r => ppRule context ppstrm (r,d-1)),
-                    rules');
-		  rparen();  (* FIXED: default printed as extra rule *)
-		  closeBox ()
-	      end
-	  | ppExp' (VSWITCHexp(var, rules, default),_,d) =
-	      let val rules' = rules @ [RULE(WILDpat, default)]
-	       in openHVBox 0;
-	          pps "(VSWITCH "; ppVar ppstrm var; PU.nl_indent ppstrm 2;
-		  PU.ppvlist ppstrm ("of ","   | ",
-		    (fn ppstrm => fn r => ppRule context ppstrm (r,d-1)),
-                    rules');
-		  rparen();  (* FIXED: default printed as extra rule *)
-		  closeBox ()
-	      end
+	  | ppExp' (SWITCHexp(exp, srules, defaultOp),_,d) =
+	      (openHVBox 0;
+	       pps "(SWITCH "; ppExp'(exp,false,d-1); PU.nl_indent ppstrm 2;
+	       PU.ppvlist ppstrm ("of ","   | ",
+		  (fn ppstrm => fn r => ppSRule context ppstrm (r,d-1)),
+                  srules);
+	       (case defaultOp
+		 of NONE => ()
+		  | SOME exp =>
+		    (pps " * => "; ppExp' (exp,false,d-1)));
+		rparen();  (* FIXED: default printed as extra rule *)
+		closeBox ())
+	  | ppExp' (VSWITCHexp(subject, _, srules, default),_,d) =
+	       (openHVBox 0;
+	        pps "(VSWITCH "; ppExp'(subject,false,d-1); PU.nl_indent ppstrm 2;
+		PU.ppvlist ppstrm ("of ","   | ",
+		    (fn ppstrm => fn r => ppSRule context ppstrm (r,d-1)),
+                    srules);
+		rparen();  (* FIXED: default printed as extra rule *)
+		closeBox ())
 	  | ppExp' (IFexp { test, thenCase, elseCase },atom,d) =
 	      (openHVBox 0;
 	       lpcond(atom);
@@ -472,18 +493,18 @@ fun ppExp (context as (env,source_opt)) ppstrm =
 	and ppAppExp (_,_,_,0) = PP.string ppstrm "<exp>"
 	  | ppAppExp arg =
 	    let val pps = PP.string ppstrm
-		fun fixitypp(name,rand,leftFix,rightFix,d) =
-		    let val dname = SymPath.toString(SymPath.SPATH name)
-			val thisFix = case name
+		fun fixitypp(path,rand,leftFix,rightFix,d) =
+		    let val pathString = SymPath.toString(SymPath.SPATH path)
+			val thisFix = case path
 					of [id] => lookFIX(env,id)
 					 | _ => NONfix
 			fun prNon exp =
 			    (openHOVBox 2;
-			     pps dname; PP.break ppstrm {nsp=1,offset=0};
+			     pps pathString; PP.break ppstrm {nsp=1,offset=0};
 			     ppExp'(exp,true,d-1);
 			     closeBox ())
 		     in case thisFix
-			  of INfix _ =>
+			  of INfix _ =>   (* path is single symbol *)
 			     (case stripMark rand
 				of RECORDexp[(_,pl),(_,pr)] =>
 				    let val atom = strongerL(leftFix,thisFix)
@@ -495,7 +516,7 @@ fun ppExp (context as (env,source_opt)) ppstrm =
 					  lpcond(atom);
 					  ppAppExp (pl,left,thisFix,d-1);
 					  PP.break ppstrm {nsp=1,offset=0};
-					  pps dname;
+					  pps pathString;
 					  PP.break ppstrm {nsp=1,offset=0};
 					  ppAppExp (pr,thisFix,right,d-1);
 					  rpcond(atom);
@@ -512,7 +533,14 @@ fun ppExp (context as (env,source_opt)) ppstrm =
 		        | VARexp(v,_) =>
 			   let val path =
 			           case !v
-				     of VALvar{path=SymPath.SPATH p,...} => p
+				    of (VALvar{path = SP.SPATH path', access, ...}) =>
+				       (case access
+					  of A.LVAR lvar =>
+					     if !internals
+					     then [S.varSymbol(S.name (hd path') ^
+					                       "." ^ LV.toString lvar)]
+					     else path'
+					  | _ => path')
 				      | OVLDvar{name,...} => [name]
 				      | ERRORvar => [S.varSymbol "<errorvar>"]
 			    in fixitypp(path,rand,l,r,d)
@@ -535,7 +563,7 @@ fun ppExp (context as (env,source_opt)) ppstrm =
 		  | appPrint (e,_,_,d) = ppExp'(e,true,d)
 	     in appPrint arg
 	    end
-     in (fn (exp,depth) => ppExp'(exp,false,depth))
+     in (fn (exp,depth) => ppExp' (exp,false,depth))
     end
 
 and ppRule (context as (env,source_opt)) ppstrm (RULE(pat,exp),d) =
@@ -546,6 +574,15 @@ and ppRule (context as (env,source_opt)) ppstrm (RULE(pat,exp),d) =
 	  ppExp context ppstrm (exp,d-1);
 	  PP.closeBox ppstrm)
     else PP.string ppstrm "<rule>"
+
+and ppSRule (context as (env,source_opt)) ppstrm (SRULE(con,_,exp),d) =
+    if d>0
+    then (PP.openHVBox ppstrm (PP.Rel 0);
+	  PP.string ppstrm (AU.conToString con);
+	  PP.string ppstrm " =>"; PP.break ppstrm {nsp=1,offset=2};
+	  ppExp context ppstrm (exp,d-1);
+	  PP.closeBox ppstrm)
+    else PP.string ppstrm "<srule>"
 
 and ppVB (context as (env,source_opt)) ppstrm (VB{pat,exp,...},d) =
     if d>0

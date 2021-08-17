@@ -1,0 +1,43 @@
+revmc (07/27/21, fixed)
+
+- use "to55.sml";
+[opening to55.sml]
+TIME[makeProtoAndor, to55.sml:36.1-320.11]
+   usr: 132, sys: 0
+
+TIME[Andor.makeAndor, to55.sml:36.1-320.11]
+   usr: 114, sys: 1
+
+TIME[makeDectree, to55.sml:36.1-320.11]
+   usr: 808, sys: 0
+
+TIME[Generate.generate, to55.sml:36.1-320.11]
+   usr: 1822, sys: 1
+
+andor stats:
+  total = 66
+  #AND  = 11
+  #OR   = 11
+  #VAR  = 44
+
+dectree stats:
+  #SWITCH = 195
+  #RHS    = 1159
+  #FAIL   = 0
+
+lvars:
+  initial = 356
+  final   = 2248
+  total   = 1893
+
+TIME[makeProtoAndor, to55.sml:35.5-320.11]
+   usr: 1, sys: 1
+
+TIME[Andor.makeAndor, to55.sml:35.5-320.11]
+   usr: 2, sys: 1
+
+TIME[makeDectree, to55.sml:35.5-320.11]
+   usr: 1, sys: 0
+
+TIME[Generate.generate, to55.sml:35.5-320.11]
+   usr: 2, sys: 0

@@ -1,0 +1,32 @@
+oldmc
+
+[opening tt/to3b.sml]
+andor stats:
+  andor total =       18
+  andor AND nodes  =  5
+  andor OR nodes  =   5
+  andor LEAF nodes  = 8
+
+dectree stats:
+  dectree CASEdt  = 9
+  dectree BINDdt  = 0
+  dectree RHS     = 12
+
+lvars used: 28
+
+----------------------------------------------------------------------
+revmc
+
+[opening tt/to3b.sml]
+andor stats:
+  total nodes = 18
+  AND nodes  =  5
+  OR nodes  =   5
+  VAR nodes  = 8
+
+dectree stats:
+  CHOICE nodes = 9
+  RHS nodes    = 14
+  FAIL nodes   = 0
+
+lvars used: 51

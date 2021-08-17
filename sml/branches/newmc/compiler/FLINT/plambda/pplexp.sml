@@ -46,7 +46,7 @@ fun conToString (DATAcon((sym, _, _), _, v)) = ((S.name sym) ^ "." ^ (lvarName v
   | conToString (WORDcon{ival, ty}) =
       concat["(W", Int.toString ty, ")", IntInf.toString ival]
   | conToString (STRINGcon s) = PrintUtil.formatString s
-  | conToString (VLENcon n) = Int.toString n
+(*  | conToString (VLENcon n) = Int.toString n *)
 
 (* complex : lexp -> bool *)
 (* An lexp is "complex" if it contains a subexpression of form

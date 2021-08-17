@@ -75,6 +75,7 @@ struct
  *    the file names of both endpoints (even if the endpoints are the same
  *    file).
  *)
+(* [DBM] hasn't been supported for along while. get rid of the complication *)
 
   fun location_string ({sourceMap,fileOpened,...}:Source.inputSource)
                       ((p1,p2): SourceMap.region) : string =

@@ -48,7 +48,7 @@ structure Control_Print : PRINTCONTROL = struct
 	r
     end
 
-    val printDepth = new (int_cvt, "depth", "max print depth", 10)
+    val printDepth = new (int_cvt, "depth", "max print depth", 100)
     val printLength = new (int_cvt, "length", "max print length", 16)
     val stringDepth =
 	new (int_cvt, "string-depth", "max string print depth", 70)

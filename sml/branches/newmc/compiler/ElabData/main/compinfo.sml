@@ -18,7 +18,7 @@ structure CompInfo =
 	anyErrors: bool ref,
 	error: ErrorMsg.errorFn,
 	errorMatch: SourceMap.region -> string,
-	transform: 'absyn -> 'absyn,
+	transform: 'absyn -> 'absyn, (* normally the identity *)
 	sourceName : string
       }
 

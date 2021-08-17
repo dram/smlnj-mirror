@@ -46,36 +46,42 @@ in
 
   (*************** operations to build tyvars, VARtys ***************)
 
+    (* mkMETA : int -> tvKind *)
     fun mkMETA depth = OPEN{kind=META, depth=depth, eq=false}
 
+    (* mkFLEX: (label * ty) list * int -> tvKind *)
     fun mkFLEX (fields, depth) = OPEN{kind=FLEX fields, depth=depth, eq=false}
 
-    fun extract_varname_info name =
+    (* extract_tyvar_name_eq : string -> string * bool *)
+    (* name: string arg is assumed to start with one or two apostrophies
+     * ''abc ==> (abc, true);  'abc ==> (abc, false) *)
+    fun extract_tyvar_name_eq name =
 	let val name = SS.triml 1 (SS.full name)  (* remove leading "'" *)
 	    val (name, eq) =
 		if SS.sub(name, 0) = #"'"
-		then (SS.triml 1 name, true) (* initial "'" signifies equality *)
+		then (SS.triml 1 name, true) (* initial "'" signifies equality; removed *)
 		else (name, false)
-	in (SS.string name, eq)
+	 in (SS.string name, eq)
 	end
 
-    fun mkUBOUND (id : Symbol.symbol) : tvKind = let
-	  val (name, eq) = extract_varname_info (Symbol.name id)
-	  in
-	    UBOUND{name=Symbol.tyvSymbol name, depth=infinity, eq=eq}
-	  end
+    (* mkUBOUND : symbol -> tvkind *)
+    (* sym argument is assumed to start with one or two apostrophies *)
+    fun mkUBOUND (sym : Symbol.symbol) : tvKind =
+	let val (name, eq) = extract_tyvar_name_eq (Symbol.name sym)
+	 in UBOUND{name=Symbol.tyvSymbol name, depth=infinity, eq=eq}
+	end
 
 (* mkLITERALty moved to ElabCore because of use of OverloadLit *)
 
   (*
-   * mkMETAty:
-   *
-   *   This function returns a type that represents a new meta variable
-   * which does NOT appear in the "context" anywhere.  To do the same
-   * thing for a meta variable which will appear in the context (because,
-   * for example, we are going to assign the resulting type to a program
-   * variable), use mkMETAtyBounded with the appropriate depth.
-   *)
+   * mkMETAtyBounded : int -> ty
+   * mkMETAty: unit -> ty
+   *   mkMETAty returns a type that represents a "fresh" type meta variable,
+   * which will NOT appear in the "context" anywhere (e.g. in instantiating
+   * the polytype of an applied occurrence of a variable. To do the same
+   * thing for a meta variable that will occur in the type of a (lambda-) 
+   * bound variable in the context, use mkMETAtyBounded with the appropriate
+   * lambda-binding depth. *)
 
     fun mkMETAtyBounded (depth: int) : ty = VARty(mkTyvar (mkMETA depth))
 
@@ -477,30 +483,6 @@ in
       | compressTy (POLYty{tyfun=TYFUN{body,...},...}) = compressTy body
       | compressTy _ = ()
 
-    open Occurence
-(*
-  (*
-   * 8/18/92: cleaned up occ "state machine" some and fixed bug #612.
-   * Known behaviour of the attributes about the context that are kept:
-   * lamd = # of Abstr's seen so far.  Starts at 0 with Root.
-   * top = true iff haven't seen a LetDef yet.
-   *)
-
-    abstype occ = OCC of {lamd: int, top: bool}
-    with
-
-     val Root = OCC{lamd=0, top=true}
-
-     fun LetDef(OCC{lamd,...}) = OCC{lamd=lamd, top=false}
-
-     fun Abstr(OCC{lamd,top})  = OCC{lamd=lamd+1, top=top}
-
-     fun lamdepth (OCC{lamd,...}) = lamd
-
-     fun toplevel (OCC{top,...})  = top
-
-    end (* abstype occ *)
-*)
   (* instantiatePoly: ty -> ty * tyvar list
      if argument is a POLYty, instantiates body of POLYty with new META typa
      variables, returning the instantiatied body and the list of META tyvars.
@@ -793,10 +775,10 @@ in
 	      List.exists (fn (_,p) => refutable p) fields
 	  | VECTORpat (pats, _) =>
 	      List.exists refutable pats
-	  | LAYEREDpat (p1, p2) => refutable p1 orelse refutable p2
+	  | LAYEREDpat (p1, p2) => refutable p2
 	  | CONSTRAINTpat (p, _ ) => refutable p
 	  | MARKpat (p, _) => refutable p
-	  | ORpat (p1, p2) => refutablePats (orAlternatives pat)
+	  | ORpat (p1, p2) => true (* punt, conservatively *)
 	  | _ => true  (* NOPAT, numbers, strings, characters are refutable *)
 
     (* We don't (yet?) cope with OR patterns. One expects that
@@ -822,7 +804,7 @@ in
       | isValue (RECORDexp fields) =
 	foldr (fn ((_,exp),x) => x andalso (isValue exp)) true fields
       | isValue (RSELECTexp(var,index)) = true (* should not occur at this point *)
-      | isValue (VSELECTexp(var,index)) = true (* should not occur at this point *)
+      | isValue (VSELECTexp(var,_,index)) = true (* should not occur at this point *)
       | isValue (VECTORexp (exps, _)) =
 	foldr (fn (exp,x) => x andalso (isValue exp)) true exps
       | isValue (SEQexp nil) = true
@@ -1316,8 +1298,12 @@ in
 	end
 
     (* destructRecordTy : ty -> ty list *)
-    fun destructRecordTy (CONty(_, elemTys)) = elemTys
-      | destructRecordTy ty = bug "destructRecordTy"
+    fun destructRecordTy recTy =
+	(case headReduceType recTy
+	   of (CONty(_, elemTys)) => elemTys
+	    | POLYty{sign, tyfun = TYFUN{arity,body}} =>
+	        bug "destructRecordTy: POLYty"
+	    | ty => bug "destructRecordTy: ?")
 
   end (* local *)
   end (* structure TypesUtil *)

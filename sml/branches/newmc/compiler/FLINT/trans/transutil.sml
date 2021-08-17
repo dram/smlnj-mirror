@@ -242,6 +242,7 @@ fun aconvertLvars (vars, exps) =
 		   (substExp x; app (fn RULE (_, x) => substExp x) l)
                | RAISEexp (x, _) => substExp x
                | LETexp (d, x) => (substDec d; substExp x)
+               | LETVexp (var, defexp, bodyexp) => (substExp defexp; substExp bodyexp)
                | CASEexp (x, (rules,_,_)) =>
                    (substExp x; app (fn RULE (_, x) => substExp x) rules)
 	       | IFexp { test, thenCase, elseCase } =>
@@ -252,12 +253,12 @@ fun aconvertLvars (vars, exps) =
                | FNexp (l, _, _) =>  app (fn RULE (_, x) => substExp x) l
                | MARKexp (x, _) => substExp x
 	       | VECTORexp (el, _) => app substExp el
-	       | SWITCHexp (_, rules, expOp) =>
-		   (app (fn RULE(_,e) => substExp e) rules;
-		    Option.app substExp expOp)
-	       | VSWITCHexp (_, rules, exp) =>
-		   (app (fn RULE(_,e) => substExp e) rules;
-		    substExp exp)
+	       | SWITCHexp (_, srules, defaultOp) =>
+		   (app (fn SRULE(_,_,e) => substExp e) srules;
+		    Option.app substExp defaultOp)
+	       | VSWITCHexp (_, _, srules, default) =>
+		   (app (fn SRULE(_,_,e) => substExp e) srules;
+		    substExp default)
 	       | _ => ())
 
           and substDec d =

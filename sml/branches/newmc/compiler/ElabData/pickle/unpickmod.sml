@@ -1391,7 +1391,7 @@ structure UnpickMod : UNPICKMOD = struct
 	      | c #"2" = (F.INTcon{ty = int(), ival = intinf()}, lexp ())
 	      | c #"4" = (F.WORDcon{ty = int(), ival = intinf()}, lexp ())
 	      | c #"7" = (F.STRINGcon (string ()), lexp ())
-	      | c #"8" = (F.VLENcon (int ()), lexp ())
+(*	      | c #"8" = (F.VLENcon (int ()), lexp ()) *)
 	      | c _ = raise Format
 	in
 	    share conM c

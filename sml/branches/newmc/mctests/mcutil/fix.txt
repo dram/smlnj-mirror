@@ -1,0 +1,10 @@
+Fix for tt/mcutil/t1.sml bug:
+
+revmc
+FLINT/match/decisiontree.sml
+
+Calculation of defaultDtOp in mkDecTree is conditional on length of *dtCases*, not on
+length of *cases* being equal to the "number of constructors" given by signToWidth. If
+some of the original OR-node cases did not survive the liveness test in mkCases, then
+there will be fewer dtCases than cases, introducing a need for a default for the switch,
+(which could be FAIL if liveDefaults is empty).

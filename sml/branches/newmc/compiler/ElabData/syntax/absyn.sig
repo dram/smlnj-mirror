@@ -15,6 +15,18 @@ signature ABSYN =
 
     datatype numberedLabel = LABEL of {name: Symbol.symbol, number: int}
 
+    (* datatype con -- switch case discriminators  (moved here from matchcomp/paths.sml
+     *  con translates direclty to PLambda.con, except for VLENcon (n,t), which is translated
+     *  to PLambda.INTcon n (in Generate.generate). *)
+    datatype con
+      = DATAcon of Types.datacon * Types.tyvar list
+      | INTcon of int IntConst.t
+      | WORDcon of int IntConst.t
+      | STRINGcon of string
+      | VLENcon of int * Types.ty
+	 (* element type ty is used in VLENcon case of Generate..genSwitch, then
+	  * VLENcon is eliminated by translation to INTcon in transVecCase *)
+
     datatype exp
       = VARexp of VarCon.var ref * Types.tyvar list (* instance type *)
       | CONexp of Types.datacon * Types.tyvar list (* instance type *)
@@ -23,30 +35,37 @@ signature ABSYN =
       | STRINGexp of string
       | CHARexp of char
       | RECORDexp of (numberedLabel * exp) list
-      | RSELECTexp of VarCon.var * int
+      | RSELECTexp of exp * int
           (* record selections, generated only by match compiler *)
-      | VSELECTexp of VarCon.var * int
-          (* vector selections, generated only by match compiler *)
+      | VSELECTexp of exp * Types.ty * int
+          (* vector selections, generated only by match compiler; type is element type *)
       | VECTORexp of exp list * Types.ty
       | APPexp of exp * exp
       | FNexp of fnrules
       | CASEexp of exp * fnrules
       | HANDLEexp of exp * fnrules
       | RAISEexp of exp * Types.ty
-      | SWITCHexp of VarCon.var * rule list * exp option
-      | VSWITCHexp of VarCon.var * rule list * exp
-          (* SWITCHexp, VSWITCH created only by match compiler, for shallow case dispatch;
-           * VSWITCH is a special case dispatching on vector length *)
+      | SWITCHexp of exp * srule list * exp option
+      | VSWITCHexp of exp * Types.ty * srule list * exp
+          (* SWITCHexp, VSWITCHexp are created only by match compiler, for shallow case dispatch;
+	   * SWITCHexp is general case, for constants and datatypes; default is optional
+           * VSWITCH is a special case dispatching on vector length; default is mandatory *)
       | IFexp of { test: exp, thenCase: exp, elseCase: exp }
       | ANDALSOexp of exp * exp
       | ORELSEexp of exp * exp
       | WHILEexp of { test: exp, expr: exp }
       | LETexp of dec * exp
+      | LETVexp of VarCon.var * exp * exp
       | SEQexp of exp list
       | CONSTRAINTexp of exp * Types.ty
       | MARKexp of exp * region
 
     and rule = RULE of pat * exp
+
+    and srule = SRULE of con * VarCon.var option * exp
+       (* INVARIANT: var option will be SOME iff con is DATAcon(datacon,_) where datacon
+	* is not a constant. The var, when present, will be bound to the decon[con] of the
+        * subject value (where/how?). *)
 
     and pat
       = WILDpat
@@ -69,6 +88,7 @@ signature ABSYN =
       = VALdec of vb list
       | VALRECdec of rvb list
       | DOdec of exp
+      | VARSELdec of VarCon.var * VarCon.var * int
       | TYPEdec of Types.tycon list
       | DATATYPEdec of {datatycs: Types.tycon list, withtycs: Types.tycon list}
       | ABSTYPEdec of {abstycs: Types.tycon list,

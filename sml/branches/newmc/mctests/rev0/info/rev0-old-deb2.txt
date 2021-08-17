@@ -1,0 +1,126 @@
+v51{0} : (FCT)  = 
+  FN([v102{0} : ???],
+    v103{0} = SELECT(v102, 0)
+    v50{0} = STRUCT [v103]
+    v20{0} = SELECT(v50, 0)
+    [v1{0}] = 
+      v13{0} = 
+        TFN([v99:K0,v100:K0],
+          [v73{0},v74{0}] = 
+            FIX(v2{0} : (RFUN rr)  = 
+                  FN([v45{0} : TT<>],
+                    FIX(v48{0} : (FUN rr)  = 
+                          FN([v49{0} : TT<>],
+                            v53{0} = RECORD []
+                            RETURN [v53]))
+                    FIX(v46{0} : (FUN rr)  = 
+                          FN([v47{0} : TT<>],
+                            v56{0} = RECORD []
+                            v55{0} = CON(Match, [], v56)
+                            v54{0} = PRIMOP(markexn, <EXN,STR> -rr-> <EXN>, []) [v55,"rev0.sml:3.19"]
+                            RAISE(v54) : [TT<>]))
+                    v57{0} = RECORD []
+                    APP(v48,[v57]))
+                v3{0} : (RFUN rr)  = 
+                  FN([v24{0} : <NTV(v99)> -cc-> <NTV(v100)>],
+                    FIX(v44{0} : (FUN rr)  = 
+                          FN([v9{0} : <NTV(v99)> -cc-> <NTV(v100)>],
+                            FIX(v58{0} : (FUN rr)  = 
+                                  FN([v25{0} : LST[NTV(v99)]],
+                                    FIX(v41{0} : (FUN rr)  = 
+                                          FN([v10{0} : LST[NTV(v99)]],
+                                            v26{0} = RECORD [v9,v10]
+                                            FIX(v32{1} : (FUN rr)  = 
+                                                  FN([v4{0} : <NTV(v99)> -cc-> <NTV(v100)>],
+                                                    v59{0} = RECORD []
+                                                    RETURN [v59]))
+                                            FIX(v30{0} : (FUN rr)  = 
+                                                  FN([v61{0} : <NTV(v99)> -cc-> <NTV(v100)>,
+                                                      v62{0} : NTV(v99),
+                                                      v63{0} : LST[NTV(v99)]],
+                                                    v31{1} = RECORD [v61,v62,v63]
+                                                    v7{0} = SELECT(v31, 0)
+                                                    v6{0} = SELECT(v31, 1)
+                                                    v5{0} = SELECT(v31, 2)
+                                                    [v27{0}] = APP(v7,[v6])
+                                                    [v60{0}] = APP(v3,[v7])
+                                                    APP(v60,[v5])))
+                                            FIX(v28{1} : (FUN rr)  = 
+                                                  FN([v29{0} : TT<>],
+                                                    v66{0} = RECORD []
+                                                    v65{0} = CON(Match, [], v66)
+                                                    v64{0} = PRIMOP(markexn, <EXN,STR> -rr-> <EXN>, []) [v65,"rev0.sml:6.42"]
+                                                    RAISE(v64) : [TT<>]))
+                                            v33{1} = SELECT(v26, 0)
+                                            v34{1,1} = SELECT(v26, 1)
+                                            SWITCH v34
+                                              :: => 
+                                                  v35{0} = DECON(::,UT,(Q[K0].<TT<TV(1,0),LST[TV(1,0)]>> -rr-> <LST[TV(1,0)]>),[NTV(v99)])
+                                                  v36{0} = SELECT(v35, 0)
+                                                  v37{0} = SELECT(v35, 1)
+                                                  APP(v30,[v33,v36,v37])
+                                              nil => 
+                                                  APP(v32,[v33])))
+                                    FIX(v39{0} : (FUN rr)  = 
+                                          FN([v40{0} : TT<>],
+                                            v69{0} = RECORD []
+                                            v68{0} = CON(Match, [], v69)
+                                            v67{0} = PRIMOP(markexn, <EXN,STR> -rr-> <EXN>, []) [v68,"rev0.sml:5.9-6.42"]
+                                            RAISE(v67) : [TT<>]))
+                                    APP(v41,[v25])))
+                            RETURN [v58]))
+                    FIX(v42{0} : (FUN rr)  = 
+                          FN([v43{0} : TT<>],
+                            v72{0} = RECORD []
+                            v71{0} = CON(Match, [], v72)
+                            v70{0} = PRIMOP(markexn, <EXN,STR> -rr-> <EXN>, []) [v71,"rev0.sml:5.9-6.42"]
+                            RAISE(v70) : [<LST[NTV(v99)]> -rr-> <TT<>>]))
+                    APP(v44,[v24])))
+            RETURN [v2,v3]
+          v52{0} = RECORD [v73,v74]
+          RETURN [v52])
+      [v75{0}] = TAPP(v13,[VOID,VOID])
+      v12{0} = SELECT(v75, 0)
+      v11{0} = 
+        TFN([v97:K0,v98:K0],
+          [v77{0}] = TAPP(v13,[NTV(v97),NTV(v98)])
+          v76{0} = SELECT(v77, 1)
+          RETURN [v76])
+      v17{0} = 
+        TFN([v96:K0],
+          [v78{0}] = 
+            FIX(v14{0} : (FUN cr)  = 
+                  FN([v19{0} : NTV(v96)],
+                    FIX(v23{0} : (FUN cr)  = 
+                          FN([v15{0} : NTV(v96)],
+                            v79{0} = RECORD []
+                            RETURN [v79]))
+                    FIX(v21{0} : (FUN rr)  = 
+                          FN([v22{0} : TT<>],
+                            v82{0} = RECORD []
+                            v81{0} = CON(Match, [], v82)
+                            v80{0} = PRIMOP(markexn, <EXN,STR> -rr-> <EXN>, []) [v81,"rev0.sml:8.17"]
+                            RAISE(v80) : [TT<>]))
+                    APP(v23,[v19])))
+            RETURN [v14]
+          RETURN [v78])
+      [v18{0}] = 
+        [v83{0}] = 
+          [v84{0}] = TAPP(v11,[VOID,TT<>])
+          [v85{0}] = TAPP(v17,[VOID])
+          APP(v84,[v85])
+        v87{0} = RECORD []
+        v86{0} = CON(nil, [VOID], v87)
+        APP(v83,[v86])
+      [v88{0}] = 
+        [v89{0}] = TAPP(v11,[TT<I63,I63>,TT<>])
+        [v90{0}] = TAPP(v17,[TT<I63,I63>])
+        APP(v89,[v90])
+      v93{0} = RECORD [(I63)0,(I63)0]
+      v95{0} = RECORD []
+      v94{0} = CON(nil, [TT<I63,I63>], v95)
+      v92{0} = RECORD [v93,v94]
+      v91{0} = CON(::, [TT<I63,I63>], v92)
+      APP(v88,[v91])
+    v101{0} = STRUCT [v1]
+    RETURN [v101])

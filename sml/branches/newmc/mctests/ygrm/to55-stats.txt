@@ -1,0 +1,81 @@
+Test case: to55.sml (old t4.sml), derived from yacc.grm.sml.
+
+oldmc1:  (mildly rationalized old (Aiken) match compiler)
+
+- use "to55.sml";
+[opening to55.sml]
+andor stats:
+  total  = 70
+  #AND   = 11
+  #OR    = 11
+  #LEAF  = 48
+
+dectree stats:
+  #CASEdt = 195
+  #RHS    = 250
+  #BINDdt = 0
+
+lvars:
+  initial = 359
+  final   = 1007
+  total   = 649
+
+
+revmc:  (roughly newmc andor and decision tree and "improved" plambda "code"-generation)
+
+- use "to55.sml";
+[opening to55.sml]
+andor stats:
+  total = 66
+  #AND  = 11
+  #OR   = 11
+  #VAR  = 44
+
+dectree stats:
+  #SWITCH = 195
+  #RHS    = 1159
+  #FAIL   = 0
+
+lvars:
+  initial = 356
+  final   = 2248
+  total   = 1893
+
+
+revmc fixed: (fixed to avoid generating dead cases in switches)
+
+- use "to55.sml";
+[opening to55.sml]
+andor stats:
+  total = 66
+  #AND  = 11
+  #OR   = 11
+  #VAR  = 44
+
+dectree stats:
+  #SWITCH = 195
+  #RHS    = 250
+  #FAIL   = 0
+
+lvars:
+  initial = 356
+  final   = 1339
+  total   = 984
+
+---------------------------------------
+Compiling the compiler
+
+In revmc/base/system (after rm -rf sml.b*) :
+time .cmb-make ../../bin/sml
+
+real	0m50.028s
+user	0m46.305s
+sys	0m2.215s
+
+In 110.98.1/base/system (after rm -rf sml.b*) :
+time .cmb-make ../../bin/sml
+
+real	0m50.196s
+user	0m45.782s
+sys	0m2.302s
+

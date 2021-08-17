@@ -1,0 +1,648 @@
+[opening t0a.sml]
+[autoloading]
+[autoloading done]
+matchComp: hmatch = 
+
+  
+     SOME (w,_) => RCD(v6)
+        
+        
+
+** matchComp: protoAndor = 
+  ORs  CSIG(1,1)
+     SOME {0} ANDs 
+        VARs (w,0)
+        VARs 
+
+** matchComp: andor (nodeCount = 4) =
+  OR 0 {} CSIG(1,1)
+     SOME AND 1
+        VAR 2
+        VAR 3
+
+** matchComp: pvarmap = 
+  
+     6 = {(0,2)}
+
+** matchComp: decTree = 
+  CHOICE 0 CSIG(1,1) 
+     SOME RHS 0
+     * FAIL
+
+** matchComp: code = 
+  v11 = FN(v6: TYC(PRIM(I63)),RCD(v6))
+    SWIv12
+       of SOME.v13 => v15 = v13[0]
+           v14 = v13[1]
+             APP(v11, v15)
+       _ =>
+         RAISE(TYC({PRIM(I63)}),
+         APP(PRM(markexn, TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []),
+         RCD(CON((Bind,EXNLVAR(4),TYC(AR[rr]([{}], [PRIM(EXN)]))), [], RCD()),"t0a.sml:4.11-4.84")))
+  
+  
+
+t0a.sml:4.11-4.84 Warning: binding not exhaustive
+          SOME (w,_) = ...
+
+
+
+[After Translate ...]
+
+FN(v18:
+   STR([TYC(AR[rr]([PRIM(STR)], [substring])),TYC(AR[rr]([substring],
+        [TCAP(option, [{PRIM(I63),substring}])])),POL([M],
+         [TYC(AR[rr]([radix],
+          [AR[rr]([AR[cr]([TV(1,0)], [TCAP(option, [{PRIM(I63),TV(1,0)}])])],
+           [AR[cr]([TV(1,0)], [TCAP(option, [{PRIM(I63),TV(1,0)}])])])]))]),TYC(AR[rr]([PRIM(I63)],
+        [PRIM(STR)])),TYC(TCAP(PRIM(ETG), [{}])),TYC(TCAP(PRIM(ETG), [{}]))]),
+   v10 = v18[0]
+     v9 = v18[1]
+       v8 = v18[2]
+         v5 = v18[3]
+           v4 = v18[4]
+             v3 = v18[5]
+               v1 =
+                     v7 =
+                           v12 =
+                                 APP(APP(APP(TAPP(v8 [substring]),
+                                 CON((HEX,CN(2),TYC(AR[rr]([{}], [radix]))),
+                                     [], RCD())),
+                                 v9),
+                                 APP(v10, "12"))
+                             v11 = FN(v6: TYC(PRIM(I63)),RCD(v6))
+                               SWIv12
+                                  of SOME.v13 =>
+                                    v15 = v13[0]
+                                      v14 = v13[1]
+                                        APP(v11, v15)
+                                  _ =>
+                                    RAISE(TYC({PRIM(I63)}),
+                                    APP(PRM(markexn,
+                                        TYC(AR[rr]([PRIM(EXN),PRIM(STR)],
+                                        [PRIM(EXN)])), []),
+                                    RCD(CON((Bind,EXNLVAR(4),TYC(AR[rr]([{}],
+                                             [PRIM(EXN)]))), [], RCD()),"t0a.sml:4.11-4.84")))
+                       v2 = v7[0]
+                         APP(v5, v2)
+                 SRCD(v1))
+
+
+
+[After FlintNM.norm ...]
+
+v19{0} : FD[FCT, is, false, NR] = 
+  FN([v18{0} : ???],
+    v10{0} = SELECT(v18, 0)
+    v9{0} = SELECT(v18, 1)
+    v8{0} = SELECT(v18, 2)
+    v5{0} = SELECT(v18, 3)
+    v4{0} = SELECT(v18, 4)
+    v3{0} = SELECT(v18, 5)
+    [v1{0}] = 
+      [v7{0}] = 
+        [v12{0}] = 
+          [v20{0}] = 
+            [v21{0}] = 
+              [v22{0}] = TAPP(v8,[substring])
+              v24{0} = RECORD []
+              v23{0} = CON(HEX, [], v24)
+              APP(v22,[v23])
+            APP(v21,[v9])
+          [v25{0}] = APP(v10,["12"])
+          APP(v20,[v25])
+        FIX(v11{0} : FD[FUN(rr), is, false, NR] = 
+              FN([v6{0} : TYC(PRIM(I63))],
+                v26{0} = RECORD [v6]
+                RETURN [v26]))
+        SWITCH v12
+          SOME => 
+              v13{0} = DECON(SOME,UT,POL([M], [TYC(AR[rr]([TV(1,0)], [TCAP(option, [TV(1,0)])]))]),[{PRIM(I63),substring}])
+              v15{0} = SELECT(v13, 0)
+              v14{0} = SELECT(v13, 1)
+              APP(v11,[v15])
+          _ => 
+              v29{0} = RECORD []
+              v28{0} = CON(Bind, [], v29)
+              v27{0} = PRIMOP(markexn, TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []) [v28,"t0a.sml:4.11-4.84"]
+              RAISE(v27) : [TYC({PRIM(I63)})]
+      v2{0} = SELECT(v7, 0)
+      APP(v5,[v2])
+    v30{0} = STRUCT [v1]
+    RETURN [v30])
+
+[After deb2names ...]
+
+v19{0} : FD[FCT, is, false, NR] = 
+  FN([v31{0} : ???],
+    v32{0} = SELECT(v31, 0)
+    v33{0} = SELECT(v31, 1)
+    v34{0} = SELECT(v31, 2)
+    v35{0} = SELECT(v31, 3)
+    v36{0} = SELECT(v31, 4)
+    v37{0} = SELECT(v31, 5)
+    v18{0} = STRUCT [v32,v33,v34,v35,v36,v37]
+    v10{0} = SELECT(v18, 0)
+    v9{0} = SELECT(v18, 1)
+    v8{0} = SELECT(v18, 2)
+    v5{0} = SELECT(v18, 3)
+    v4{0} = SELECT(v18, 4)
+    v3{0} = SELECT(v18, 5)
+    [v1{0}] = 
+      [v7{0}] = 
+        [v12{0}] = 
+          [v20{0}] = 
+            [v21{0}] = 
+              [v22{0}] = TAPP(v8,[substring])
+              v24{0} = RECORD []
+              v23{0} = CON(HEX, [], v24)
+              APP(v22,[v23])
+            APP(v21,[v9])
+          [v25{0}] = APP(v10,["12"])
+          APP(v20,[v25])
+        FIX(v11{0} : FD[FUN(rr), is, false, NR] = 
+              FN([v6{0} : TYC(PRIM(I63))],
+                v26{0} = RECORD [v6]
+                RETURN [v26]))
+        SWITCH v12
+          SOME => 
+              v13{0} = DECON(SOME,UT,POL([M], [TYC(AR[rr]([TV(1,0)], [TCAP(option, [TV(1,0)])]))]),[{PRIM(I63),substring}])
+              v15{0} = SELECT(v13, 0)
+              v14{0} = SELECT(v13, 1)
+              APP(v11,[v15])
+          _ => 
+              v29{0} = RECORD []
+              v28{0} = CON(Bind, [], v29)
+              v27{0} = PRIMOP(markexn, TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []) [v28,"t0a.sml:4.11-4.84"]
+              RAISE(v27) : [TYC({PRIM(I63)})]
+      v2{0} = SELECT(v7, 0)
+      APP(v5,[v2])
+    v30{0} = STRUCT [v1]
+    RETURN [v30])
+
+
+[After lcontract ...]
+
+v19{0} : FD[FCT, is, false, NR] = 
+  FN([v31{0} : ???],
+    v32{0} = SELECT(v31, 0)
+    v33{0} = SELECT(v31, 1)
+    v34{0} = SELECT(v31, 2)
+    v35{0} = SELECT(v31, 3)
+    v36{0} = SELECT(v31, 4)
+    [v22{0}] = TAPP(v34,[substring])
+    v24{0} = RECORD []
+    v23{0} = CON(HEX, [], v24)
+    [v21{0}] = APP(v22,[v23])
+    [v20{0}] = APP(v21,[v33])
+    [v25{0}] = APP(v32,["12"])
+    [v12{0}] = APP(v20,[v25])
+    [v7{0}] = 
+      SWITCH v12
+        SOME => 
+            v13{0} = DECON(SOME,UT,POL([M], [TYC(AR[rr]([TV(1,0)], [TCAP(option, [TV(1,0)])]))]),[{PRIM(I63),substring}])
+            v15{0} = SELECT(v13, 0)
+            v26{0} = RECORD [v15]
+            RETURN [v26]
+        _ => 
+            v29{0} = RECORD []
+            v28{0} = CON(Bind, [], v29)
+            v27{0} = PRIMOP(markexn, TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []) [v28,"t0a.sml:4.11-4.84"]
+            RAISE(v27) : [TYC({PRIM(I63)})]
+    v2{0} = SELECT(v7, 0)
+    [v1{0}] = APP(v35,[v2])
+    v30{0} = STRUCT [v1]
+    RETURN [v30])
+
+
+[After fixfix ...]
+
+v19{0} : FD[FCT, is, false, NR] = 
+  FN([v31{0} : ???],
+    v32{0} = SELECT(v31, 0)
+    v33{0} = SELECT(v31, 1)
+    v34{0} = SELECT(v31, 2)
+    v35{0} = SELECT(v31, 3)
+    v36{0} = SELECT(v31, 4)
+    [v22{0}] = TAPP(v34,[substring])
+    v24{0} = RECORD []
+    v23{0} = CON(HEX, [], v24)
+    [v21{0}] = APP(v22,[v23])
+    [v20{0}] = APP(v21,[v33])
+    [v25{0}] = APP(v32,["12"])
+    [v12{0}] = APP(v20,[v25])
+    [v7{0}] = 
+      SWITCH v12
+        SOME => 
+            v13{0} = DECON(SOME,UT,POL([M], [TYC(AR[rr]([TV(1,0)], [TCAP(option, [TV(1,0)])]))]),[{PRIM(I63),substring}])
+            v15{0} = SELECT(v13, 0)
+            v26{0} = RECORD [v15]
+            RETURN [v26]
+        _ => 
+            v29{0} = RECORD []
+            v28{0} = CON(Bind, [], v29)
+            v27{0} = PRIMOP(markexn, TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []) [v28,"t0a.sml:4.11-4.84"]
+            RAISE(v27) : [TYC({PRIM(I63)})]
+    v2{0} = SELECT(v7, 0)
+    [v1{0}] = APP(v35,[v2])
+    v30{0} = STRUCT [v1]
+    RETURN [v30])
+
+
+[After fcontract ...]
+
+v19{1} : FD[FCT, is, false, NR] = 
+  FN([v31{5} : ???],
+    v32{1,1} = SELECT(v31, 0)
+    v33{1} = SELECT(v31, 1)
+    v34{1,1} = SELECT(v31, 2)
+    v35{1,1} = SELECT(v31, 3)
+    v36{1} = SELECT(v31, 4)
+    [v22{1,1}] = TAPP(v34,[substring])
+    v24{1} = RECORD []
+    v23{1} = CON(HEX, [], v24)
+    [v21{1,1}] = APP(v22,[v23])
+    [v20{1,1}] = APP(v21,[v33])
+    [v25{1}] = APP(v32,["12"])
+    [v12{1}] = APP(v20,[v25])
+    [v7{1}] = 
+      SWITCH v12
+        SOME => 
+            v13{1} = DECON(SOME,UT,POL([M], [TYC(AR[rr]([TV(1,0)], [TCAP(option, [TV(1,0)])]))]),[{PRIM(I63),substring}])
+            v15{1} = SELECT(v13, 0)
+            v26{1} = RECORD [v15]
+            RETURN [v26]
+        _ => 
+            v29{1} = RECORD []
+            v28{1} = CON(Bind, [], v29)
+            v27{1} = PRIMOP(markexn, TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []) [v28,"t0a.sml:4.11-4.84"]
+            RAISE(v27) : [TYC({PRIM(I63)})]
+    v2{1} = SELECT(v7, 0)
+    [v1{1}] = APP(v35,[v2])
+    v30{1} = STRUCT [v1]
+    RETURN [v30])
+
+
+[After specialize ...]
+
+v19{1} : FD[FCT, is, false, NR] = 
+  FN([v31{5} : ???],
+    v32{1,1} = SELECT(v31, 0)
+    v33{1} = SELECT(v31, 1)
+    v34{1,1} = SELECT(v31, 2)
+    [v43{0}] = TAPP(v34,[substring])
+    v35{1,1} = SELECT(v31, 3)
+    v36{1} = SELECT(v31, 4)
+    [v22{1,1}] = RETURN [v43]
+    v24{1} = RECORD []
+    v23{1} = CON(HEX, [], v24)
+    [v21{1,1}] = APP(v22,[v23])
+    [v20{1,1}] = APP(v21,[v33])
+    [v25{1}] = APP(v32,["12"])
+    [v12{1}] = APP(v20,[v25])
+    [v7{1}] = 
+      SWITCH v12
+        SOME => 
+            v13{1} = DECON(SOME,UT,POL([M], [TYC(AR[rr]([TV(1,0)], [TCAP(option, [TV(1,0)])]))]),[{PRIM(I63),substring}])
+            v15{1} = SELECT(v13, 0)
+            v26{1} = RECORD [v15]
+            RETURN [v26]
+        _ => 
+            v29{1} = RECORD []
+            v28{1} = CON(Bind, [], v29)
+            v27{1} = PRIMOP(markexn, TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []) [v28,"t0a.sml:4.11-4.84"]
+            RAISE(v27) : [TYC({PRIM(I63)})]
+    v2{1} = SELECT(v7, 0)
+    [v1{1}] = APP(v35,[v2])
+    v30{1} = STRUCT [v1]
+    RETURN [v30])
+
+
+[After loopify ...]
+
+v19{1} : FD[FCT, is, false, NR] = 
+  FN([v31{5} : ???],
+    v32{1,1} = SELECT(v31, 0)
+    v33{1} = SELECT(v31, 1)
+    v34{1,1} = SELECT(v31, 2)
+    [v43{0}] = TAPP(v34,[substring])
+    v35{1,1} = SELECT(v31, 3)
+    v36{1} = SELECT(v31, 4)
+    [v22{1,1}] = RETURN [v43]
+    v24{1} = RECORD []
+    v23{1} = CON(HEX, [], v24)
+    [v21{1,1}] = APP(v22,[v23])
+    [v20{1,1}] = APP(v21,[v33])
+    [v25{1}] = APP(v32,["12"])
+    [v12{1}] = APP(v20,[v25])
+    [v7{1}] = 
+      SWITCH v12
+        SOME => 
+            v13{1} = DECON(SOME,UT,POL([M], [TYC(AR[rr]([TV(1,0)], [TCAP(option, [TV(1,0)])]))]),[{PRIM(I63),substring}])
+            v15{1} = SELECT(v13, 0)
+            v26{1} = RECORD [v15]
+            RETURN [v26]
+        _ => 
+            v29{1} = RECORD []
+            v28{1} = CON(Bind, [], v29)
+            v27{1} = PRIMOP(markexn, TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []) [v28,"t0a.sml:4.11-4.84"]
+            RAISE(v27) : [TYC({PRIM(I63)})]
+    v2{1} = SELECT(v7, 0)
+    [v1{1}] = APP(v35,[v2])
+    v30{1} = STRUCT [v1]
+    RETURN [v30])
+
+
+[After fixfix ...]
+
+v19{1} : FD[FCT, is, false, NR] = 
+  FN([v31{5} : ???],
+    v32{1,1} = SELECT(v31, 0)
+    v33{1} = SELECT(v31, 1)
+    v34{1,1} = SELECT(v31, 2)
+    [v43{0}] = TAPP(v34,[substring])
+    v35{1,1} = SELECT(v31, 3)
+    v36{1} = SELECT(v31, 4)
+    [v22{1,1}] = RETURN [v43]
+    v24{1} = RECORD []
+    v23{1} = CON(HEX, [], v24)
+    [v21{1,1}] = APP(v22,[v23])
+    [v20{1,1}] = APP(v21,[v33])
+    [v25{1}] = APP(v32,["12"])
+    [v12{1}] = APP(v20,[v25])
+    [v7{1}] = 
+      SWITCH v12
+        SOME => 
+            v13{1} = DECON(SOME,UT,POL([M], [TYC(AR[rr]([TV(1,0)], [TCAP(option, [TV(1,0)])]))]),[{PRIM(I63),substring}])
+            v15{1} = SELECT(v13, 0)
+            v26{1} = RECORD [v15]
+            RETURN [v26]
+        _ => 
+            v29{1} = RECORD []
+            v28{1} = CON(Bind, [], v29)
+            v27{1} = PRIMOP(markexn, TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []) [v28,"t0a.sml:4.11-4.84"]
+            RAISE(v27) : [TYC({PRIM(I63)})]
+    v2{1} = SELECT(v7, 0)
+    [v1{1}] = APP(v35,[v2])
+    v30{1} = STRUCT [v1]
+    RETURN [v30])
+
+
+[After fcontract ...]
+
+v19{1} : FD[FCT, is, false, NR] = 
+  FN([v31{5} : ???],
+    v32{1,1} = SELECT(v31, 0)
+    v33{1} = SELECT(v31, 1)
+    v34{1,1} = SELECT(v31, 2)
+    [v43{1,1}] = TAPP(v34,[substring])
+    v35{1,1} = SELECT(v31, 3)
+    v36{1} = SELECT(v31, 4)
+    v24{1} = RECORD []
+    v23{1} = CON(HEX, [], v24)
+    [v21{1,1}] = APP(v43,[v23])
+    [v20{1,1}] = APP(v21,[v33])
+    [v25{1}] = APP(v32,["12"])
+    [v12{1}] = APP(v20,[v25])
+    [v7{1}] = 
+      SWITCH v12
+        SOME => 
+            v13{1} = DECON(SOME,UT,POL([M], [TYC(AR[rr]([TV(1,0)], [TCAP(option, [TV(1,0)])]))]),[{PRIM(I63),substring}])
+            v15{1} = SELECT(v13, 0)
+            v26{1} = RECORD [v15]
+            RETURN [v26]
+        _ => 
+            v29{1} = RECORD []
+            v28{1} = CON(Bind, [], v29)
+            v27{1} = PRIMOP(markexn, TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []) [v28,"t0a.sml:4.11-4.84"]
+            RAISE(v27) : [TYC({PRIM(I63)})]
+    v2{1} = SELECT(v7, 0)
+    [v1{1}] = APP(v35,[v2])
+    v30{1} = STRUCT [v1]
+    RETURN [v30])
+
+
+[After wrap ...]
+
+v19{1} : FD[FCT, is, false, NR] = 
+  FN([v31{5} : ???],
+    v32{1,1} = SELECT(v31, 0)
+    v33{1} = SELECT(v31, 1)
+    v34{1,1} = SELECT(v31, 2)
+    [v43{1,1}] = TAPP(v34,[substring])
+    v35{1,1} = SELECT(v31, 3)
+    v36{1} = SELECT(v31, 4)
+    v24{1} = RECORD []
+    v23{1} = CON(HEX, [], v24)
+    [v21{1,1}] = APP(v43,[v23])
+    [v20{1,1}] = APP(v21,[v33])
+    [v25{1}] = APP(v32,["12"])
+    [v12{1}] = APP(v20,[v25])
+    [v7{1}] = 
+      SWITCH v12
+        SOME => 
+            v13{1} = DECON(SOME,UT,POL([M], [TYC(AR([TV(1,0)], [TCAP(option, [TV(1,0)])]))]),[{PRIM(I63),substring}])
+            v15{1} = SELECT(v13, 0)
+            v26{1} = RECORD [v15]
+            RETURN [v26]
+        _ => 
+            v29{1} = RECORD []
+            v28{1} = CON(Bind, [], v29)
+            v27{1} = PRIMOP(markexn, TYC(AR([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []) [v28,"t0a.sml:4.11-4.84"]
+            RAISE(v27) : [TYC({PRIM(I63)})]
+    v2{1} = SELECT(v7, 0)
+    [v1{1}] = APP(v35,[v2])
+    v30{1} = STRUCT [v1]
+    RETURN [v30])
+
+
+[After fcontract ...]
+
+v19{1} : FD[FCT, is, false, NR] = 
+  FN([v31{5} : ???],
+    v32{1,1} = SELECT(v31, 0)
+    v33{1} = SELECT(v31, 1)
+    v34{1,1} = SELECT(v31, 2)
+    [v43{1,1}] = TAPP(v34,[substring])
+    v35{1,1} = SELECT(v31, 3)
+    v36{1} = SELECT(v31, 4)
+    v24{1} = RECORD []
+    v23{1} = CON(HEX, [], v24)
+    [v21{1,1}] = APP(v43,[v23])
+    [v20{1,1}] = APP(v21,[v33])
+    [v25{1}] = APP(v32,["12"])
+    [v12{1}] = APP(v20,[v25])
+    [v7{1}] = 
+      SWITCH v12
+        SOME => 
+            v13{1} = DECON(SOME,UT,POL([M], [TYC(AR([TV(1,0)], [TCAP(option, [TV(1,0)])]))]),[{PRIM(I63),substring}])
+            v15{1} = SELECT(v13, 0)
+            v26{1} = RECORD [v15]
+            RETURN [v26]
+        _ => 
+            v29{1} = RECORD []
+            v28{1} = CON(Bind, [], v29)
+            v27{1} = PRIMOP(markexn, TYC(AR([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []) [v28,"t0a.sml:4.11-4.84"]
+            RAISE(v27) : [TYC({PRIM(I63)})]
+    v2{1} = SELECT(v7, 0)
+    [v1{1}] = APP(v35,[v2])
+    v30{1} = STRUCT [v1]
+    RETURN [v30])
+
+
+[After reify ...]
+
+v19{1} : FD[FCT, is, false, NR] = 
+  FN([v31{5} : ???],
+    v32{1,1} = SELECT(v31, 0)
+    v33{1} = SELECT(v31, 1)
+    v34{1,1} = SELECT(v31, 2)
+    [v43{1,1}] = 
+      [v45{0}] = v44{0} = STRUCT [(I63)0]
+                  RETURN [v44]
+      APP(v34,[v45])
+    v35{1,1} = SELECT(v31, 3)
+    v36{1} = SELECT(v31, 4)
+    v24{1} = RECORD []
+    v23{1} = WRAP(PRIM(I63), (I63)2)
+    [v21{1,1}] = APP(v43,[v23])
+    [v20{1,1}] = APP(v21,[v33])
+    [v25{1}] = APP(v32,["12"])
+    [v12{1}] = APP(v20,[v25])
+    [v7{1}] = 
+      SWITCH v12
+        SOME => 
+            v46{0} = DECON(SOME,UT,TYC(AR([PRIM(VOID)], [PRIM(VOID)])),[])
+            [v13{1}] = v47{0} = PRIMOP(unwrap, TYC(AR([PRIM(VOID)], [{{PRIM(I63),PRIM(VOID)}}])), []) [v46]
+                        v48{0} = SELECT(v47, 0)
+                        RETURN [v48]
+            v15{1} = SELECT(v13, 0)
+            v26{1} = RECORD [v15]
+            RETURN [v26]
+        _ => 
+            v29{1} = RECORD []
+            v49{0} = RECORD [v36,v29,(I63)0]
+            v28{1} = WRAP({PRIM(VOID),{},PRIM(I63)}, v49)
+            v27{1} = PRIMOP(markexn, TYC(AR([PRIM(VOID),PRIM(STR)], [PRIM(VOID)])), []) [v28,"t0a.sml:4.11-4.84"]
+            RAISE(v27) : [TYC({PRIM(I63)})]
+    v2{1} = SELECT(v7, 0)
+    [v1{1}] = APP(v35,[v2])
+    v30{1} = STRUCT [v1]
+    RETURN [v30])
+
+
+[After fcontract ...]
+
+v19{1} : FD[FCT, is, false, NR] = 
+  FN([v31{5} : ???],
+    v32{1,1} = SELECT(v31, 0)
+    v33{1} = SELECT(v31, 1)
+    v34{1,1} = SELECT(v31, 2)
+    v44{1} = STRUCT [(I63)0]
+    [v43{1,1}] = APP(v34,[v44])
+    v35{1,1} = SELECT(v31, 3)
+    v36{1} = SELECT(v31, 4)
+    v23{1} = WRAP(PRIM(I63), (I63)2)
+    [v21{1,1}] = APP(v43,[v23])
+    [v20{1,1}] = APP(v21,[v33])
+    [v25{1}] = APP(v32,["12"])
+    [v12{1}] = APP(v20,[v25])
+    [v7{1}] = 
+      SWITCH v12
+        SOME => 
+            v46{1} = DECON(SOME,UT,TYC(AR([PRIM(VOID)], [PRIM(VOID)])),[])
+            v47{1} = PRIMOP(unwrap, TYC(AR([PRIM(VOID)], [{{PRIM(I63),PRIM(VOID)}}])), []) [v46]
+            v48{1} = SELECT(v47, 0)
+            v15{1} = SELECT(v48, 0)
+            v26{1} = RECORD [v15]
+            RETURN [v26]
+        _ => 
+            v29{1} = RECORD []
+            v49{1} = RECORD [v36,v29,(I63)0]
+            v28{1} = WRAP({PRIM(VOID),{},PRIM(I63)}, v49)
+            v27{1} = PRIMOP(markexn, TYC(AR([PRIM(VOID),PRIM(STR)], [PRIM(VOID)])), []) [v28,"t0a.sml:4.11-4.84"]
+            RAISE(v27) : [TYC({PRIM(I63)})]
+    v2{1} = SELECT(v7, 0)
+    [v1{1}] = APP(v35,[v2])
+    v30{1} = STRUCT [v1]
+    RETURN [v30])
+
+
+[After fixfix ...]
+
+v19{1} : FD[FCT, is, false, NR] = 
+  FN([v31{5} : ???],
+    v32{1,1} = SELECT(v31, 0)
+    v33{1} = SELECT(v31, 1)
+    v34{1,1} = SELECT(v31, 2)
+    v44{1} = STRUCT [(I63)0]
+    [v43{1,1}] = APP(v34,[v44])
+    v35{1,1} = SELECT(v31, 3)
+    v36{1} = SELECT(v31, 4)
+    v23{1} = WRAP(PRIM(I63), (I63)2)
+    [v21{1,1}] = APP(v43,[v23])
+    [v20{1,1}] = APP(v21,[v33])
+    [v25{1}] = APP(v32,["12"])
+    [v12{1}] = APP(v20,[v25])
+    [v7{1}] = 
+      SWITCH v12
+        SOME => 
+            v46{1} = DECON(SOME,UT,TYC(AR([PRIM(VOID)], [PRIM(VOID)])),[])
+            v47{1} = PRIMOP(unwrap, TYC(AR([PRIM(VOID)], [{{PRIM(I63),PRIM(VOID)}}])), []) [v46]
+            v48{1} = SELECT(v47, 0)
+            v15{1} = SELECT(v48, 0)
+            v26{1} = RECORD [v15]
+            RETURN [v26]
+        _ => 
+            v29{1} = RECORD []
+            v49{1} = RECORD [v36,v29,(I63)0]
+            v28{1} = WRAP({PRIM(VOID),{},PRIM(I63)}, v49)
+            v27{1} = PRIMOP(markexn, TYC(AR([PRIM(VOID),PRIM(STR)], [PRIM(VOID)])), []) [v28,"t0a.sml:4.11-4.84"]
+            RAISE(v27) : [TYC({PRIM(I63)})]
+    v2{1} = SELECT(v7, 0)
+    [v1{1}] = APP(v35,[v2])
+    v30{1} = STRUCT [v1]
+    RETURN [v30])
+
+
+[After fcontract+eta ...]
+
+v19{1} : FD[FCT, is, false, NR] = 
+  FN([v31{5} : ???],
+    v32{1,1} = SELECT(v31, 0)
+    v33{1} = SELECT(v31, 1)
+    v34{1,1} = SELECT(v31, 2)
+    v44{1} = STRUCT [(I63)0]
+    [v43{1,1}] = APP(v34,[v44])
+    v35{1,1} = SELECT(v31, 3)
+    v36{1} = SELECT(v31, 4)
+    v23{1} = WRAP(PRIM(I63), (I63)2)
+    [v21{1,1}] = APP(v43,[v23])
+    [v20{1,1}] = APP(v21,[v33])
+    [v25{1}] = APP(v32,["12"])
+    [v12{1}] = APP(v20,[v25])
+    [v7{1}] = 
+      SWITCH v12
+        SOME => 
+            v46{1} = DECON(SOME,UT,TYC(AR([PRIM(VOID)], [PRIM(VOID)])),[])
+            v47{1} = PRIMOP(unwrap, TYC(AR([PRIM(VOID)], [{{PRIM(I63),PRIM(VOID)}}])), []) [v46]
+            v48{1} = SELECT(v47, 0)
+            v15{1} = SELECT(v48, 0)
+            v26{1} = RECORD [v15]
+            RETURN [v26]
+        _ => 
+            v29{1} = RECORD []
+            v49{1} = RECORD [v36,v29,(I63)0]
+            v28{1} = WRAP({PRIM(VOID),{},PRIM(I63)}, v49)
+            v27{1} = PRIMOP(markexn, TYC(AR([PRIM(VOID),PRIM(STR)], [PRIM(VOID)])), []) [v28,"t0a.sml:4.11-4.84"]
+            RAISE(v27) : [TYC({PRIM(I63)})]
+    v2{1} = SELECT(v7, 0)
+    [v1{1}] = APP(v35,[v2])
+    v30{1} = STRUCT [v1]
+    RETURN [v30])
+
+val x = "\^R" : string
+
+val it = () : unit
+
+- 

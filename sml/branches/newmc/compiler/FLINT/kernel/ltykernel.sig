@@ -13,7 +13,7 @@ type token = Lty.token
 type tycEnv = Lty.tycEnv
 
 exception TCENV
-exception teUnbound2 
+exception TeUnbound2 
 
 (** injections and projections on tkind, tyc, and lty *)
 val tk_inj   : Lty.tkindI -> tkind 

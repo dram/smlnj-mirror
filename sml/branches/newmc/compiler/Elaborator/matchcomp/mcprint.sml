@@ -14,6 +14,8 @@ local
    structure PU = PPUtil
    structure LV = LambdaVar
    structure V = VarCon
+   structure AS = Absyn
+   structure AU = AbsynUtil
    structure P = Paths
    structure MU = MCUtil
    open MCCommon
@@ -52,8 +54,8 @@ fun debugPrint flag (msg: string, printfn: PP.stream -> 'a -> unit, subject: 'a)
 	     PP.flushStream ppstrm))
     else ()
 
-fun ppCon ppstrm (con : P.con) : unit =
-    PP.string ppstrm (P.conToString con)
+fun ppCon ppstrm (con : AS.con) : unit =
+    PP.string ppstrm (AU.conToString con)
 
 fun ppPath ppstrm (path: P.path) =
     PP.string ppstrm (P.pathToString path)
@@ -168,7 +170,7 @@ fun ppProtoAndor ppstrm =
 
 	and ppProtoVariant ppstrm (con, rules, subcase) =
 	    (PP.openHBox ppstrm (* (PP.Abs 0) *);
-	     PP.string ppstrm (P.conToString con);
+	     PP.string ppstrm (AU.conToString con);
 	     PP.break ppstrm {nsp=1,offset=0};
 	     ppRuleset ppstrm rules;
 	     PP.break ppstrm {nsp=1,offset=0};
@@ -226,7 +228,7 @@ fun ppAndor ppstrm =
 
 	and ppVariant ppstrm (con, rules, subcase) =
 	    (PP.openHBox ppstrm (* (PP.Abs 0) *);
-	     PP.string ppstrm (P.conToString con);
+	     PP.string ppstrm (AU.conToString con);
 	     PP.break ppstrm {nsp=1,offset=0};
 	     ppSubcase ppstrm ppAndor subcase;
 	     PP.closeBox ppstrm)
@@ -236,20 +238,17 @@ fun ppAndor ppstrm =
 
 (* ppDectree : ppstrm -> decTree -> unit *)
 val ppDectree =
-    let fun ppDec ppstrm (SWITCH {andor, sign, cases, default, live}) =
+    let fun ppDec ppstrm (SWITCH {id, path, sign, cases, defaultOp, live}) =
             (PP.openHBox ppstrm;
 	     PP.string ppstrm "SWITCH";
 	     PP.break ppstrm {nsp=1,offset=0};
-	     (case MU.getId andor
-	       of NONE => PP.string ppstrm "_"
-	        | SOME id => PP.string ppstrm (Int.toString id));
+	     PP.string ppstrm (Int.toString id);
 	     PP.break ppstrm {nsp=1,offset=0};
-(*	     ppPath ppstrm (getPath andor);
+	     ppPath ppstrm path;
 	     PP.break ppstrm {nsp=1,offset=0};
-*)
 	     ppSign ppstrm sign;
 	     PP.break ppstrm {nsp=1,offset=0};
-	     ppChoices ppstrm (cases,default);
+	     ppSwitch ppstrm (cases, defaultOp);
 	     PP.closeBox ppstrm)
 	  | ppDec ppstrm (RHS ruleno) =
 	    (PP.openHBox ppstrm;
@@ -261,10 +260,10 @@ val ppDectree =
 	    (PP.openHBox ppstrm;
 	     PP.string ppstrm "FAIL";
 	     PP.closeBox ppstrm)
-	and ppChoices ppstrm (cases,default) =
+	and ppSwitch ppstrm (cases,defaultOp) =
             (PP.openVBox ppstrm (PP.Abs 3);
 	     PU.ppvseq ppstrm 0 "" ppCase cases;
-	     (case default
+	     (case defaultOp
 	        of SOME dectree =>
           	     (PP.cut ppstrm;
 		      PP.openHOVBox ppstrm (PP.Abs 0);
@@ -276,27 +275,27 @@ val ppDectree =
 	     PP.closeBox ppstrm)
 	and ppCase ppstrm (con, decTree) =
 	    (PP.openHBox ppstrm;
-	     PP.string ppstrm (P.conToString con);
+	     PP.string ppstrm (AU.conToString con);
 	     PP.break ppstrm {nsp=1,offset=0};
 	     ppDec ppstrm decTree;
 	     PP.closeBox ppstrm)
      in ppDec
     end (* ppDectree *)
 
-(* ppHRule : ppstream -> Absyn.pat * PLambda.lexp *)
-(* print hybrid (absyn lhs, plambda rhs) rule *)
-fun ppHRule ppstrm (pat, lexp) =
+(* ppRule : ppstream -> Absyn.pat * Absyn.exp -> unit *)
+(* print absyn rule *)
+fun ppRule ppstrm (pat, exp) =
     (PP.openHBox ppstrm;
        PPAbsyn.ppPat StaticEnv.empty ppstrm (pat, 100);
        PP.string ppstrm " => ";
        PP.openHOVBox ppstrm (PP.Abs 3);
-         PPLexp.ppLexp 100 ppstrm lexp;
+         PPAbsyn.ppExp (StaticEnv.empty, NONE) ppstrm (exp, 100);
        PP.closeBox ppstrm;  (* openHOVBox *)
      PP.closeBox ppstrm)  (* openHBox *)
 
-fun ppHMatch ppstrm match =
+fun ppMatch ppstrm match =
     (PP.openVBox ppstrm (PP.Abs 3);
-       PU.ppvseq ppstrm 0 "" ppHRule match;
+       PU.ppvseq ppstrm 0 "" ppRule match;
      PP.closeBox ppstrm)
 
 end (* top local *)

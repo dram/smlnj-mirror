@@ -1,0 +1,125 @@
+v51{0} : FD[FCT, is, false, NR] = 
+  FN([v50{0} : ???],
+    v20{0} = SELECT(v50, 0)
+    [v1{0}] = 
+      v13{0} = 
+        TFN([v99:M,v100:M],
+          [v73{0},v74{0}] = 
+            FIX(v2{0} : FD[FUN(rr), is, false, R[TYC({})]] = 
+                  FN([v45{0} : TYC({})],
+                    FIX(v46{0} : FD[FUN(rr), is, false, NR] = 
+                          FN([v47{0} : TYC({})],
+                            v53{0} = RECORD []
+                            RETURN [v53]))
+                    FIX(v48{0} : FD[FUN(rr), is, false, NR] = 
+                          FN([v49{0} : TYC({})],
+                            v56{0} = RECORD []
+                            v55{0} = CON(Match, [], v56)
+                            v54{0} = PRIMOP(markexn, TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []) [v55,"rev0.sml:3.19"]
+                            RAISE(v54) : [TYC({})]))
+                    v57{0} = RECORD []
+                    APP(v46,[v57]))
+                v3{0} : FD[FUN(rr), is, false, R[TYC(AR[rr]([TCAP(list, [TV(1,0)])], [{}]))]] = 
+                  FN([v24{0} : TYC(AR[cc]([TV(1,0)], [TV(1,1)]))],
+                    FIX(v42{0} : FD[FUN(rr), is, false, NR] = 
+                          FN([v9{0} : TYC(AR[cc]([TV(1,0)], [TV(1,1)]))],
+                            FIX(v58{0} : FD[FUN(rr), is, false, NR] = 
+                                  FN([v25{0} : TYC(TCAP(list, [TV(1,0)]))],
+                                    FIX(v39{0} : FD[FUN(rr), is, false, NR] = 
+                                          FN([v10{0} : TYC(TCAP(list, [TV(1,0)]))],
+                                            v26{0} = RECORD [v9,v10]
+                                            FIX(v28{1} : FD[FUN(rr), is, false, NR] = 
+                                                  FN([v4{0} : TYC(AR[cc]([TV(1,0)], [TV(1,1)]))],
+                                                    v59{0} = RECORD []
+                                                    RETURN [v59]))
+                                            FIX(v29{0} : FD[FUN(rr), is, false, NR] = 
+                                                  FN([v61{0} : TYC(AR[cc]([TV(1,0)], [TV(1,1)])),
+                                                      v62{0} : TYC(TV(1,0)),
+                                                      v63{0} : TYC(TCAP(list, [TV(1,0)]))],
+                                                    v30{0} = RECORD [v61,v62,v63]
+                                                    v7{0} = SELECT(v30, 0)
+                                                    v6{0} = SELECT(v30, 1)
+                                                    v5{0} = SELECT(v30, 2)
+                                                    [v27{0}] = APP(v7,[v6])
+                                                    [v60{0}] = APP(v3,[v7])
+                                                    APP(v60,[v5])))
+                                            FIX(v31{1} : FD[FUN(rr), is, false, NR] = 
+                                                  FN([v32{1} : TYC({})],
+                                                    v66{0} = RECORD []
+                                                    v65{0} = CON(Match, [], v66)
+                                                    v64{0} = PRIMOP(markexn, TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []) [v65,"rev0.sml:6.42"]
+                                                    RAISE(v64) : [TYC({})]))
+                                            v33{1} = SELECT(v26, 0)
+                                            v34{1,1} = SELECT(v26, 1)
+                                            SWITCH v34
+                                              :: => 
+                                                  v35{0} = DECON(::,UT,POL([M],
+ [TYC(AR[rr]([{TV(1,0),TCAP(list, [TV(1,0)])}], [TCAP(list, [TV(1,0)])]))]),[TV(1,0)])
+                                                  v36{0} = SELECT(v35, 0)
+                                                  v37{0} = SELECT(v35, 1)
+                                                  APP(v29,[v33,v36,v37])
+                                              nil => 
+                                                  APP(v28,[v33])))
+                                    FIX(v40{0} : FD[FUN(rr), is, false, NR] = 
+                                          FN([v41{0} : TYC({})],
+                                            v69{0} = RECORD []
+                                            v68{0} = CON(Match, [], v69)
+                                            v67{0} = PRIMOP(markexn, TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []) [v68,"rev0.sml:5.9-6.42"]
+                                            RAISE(v67) : [TYC({})]))
+                                    APP(v39,[v25])))
+                            RETURN [v58]))
+                    FIX(v43{0} : FD[FUN(rr), is, false, NR] = 
+                          FN([v44{0} : TYC({})],
+                            v72{0} = RECORD []
+                            v71{0} = CON(Match, [], v72)
+                            v70{0} = PRIMOP(markexn, TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []) [v71,"rev0.sml:5.9-6.42"]
+                            RAISE(v70) : [TYC(AR[rr]([TCAP(list, [TV(1,0)])], [{}]))]))
+                    APP(v42,[v24])))
+            RETURN [v2,v3]
+          v52{0} = RECORD [v73,v74]
+          RETURN [v52])
+      [v75{0}] = TAPP(v13,[PRIM(VOID),PRIM(VOID)])
+      v12{0} = SELECT(v75, 0)
+      v11{0} = 
+        TFN([v97:M,v98:M],
+          [v77{0}] = TAPP(v13,[TV(1,0),TV(1,1)])
+          v76{0} = SELECT(v77, 1)
+          RETURN [v76])
+      v17{0} = 
+        TFN([v96:M],
+          [v78{0}] = 
+            FIX(v14{0} : FD[FUN(cr), is, false, NR] = 
+                  FN([v19{0} : TYC(TV(1,0))],
+                    FIX(v21{0} : FD[FUN(cr), is, false, NR] = 
+                          FN([v15{0} : TYC(TV(1,0))],
+                            v79{0} = RECORD []
+                            RETURN [v79]))
+                    FIX(v22{0} : FD[FUN(rr), is, false, NR] = 
+                          FN([v23{0} : TYC({})],
+                            v82{0} = RECORD []
+                            v81{0} = CON(Match, [], v82)
+                            v80{0} = PRIMOP(markexn, TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []) [v81,"rev0.sml:8.17"]
+                            RAISE(v80) : [TYC({})]))
+                    APP(v21,[v19])))
+            RETURN [v14]
+          RETURN [v78])
+      [v18{0}] = 
+        [v83{0}] = 
+          [v84{0}] = TAPP(v11,[PRIM(VOID),{}])
+          [v85{0}] = TAPP(v17,[PRIM(VOID)])
+          APP(v84,[v85])
+        v87{0} = RECORD []
+        v86{0} = CON(nil, [PRIM(VOID)], v87)
+        APP(v83,[v86])
+      [v88{0}] = 
+        [v89{0}] = TAPP(v11,[{PRIM(I63),PRIM(I63)},{}])
+        [v90{0}] = TAPP(v17,[{PRIM(I63),PRIM(I63)}])
+        APP(v89,[v90])
+      v93{0} = RECORD [(I63)0,(I63)0]
+      v95{0} = RECORD []
+      v94{0} = CON(nil, [{PRIM(I63),PRIM(I63)}], v95)
+      v92{0} = RECORD [v93,v94]
+      v91{0} = CON(::, [{PRIM(I63),PRIM(I63)}], v92)
+      APP(v88,[v91])
+    v101{0} = STRUCT [v1]
+    RETURN [v101])

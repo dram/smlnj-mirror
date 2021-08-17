@@ -7,14 +7,14 @@ struct
 local
   structure PP = PrettyPrint
   open PrintUtil
-  val printDepth = Control.Print.printDepth
+  val printDepth = Control_Print.printDepth
 
   fun bug msg = ErrorMsg.impossible ("MatchPrint: "^ msg)
 in
 
+(* matchPrint: StaticEnv.staticEnv * (AS.pat * AS.exp) list * int list -> PP.stream -> () *)
 fun matchPrint (env,rules,unused) ppstrm =
   let fun matchPrint' ([],_,_) = ()
-        | matchPrint' ([(pat,_)],_,_) = () (* never print last rule *)
         | matchPrint' ((pat,_)::more,[],_) =
            (PP.string ppstrm "        ";
             PPAbsyn.ppPat env ppstrm (pat,!printDepth);
@@ -40,9 +40,10 @@ fun matchPrint (env,rules,unused) ppstrm =
       PP.closeBox ppstrm
   end
 
+(* bindPrint : StaticEnv.staticEnv * (AS.pat * AS.exp) list -> PP.stream -> () *)
 fun bindPrint (env,(pat,_)::_) ppstrm =
       (PP.newline ppstrm; PP.string ppstrm "        ";
-       PPAbsyn.ppPat env ppstrm (pat,!printDepth);
+       PPAbsyn.ppPat env ppstrm (pat, !printDepth);
        PP.string ppstrm " = ...")
   | bindPrint _ _ = bug "bindPrint -- unexpected args"
 

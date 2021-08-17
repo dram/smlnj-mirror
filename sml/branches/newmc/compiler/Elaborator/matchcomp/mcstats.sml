@@ -18,7 +18,7 @@ local
 
   fun incr (r: int ref) = r := !r + 1
 
-  val stats : bool ref = Control.MC.stats
+  val stats : bool ref = MCControl.mcstats
 
 in
 
@@ -80,19 +80,18 @@ fun collectDectreeStats (dectree: dectree): unit =
 	val choiceDist = ref NodeMap.empty
 	fun scanTree (RHS n) = (incr countRHS; rules := RS.add (!rules, n)) 
 	  | scanTree FAIL = incr countFAIL
-	  | scanTree (SWITCH {andor, cases, default, ...}) =
+	  | scanTree (SWITCH {id, cases, defaultOp, ...}) =
 	    (incr countSWITCH;
 	     choiceDist :=
 		let val nmap = !choiceDist
-		    val nodeId = Option.valOf (MCUtil.getId andor)
 		    val newcount =
-			case NodeMap.find (nmap, nodeId)
+			case NodeMap.find (nmap, id)
 			 of NONE => 1
 			  | SOME k => k+1
-		in NodeMap.insert(nmap, nodeId, newcount)
+		in NodeMap.insert(nmap, id, newcount)
 		end;
 	     app scanTree (map #2 cases);
-	     Option.app scanTree default)
+	     Option.app scanTree defaultOp)
     in scanTree dectree;
        dectreeStats :=
          SOME {rulesUsed = !rules,

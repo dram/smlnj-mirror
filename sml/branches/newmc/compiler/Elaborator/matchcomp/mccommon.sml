@@ -13,6 +13,7 @@ struct
 local
   structure DA = Access
   structure T = Types
+  structure AS = Absyn
   structure P = Paths
 in
 
@@ -53,7 +54,7 @@ datatype protoAndor
   | VARp of
      {varRules : ruleset}
   | WCp
-withtype protoVariant = P.con * ruleset * protoAndor subcase
+withtype protoVariant = AS.con * ruleset * protoAndor subcase
 
 (* nodeId:
  *  node id numbers are added in the 2nd pass of andor tree construction (performed
@@ -75,7 +76,7 @@ datatype andor
   | VAR of  (* variable node, not overlayed onto and ANO or OR node -- a leaf node *)
       {id : nodeId}
   | WC  (* WILDCARD: like VAR, but no nodeId? *)
-withtype variant = P.con * ruleset * andor subcase
+withtype variant = AS.con * ruleset * andor subcase
 
 
 (* --------------------------------------------------------------------------- *)
@@ -84,11 +85,12 @@ withtype variant = P.con * ruleset * andor subcase
 (* See Sec 40.9, 41.2 in match-compiler notes *)
 datatype dectree
   = SWITCH of
-      {andor : andor,   (* the andor OR node that is the basis of the SWITCH *)
+      {id : nodeId,     (* the id of the andor OR node that is the basis of the SWITCH *)
+       path : P.path,   (* the path of the underlying andor OR node *)
        sign: DA.consig, (* used to determine datatype width, but also passed to PL.SWITCH
                          * in Generate..genswitch. Could be replaced by the type itself. *)
-       cases: (P.con * dectree) list, (* SWITCH is _saturated_ if cons are exhaustive for type *)
-       default: dectree option,     (* possible default, NONE if cases are saturated *)
+       cases: (AS.con * dectree) list, (* SWITCH is _saturated_ if cons are exhaustive for type *)
+       defaultOp: dectree option,     (* possible default, NONE if cases are saturated *)
        live: ruleset}   (* rules live at this node, used to qualify relevant rules for mvar binding *)
   | RHS of ruleno  (* match succeeds: martial variable values and dispatch to rhs(ruleno) *)
   | FAIL           (* match fails, raise Match/Bind exn, or reraise unmatched exn in handler *)

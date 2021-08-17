@@ -83,8 +83,8 @@ end
 
 (* Access to the match and bind exceptions for match compilation. *)
 local
-  val matchExnRef = ref AU.bogusEXN
-  val bindExnRef = ref AU.bogusEXN
+  val matchExnRef : T.datacon option ref = ref NONE
+  val bindExnRef : T.datacon option ref = ref NONE
 in
   fun initializeMatchBind (env: SE.staticEnv) =
       (* Define exceptions used in match compilation when a match/bind is 
@@ -93,11 +93,19 @@ in
        * initializeMatchBind must be called in a context having such a staticEnv
        * available, e.g. elabTop. The Match and Bind exceptions are needed for
        * match compilation; this function is called in matchcomp/matchcomp.sml. *)
-      (matchExnRef := CoreAccess.getExn env ["Match"];
-       bindExnRef := CoreAccess.getExn env ["Bind"])
+      (matchExnRef := SOME (CoreAccess.getExn env ["Match"]);
+       bindExnRef := SOME (CoreAccess.getExn env ["Bind"]))
 
-  fun getMatchExn () = !matchExnRef
-  fun getBindExn () = !matchExnRef
+  fun getMatchExn () =
+      (case !matchExnRef
+         of NONE => bug "uninitialized Match exn"
+          |  SOME exn => exn)
+
+  fun getBindExn () =
+      (case !bindExnRef
+         of NONE => bug "uninitialized Bind exn"
+          | SOME exn => exn)
+
 end (* local *)
 
 val EQUALsym = S.varSymbol "="
@@ -195,6 +203,8 @@ val TUPLEexp = AbsynUtil.TUPLEexp
 
 val TUPLEpat = AbsynUtil.TUPLEpat
 
+fun varToExp var = VARexp (ref var, [])
+
 (* FUNdec : {var : VarCon.var,  -- name of the (recursive) function
              clauses: {pats: Absyn.pat list, resultty: Types.ty option, exp: Absyn.exp} list,
 	     tyvars: Types.tyvar list ref, -- explicit tyvars
@@ -208,7 +218,6 @@ fun FUNdec (fundecs, compInfo as {mkLvar=mkv, ...}: compInfo) =
 		val argVars = List.tabulate (length pats, mkArgVar)
 		fun not1(f,[a]) = a
 		  | not1(f,l) = f l
-		fun varToExp var = VARexp (ref var, [])
 		fun clauseToRule {pats,exp,resultty=NONE} =
 			      RULE(not1(TUPLEpat,pats), exp)
 		  | clauseToRule {pats,exp,resultty=SOME ty} =
@@ -229,24 +238,8 @@ fun FUNdec (fundecs, compInfo as {mkLvar=mkv, ...}: compInfo) =
      in VALRECdec (map funToValRec fundecs) (* no function name static environment needed *)
     end
 
-(* should really check whether all the patterns of the initial rules are
- * collectively irrefutable before adding the re-raise rule *)
-fun makeHANDLEexp(exp, rules, compInfo as {mkLvar=mkv, ...}: compInfo) =
-    let val RULE(p,_) = List.last rules (* rules assumed nonempty *)
-        val rules' =
-	    case p
-	     of VARpat _ => rules  (* last rule will always match => rules are exhaustive *)
-              | _ =>   (* otherwise add default re-raise rule *)
-		let val v = mkVALvar (exnID, mkv)
-		    val r = RULE (VARpat v, RAISEexp (VARexp(ref(v),[]), UNDEFty))
-		 in rules @ [r]
-		end
-     in HANDLEexp (exp, (rules', UNDEFty, UNDEFty))
-    end
-
-
 (* transform a VarPat into either a variable or a constructor. If we are given
-   a long path (>1) then it has to be a constructor. *)
+   a long path (length path > 1) then it has to be a constructor. *)
 
 fun pat_id (spath, env, err, compInfo as {mkLvar=mkv, ...}: compInfo) =
     case spath
@@ -361,6 +354,51 @@ fun fillPat pat =
 
    in fill pat
   end (* function fillPat *)
+
+
+(* aconvertPat: Absyn.pat * compInfo -> Absyn.pat * V.var list * V.var list
+ *   "alpha convert" a pattern with respect to the lvar access values
+ *   of the pattern variables. Original variables are replaced by
+ *   new ones, with fresh LVAR accesses and new refs for the typ field.
+ *   Returns the converted pattern, the list of the original pattern
+ *   variables (VALvars), and the list of new variables (VALvars).
+ *   Called only once, in mkVB inside mkVBs in Translate.
+ *   DBM: why is this function needed? *)
+
+fun aconvertPat (pat: AS.pat) : Absyn.pat * V.var list * V.var list =
+    let val varmap : (V.var * V.var) list ref = ref nil
+            (* association list mapping old vars to newl; alpha-conversion substitution *)
+        (* ASSERT: all vars in a VARpat will have an LVAR access. *)
+        (* ASSERT: pat will not contain MARKpat, because stripPatMarks has been applied *)
+	fun mappat (VARpat var) =
+              let val lvar = V.varToLvar var
+		  fun find ((oldvar, newvar)::rest) =
+                        if varToLvar oldvar = lvar then newvar else find rest
+		    | find nil =
+		        let val (newvar, _) = V.replaceLvar var
+			 in varmap := (var, newvar) :: !varmap;
+			    newvar
+			end
+	       in VARpat(find(!varmap))
+	      end
+	  | mappat (RECORDpat{fields,flex,typ}) =
+	      RECORDpat{fields=map (fn(l,p)=>(l,mappat p)) fields,
+                        flex=flex, typ=typ}
+	  | mappat (VECTORpat(pats,t)) = VECTORpat(map mappat pats, t)
+	  | mappat (APPpat(d,c,p)) = APPpat(d,c,mappat p)
+	  | mappat (ORpat(a,b)) = ORpat(mappat a, mappat b)
+	  | mappat (CONSTRAINTpat(p,t)) = CONSTRAINTpat(mappat p, t)
+	  | mappat (LAYEREDpat(p,q)) = LAYEREDpat(mappat p, mappat q)
+	  | mappat (MARKpat(p,_)) = bug "aconvertPat: MARKpat"
+	  | mappat p = p
+
+        val newpat = mappat pat
+
+        val (oldvars,newvars) = ListPair.unzip (!varmap)
+
+     in (newpat,oldvars,newvars)
+    end (* aconvertPat *)
+
 
 (* checkBoundTyvars: check whether the tyvars appearing in a type (used) are
    bound (as parameters in a type declaration) *)

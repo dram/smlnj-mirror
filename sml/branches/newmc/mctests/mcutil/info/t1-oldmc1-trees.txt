@@ -1,0 +1,46 @@
+tt/mcutil/t1.sml -- oldmc1 (no bug)
+
+datatype t = A | B
+
+datatype s  = C | D
+
+val x = (NONE, nil)
+
+val a =		
+    case x
+      of (SOME C, nil) => 0
+       | (SOME D, A::r) => 1
+       | (NONE, _) => 2
+
+--------------------------------------------------------------------------------
+
+- use "mcutil/t1.sml";
+[opening mcutil/t1.sml]
+
+** andor:
+  AND {}  {0,1,2}
+   0: OR {}  {0,1,2}
+        SOME {0,1} OR  {0,1}
+           C {0} 
+           D {1} 
+        NONE {2} {2) 
+   1: OR {0,1,2}
+        :: AND {1; 2}
+          0: OR {1; 2}
+               A {1; 2} 
+          1: VAR{r/1} {1; 2}
+        nil {0; 2}
+
+** dectree:
+  CASEdt 0
+    NONE RHS 2
+    SOME CASEdt @ SOME.0
+      D CASEdt 1
+          :: CASEdt @ 0.::.1
+               A RHS 1
+               * FAIL
+           * FAIL
+      C CASEdt 1
+          nil RHS 0
+          * FAIL
+

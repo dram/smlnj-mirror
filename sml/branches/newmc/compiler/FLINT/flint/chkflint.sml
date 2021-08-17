@@ -342,7 +342,6 @@ fun check phase envs lexp = let
 		  | INTcon{ty, ...} => g (LT.ltc_num ty)
 		  | WORDcon{ty, ...} => g (LT.ltc_num ty)
 		  | STRINGcon _ => g ltString
-		  | VLENcon _ => g LT.ltc_int (* ? *)
 	      in typeIn venv' e
 	      end
 	    val ts = brLts ce

@@ -7,7 +7,7 @@
    * top = true iff haven't seen a LetDef yet.
    *)
 
-signature OCCURENCE =
+signature OCCURRENCE =
 sig
 
   type occ

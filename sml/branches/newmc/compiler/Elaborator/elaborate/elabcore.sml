@@ -49,7 +49,7 @@ local structure EM = ErrorMsg
       structure A = Access
       structure Tbl = SymbolHashTable
 
-      open Absyn Ast BasicTypes Access ElabUtil Types VarCon
+      open Absyn Ast
 in
 
 fun cMARKpat (p, r) = if !ElabControl.markabsyn then MARKpat (p, r) else p
@@ -72,22 +72,22 @@ val minNormalReal64 = RealLit.real{isNeg = false, whole="2", frac="2250738585072
 val maxReal64 = RealLit.real{isNeg = false, whole="1", frac="7976931348623157", exp = 308}
 
 fun showDec(msg,dec,env) =
-(*    ED.withInternals(fn () => *)
+    ED.withInternals (fn () =>
       debugPrint(msg,
 		 (fn pps => fn dec =>
 		   PPAbsyn.ppDec (env,NONE) pps (dec, 100)),
-		 dec)(* ) *)
+		 dec) )
 
 infix -->
 
-fun mkIntLiteralTy (v : IntInf.int, r : SourceMap.region) : ty =
-      VARty(mkTyvar(OVLDI [(v, r)]))
+fun mkIntLiteralTy (v : IntInf.int, r : SourceMap.region) : T.ty =
+      T.VARty(T.mkTyvar(T.OVLDI [(v, r)]))
 
-fun mkWordLiteralTy (v : IntInf.int, r : SourceMap.region) : ty =
-      VARty(mkTyvar(OVLDW [(v, r)]))
+fun mkWordLiteralTy (v : IntInf.int, r : SourceMap.region) : T.ty =
+      T.VARty(T.mkTyvar(T.OVLDW [(v, r)]))
 
 (* REAL32: eventually this will be an overload instance *)
-fun mkRealLiteralTy (v : RealLit.t, r : SourceMap.region) : ty = realTy
+fun mkRealLiteralTy (v : RealLit.t, r : SourceMap.region) : T.ty = BT.realTy
 
 (* tyvarset management *)
 type tyvUpdate = TS.tyvarset -> unit
@@ -109,7 +109,7 @@ fun stripExpAst(MarkExp(e,r'),r) = stripExpAst(e,r')
   | stripExpAst x = x
 
 val dummyFNexp =
-    FNexp([RULE(WILDpat,RAISEexp(CONexp(AU.bogusEXN,[]),UNDEFty))], UNDEFty, UNDEFty)
+    FNexp([RULE(WILDpat,RAISEexp(CONexp(AU.bogusEXN,[]),T.UNDEFty))], T.UNDEFty, T.UNDEFty)
 (** Updated CONexp ty option type -GK *)
 
 (* LAZY *)
@@ -171,7 +171,7 @@ let
     val _ = debugmsg ">>ElabCore.elabDec"
 
     (* newVALvar : S.symbol -> V.var
-     * new var has typ = UNDEFty and btvs = nil, and fresh lvar access *)
+     * new var has typ = T.UNDEFty and btvs = nil, and fresh lvar access *)
     fun newVALvar s = V.mkVALvar(s, A.namedAcc(s, mkv))
 
     (* LAZY: utilities for lazy sml translation *)
@@ -182,10 +182,10 @@ let
 	let val v = newVALvar(S.varSymbol "x")
 	 in APPexp(FNexp([RULE(APPpat(BT.dollarDcon,[],VARpat v),
 			       VARexp(ref v,[]))],
-			 UNDEFty, UNDEFty),
+			 T.UNDEFty, T.UNDEFty),
 		   e)
 	     (* DBM: second arg of APPpat and VARexp = nil and
-	      * of FNexp = UNDEFty ok? Yes, replaced by typechecker. *)
+	      * of FNexp = T.UNDEFty ok? Yes, replaced by typechecker. *)
 	end
 
     fun delayExp e =
@@ -216,28 +216,28 @@ let
 
 	    (* "ref($(raise Match))" *)
 	    fun rdrExp _ = APPexp(CONexp(BT.refDcon,[]),
-				  delayExp(RAISEexp(CONexp(exn,[]),UNDEFty)))
-	    val rpat  = TUPLEpat (map VARpat rvars)
-	    val rexp  = TUPLEexp (repeat rdrExp)
+				  delayExp(RAISEexp(CONexp(exn,[]),T.UNDEFty)))
+	    val rpat  = EU.TUPLEpat (map VARpat rvars)
+	    val rexp  = EU.TUPLEexp (repeat rdrExp)
 	    val rdec  = VALdec([VB{pat=rpat, exp=rexp,
 				   typ=T.UNDEFty, boundtvs=[], tyvars=ref[]}])
 
 	    (* "$(force(!ri))" *)
 	    fun dfbr rv = hold(APPexp(mkBangExp env,VARexp(ref rv,[])))
-	    val ddec  = VALdec[VB{pat=VARpat dvar, exp=TUPLEexp(map dfbr rvars),
+	    val ddec  = VALdec[VB{pat=VARpat dvar, exp=EU.TUPLEexp(map dfbr rvars),
 				  typ=T.UNDEFty,boundtvs=[],tyvars=ref[]}]
 
 	    fun dexp () = VARexp(ref dvar,[])
 	    fun setrExp (rv,fv) =
 		APPexp(mkAssignExp env,
-		       TUPLEexp([VARexp(ref rv,[]),
+		       EU.TUPLEexp([VARexp(ref rv,[]),
 				 hold(APPexp(VARexp(ref fv,[]),dexp()))]))
 	    val updates = ListPair.map setrExp (rvars,fvars)
 
-	    val yexp = FNexp([RULE(TUPLEpat(map VARpat fvars),
+	    val yexp = FNexp([RULE(EU.TUPLEpat(map VARpat fvars),
 				   LETexp(SEQdec[rdec,ddec],
 					  SEQexp(updates@[dexp()])))],
-			     UNDEFty, UNDEFty)
+			     T.UNDEFty, T.UNDEFty)
 
 	in (yvar,VALdec[VB{pat=VARpat yvar, exp=yexp,
 			   typ=T.UNDEFty, boundtvs=[], tyvars=ref[]}])
@@ -251,23 +251,23 @@ let
 	  of EbGen{exn=ename,etype} =>
 	       let val (ety,evt,etyOp,const) =
 	       	       case etype
-		         of NONE => (exnTy, TS.empty, NONE, true)
+		         of NONE => (BT.exnTy, TS.empty, NONE, true)
 			  | SOME typ =>
 			    let val (ty,vt) = ET.elabType(typ,env,error,region)
-                             in (ty-->exnTy, vt, SOME ty, false)
+                             in (BT.-->(ty, BT.exnTy), vt, SOME ty, false)
 			    end
 	           val exn =
-		     DATACON{name=ename, const=const, typ=ety, lazyp=false,
-			     rep=EXN(LVAR(mkv(SOME ename))), sign=CNIL}
+		     T.DATACON{name=ename, const=const, typ=ety, lazyp=false,
+			       rep = A.EXN (A.LVAR(mkv(SOME ename))), sign = A.CNIL}
 		in (EBgen{exn=exn, etype=etyOp,
                           ident=STRINGexp(S.name ename)},
 		    ename, SE.bind(ename, B.CONbind exn, SE.empty), evt)
 	       end
 	   | EbDef{exn=ename,edef=qid} =>
-	       let val edef as DATACON{const,typ,sign,...} =
+	       let val edef as T.DATACON{const,typ,sign,...} =
 		       LU.lookExn(env,SP.SPATH qid,error region)
-                   val nrep = EXN(LVAR(mkv(SOME ename)))
-	           val exn = DATACON{name=ename, const=const, typ=typ, lazyp=false,
+                   val nrep = A.EXN (A.LVAR(mkv(SOME ename)))
+	           val exn = T.DATACON{name=ename, const=const, typ=typ, lazyp=false,
                                      sign=sign, rep=nrep}
 		in (EBdef{exn=exn,edef=edef},
 		    ename, SE.bind(ename,B.CONbind exn,SE.empty), TS.empty)
@@ -279,7 +279,7 @@ let
 	      foldl
 		(fn (exc,(ebs,enames,env_c,vt_c)) =>
 		   let val (eb,ename,env_i,vt_i) = elabEb(exc,env,region)
-		   in if checkForbiddenCons ename
+		   in if EU.checkForbiddenCons ename
 		      then error region EM.COMPLAIN
 			    (concat["exception name \"", S.name ename, "\" is forbidden"])
 			    EM.nullErrorBody
@@ -313,8 +313,8 @@ let
       case pat
       of WildPat => (WILDpat, TS.empty)
        | VarPat path =>
-	   (clean_pat (error region)
-              (pat_id(SP.SPATH path, env, error region, compInfo)),
+	   (EU.clean_pat (error region)
+              (EU.pat_id (SP.SPATH path, env, error region, compInfo)),
 	    TS.empty)
        | IntPat(src, s) =>
 	  (NUMpat(src, {ty = mkIntLiteralTy(s,region), ival = s}), TS.empty)
@@ -324,21 +324,21 @@ let
        | CharPat c => (CHARpat c, TS.empty)
        | RecordPat {def,flexibility} =>
 	    let val (lps,tyv) = elabPLabel region env def
-	     in (makeRECORDpat (lps,flexibility,error region), tyv)
+	     in (EU.makeRECORDpat (lps,flexibility,error region), tyv)
 	    end
        | ListPat nil =>
-	      (NILpat, TS.empty)
+	      (EU.NILpat, TS.empty)
        | ListPat (a::rest) =>
 	    let val (p, tyv) = elabPat(TuplePat[a,ListPat rest], env, region)
-	     in (CONSpat p, tyv)
+	     in (EU.CONSpat p, tyv)
 	    end
        | TuplePat pats =>
 	    let val (ps,tyv) = elabPatList(pats, env, region)
-	     in (TUPLEpat ps, tyv)
+	     in (EU.TUPLEpat ps, tyv)
 	    end
        | VectorPat pats =>
 	    let val (ps,tyv) = elabPatList(pats, env, region)
-	     in (VECTORpat(ps,UNDEFty), tyv)
+	     in (VECTORpat(ps,T.UNDEFty), tyv)
 	    end
        | OrPat pats =>
          (* Check that the sub-patterns of an or-pattern have exactly the same
@@ -386,7 +386,7 @@ let
 			      in appPat pat
 			     end
 		       (* subPat : (var -> var) -> pat -> pat *) 
-		       fun subPat (substFn : var -> var) =
+		       fun subPat (substFn : V.var -> V.var) =
 			   let fun subPat' (VARpat var) = VARpat (substFn var)
 				 | subPat' (RECORDpat{fields, flex, typ}) =
 				     RECORDpat
@@ -428,10 +428,10 @@ let
        | AppPat {constr, argument} =>
 	   let fun getVar (MarkPat(p,region),region') = getVar(p,region)
 		 | getVar (VarPat path, region') =
-		      let val dcb = pat_id (SP.SPATH path, env,
-                                            error region', compInfo)
+		      let val dcb = EU.pat_id (SP.SPATH path, env, error region', compInfo)
 			  val (p,tv) = elabPat(argument, env, region)
-		      in (makeAPPpat (error region) (dcb,p),tv) end
+		       in (EU.makeAPPpat (error region) (dcb,p),tv)
+		      end
 		 | getVar (_, region') =
 		   (error region' EM.COMPLAIN
 			 "non-constructor applied to argument in pattern"
@@ -447,7 +447,7 @@ let
        | LayeredPat {varPat,expPat} =>
 	   let val (p1,tv1) = elabPat(varPat, env, region)
 	       val (p2,tv2) = elabPat(expPat, env, region)
-	    in (makeLAYEREDpat(p1,p2,error region),union(tv1,tv2,error region))
+	    in (EU.makeLAYEREDpat (p1,p2,error region), union(tv1,tv2,error region))
 	   end
        | MarkPat (pat,region) =>
 	   let val (p,tv) = elabPat(pat, env, region)
@@ -482,7 +482,7 @@ let
 	  of VarExp path =>
 	       ((case LU.lookVal(env,SP.SPATH path,error region)
 		  of AS.VAL v => VARexp(ref v,[])
-		   | AS.CON (d as DATACON{lazyp,const,...}) =>
+		   | AS.CON (d as T.DATACON{lazyp,const,...}) =>
 		      if lazyp then  (* LAZY *)
 		        if const then delayExp(CONexp(d,[]))
 			else let val var = newVALvar(S.varSymbol "x")
@@ -490,7 +490,7 @@ let
 					     delayExp(
 					         APPexp(CONexp(d,[]),
 							VARexp(ref(var),[]))))],
-				       UNDEFty, UNDEFty)
+				       T.UNDEFty, T.UNDEFty)
 			     end
 		      else CONexp(d, [])),
 		TS.empty, no_updt)
@@ -526,7 +526,7 @@ let
 	   | CharExp c => (CHARexp c, TS.empty, no_updt)
 	   | RecordExp cells =>
 	       let val (les,tyv,updt) = elabELabel(cells,env,region)
-		in (makeRECORDexp (les,error region),tyv,updt)
+		in (EU.makeRECORDexp (les,error region),tyv,updt)
 	       end
 	   | SeqExp exps =>
 	       (case exps
@@ -536,19 +536,19 @@ let
 		     let val (es,tyv,updt) = elabExpList(exps,env,region)
 		      in (SEQexp es, tyv, updt)
 		     end)
-	   | ListExp nil => (NILexp, TS.empty, no_updt)
+	   | ListExp nil => (EU.NILexp, TS.empty, no_updt)
 	   | ListExp (a::rest) =>
 	       let val (e,tyv,updt) =
                      elabExp (TupleExp[a,ListExp rest],env,region)
-		in (APPexp(CONSexp,e), tyv, updt)
+		in (APPexp(EU.CONSexp,e), tyv, updt)
 	       end
 	   | TupleExp exps =>
 	       let val (es,tyv,updt) = elabExpList (exps,env,region)
-		in (TUPLEexp es,tyv,updt)
+		in (EU.TUPLEexp es,tyv,updt)
 	       end
 	   | VectorExp exps =>
 	       let val (es,tyv,updt) = elabExpList (exps,env,region)
-		in (VECTORexp (es,UNDEFty), tyv, updt)
+		in (VECTORexp (es, T.UNDEFty), tyv, updt)
 	       end
 	   | AppExp {function,argument} =>
 	       let val (e1,tv1,updt1) = elabExp (function,env,region)
@@ -565,12 +565,12 @@ let
 	       let val (e1,tv1,updt1) = elabExp(expr,env,region)
 		   val (rules2,tv2,updt2) = elabMatch(rules,env,region)
 		   fun updt tv = (updt1 tv; updt2 tv)
-		in (makeHANDLEexp (e1, rules2, compInfo), (* may add re-raise rule *)
+		in (HANDLEexp (e1, (rules2, T.UNDEFty, T.UNDEFty)),
                     union (tv1, tv2, error region), updt)
 	       end
 	   | RaiseExp exp =>
 	       let val (e,tyv,updt) = elabExp(exp,env,region)
-		in (RAISEexp(e,UNDEFty),tyv,updt)
+		in (RAISEexp(e, T.UNDEFty), tyv, updt)
 	       end
 	   | LetExp {dec,expr} =>
 	       let val (d1,e1,tv1,updt1) =
@@ -583,7 +583,7 @@ let
 	       let val (e1,tv1,updt1) = elabExp (expr,env,region)
 		   val (rules2,tv2,updt2) = elabMatch (rules,env,region)
 		   fun updt tv = (updt1 tv; updt2 tv)
-	        in (CASEexp (e1, (rules2, T.UNDEFty, UNDEFty)),
+	        in (CASEexp (e1, (rules2, T.UNDEFty, T.UNDEFty)),
 		    union(tv1,tv2,error region),
 		    updt)
 	       end
@@ -617,7 +617,7 @@ let
 	       end
 	   | FnExp rules =>
 	       let val (rules', tyv, updt) = elabMatch (rules, env, region)
-		in (FNexp (rules', UNDEFty, UNDEFty), tyv, updt)
+		in (FNexp (rules', T.UNDEFty, T.UNDEFty), tyv, updt)
 	       end
 	   | MarkExp (exp,region) =>
 	       let val (e,tyv,updt) = elabExp(exp,env,region)
@@ -626,9 +626,9 @@ let
 	   | SelectorExp s =>
 	        let val var = newVALvar s
 		    val pat = RECORDpat{fields = [(s,VARpat var)], flex = true,
-					typ = ref UNDEFty}
+					typ = ref T.UNDEFty}
 		 in (FNexp([RULE(pat, cMARKexp(VARexp(ref var, []), region))],
-			   UNDEFty, UNDEFty),
+			   T.UNDEFty, T.UNDEFty),
 		     TS.empty, no_updt)
 		end
 	   | FlatAppExp items => elabExp(expParse(items,env,error),env,region))
@@ -675,7 +675,7 @@ let
     and elabRule(Rule{pat,exp},env,region)  =
 	let val region' = case pat of MarkPat (p,reg) => reg | _ => region
 	    val (p,tv1) = elabPat(pat, env, region)
-	    val env' = SE.atop(bindVARp ([p],error region'), env)
+	    val env' = SE.atop(EU.bindVARp ([p],error region'), env)
 	    val (e,tv2,updt) = elabExp(exp,env',region)
 	 in (RULE(p,e),union(tv1,tv2,error region),updt)
 	end
@@ -764,7 +764,7 @@ let
 		    | MARKexp(e,_) => getVar e
 		    | _ => bug "evalOVERLOADdec.getVar")
 	    val val_vars = map (fn exp => getVar(#1(elabExp(exp,env,region)))) exps
-	    val ovldvar = OVLDvar{name = id, variants = val_vars}
+	    val ovldvar = V.OVLDvar{name = id, variants = val_vars}
 	in
 	    (OVLDdec ovldvar, SE.bind(id, B.VALbind ovldvar, SE.empty),
              TS.empty, no_updt)
@@ -837,14 +837,14 @@ let
 
 	      val pat =
 		case stripExpAbs exp
-		 of VARexp(ref(VALvar{prim as (PrimopId.Prim _),...}),_) =>
+		 of VARexp(ref(V.VALvar{prim as (PrimopId.Prim _),...}),_) =>
 		      (case stripMarksVar pat
-			of CONSTRAINTpat(VARpat(VALvar{path,typ,btvs, access,...}), ty) =>
-			     CONSTRAINTpat(VARpat(VALvar{path=path, typ=typ, access=access,
-							 btvs = btvs, prim=prim}),
+			of CONSTRAINTpat(VARpat(V.VALvar{path,typ,btvs, access,...}), ty) =>
+			     CONSTRAINTpat(VARpat(V.VALvar{path=path, typ=typ, access=access,
+							   btvs = btvs, prim=prim}),
 					   ty)
-			 | VARpat(VALvar{path, typ, btvs, access, ...}) =>
-			     VARpat(VALvar{path=path, typ=typ, access=access,
+			 | VARpat(V.VALvar{path, typ, btvs, access, ...}) =>
+			     VARpat(V.VALvar{path=path, typ=typ, access=access,
 				 	   btvs = btvs, prim=prim})
 			 | _ => pat)
 		  | _ => pat
@@ -864,7 +864,7 @@ let
                    end)
 		([],[],[]) vb
 	    fun updt tv : unit = app (fn f => f tv) updt1
-	in (SEQdec ds, bindVARp (pats,error region), TS.empty, updt)
+	in (SEQdec ds, EU.bindVARp (pats,error region), TS.empty, updt)
        end
 
     and elabRVB(MarkRvb(rvb,region),env,_) =
@@ -965,10 +965,10 @@ let
 
 	    fun elabFn((exp,lazyp),(fexps,tvs,updts)) =
 		let val (p,tv1) = elabPat(argpat, env, region)
-		    val env' = SE.atop(bindVARp ([p],error region), env)
+		    val env' = SE.atop(EU.bindVARp ([p],error region), env)
 		    val (e,tv2,updt) = elabExp(exp,env',region)
 		in (FNexp([RULE(p,if lazyp then e else delayExp e)],
-			  UNDEFty, UNDEFty) :: fexps,
+			  T.UNDEFty, T.UNDEFty) :: fexps,
 		    union(union(tv1,tv2,error region),tvs,error region),
 		    updt::updts)
 		end
@@ -990,8 +990,8 @@ let
 		end
 
 	    val declAppY =
-		VALdec[VB{pat=TUPLEpat(map VARpat lhsVars),
-			  exp=APPexp(VARexp(ref yvar,[]),TUPLEexp fns),
+		VALdec[VB{pat=EU.TUPLEpat(map VARpat lhsVars),
+			  exp=APPexp(VARexp(ref yvar,[]),EU.TUPLEexp fns),
 			  typ=T.UNDEFty, boundtvs=[], tyvars=tvref}]
 
 	    fun forceStrict ((sym,var1,lazyp),(vbs,vars)) =
@@ -1077,7 +1077,7 @@ let
                            (error region EM.COMPLAIN
 			      "illegal function symbol in clause"
 			      EM.nullErrorBody;
-			    bogusID)
+			    EU.bogusID)
 
    	             fun parse'({item=FlatAppPat[a,b as {region,...},c],...}
                                 ::rest) =
@@ -1188,7 +1188,7 @@ let
 
 	    fun elabClause(region,({kind,argpats,resultty,exp,funsym})) =
 		let val (pats,tv1) = elabPatList(argpats, env, region)
-                    val nenv = SE.atop(bindVARp(pats,error region), env'')
+                    val nenv = SE.atop(EU.bindVARp(pats,error region), env'')
 		    val (exp,tv2,updt) = elabExp(exp, nenv,region)
 		    (* LAZY: wrap delay or force around rhs as appropriate*)
 		    val exp =
@@ -1222,7 +1222,7 @@ let
 	    val (fbs1, ftyvars, updts) = foldl elabFundec ([],TS.empty,[]) fundecs
 
 	    val _ = EU.checkUniq(error region, "duplicate function names in fun dec",
-		      (map (fn (VALvar{path=SymPath.SPATH[x],...},_,_) => x
+		      (map (fn (V.VALvar{path=SymPath.SPATH[x],...},_,_) => x
 			     | _ => bug "makeFUNdec:checkuniq")
 			   fbs1));
 
@@ -1236,11 +1236,11 @@ let
 		    app (fn f => f downtyvars) updts
 		end
 
-	    fun makefb (v as VALvar{path=SymPath.SPATH[_],...},cs,r) =
+	    fun makefb (v as V.VALvar{path=SymPath.SPATH[_],...},cs,r) =
 		  ({var=v,clauses=cs, tyvars=tvref,region=r})
 	      | makefb _ = bug "makeFUNdec.makefb -- definiens path"
 
-	    val funsDec = FUNdec(map makefb fbs1,compInfo)
+	    val funsDec = EU.FUNdec(map makefb fbs1,compInfo)
 
          in showDec("elabFUNdec: ", funsDec, funsEnv);
 	    (funsDec, funsEnv, TS.empty, updt)

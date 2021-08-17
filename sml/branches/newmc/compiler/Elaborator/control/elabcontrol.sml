@@ -67,10 +67,6 @@ structure ElabControl : ELAB_CONTROL =
     val etopdebugging = onew ("etop-debugging", "ElabTop debugging", false)
         (* ElabTop *)
 
-    val mcdebugging = onew ("matchcomp-debugging", "MatchComp debugging", false)
-    val printAndor = onew ("print-andor", "andor print mode", false)
-    val printDecisionTree = onew ("print-decisiontree", "decision tree print mode", false)
-    val printMatchAbsyn = onew ("print-match-absyn", "match absyn print mode", false)
 
     val markabsyn = onew ("markabsyn", "mark abstract syntax", true)
         (* ElabCore, ElabTop, ElabUtil, Control_MC *)

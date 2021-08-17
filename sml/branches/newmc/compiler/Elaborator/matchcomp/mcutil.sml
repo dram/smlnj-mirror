@@ -13,7 +13,7 @@ local
   open MCCommon
 
   fun bug s = ErrorMsg.impossible ("MCUtil: " ^ s)
-  fun say msg = (Control.Print.say msg; Control.Print.flush ())
+  fun say msg = (Control_Print.say msg; Control_Print.flush ())
   fun says msgs = say (concat msgs)
   fun saynl msg = (say (msg^"\n"))
   fun saysnl msgs = (saynl (concat msgs))
@@ -44,32 +44,28 @@ fun mkRECORDpat (AS.RECORDpat{fields, flex=false, typ}) pats =
       bug "mkRECORDpat - flex record"
   | mkRECORDpat _ _ = bug "mkRECORDpat - non-record"
 
-(* varPaths : pat -> (V.var * path) list
- *  produces a "pathenv" ((var, path) alist) mapping each variable in the pattern
- *  to the rpath identifying its _unique_ location in the pattern.
- *  REQUIRES: pat is OR-free, so variable occurrences (& hence their paths) are unique.
- *  INVARIANT: a path to a vector element node will end with
- *  [..., VLENcon (n,ty), VI k] where k < n *)
+type varpaths = (V.var * P.path) list  (* association list mapping var to path *)
+
+(* varPaths : pat -> varpaths
+ *  produces a "varpaths" ((var, path) alist) mapping each variable in the pattern
+ *  to the path identifying its _unique_ location in the pattern.
+ *  REQUIRES: pat is OR-free, so variable occurrences (& hence their paths) are unique. *)
 fun varPaths (pat: AS.pat) =
-    let fun scan (AS.VARpat v, rpath) = [(v, rev rpath)]
+    let fun scan (AS.VARpat v, rpath) = [(v, P.rpathToPath rpath)]
 	  | scan (AS.CONSTRAINTpat(pat,_), rpath) = scan(pat, rpath)
 	  | scan (AS.LAYEREDpat(pat1, pat2), rpath) =
 	      scan(pat1, rpath) @ scan(pat2, rpath)
 	  | scan (AS.APPpat(dcon,tvs,pat), rpath) =
-	      scan(pat, P.DC(P.DATAcon(dcon,tvs)) :: rpath)
+	      scan(pat, P.DC(AS.DATAcon(dcon,tvs)) :: rpath)
 	  | scan (AS.RECORDpat{fields,...}, rpath) =
-	      let fun scanFields (n, nil) = nil
-		    | scanFields (n, (lab,pat)::rest) =
-			scan (pat, P.PI n :: rpath) @ scanFields (n+1,rest)
-	       in scanFields (0, fields)
+	      let fun foldFields (n, (lap,pat), varpaths) =
+		      scan (pat, P.addLinkR (P.PI n, rpath)) @ varpaths
+	      in List.foldri foldFields nil fields
 	      end
 	  | scan (AS.VECTORpat(pats,ty), rpath) =
-	    let val vec_rpath = P.DC (P.VLENcon(length pats, ty)) :: rpath
-		     (* link for vector length discrimination *)
-		  fun scanElements (n, nil) = nil
-		    | scanElements (n, pat::rest) =
-			scan (pat, P.VI (n,ty) :: vec_rpath) @ scanElements (n+1,rest)
-	       in scanElements(0, pats)
+	    let fun foldElement (n, pat, varpaths) =
+		    scan (pat, P.addLinkR (P.VI (n,ty), rpath)) @ varpaths
+	       in List.foldri foldElement nil pats
 	      end
 	  | scan (AS.MARKpat (pat,_), rpath) = scan (pat, rpath) (* MARKpat is tranparent *)
 	  | scan (AS.ORpat _, _) = bug "varPaths:scan - unexpected OR pattern"
@@ -93,10 +89,12 @@ fun bindingPaths variables pat =
 (* -------------------------------------------------------------------------------- *)
 (* mvars *)
 
-(* mvar : lvars used as administrative or destructuring variables to designate intermediate
+(* mvar : vars used as administrative or destructuring variables to designate intermediate
  *  values during a match *)
-type mvar = LV.lvar (* == int *)
-fun mkMvar () = LV.mkLvar ()
+type mvar = V.var (* == int *)
+
+(* mkMvar : unit -> V.var *)
+fun mkMvar () = V.lvarToVar (LV.mkLvar ())
 
 (* -------------------------------------------------------------------------------- *)
 (* pathenv: path -> mvar environments *)

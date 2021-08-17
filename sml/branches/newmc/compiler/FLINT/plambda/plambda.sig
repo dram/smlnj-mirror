@@ -30,7 +30,7 @@ signature PLAMBDA =
       | INTcon of int IntConst.t	(* sz = 0 for IntInf.int *)
       | WORDcon of int IntConst.t
       | STRINGcon of string
-      | VLENcon of int
+(*      | VLENcon of int *)
 
   (*
    * lexp: the universal typed intermediate language. TFN, TAPP is abstraction

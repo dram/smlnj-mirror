@@ -1,0 +1,982 @@
+
+
+[After Translate ...]
+
+FN(v94: STR([TYC(TCAP(PRIM(ETG), [{}])),TYC(TCAP(PRIM(ETG), [{}])),TYC(TCAP(PRIM(ETG), [{}]))]),
+   v63 = v94[0]
+     v62 = v94[1]
+       v61 = v94[2]
+         v60 = TFN((M)
+               v44 = FN(v93: TYC(se),
+                        v92 = FN(v45: TYC(se),
+                                 v58 = TFN((M)
+                                       FIX(v46: TYC(AR[rr]([se,TCAP(list, [TV(1,0)])], [se,TCAP(list, [TV(1,0)])])) ::
+				       FN(v84: TYC({se,TCAP(list, [TV(1,0)])}),
+                                          v81 = FN(v80: TYC({se,TCAP(list, [PRIM(I63)]),TCAP(list, [TV(1,0)])}),
+                                                   v49 = v80[0]
+                                                     v48 = v80[1]
+                                                       v47 = v80[2]
+                                                         v54 = TFN((M)
+                                                               FIX(v50: TYC(AR[rr]([TCAP(list, [TV(1,0)])], [se,TCAP(list, [TV(2,0)])])) ::
+							       FN(v73: TYC(TCAP(list, [TV(1,0)])),
+                                                                  v70 = FN(v69: TYC({}),
+                                                                           APP(v46,
+                                                                               RCD(v49,CON((nil,CN(0),POL([M], [TYC(AR[rr]([{}], [TCAP(list, [TV(1,0)])]))])), [TV(2,0)], RCD()))))
+                                                                    v72 = FN(v71: TYC({TV(1,0),TCAP(list, [TV(1,0)])}),
+                                                                             v52 = v71[0]
+                                                                               v51 = v71[1]
+                                                                                 HANDLE
+                                                                                 APP(v50, v51)
+                                                                                 WITH
+                                                                                 FN(v66: TYC(PRIM(EXN)),
+                                                                                    v65 = FN(v64: TYC({}),APP(v50, v51))
+                                                                                      SWI v66
+                                                                                       of E.v68 => APP(v65, RCD())
+                                                                                         _ =>
+                                                                                           RAISE(TYC({se,TCAP(list, [TV(2,0)])}),
+                                                                                           	 APP(PRM(markexn, TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []),
+                                                                                                     RCD(v66,"es2.sml:11.9-12.31")))))
+                                                                      SWI v73
+                                                                       of nil.v78 => APP(v70, RCD())
+                                                                          ::. v74 =>
+                                                                            v76 = v74[0]
+                                                                             v75 = v74[1]
+                                                                               APP(v72, RCD(v76,v75)))
+                                                               IN v50))
+                                                           APP(TAPP(v54 [PRIM(I63)]), v48))
+                                            v83 = FN(v82: TYC({se,TCAP(list, [TV(1,0)])}),
+                                                     v56 = v82[0]
+                                                       v55 = v82[1]
+                                                         RCD(v56,v55))
+                                              v86 = v84[0]
+                                                v85 = v84[1]
+                                                  SWI v86
+                                                   of A.v87 =>
+                                                       v89 = v87[0]
+                                                         v88 = v87[1]
+                                                           APP(v81, RCD(v89,v88,v85))
+                                                      _ =>
+                                                       APP(v83, RCD(v86,v85)))
+                                       IN v46))
+                                   APP(TAPP(v58 [TV(1,0)]),
+                                       RCD(v45,CON((nil,CN(0),POL([M], [TYC(AR[rr]([{}], [TCAP(list, [TV(1,0)])]))])), [TV(1,0)], RCD()))))
+                          APP(v92, v93))
+                 v44)
+           SRCD(v60))
+
+
+
+[After FlintNM.norm ...]
+
+v95{0} : FD[FCT, is, false, NR] = 
+  FN([v94{0} : ???],
+    v63{0} = SELECT(v94, 0)
+    v62{0} = SELECT(v94, 1)
+    v61{0} = SELECT(v94, 2)
+    v60{0} = 
+      TFN([v121:M],
+        [v96{0}] = 
+          FIX(v44{0} : FD[FUN(rr), is, false, NR] = 
+                FN([v93{0} : TYC(se)],
+                  FIX(v92{0} : FD[FUN(rr), is, false, NR] = 
+                        FN([v45{0} : TYC(se)],
+                          v58{0} = 
+                            TFN([v119:M],
+                              [v97{0}] = 
+                                FIX(v46{0} : FD[FUN(rr), is, false, R[TYC(se),TYC(ENV(ol=1, nl=0, TCAP(list, [TV(2,0)]), [B0([PRIM(I63)]: [M])]))]] = 
+                                      FN([v114{0} : TYC(se),
+                                          v115{0} : TYC(TCAP(list, [TV(1,0)]))],
+                                        v84{0} = RECORD [v114,v115]
+                                        FIX(v81{0} : FD[FUN(rr), is, false, NR] = 
+                                              FN([v109{0} : TYC(se),
+                                                  v110{0} : TYC(TCAP(list, [PRIM(I63)])),
+                                                  v111{0} : TYC(TCAP(list, [TV(1,0)]))],
+                                                v80{0} = RECORD [v109,v110,v111]
+                                                v49{0} = SELECT(v80, 0)
+                                                v48{0} = SELECT(v80, 1)
+                                                v47{0} = SELECT(v80, 2)
+                                                v54{0} = 
+                                                  TFN([v108:M],
+                                                    [v98{0}] = 
+                                                      FIX(v50{0} : FD[FUN(rr), is, false, R[TYC(se),TYC(ENV(ol=0, nl=1, TCAP(list, [TV(1,0)]), []))]] = 
+                                                            FN([v73{0} : TYC(TCAP(list, [TV(1,0)]))],
+                                                              FIX(v70{0} : FD[FUN(rr), is, false, NR] = 
+                                                                    FN([v69{0} : TYC({})],
+                                                                      v100{0} = RECORD []
+                                                                      v99{0} = CON(nil, [TV(2,0)], v100)
+                                                                      APP(v46,[v49,v99])))
+                                                              FIX(v72{0} : FD[FUN(rr), is, false, NR] = 
+                                                                    FN([v104{0} : TYC(TV(1,0)),
+                                                                        v105{0} : TYC(TCAP(list, [TV(1,0)]))],
+                                                                      v71{0} = RECORD [v104,v105]
+                                                                      v52{0} = SELECT(v71, 0)
+                                                                      v51{0} = SELECT(v71, 1)
+                                                                      FIX(v101{0} : FD[FUN(rr), is, false, NR] = 
+                                                                            FN([v66{0} : TYC(PRIM(EXN))],
+                                                                              FIX(v65{0} : FD[FUN(rr), is, false, NR] = 
+                                                                                    FN([v64{0} : TYC({})],
+                                                                                      APP(v50,[v51])))
+                                                                              SWITCH v66
+                                                                                E => 
+                                                                                    v68{0} = DECON(E,EXNLVAR(63),TYC(AR[rr]([{}], [PRIM(EXN)])),[])
+                                                                                    v103{0} = RECORD []
+                                                                                    APP(v65,[v103])
+                                                                                _ => 
+                                                                                    v102{0} = PRIMOP(markexn, TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []) [v66,"es2.sml:11.9-12.31"]
+                                                                                    RAISE(v102) : [TYC(se),TYC(TCAP(list, [TV(2,0)]))]))
+                                                                      APP(v50,[v51])
+                                                                      HANDLE(v101)))
+                                                              SWITCH v73
+                                                                nil => 
+                                                                    v106{0} = RECORD []
+                                                                    APP(v70,[v106])
+                                                                :: => 
+                                                                    v74{0} = DECON(::,UT,POL([M], [TYC(AR[rr]([{TV(1,0),TCAP(list, [TV(1,0)])}], [TCAP(list, [TV(1,0)])]))]),[TV(1,0)])
+                                                                    v76{0} = SELECT(v74, 0)
+                                                                    v75{0} = SELECT(v74, 1)
+                                                                    APP(v72,[v76,v75])))
+                                                      RETURN [v50]
+                                                    RETURN [v98])
+                                                [v107{0}] = TAPP(v54,[PRIM(I63)])
+                                                APP(v107,[v48])))
+                                        FIX(v83{0} : FD[FUN(rr), is, false, NR] = 
+                                              FN([v112{0} : TYC(se),
+                                                  v113{0} : TYC(TCAP(list, [TV(1,0)]))],
+                                                v82{0} = RECORD [v112,v113]
+                                                v56{0} = SELECT(v82, 0)
+                                                v55{0} = SELECT(v82, 1)
+                                                RETURN [v56,v55]))
+                                        v86{0} = SELECT(v84, 0)
+                                        v85{0} = SELECT(v84, 1)
+                                        SWITCH v86
+                                          A => 
+                                              v87{0} = DECON(A,UT,TYC(AR[rr]([{se,TCAP(list, [PRIM(I63)])}], [se])),[])
+                                              v89{0} = SELECT(v87, 0)
+                                              v88{0} = SELECT(v87, 1)
+                                              APP(v81,[v89,v88,v85])
+                                          _ => 
+                                              APP(v83,[v86,v85])))
+                                RETURN [v46]
+                              RETURN [v97])
+                          [v116{0}] = TAPP(v58,[TV(1,0)])
+                          v118{0} = RECORD []
+                          v117{0} = CON(nil, [TV(1,0)], v118)
+                          APP(v116,[v45,v117])))
+                  APP(v92,[v93])))
+          RETURN [v44]
+        RETURN [v96])
+    v120{0} = STRUCT [v60]
+    RETURN [v120])
+
+[After deb2names ...]
+
+v95{0} : FD[FCT, is, false, NR] = 
+  FN([v122{0} : ???],
+    v123{0} = SELECT(v122, 0)
+    v124{0} = SELECT(v122, 1)
+    v125{0} = SELECT(v122, 2)
+    v94{0} = STRUCT [v123,v124,v125]
+    v63{0} = SELECT(v94, 0)
+    v62{0} = SELECT(v94, 1)
+    v61{0} = SELECT(v94, 2)
+    v60{0} = 
+      TFN([v121:M],
+        [v96{0}] = 
+          FIX(v44{0} : FD[FUN(rr), is, false, NR] = 
+                FN([v93{0} : TYC(se)],
+                  FIX(v92{0} : FD[FUN(rr), is, false, NR] = 
+                        FN([v45{0} : TYC(se)],
+                          v58{0} = 
+                            TFN([v119:M],
+                              [v97{0}] = 
+                                FIX(v46{0} : FD[FUN(rr), is, false, R[TYC(se),LT_ENV(ol=2, nl=2, TYC(ENV(ol=1, nl=0, TCAP(list, [TV(2,0)]), [B0([PRIM(I63)]: [M])])), [B0([NTV(v119)]: [M]),B0([NTV(v121)]: [M])])]] = 
+                                      FN([v114{0} : TYC(se),
+                                          v115{0} : LT_ENV(ol=2, nl=2, TYC(TCAP(list, [TV(1,0)])), [B0([NTV(v119)]: [M]),B0([NTV(v121)]: [M])])],
+                                        v84{0} = RECORD [v114,v115]
+                                        FIX(v81{0} : FD[FUN(rr), is, false, NR] = 
+                                              FN([v109{0} : TYC(se),
+                                                  v110{0} : TYC(TCAP(list, [PRIM(I63)])),
+                                                  v111{0} : LT_ENV(ol=2, nl=2, TYC(TCAP(list, [TV(1,0)])), [B0([NTV(v119)]: [M]),B0([NTV(v121)]: [M])])],
+                                                v80{0} = RECORD [v109,v110,v111]
+                                                v49{0} = SELECT(v80, 0)
+                                                v48{0} = SELECT(v80, 1)
+                                                v47{0} = SELECT(v80, 2)
+                                                v54{0} = 
+                                                  TFN([v108:M],
+                                                    [v98{0}] = 
+                                                      FIX(v50{0} : FD[FUN(rr), is, false, R[TYC(se),LT_ENV(ol=3, nl=3, TYC(ENV(ol=0, nl=1, TCAP(list, [TV(1,0)]), [])), [B0([NTV(v108)]: [M]),B0([NTV(v119)]: [M]),B0([NTV(v121)]: [M])])]] = 
+                                                            FN([v73{0} : LT_ENV(ol=3, nl=3, TYC(TCAP(list, [TV(1,0)])), [B0([NTV(v108)]: [M]),B0([NTV(v119)]: [M]),B0([NTV(v121)]: [M])])],
+                                                              FIX(v70{0} : FD[FUN(rr), is, false, NR] = 
+                                                                    FN([v69{0} : TYC({})],
+                                                                      v100{0} = RECORD []
+                                                                      v99{0} = CON(nil, [ENV(ol=3, nl=3, TV(2,0), [B0([NTV(v108)]: [M]),B0([NTV(v119)]: [M]),B0([NTV(v121)]: [M])])], v100)
+                                                                      APP(v46,[v49,v99])))
+                                                              FIX(v72{0} : FD[FUN(rr), is, false, NR] = 
+                                                                    FN([v104{0} : LT_ENV(ol=3, nl=3, TYC(TV(1,0)), [B0([NTV(v108)]: [M]),B0([NTV(v119)]: [M]),B0([NTV(v121)]: [M])]),
+                                                                        v105{0} : LT_ENV(ol=3, nl=3, TYC(TCAP(list, [TV(1,0)])), [B0([NTV(v108)]: [M]),B0([NTV(v119)]: [M]),B0([NTV(v121)]: [M])])],
+                                                                      v71{0} = RECORD [v104,v105]
+                                                                      v52{0} = SELECT(v71, 0)
+                                                                      v51{0} = SELECT(v71, 1)
+                                                                      FIX(v101{0} : FD[FUN(rr), is, false, NR] = 
+                                                                            FN([v66{0} : TYC(PRIM(EXN))],
+                                                                              FIX(v65{0} : FD[FUN(rr), is, false, NR] = 
+                                                                                    FN([v64{0} : TYC({})],
+                                                                                      APP(v50,[v51])))
+                                                                              SWITCH v66
+                                                                                E => 
+                                                                                    v68{0} = DECON(E,EXNLVAR(63),TYC(AR[rr]([{}], [PRIM(EXN)])),[])
+                                                                                    v103{0} = RECORD []
+                                                                                    APP(v65,[v103])
+                                                                                _ => 
+                                                                                    v102{0} = PRIMOP(markexn, TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []) [v66,"es2.sml:11.9-12.31"]
+                                                                                    RAISE(v102) : [TYC(se),LT_ENV(ol=3, nl=3, TYC(TCAP(list, [TV(2,0)])), [B0([NTV(v108)]: [M]),B0([NTV(v119)]: [M]),B0([NTV(v121)]: [M])])]))
+                                                                      APP(v50,[v51])
+                                                                      HANDLE(v101)))
+                                                              SWITCH v73
+                                                                nil => 
+                                                                    v106{0} = RECORD []
+                                                                    APP(v70,[v106])
+                                                                :: => 
+                                                                    v74{0} = DECON(::,UT,POL([M], [TYC(AR[rr]([{TV(1,0),TCAP(list, [TV(1,0)])}], [TCAP(list, [TV(1,0)])]))]),[ENV(ol=3, nl=3, TV(1,0), [B0([NTV(v108)]: [M]),B0([NTV(v119)]: [M]),B0([NTV(v121)]: [M])])])
+                                                                    v76{0} = SELECT(v74, 0)
+                                                                    v75{0} = SELECT(v74, 1)
+                                                                    APP(v72,[v76,v75])))
+                                                      RETURN [v50]
+                                                    RETURN [v98])
+                                                [v107{0}] = TAPP(v54,[PRIM(I63)])
+                                                APP(v107,[v48])))
+                                        FIX(v83{0} : FD[FUN(rr), is, false, NR] = 
+                                              FN([v112{0} : TYC(se),
+                                                  v113{0} : LT_ENV(ol=2, nl=2, TYC(TCAP(list, [TV(1,0)])), [B0([NTV(v119)]: [M]),B0([NTV(v121)]: [M])])],
+                                                v82{0} = RECORD [v112,v113]
+                                                v56{0} = SELECT(v82, 0)
+                                                v55{0} = SELECT(v82, 1)
+                                                RETURN [v56,v55]))
+                                        v86{0} = SELECT(v84, 0)
+                                        v85{0} = SELECT(v84, 1)
+                                        SWITCH v86
+                                          A => 
+                                              v87{0} = DECON(A,UT,TYC(AR[rr]([{se,TCAP(list, [PRIM(I63)])}], [se])),[])
+                                              v89{0} = SELECT(v87, 0)
+                                              v88{0} = SELECT(v87, 1)
+                                              APP(v81,[v89,v88,v85])
+                                          _ => 
+                                              APP(v83,[v86,v85])))
+                                RETURN [v46]
+                              RETURN [v97])
+                          [v116{0}] = TAPP(v58,[ENV(ol=1, nl=1, TV(1,0), [B0([NTV(v121)]: [M])])])
+                          v118{0} = RECORD []
+                          v117{0} = CON(nil, [ENV(ol=1, nl=1, TV(1,0), [B0([NTV(v121)]: [M])])], v118)
+                          APP(v116,[v45,v117])))
+                  APP(v92,[v93])))
+          RETURN [v44]
+        RETURN [v96])
+    v120{0} = STRUCT [v60]
+    RETURN [v120])
+
+
+[After lcontract ...]
+
+v95{0} : FD[FCT, is, false, NR] = 
+  FN([v122{0} : ???],
+    v123{0} = SELECT(v122, 0)
+    v60{0} = 
+      TFN([v121:M],
+        FIX(v44{0} : FD[FUN(rr), is, false, NR] = 
+              FN([v93{0} : TYC(se)],
+                v58{0} = 
+                  TFN([v119:M],
+                    FIX(v46{0} : FD[FUN(rr), is, false, R[TYC(se),LT_ENV(ol=2, nl=2, TYC(ENV(ol=1, nl=0, TCAP(list, [TV(2,0)]), [B0([PRIM(I63)]: [M])])), [B0([NTV(v119)]: [M]),B0([NTV(v121)]: [M])])]] = 
+                          FN([v114{0} : TYC(se),
+                              v115{0} : LT_ENV(ol=2, nl=2, TYC(TCAP(list, [TV(1,0)])), [B0([NTV(v119)]: [M]),B0([NTV(v121)]: [M])])],
+                            SWITCH v114
+                              A => 
+                                  v87{0} = DECON(A,UT,TYC(AR[rr]([{se,TCAP(list, [PRIM(I63)])}], [se])),[])
+                                  v89{0} = SELECT(v87, 0)
+                                  v88{0} = SELECT(v87, 1)
+                                  v54{0} = 
+                                    TFN([v108:M],
+                                      FIX(v50{0} : FD[FUN(rr), is, false, R[TYC(se),LT_ENV(ol=3, nl=3, TYC(ENV(ol=0, nl=1, TCAP(list, [TV(1,0)]), [])), [B0([NTV(v108)]: [M]),B0([NTV(v119)]: [M]),B0([NTV(v121)]: [M])])]] = 
+                                            FN([v73{0} : LT_ENV(ol=3, nl=3, TYC(TCAP(list, [TV(1,0)])), [B0([NTV(v108)]: [M]),B0([NTV(v119)]: [M]),B0([NTV(v121)]: [M])])],
+                                              SWITCH v73
+                                                nil => 
+                                                    v100{0} = RECORD []
+                                                    v99{0} = CON(nil, [ENV(ol=3, nl=3, TV(2,0), [B0([NTV(v108)]: [M]),B0([NTV(v119)]: [M]),B0([NTV(v121)]: [M])])], v100)
+                                                    APP(v46,[v89,v99])
+                                                :: => 
+                                                    v74{0} = DECON(::,UT,POL([M], [TYC(AR[rr]([{TV(1,0),TCAP(list, [TV(1,0)])}], [TCAP(list, [TV(1,0)])]))]),[ENV(ol=3, nl=3, TV(1,0), [B0([NTV(v108)]: [M]),B0([NTV(v119)]: [M]),B0([NTV(v121)]: [M])])])
+                                                    v75{0} = SELECT(v74, 1)
+                                                    FIX(v101{0} : FD[FUN(rr), is, false, NR] = 
+                                                          FN([v66{0} : TYC(PRIM(EXN))],
+                                                            SWITCH v66
+                                                              E => 
+                                                                  v68{0} = DECON(E,EXNLVAR(123),TYC(AR[rr]([{}], [PRIM(EXN)])),[])
+                                                                  APP(v50,[v75])
+                                                              _ => 
+                                                                  v102{0} = PRIMOP(markexn, TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []) [v66,"es2.sml:11.9-12.31"]
+                                                                  RAISE(v102) : [TYC(se),LT_ENV(ol=3, nl=3, TYC(TCAP(list, [TV(2,0)])), [B0([NTV(v108)]: [M]),B0([NTV(v119)]: [M]),B0([NTV(v121)]: [M])])]))
+                                                    APP(v50,[v75])
+                                                    HANDLE(v101)))
+                                      RETURN [v50])
+                                  [v107{0}] = TAPP(v54,[PRIM(I63)])
+                                  APP(v107,[v88])
+                              _ => 
+                                  RETURN [v114,v115]))
+                    RETURN [v46])
+                [v116{0}] = TAPP(v58,[ENV(ol=1, nl=1, TV(1,0), [B0([NTV(v121)]: [M])])])
+                v118{0} = RECORD []
+                v117{0} = CON(nil, [ENV(ol=1, nl=1, TV(1,0), [B0([NTV(v121)]: [M])])], v118)
+                APP(v116,[v93,v117])))
+        RETURN [v44])
+    v120{0} = STRUCT [v60]
+    RETURN [v120])
+
+
+[After fixfix ...]
+
+v95{0} : FD[FCT, is, false, NR] = 
+  FN([v122{0} : ???],
+    v123{0} = SELECT(v122, 0)
+    v60{0} = 
+      TFN([v121:M],
+        FIX(v44{0} : FD[FUN(rr), is, false, NR] = 
+              FN([v93{0} : TYC(se)],
+                v58{0} = 
+                  TFN([v119:M],
+                    FIX(v46{0} : FD[FUN(rr), is, false, R[TYC(se),LT_ENV(ol=2, nl=2, TYC(ENV(ol=1, nl=0, TCAP(list, [TV(2,0)]), [B0([PRIM(I63)]: [M])])), [B0([NTV(v119)]: [M]),B0([NTV(v121)]: [M])])]] = 
+                          FN([v114{0} : TYC(se),
+                              v115{0} : LT_ENV(ol=2, nl=2, TYC(TCAP(list, [TV(1,0)])), [B0([NTV(v119)]: [M]),B0([NTV(v121)]: [M])])],
+                            SWITCH v114
+                              A => 
+                                  v87{0} = DECON(A,UT,TYC(AR[rr]([{se,TCAP(list, [PRIM(I63)])}], [se])),[])
+                                  v89{0} = SELECT(v87, 0)
+                                  v88{0} = SELECT(v87, 1)
+                                  v54{0} = 
+                                    TFN([v108:M],
+                                      FIX(v50{0} : FD[FUN(rr), is, false, R[TYC(se),LT_ENV(ol=3, nl=3, TYC(ENV(ol=0, nl=1, TCAP(list, [TV(1,0)]), [])), [B0([NTV(v108)]: [M]),B0([NTV(v119)]: [M]),B0([NTV(v121)]: [M])])]] = 
+                                            FN([v73{0} : LT_ENV(ol=3, nl=3, TYC(TCAP(list, [TV(1,0)])), [B0([NTV(v108)]: [M]),B0([NTV(v119)]: [M]),B0([NTV(v121)]: [M])])],
+                                              SWITCH v73
+                                                nil => 
+                                                    v100{0} = RECORD []
+                                                    v99{0} = CON(nil, [ENV(ol=3, nl=3, TV(2,0), [B0([NTV(v108)]: [M]),B0([NTV(v119)]: [M]),B0([NTV(v121)]: [M])])], v100)
+                                                    APP(v46,[v89,v99])
+                                                :: => 
+                                                    v74{0} = DECON(::,UT,POL([M], [TYC(AR[rr]([{TV(1,0),TCAP(list, [TV(1,0)])}], [TCAP(list, [TV(1,0)])]))]),[ENV(ol=3, nl=3, TV(1,0), [B0([NTV(v108)]: [M]),B0([NTV(v119)]: [M]),B0([NTV(v121)]: [M])])])
+                                                    v75{0} = SELECT(v74, 1)
+                                                    FIX(v101{0} : FD[FUN(rr), im(3,[3]), false, NR] = 
+                                                          FN([v66{0} : TYC(PRIM(EXN))],
+                                                            SWITCH v66
+                                                              E => 
+                                                                  v68{0} = DECON(E,EXNLVAR(123),TYC(AR[rr]([{}], [PRIM(EXN)])),[])
+                                                                  APP(v50,[v75])
+                                                              _ => 
+                                                                  v102{0} = PRIMOP(markexn, TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []) [v66,"es2.sml:11.9-12.31"]
+                                                                  RAISE(v102) : [TYC(se),LT_ENV(ol=3, nl=3, TYC(TCAP(list, [TV(2,0)])), [B0([NTV(v108)]: [M]),B0([NTV(v119)]: [M]),B0([NTV(v121)]: [M])])]))
+                                                    APP(v50,[v75])
+                                                    HANDLE(v101)))
+                                      RETURN [v50])
+                                  [v107{0}] = TAPP(v54,[PRIM(I63)])
+                                  APP(v107,[v88])
+                              _ => 
+                                  RETURN [v114,v115]))
+                    RETURN [v46])
+                [v116{0}] = TAPP(v58,[ENV(ol=1, nl=1, TV(1,0), [B0([NTV(v121)]: [M])])])
+                v118{0} = RECORD []
+                v117{0} = CON(nil, [ENV(ol=1, nl=1, TV(1,0), [B0([NTV(v121)]: [M])])], v118)
+                APP(v116,[v93,v117])))
+        RETURN [v44])
+    v120{0} = STRUCT [v60]
+    RETURN [v120])
+
+
+[After fcontract ...]
+
+v95{1} : FD[FCT, is, false, NR] = 
+  FN([v122{1} : ???],
+    v123{1} = SELECT(v122, 0)
+    v60{1} = 
+      TFN([v121:M],
+        FIX(v44{1} : FD[FUN(rr), is, false, NR] = 
+              FN([v93{1} : TYC(se)],
+                v58{1,1} = 
+                  TFN([v119:M],
+                    FIX(v46{2,1} : FD[FUN(rr), is, false, R[TYC(se),LT_ENV(ol=2, nl=2, TYC(ENV(ol=1, nl=0, TCAP(list, [TV(2,0)]), [B0([PRIM(I63)]: [M])])), [B0([NTV(v119)]: [M]),B0([NTV(v121)]: [M])])]] = 
+                          FN([v114{2} : TYC(se),
+                              v115{1} : LT_ENV(ol=2, nl=2, TYC(TCAP(list, [TV(1,0)])), [B0([NTV(v119)]: [M]),B0([NTV(v121)]: [M])])],
+                            SWITCH v114
+                              A => 
+                                  v87{2} = DECON(A,UT,TYC(AR[rr]([{se,TCAP(list, [PRIM(I63)])}], [se])),[])
+                                  v89{1} = SELECT(v87, 0)
+                                  v88{1} = SELECT(v87, 1)
+                                  v54{1,1} = 
+                                    TFN([v108:M],
+                                      FIX(v50{3,2} : FD[FUN(rr), is, false, R[TYC(se),LT_ENV(ol=3, nl=3, TYC(ENV(ol=0, nl=1, TCAP(list, [TV(1,0)]), [])), [B0([NTV(v108)]: [M]),B0([NTV(v119)]: [M]),B0([NTV(v121)]: [M])])]] = 
+                                            FN([v73{1} : LT_ENV(ol=3, nl=3, TYC(TCAP(list, [TV(1,0)])), [B0([NTV(v108)]: [M]),B0([NTV(v119)]: [M]),B0([NTV(v121)]: [M])])],
+                                              SWITCH v73
+                                                nil => 
+                                                    v100{1} = RECORD []
+                                                    v99{1} = CON(nil, [ENV(ol=3, nl=3, TV(2,0), [B0([NTV(v108)]: [M]),B0([NTV(v119)]: [M]),B0([NTV(v121)]: [M])])], v100)
+                                                    APP(v46,[v89,v99])
+                                                :: => 
+                                                    v74{1} = DECON(::,UT,POL([M], [TYC(AR[rr]([{TV(1,0),TCAP(list, [TV(1,0)])}], [TCAP(list, [TV(1,0)])]))]),[ENV(ol=3, nl=3, TV(1,0), [B0([NTV(v108)]: [M]),B0([NTV(v119)]: [M]),B0([NTV(v121)]: [M])])])
+                                                    v75{2} = SELECT(v74, 1)
+                                                    FIX(v101{1} : FD[FUN(rr), im(3,[3]), false, NR] = 
+                                                          FN([v66{2} : TYC(PRIM(EXN))],
+                                                            SWITCH v66
+                                                              E => 
+                                                                  v68{0} = DECON(E,EXNLVAR(123),TYC(AR[rr]([{}], [PRIM(EXN)])),[])
+                                                                  APP(v50,[v75])
+                                                              _ => 
+                                                                  v102{1} = PRIMOP(markexn, TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []) [v66,"es2.sml:11.9-12.31"]
+                                                                  RAISE(v102) : [TYC(se),LT_ENV(ol=3, nl=3, TYC(TCAP(list, [TV(2,0)])), [B0([NTV(v108)]: [M]),B0([NTV(v119)]: [M]),B0([NTV(v121)]: [M])])]))
+                                                    APP(v50,[v75])
+                                                    HANDLE(v101)))
+                                      RETURN [v50])
+                                  [v107{1,1}] = TAPP(v54,[PRIM(I63)])
+                                  APP(v107,[v88])
+                              _ => 
+                                  RETURN [v114,v115]))
+                    RETURN [v46])
+                [v116{1,1}] = TAPP(v58,[ENV(ol=1, nl=1, TV(1,0), [B0([NTV(v121)]: [M])])])
+                v118{1} = RECORD []
+                v117{1} = CON(nil, [ENV(ol=1, nl=1, TV(1,0), [B0([NTV(v121)]: [M])])], v118)
+                APP(v116,[v93,v117])))
+        RETURN [v44])
+    v120{1} = STRUCT [v60]
+    RETURN [v120])
+
+
+[After specialize ...]
+
+v95{1} : FD[FCT, is, false, NR] = 
+  FN([v122{1} : ???],
+    v123{1} = SELECT(v122, 0)
+    v60{1} = 
+      TFN([v121:M],
+        FIX(v44{1} : FD[FUN(rr), is, false, NR] = 
+              FN([v93{1} : TYC(se)],
+                [v132{0}] = 
+                  FIX(v46{2,1} : FD[FUN(rr), is, false, R[TYC(se),TYC(TCAP(list, [NTV(v121)]))]] = 
+                        FN([v114{2} : TYC(se),
+                            v115{1} : TYC(TCAP(list, [NTV(v121)]))],
+                          SWITCH v114
+                            A => 
+                                v87{2} = DECON(A,UT,TYC(AR[rr]([{se,TCAP(list, [PRIM(I63)])}], [se])),[])
+                                v89{1} = SELECT(v87, 0)
+                                v88{1} = SELECT(v87, 1)
+                                [v135{0}] = 
+                                  FIX(v50{3,2} : FD[FUN(rr), is, false, R[TYC(se),TYC(TCAP(list, [NTV(v121)]))]] = 
+                                        FN([v73{1} : TYC(TCAP(list, [PRIM(I63)]))],
+                                          SWITCH v73
+                                            nil => 
+                                                v100{1} = RECORD []
+                                                v99{1} = CON(nil, [NTV(v121)], v100)
+                                                APP(v46,[v89,v99])
+                                            :: => 
+                                                v74{1} = DECON(::,UT,POL([M], [TYC(AR[rr]([{TV(1,0),TCAP(list, [TV(1,0)])}], [TCAP(list, [TV(1,0)])]))]),[PRIM(I63)])
+                                                v75{2} = SELECT(v74, 1)
+                                                FIX(v101{1} : FD[FUN(rr), im(3,[3]), false, NR] = 
+                                                      FN([v66{2} : TYC(PRIM(EXN))],
+                                                        SWITCH v66
+                                                          E => 
+                                                              v68{0} = DECON(E,EXNLVAR(123),TYC(AR[rr]([{}], [PRIM(EXN)])),[])
+                                                              APP(v50,[v75])
+                                                          _ => 
+                                                              v102{1} = PRIMOP(markexn, TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []) [v66,"es2.sml:11.9-12.31"]
+                                                              RAISE(v102) : [TYC(se),TYC(TCAP(list, [NTV(v121)]))]))
+                                                APP(v50,[v75])
+                                                HANDLE(v101)))
+                                  RETURN [v50]
+                                [v107{1,1}] = RETURN [v135]
+                                APP(v107,[v88])
+                            _ => 
+                                RETURN [v114,v115]))
+                  RETURN [v46]
+                [v116{1,1}] = RETURN [v132]
+                v118{1} = RECORD []
+                v117{1} = CON(nil, [NTV(v121)], v118)
+                APP(v116,[v93,v117])))
+        RETURN [v44])
+    v120{1} = STRUCT [v60]
+    RETURN [v120])
+
+
+[After loopify ...]
+
+v95{1} : FD[FCT, is, false, NR] = 
+  FN([v122{1} : ???],
+    v123{1} = SELECT(v122, 0)
+    v60{1} = 
+      TFN([v121:M],
+        FIX(v44{1} : FD[FUN(rr), is, false, NR] = 
+              FN([v93{1} : TYC(se)],
+                [v132{0}] = 
+                  FIX(v46{2,1} : FD[FUN(rr), is, false, R[TYC(se),TYC(TCAP(list, [NTV(v121)]))]] = 
+                        FN([v144{0} : TYC(se),
+                            v143{0} : TYC(TCAP(list, [NTV(v121)]))],
+                          FIX(v142{0} : FD[FUN(rr), is, true, LR[TYC(se),TYC(TCAP(list, [NTV(v121)]))]] = 
+                                FN([v114{2} : TYC(se),
+                                    v115{1} : TYC(TCAP(list, [NTV(v121)]))],
+                                  SWITCH v114
+                                    A => 
+                                        v87{2} = DECON(A,UT,TYC(AR[rr]([{se,TCAP(list, [PRIM(I63)])}], [se])),[])
+                                        v89{1} = SELECT(v87, 0)
+                                        v88{1} = SELECT(v87, 1)
+                                        [v135{0}] = 
+                                          FIX(v50{3,2} : FD[FUN(rr), is, false, R[TYC(se),TYC(TCAP(list, [NTV(v121)]))]] = 
+                                                FN([v146{0} : TYC(TCAP(list, [PRIM(I63)]))],
+                                                  FIX(v145{0} : FD[FUN(rr), is, true, LR[TYC(se),TYC(TCAP(list, [NTV(v121)]))]] = 
+                                                        FN([v73{1} : TYC(TCAP(list, [PRIM(I63)]))],
+                                                          SWITCH v73
+                                                            nil => 
+                                                                v100{1} = RECORD []
+                                                                v99{1} = CON(nil, [NTV(v121)], v100)
+                                                                APP(v142,[v89,v99])
+                                                            :: => 
+                                                                v74{1} = DECON(::,UT,POL([M], [TYC(AR[rr]([{TV(1,0),TCAP(list, [TV(1,0)])}], [TCAP(list, [TV(1,0)])]))]),[PRIM(I63)])
+                                                                v75{2} = SELECT(v74, 1)
+                                                                FIX(v101{1} : FD[FUN(rr), im(3,[3]), false, NR] = 
+                                                                      FN([v66{2} : TYC(PRIM(EXN))],
+                                                                        SWITCH v66
+                                                                          E => 
+                                                                              v68{0} = DECON(E,EXNLVAR(123),TYC(AR[rr]([{}], [PRIM(EXN)])),[])
+                                                                              APP(v145,[v75])
+                                                                          _ => 
+                                                                              v102{1} = PRIMOP(markexn, TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []) [v66,"es2.sml:11.9-12.31"]
+                                                                              RAISE(v102) : [TYC(se),TYC(TCAP(list, [NTV(v121)]))]))
+                                                                APP(v145,[v75])
+                                                                HANDLE(v101)))
+                                                  APP(v145,[v146])))
+                                          RETURN [v50]
+                                        [v107{1,1}] = RETURN [v135]
+                                        APP(v107,[v88])
+                                    _ => 
+                                        RETURN [v114,v115]))
+                          APP(v142,[v144,v143])))
+                  RETURN [v46]
+                [v116{1,1}] = RETURN [v132]
+                v118{1} = RECORD []
+                v117{1} = CON(nil, [NTV(v121)], v118)
+                APP(v116,[v93,v117])))
+        RETURN [v44])
+    v120{1} = STRUCT [v60]
+    RETURN [v120])
+
+
+[After fixfix ...]
+
+v95{1} : FD[FCT, is, false, NR] = 
+  FN([v122{1} : ???],
+    v123{1} = SELECT(v122, 0)
+    v60{1} = 
+      TFN([v121:M],
+        FIX(v44{1} : FD[FUN(rr), is, false, NR] = 
+              FN([v93{1} : TYC(se)],
+                [v132{0}] = 
+                  FIX(v46{2,1} : FD[FUN(rr), is, false, NR] = 
+                        FN([v144{0} : TYC(se),
+                            v143{0} : TYC(TCAP(list, [NTV(v121)]))],
+                          FIX(v142{0} : FD[FUN(rr), is, true, LR[TYC(se),TYC(TCAP(list, [NTV(v121)]))]] = 
+                                FN([v114{2} : TYC(se),
+                                    v115{1} : TYC(TCAP(list, [NTV(v121)]))],
+                                  SWITCH v114
+                                    A => 
+                                        v87{2} = DECON(A,UT,TYC(AR[rr]([{se,TCAP(list, [PRIM(I63)])}], [se])),[])
+                                        v89{1} = SELECT(v87, 0)
+                                        v88{1} = SELECT(v87, 1)
+                                        [v135{0}] = 
+                                          FIX(v50{3,2} : FD[FUN(rr), is, false, NR] = 
+                                                FN([v146{0} : TYC(TCAP(list, [PRIM(I63)]))],
+                                                  FIX(v145{0} : FD[FUN(rr), is, true, LR[TYC(se),TYC(TCAP(list, [NTV(v121)]))]] = 
+                                                        FN([v73{1} : TYC(TCAP(list, [PRIM(I63)]))],
+                                                          SWITCH v73
+                                                            nil => 
+                                                                v100{1} = RECORD []
+                                                                v99{1} = CON(nil, [NTV(v121)], v100)
+                                                                APP(v142,[v89,v99])
+                                                            :: => 
+                                                                v74{1} = DECON(::,UT,POL([M], [TYC(AR[rr]([{TV(1,0),TCAP(list, [TV(1,0)])}], [TCAP(list, [TV(1,0)])]))]),[PRIM(I63)])
+                                                                v75{2} = SELECT(v74, 1)
+                                                                FIX(v101{1} : FD[FUN(rr), im(3,[3]), false, NR] = 
+                                                                      FN([v66{2} : TYC(PRIM(EXN))],
+                                                                        SWITCH v66
+                                                                          E => 
+                                                                              v68{0} = DECON(E,EXNLVAR(123),TYC(AR[rr]([{}], [PRIM(EXN)])),[])
+                                                                              APP(v145,[v75])
+                                                                          _ => 
+                                                                              v102{1} = PRIMOP(markexn, TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []) [v66,"es2.sml:11.9-12.31"]
+                                                                              RAISE(v102) : [TYC(se),TYC(TCAP(list, [NTV(v121)]))]))
+                                                                APP(v145,[v75])
+                                                                HANDLE(v101)))
+                                                  APP(v145,[v146])))
+                                          RETURN [v50]
+                                        [v107{1,1}] = RETURN [v135]
+                                        APP(v107,[v88])
+                                    _ => 
+                                        RETURN [v114,v115]))
+                          APP(v142,[v144,v143])))
+                  RETURN [v46]
+                [v116{1,1}] = RETURN [v132]
+                v118{1} = RECORD []
+                v117{1} = CON(nil, [NTV(v121)], v118)
+                APP(v116,[v93,v117])))
+        RETURN [v44])
+    v120{1} = STRUCT [v60]
+    RETURN [v120])
+
+
+[After fcontract ...]
+
+v95{1} : FD[FCT, is, false, NR] = 
+  FN([v122{1} : ???],
+    v123{1} = SELECT(v122, 0)
+    v60{1} = 
+      TFN([v121:M],
+        FIX(v44{1} : FD[FUN(rr), is, false, NR] = 
+              FN([v93{1} : TYC(se)],
+                v118{1} = RECORD []
+                v117{1} = CON(nil, [NTV(v121)], v118)
+                FIX(v142{2,2} : FD[FUN(rr), is, true, LR[TYC(se),TYC(TCAP(list, [NTV(v121)]))]] = 
+                      FN([v114{2} : TYC(se),
+                          v115{1} : TYC(TCAP(list, [NTV(v121)]))],
+                        SWITCH v114
+                          A => 
+                              v87{2} = DECON(A,UT,TYC(AR[rr]([{se,TCAP(list, [PRIM(I63)])}], [se])),[])
+                              v89{1} = SELECT(v87, 0)
+                              v88{1} = SELECT(v87, 1)
+                              FIX(v145{3,3} : FD[FUN(rr), is, true, LR[TYC(se),TYC(TCAP(list, [NTV(v121)]))]] = 
+                                    FN([v73{1} : TYC(TCAP(list, [PRIM(I63)]))],
+                                      SWITCH v73
+                                        nil => 
+                                            v100{1} = RECORD []
+                                            v99{1} = CON(nil, [NTV(v121)], v100)
+                                            APP(v142,[v89,v99])
+                                        :: => 
+                                            v74{1} = DECON(::,UT,POL([M], [TYC(AR[rr]([{TV(1,0),TCAP(list, [TV(1,0)])}], [TCAP(list, [TV(1,0)])]))]),[PRIM(I63)])
+                                            v75{2} = SELECT(v74, 1)
+                                            FIX(v101{1} : FD[FUN(rr), im(3,[3]), false, NR] = 
+                                                  FN([v66{2} : TYC(PRIM(EXN))],
+                                                    SWITCH v66
+                                                      E => 
+                                                          v68{0} = DECON(E,EXNLVAR(123),TYC(AR[rr]([{}], [PRIM(EXN)])),[])
+                                                          APP(v145,[v75])
+                                                      _ => 
+                                                          v102{1} = PRIMOP(markexn, TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []) [v66,"es2.sml:11.9-12.31"]
+                                                          RAISE(v102) : [TYC(se),TYC(TCAP(list, [NTV(v121)]))]))
+                                            APP(v145,[v75])
+                                            HANDLE(v101)))
+                              APP(v145,[v88])
+                          _ => 
+                              RETURN [v114,v115]))
+                APP(v142,[v93,v117])))
+        RETURN [v44])
+    v120{1} = STRUCT [v60]
+    RETURN [v120])
+
+
+[After wrap ...]
+
+v95{1} : FD[FCT, is, false, NR] = 
+  FN([v122{1} : ???],
+    v123{1} = SELECT(v122, 0)
+    v60{1} = 
+      TFN([v121:M],
+        FIX(v44{1} : FD[FUN(f), is, false, NR] = 
+              FN([v93{1} : TYC(se)],
+                v118{1} = RECORD []
+                v117{1} = CON(nil, [NTV(v121)], v118)
+                FIX(v142{2,2} : FD[FUN(f), is, true, LR[TYC(se),TYC(TCAP(list, [NTV(v121)]))]] = 
+                      FN([v114{2} : TYC(se),
+                          v115{1} : TYC(TCAP(list, [NTV(v121)]))],
+                        SWITCH v114
+                          A => 
+                              v87{2} = DECON(A,UT,TYC(AR([{se,TCAP(list, [PRIM(I63)])}], [se])),[])
+                              v89{1} = SELECT(v87, 0)
+                              v88{1} = SELECT(v87, 1)
+                              FIX(v145{3,3} : FD[FUN(f), is, true, LR[TYC(se),TYC(TCAP(list, [NTV(v121)]))]] = 
+                                    FN([v73{1} : TYC(TCAP(list, [PRIM(I63)]))],
+                                      SWITCH v73
+                                        nil => 
+                                            v100{1} = RECORD []
+                                            v99{1} = CON(nil, [NTV(v121)], v100)
+                                            APP(v142,[v89,v99])
+                                        :: => 
+                                            v74{1} = DECON(::,UT,POL([M], [TYC(AR([TOK(TC_WRAP, {TV(1,0),TCAP(list, [TV(1,0)])})], [TCAP(list, [TV(1,0)])]))]),[PRIM(I63)])
+                                            v75{2} = SELECT(v74, 1)
+                                            FIX(v101{1} : FD[FUN(f), im(3,[3]), false, NR] = 
+                                                  FN([v66{2} : TYC(PRIM(EXN))],
+                                                    SWITCH v66
+                                                      E => 
+                                                          v68{0} = DECON(E,EXNLVAR(123),TYC(AR([{}], [PRIM(EXN)])),[])
+                                                          APP(v145,[v75])
+                                                      _ => 
+                                                          v102{1} = PRIMOP(markexn, TYC(AR([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []) [v66,"es2.sml:11.9-12.31"]
+                                                          RAISE(v102) : [TYC(se),TYC(TCAP(list, [NTV(v121)]))]))
+                                            APP(v145,[v75])
+                                            HANDLE(v101)))
+                              APP(v145,[v88])
+                          _ => 
+                              RETURN [v114,v115]))
+                APP(v142,[v93,v117])))
+        RETURN [v44])
+    v120{1} = STRUCT [v60]
+    RETURN [v120])
+
+
+[After fcontract ...]
+
+v95{1} : FD[FCT, is, false, NR] = 
+  FN([v122{1} : ???],
+    v123{1} = SELECT(v122, 0)
+    v60{1} = 
+      TFN([v121:M],
+        FIX(v44{1} : FD[FUN(f), is, false, NR] = 
+              FN([v93{1} : TYC(se)],
+                v118{1} = RECORD []
+                v117{1} = CON(nil, [NTV(v121)], v118)
+                FIX(v142{2,2} : FD[FUN(f), is, true, LR[TYC(se),TYC(TCAP(list, [NTV(v121)]))]] = 
+                      FN([v114{2} : TYC(se),
+                          v115{1} : TYC(TCAP(list, [NTV(v121)]))],
+                        SWITCH v114
+                          A => 
+                              v87{2} = DECON(A,UT,TYC(AR([{se,TCAP(list, [PRIM(I63)])}], [se])),[])
+                              v89{1} = SELECT(v87, 0)
+                              v88{1} = SELECT(v87, 1)
+                              FIX(v145{3,3} : FD[FUN(f), is, true, LR[TYC(se),TYC(TCAP(list, [NTV(v121)]))]] = 
+                                    FN([v73{1} : TYC(TCAP(list, [PRIM(I63)]))],
+                                      SWITCH v73
+                                        nil => 
+                                            v100{1} = RECORD []
+                                            v99{1} = CON(nil, [NTV(v121)], v100)
+                                            APP(v142,[v89,v99])
+                                        :: => 
+                                            v74{1} = DECON(::,UT,POL([M], [TYC(AR([TOK(TC_WRAP, {TV(1,0),TCAP(list, [TV(1,0)])})], [TCAP(list, [TV(1,0)])]))]),[PRIM(I63)])
+                                            v75{2} = SELECT(v74, 1)
+                                            FIX(v101{1} : FD[FUN(f), im(3,[3]), false, NR] = 
+                                                  FN([v66{2} : TYC(PRIM(EXN))],
+                                                    SWITCH v66
+                                                      E => 
+                                                          v68{0} = DECON(E,EXNLVAR(123),TYC(AR([{}], [PRIM(EXN)])),[])
+                                                          APP(v145,[v75])
+                                                      _ => 
+                                                          v102{1} = PRIMOP(markexn, TYC(AR([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []) [v66,"es2.sml:11.9-12.31"]
+                                                          RAISE(v102) : [TYC(se),TYC(TCAP(list, [NTV(v121)]))]))
+                                            APP(v145,[v75])
+                                            HANDLE(v101)))
+                              APP(v145,[v88])
+                          _ => 
+                              RETURN [v114,v115]))
+                APP(v142,[v93,v117])))
+        RETURN [v44])
+    v120{1} = STRUCT [v60]
+    RETURN [v120])
+
+
+[After reify ...]
+
+v95{1} : FD[FCT, is, false, NR] = 
+  FN([v122{1} : ???],
+    v123{1} = SELECT(v122, 0)
+    FIX(v60{1} : FD[FCT, is, false, NR] = 
+          FN([v153{0} : ???],
+            v121{0} = SELECT(v153, 0)
+            FIX(v44{1} : FD[FUN(f), is, false, NR] = 
+                  FN([v93{1} : TYC(PRIM(VOID))],
+                    v118{1} = RECORD []
+                    v117{1} = WRAP(PRIM(I63), (I63)0)
+                    FIX(v142{2,2} : FD[FUN(f), is, true, LR[TYC(PRIM(VOID)),TYC(PRIM(VOID))]] = 
+                          FN([v114{2} : TYC(PRIM(VOID)),
+                              v115{1} : TYC(PRIM(VOID))],
+                            SWITCH v114
+                              A => 
+                                  v154{0} = DECON(A,UT,TYC(AR([PRIM(VOID)], [PRIM(VOID)])),[])
+                                  [v87{2}] = v160{0} = PRIMOP(unwrap, TYC(AR([PRIM(VOID)], [{PRIM(VOID),PRIM(VOID)}])), []) [v154]
+                                              RETURN [v160]
+                                  v89{1} = SELECT(v87, 0)
+                                  v88{1} = SELECT(v87, 1)
+                                  FIX(v145{3,3} : FD[FUN(f), is, true, LR[TYC(PRIM(VOID)),TYC(PRIM(VOID))]] = 
+                                        FN([v73{1} : TYC(PRIM(VOID))],
+                                          SWITCH v73
+                                            nil => 
+                                                v78{0} = RECORD []
+                                                v100{1} = RECORD []
+                                                v99{1} = WRAP(PRIM(I63), (I63)0)
+                                                APP(v142,[v89,v99])
+                                            :: => 
+                                                v156{0} = DECON(::,UT,TYC(AR([PRIM(VOID)], [PRIM(VOID)])),[])
+                                                [v74{1}] = v159{0} = PRIMOP(unwrap, TYC(AR([PRIM(VOID)], [{PRIM(I63),PRIM(VOID)}])), []) [v156]
+                                                            RETURN [v159]
+                                                v75{2} = SELECT(v74, 1)
+                                                FIX(v101{1} : FD[FUN(f), im(3,[3]), false, NR] = 
+                                                      FN([v66{2} : TYC(PRIM(VOID))],
+                                                        SWITCH v66
+                                                          E => 
+                                                              v157{0} = DECON(E,EXNLVAR(123),TYC(AR([PRIM(VOID)], [PRIM(VOID)])),[])
+                                                              v158{0} = PRIMOP(unwrap, TYC(AR([PRIM(VOID)], [{PRIM(VOID),{},PRIM(I63)}])), []) [v157]
+                                                              v68{0} = SELECT(v158, 1)
+                                                              APP(v145,[v75])
+                                                          _ => 
+                                                              v102{1} = PRIMOP(markexn, TYC(AR([PRIM(VOID),PRIM(STR)], [PRIM(VOID)])), []) [v66,"es2.sml:11.9-12.31"]
+                                                              RAISE(v102) : [TYC(PRIM(VOID)),TYC(PRIM(VOID))]))
+                                                APP(v145,[v75])
+                                                HANDLE(v101)))
+                                  APP(v145,[v88])
+                              _ => 
+                                  RETURN [v114,v115]))
+                    APP(v142,[v93,v117])))
+            RETURN [v44]))
+    v120{1} = STRUCT [v60]
+    RETURN [v120])
+
+
+[After fcontract ...]
+
+v95{1} : FD[FCT, is, false, NR] = 
+  FN([v122{1} : ???],
+    v123{1} = SELECT(v122, 0)
+    FIX(v60{1} : FD[FCT, is, false, NR] = 
+          FN([v153{0} : ???],
+            FIX(v44{1} : FD[FUN(f), is, false, NR] = 
+                  FN([v93{1} : TYC(PRIM(VOID))],
+                    v117{1} = WRAP(PRIM(I63), (I63)0)
+                    FIX(v142{2,2} : FD[FUN(f), is, true, LR[TYC(PRIM(VOID)),TYC(PRIM(VOID))]] = 
+                          FN([v114{2} : TYC(PRIM(VOID)),
+                              v115{1} : TYC(PRIM(VOID))],
+                            SWITCH v114
+                              A => 
+                                  v154{1} = DECON(A,UT,TYC(AR([PRIM(VOID)], [PRIM(VOID)])),[])
+                                  v160{2} = PRIMOP(unwrap, TYC(AR([PRIM(VOID)], [{PRIM(VOID),PRIM(VOID)}])), []) [v154]
+                                  v89{1} = SELECT(v160, 0)
+                                  v88{1} = SELECT(v160, 1)
+                                  FIX(v145{3,3} : FD[FUN(f), is, true, LR[TYC(PRIM(VOID)),TYC(PRIM(VOID))]] = 
+                                        FN([v73{1} : TYC(PRIM(VOID))],
+                                          SWITCH v73
+                                            nil => 
+                                                v99{1} = WRAP(PRIM(I63), (I63)0)
+                                                APP(v142,[v89,v99])
+                                            :: => 
+                                                v156{1} = DECON(::,UT,TYC(AR([PRIM(VOID)], [PRIM(VOID)])),[])
+                                                v159{1} = PRIMOP(unwrap, TYC(AR([PRIM(VOID)], [{PRIM(I63),PRIM(VOID)}])), []) [v156]
+                                                v75{2} = SELECT(v159, 1)
+                                                FIX(v101{1} : FD[FUN(f), im(3,[3]), false, NR] = 
+                                                      FN([v66{2} : TYC(PRIM(VOID))],
+                                                        SWITCH v66
+                                                          E => 
+                                                              v157{0} = DECON(E,EXNLVAR(123),TYC(AR([PRIM(VOID)], [PRIM(VOID)])),[])
+                                                              APP(v145,[v75])
+                                                          _ => 
+                                                              v102{1} = PRIMOP(markexn, TYC(AR([PRIM(VOID),PRIM(STR)], [PRIM(VOID)])), []) [v66,"es2.sml:11.9-12.31"]
+                                                              RAISE(v102) : [TYC(PRIM(VOID)),TYC(PRIM(VOID))]))
+                                                APP(v145,[v75])
+                                                HANDLE(v101)))
+                                  APP(v145,[v88])
+                              _ => 
+                                  RETURN [v114,v115]))
+                    APP(v142,[v93,v117])))
+            RETURN [v44]))
+    v120{1} = STRUCT [v60]
+    RETURN [v120])
+
+
+[After fixfix ...]
+
+v95{1} : FD[FCT, is, false, NR] = 
+  FN([v122{1} : ???],
+    v123{1} = SELECT(v122, 0)
+    FIX(v162{0} : FD[FCT, is, true, NR] = 
+          FN([v153{0} : ???,
+              v93{1} : TYC(PRIM(VOID))],
+            v117{1} = WRAP(PRIM(I63), (I63)0)
+            FIX(v142{2,2} : FD[FUN(f), is, true, LR[TYC(PRIM(VOID)),TYC(PRIM(VOID))]] = 
+                  FN([v114{2} : TYC(PRIM(VOID)),
+                      v115{1} : TYC(PRIM(VOID))],
+                    SWITCH v114
+                      A => 
+                          v154{1} = DECON(A,UT,TYC(AR([PRIM(VOID)], [PRIM(VOID)])),[])
+                          v160{2} = PRIMOP(unwrap, TYC(AR([PRIM(VOID)], [{PRIM(VOID),PRIM(VOID)}])), []) [v154]
+                          v89{1} = SELECT(v160, 0)
+                          v88{1} = SELECT(v160, 1)
+                          FIX(v145{3,3} : FD[FUN(f), is, true, LR[TYC(PRIM(VOID)),TYC(PRIM(VOID))]] = 
+                                FN([v73{1} : TYC(PRIM(VOID))],
+                                  SWITCH v73
+                                    nil => 
+                                        v99{1} = WRAP(PRIM(I63), (I63)0)
+                                        APP(v142,[v89,v99])
+                                    :: => 
+                                        v156{1} = DECON(::,UT,TYC(AR([PRIM(VOID)], [PRIM(VOID)])),[])
+                                        v159{1} = PRIMOP(unwrap, TYC(AR([PRIM(VOID)], [{PRIM(I63),PRIM(VOID)}])), []) [v156]
+                                        v75{2} = SELECT(v159, 1)
+                                        FIX(v101{1} : FD[FUN(f), im(3,[3]), false, NR] = 
+                                              FN([v66{2} : TYC(PRIM(VOID))],
+                                                SWITCH v66
+                                                  E => 
+                                                      v157{0} = DECON(E,EXNLVAR(123),TYC(AR([PRIM(VOID)], [PRIM(VOID)])),[])
+                                                      APP(v145,[v75])
+                                                  _ => 
+                                                      v102{1} = PRIMOP(markexn, TYC(AR([PRIM(VOID),PRIM(STR)], [PRIM(VOID)])), []) [v66,"es2.sml:11.9-12.31"]
+                                                      RAISE(v102) : [TYC(PRIM(VOID)),TYC(PRIM(VOID))]))
+                                        APP(v145,[v75])
+                                        HANDLE(v101)))
+                          APP(v145,[v88])
+                      _ => 
+                          RETURN [v114,v115]))
+            APP(v142,[v93,v117])))
+    FIX(v60{1} : FD[FCT, in, false, NR] = 
+          FN([v163{0} : ???],
+            FIX(v165{0} : FD[FUN(f), in, false, NR] = 
+                  FN([v164{0} : TYC(PRIM(VOID))],
+                    APP(v162,[v163,v164])))
+            RETURN [v165]))
+    v120{1} = STRUCT [v60]
+    RETURN [v120])
+
+
+[After fcontract+eta ...]
+
+v95{1} : FD[FCT, is, false, NR] = 
+  FN([v122{1} : ???],
+    v123{1} = SELECT(v122, 0)
+    FIX(v60{1} : FD[FCT, is, false, NR] = 
+          FN([v163{0} : ???],
+            FIX(v165{1} : FD[FUN(f), is, false, NR] = 
+                  FN([v164{1} : TYC(PRIM(VOID))],
+                    v117{1} = WRAP(PRIM(I63), (I63)0)
+                    FIX(v142{2,2} : FD[FUN(f), is, true, LR[TYC(PRIM(VOID)),TYC(PRIM(VOID))]] = 
+                          FN([v114{2} : TYC(PRIM(VOID)),
+                              v115{1} : TYC(PRIM(VOID))],
+                            SWITCH v114
+                              A => 
+                                  v154{1} = DECON(A,UT,TYC(AR([PRIM(VOID)], [PRIM(VOID)])),[])
+                                  v160{2} = PRIMOP(unwrap, TYC(AR([PRIM(VOID)], [{PRIM(VOID),PRIM(VOID)}])), []) [v154]
+                                  v89{1} = SELECT(v160, 0)
+                                  v88{1} = SELECT(v160, 1)
+                                  FIX(v145{3,3} : FD[FUN(f), is, true, LR[TYC(PRIM(VOID)),TYC(PRIM(VOID))]] = 
+                                        FN([v73{1} : TYC(PRIM(VOID))],
+                                          SWITCH v73
+                                            nil => 
+                                                v99{1} = WRAP(PRIM(I63), (I63)0)
+                                                APP(v142,[v89,v99])
+                                            :: => 
+                                                v156{1} = DECON(::,UT,TYC(AR([PRIM(VOID)], [PRIM(VOID)])),[])
+                                                v159{1} = PRIMOP(unwrap, TYC(AR([PRIM(VOID)], [{PRIM(I63),PRIM(VOID)}])), []) [v156]
+                                                v75{2} = SELECT(v159, 1)
+                                                FIX(v101{1} : FD[FUN(f), im(3,[3]), false, NR] = 
+                                                      FN([v66{2} : TYC(PRIM(VOID))],
+                                                        SWITCH v66
+                                                          E => 
+                                                              v157{0} = DECON(E,EXNLVAR(123),TYC(AR([PRIM(VOID)], [PRIM(VOID)])),[])
+                                                              APP(v145,[v75])
+                                                          _ => 
+                                                              v102{1} = PRIMOP(markexn, TYC(AR([PRIM(VOID),PRIM(STR)], [PRIM(VOID)])), []) [v66,"es2.sml:11.9-12.31"]
+                                                              RAISE(v102) : [TYC(PRIM(VOID)),TYC(PRIM(VOID))]))
+                                                APP(v145,[v75])
+                                                HANDLE(v101)))
+                                  APP(v145,[v88])
+                              _ => 
+                                  RETURN [v114,v115]))
+                    APP(v142,[v164,v117])))
+            RETURN [v165]))
+    v120{1} = STRUCT [v60]
+    RETURN [v120])
+
+val f = fn : se -> se * 'a list

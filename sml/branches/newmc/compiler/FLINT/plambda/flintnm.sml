@@ -131,7 +131,6 @@ fun tocon con = (case con
         | L.INTcon x    => F.INTcon x
 	| L.WORDcon x   => F.WORDcon x
 	| L.STRINGcon x => F.STRINGcon x
-	| L.VLENcon x   => F.VLENcon x
 	| L.DATAcon x => bug "unexpected case in tocon"
       (* end case *))
 

@@ -28,6 +28,7 @@ sig
   val bogusExnID : Symbol.symbol
   val anonParamName : Symbol.symbol
 
+  val varToExp : VarCon.var -> Absyn.exp
   val CONSexp : Absyn.exp
   val CONSpat : Absyn.pat -> Absyn.pat
   val FALSEexp : Absyn.exp
@@ -52,7 +53,6 @@ sig
   val getCoreVar : (StaticEnv.staticEnv * string) -> VarCon.var
 *)
   val makeAPPpat : ErrorMsg.complainer -> Absyn.pat * Absyn.pat -> Absyn.pat
-  val makeHANDLEexp : Absyn.exp * Absyn.rule list * compInfo -> Absyn.exp
 
   val clean_pat : ErrorMsg.complainer -> Absyn.pat -> Absyn.pat
   val makeLAYEREDpat : Absyn.pat * Absyn.pat * ErrorMsg.complainer -> Absyn.pat
@@ -62,7 +62,8 @@ sig
        (Symbol.symbol * Absyn.pat) list * bool * ErrorMsg.complainer
        -> Absyn.pat
   val fillPat : Absyn.pat -> Absyn.pat
-				 
+  val aconvertPat : Absyn.pat -> Absyn.pat * VarCon.var list * VarCon.var list				 
+
   val checkBoundTyvars :
        TyvarSet.tyvarset * Types.tyvar list * ErrorMsg.complainer -> unit
 

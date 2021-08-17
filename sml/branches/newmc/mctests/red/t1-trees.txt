@@ -1,0 +1,55 @@
+(* tests/red/t1.sml -- redundant match bug *)
+
+fun f ([], []) = 0             (* 0 *)
+  | f ([], _) = 1              (* 1 *)
+  | f (_, []) = 2              (* 2 *)
+  | f (x :: xs, y :: ys) = 3;  (* 3 *)
+
+--------------------------------------------------------------------------------
+- use "tests/red/t1.sml";
+[opening tests/red/t1.sml]
+** matchComp: andor
+  AND 0 {0-3}
+   0: OR 1 {2} {0-3}
+        nil CONST {0,1; 3}  {cr 0, 1} {d 3}
+        :: AND 2  {3; 2}    {cr 3} {d 2}
+           0: VAR{x/3} 3
+           1: VAR{xs/3} 4
+   1: OR 5 {1} {0-3}
+        nil CONST {0,2; 1} {cr 0,2} {d 1}
+        :: AND 6  {3; 1}   {cr 3} {d 1}
+           0: VAR{y/3} 7
+           1: VAR{ys/3} 8
+
+For Rule 3, 4 variables need to be bound: x, xs, y, ys
+
+** matchComp: dectree = 
+  SWITCH 1 : 'a list {l 0-3}
+     nil SWITCH 5 : 'a list {l 0,1; 2}  -- eliminates 3
+        nil RHS 0  {0, 2; 1}
+[	::  RHS 1  {.; 1}   <-- missing :: case ] cr = {3}, l = {0,1,2}, cr int l = {}, d = {1}
+     :: SWITCH 5 : 'a list,  {3; 2}
+        nil RHS 2 : 'a list, {.; 2}
+        :: RHS 3  : 'a * 'a list, {3; .}
+
+andor stats:
+  total = 9
+  #AND  = 3
+  #OR   = 2
+  #VAR  = 4
+
+dectree stats:
+  #SWITCH = 3
+  #RHS    = 3
+  #FAIL   = 0
+
+lvars:
+  initial = 18
+  final   = 34
+  total   = 17
+
+tests/red/t1.sml:1.6-4.29 Error: match redundant
+          (nil,nil) => ...
+    -->   (nil,_) => ...
+          (_,nil) => ...
+  

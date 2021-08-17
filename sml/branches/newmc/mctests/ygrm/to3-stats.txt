@@ -1,0 +1,57 @@
+oldmc, tt/to3.sml
+
+ use "tt/to3.sml";
+[opening tt/to3.sml]
+TIME[makeAndor, ]
+   usr: 6, sys: 1
+
+TIME[mkDecision, ]
+   usr: 15, sys: 0
+
+TIME[generate, ]
+   usr: 100, sys: 4
+
+andor stats:
+  andor total =       32
+  andor AND nodes  =  9
+  andor OR nodes  =   9
+  andor LEAF nodes  = 14
+
+dectree stats:
+  dectree CASEdt  = 12
+  dectree BINDdt  = 0
+  dectree RHS     = 15
+
+lvars used: 36
+
+----------------------------------------------------------------------
+revmc, tt/to3.sml
+
+use "tt/to3.sml";
+[opening tt/to3.sml]
+TIME[makeProtoAndor, tt/to3.sml:17.1-34.10]
+   usr: 8, sys: 0
+
+TIME[Andor.makeAndor, tt/to3.sml:17.1-34.10]
+   usr: 7, sys: 0
+
+TIME[makeDectree, tt/to3.sml:17.1-34.10]
+   usr: 8, sys: 1
+
+TIME[genMatch, tt/to3.sml:17.1-34.10]
+   usr: 110, sys: 0
+
+andor stats:
+  total nodes = 32
+  AND nodes  =  9
+  OR nodes  =   9
+  VAR nodes  = 14
+
+dectree stats:
+  CHOICE nodes = 12
+  RHS nodes    = 17
+  FAIL nodes   = 0
+
+lvars used: 70
+
+----------------------------------------------------------------------

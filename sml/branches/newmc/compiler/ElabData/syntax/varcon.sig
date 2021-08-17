@@ -26,6 +26,7 @@ sig
     val varBtvs : var -> Types.tyvar list   (* generalized (polymorphically bound) tyvars *)
     val hasLvarAccess : var -> bool
     val varToLvar : var -> LambdaVar.lvar
+    val lvarToVar : LambdaVar.lvar -> var
 
     val mkVALvar : Symbol.symbol * Access.access -> var
     val newVALvar : Symbol.symbol * Types.ty -> var

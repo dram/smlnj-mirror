@@ -1,0 +1,80 @@
+(* tests/mcutil/t1.sml *)
+
+datatype t = A | B
+
+datatype s  = C | D
+
+val x = (NONE, nil)
+
+val a =		
+    case x
+      of (SOME C, nil) => 0
+       | (SOME D, A::r) => 1
+       | (NONE, _) => 2
+
+--------------------------------------------------------------------------------
+
+- use "t1.sml";
+[opening t1.sml]
+** matchComp: andor
+  AND 0 : s option * t list  {0,1,2}
+   0: OR 1 {} : s option {0,1,2}
+        SOME OR 2 {} {0,1} 
+           C CONST {0}
+           D CONST {1}
+        NONE CONST {2}
+   1: OR 3 {2} : t list, {0,1,2}
+        nil CONST : t list, {0; 2}
+        :: AND 4 : t list, {1; 2}
+          0: OR 5 {2}
+               A CONST : t, {1; 2}
+          1: VAR{r/1} 6 : t list {1,2}
+
+OR nodes (4): 1, 2, 3, 5
+
+** matchComp: dectree = 
+  SWITCH 1
+     SOME SWITCH 2
+        C SWITCH 3
+           nil RHS 0
+        D SWITCH 3
+           :: SWITCH 5
+              A RHS 1
+              * FAIL
+     NONE RHS 2
+
+** matchComp: code = 
+  v7 = FN(v6: TYC({}),(I63)0)
+    v8 = FN(v3: TYC(TCAP(list, [l])),(I63)1)
+      v10 = FN(v9: TYC({}),(I63)2)
+        v12 = v11[0]
+          v13 = v11[1]
+            SWIv12
+               of SOME.v14 =>
+                 SWIv14
+                    of C.v25 => SWIv13
+                         of nil.v16 => APP(v7, RCD())
+                    D.v26 =>
+                      SWIv13
+                         of ::.v17 =>
+                           v18 = v17[0]
+                             v19 = v17[1]
+                               SWIv18
+                                  of A.v21 => APP(v8, v19)
+                                  _ =>
+                                    RAISE(TYC(PRIM(I63)),
+                                    APP(PRM(markexn,
+                                        TYC(AR[rr]([PRIM(EXN),PRIM(STR)],
+                                        [PRIM(EXN)])), []),
+                                    RCD(CON((Match,EXNLVAR(4),TYC(AR[rr]([{}],
+                                             [PRIM(EXN)]))), [], RCD()),"t1.sml:10.5-13.24")))
+               NONE.v29 => APP(v10, RCD())
+  
+  
+
+t1.sml:10.5-13.24 Warning: match nonexhaustive
+          (SOME C,nil) => ...
+          (SOME D,A :: r1) => ...
+  
+
+Error: Compiler bug: Contract: UsageMap on 84

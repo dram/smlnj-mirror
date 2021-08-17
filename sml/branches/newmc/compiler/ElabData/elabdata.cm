@@ -9,7 +9,7 @@ Group
 	signature ACCESS
 	signature DEB_INDEX
 	signature TYPES
-        signature OCCURENCE
+        signature OCCURRENCE
 	signature TYPESUTIL
 	signature TUPLES
 	signature ABSYN
@@ -43,7 +43,7 @@ Group
 	structure DebIndex
 	structure Types
 	structure PPType
-        structure Occurence
+        structure Occurrence
 	structure TypesUtil
 	structure Tuples
 	structure Absyn

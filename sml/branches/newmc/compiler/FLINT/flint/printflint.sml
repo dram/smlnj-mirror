@@ -47,7 +47,6 @@ struct
       | conToString (F.WORDcon{ival, ty}) =
 	  concat["(W", Int.toString ty, ")", IntInf.toString ival]
       | conToString (F.STRINGcon s) = PrintUtil.formatString s
-      | conToString (F.VLENcon n)   = Int.toString n
 
     val printCon = say o conToString
 

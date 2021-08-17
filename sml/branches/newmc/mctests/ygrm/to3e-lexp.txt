@@ -1,0 +1,55 @@
+----------------------------------------------------------------------
+revmc (After Translate)
+
+FN(v48: STR([TYC(TCAP(PRIM(ETG), [{}])),TYC(TCAP(PRIM(ETG), [{}]))]),
+   v16 = v48[0]
+     v15 = v48[1]
+       v14 =
+         v13 =
+           v12 =
+             v1 = FN(v47: TYC(TCAP(list, [{s,PRIM(I63)}])),
+                    v46 = FN(v2: TYC(TCAP(list, [{s,PRIM(I63)}])),
+                            v23 = v2
+                              v18 = FN(v17: TYC({{},{},TCAP(list, [{s,PRIM(I63)}])}),
+                                      v10 = v17[0]
+                                        v9 = v17[1]
+                                         v8 = v17[2]
+                                           (I63)0)
+                                v20 = FN(v19: TYC({{},PRIM(I63),{},PRIM(I63),TCAP(list, [{s,PRIM(I63)}])}),
+                                        v7 = v19[0]
+                                          v6 = v19[1]
+                                            v5 = v19[2]
+                                              v4 = v19[3]
+                                                v3 = v19[4]
+                                                  (I63)1)
+                                  v22 = FN(v21: TYC({}),(I63)2)
+                                          SWI v23
+                                           of ::.v24 =>
+                                                 v26 = v24[0]
+                                                   v25 = v24[1]
+                                                     v28 = v26[0]
+                                                       v27 = v26[1]
+                                                         SWI v25
+                                                          of ::.v29 =>
+                                                                v31 = v29[0]
+                                                                  v30 = v29[1]
+                                                                    v33 = v31[0]
+                                                                      v32 = v31[1]
+                                                                        SWI v33
+                                                                         of C2.v34 =>
+                                                                               SWI v28
+                                                                                of C1.v35 =>
+                                                                                      APP(v18, RCD(v35,v34,v30))
+                                                                                   C3.v36 =>
+                                                                                      APP(v20, RCD(v36,v27,v34,v32,v30))
+                                                                                   _ => APP(v22, RCD())
+                                                                            _ => APP(v22, RCD())
+                                                             _ => APP(v22, RCD())
+                                              _ => APP(v22, RCD()))
+                                    APP(v46, v47))
+                           v1
+                     SRCD(v12)
+               v13
+         SRCD(v14))
+
+1-10; [12-16]; 17-36; [46-48] = 39 vs 23 for match

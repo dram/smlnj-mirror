@@ -132,7 +132,7 @@ exception KindChk = LtyKindChk.KindChk
 exception LtyAppChk
 
 exception TCENV = LK.TCENV
-exception TeUnbound = LK.teUnbound2
+exception TeUnbound = LK.TeUnbound2
 
 val tcKindCheckGen : unit -> (tkindEnv -> tyc -> tkind) = LKC.tcKindCheckGen
 val tcKindVerifyGen : unit -> (tkindEnv -> (tkind * tyc) -> unit)
@@ -234,7 +234,7 @@ fun lt_select(lty: lty, i: int, whereCalled) =
 				      Int.toString(length tycs), " [", whereCalled, "]"]))
 	       | _ => (with_pp
 			 (fn ppstm =>
-			     (PU.pps ppstm "LtyExtern.tc_select: expected TC_TC_TUPLE; tyc = ";
+			     (PU.pps ppstm "LtyExtern.tc_select: expected TC_TUPLE; tyc = ";
 			      PPLty.ppTyc 20 ppstm tyc; PP.newline ppstm));
 		       bug ("tc_select: bad tyc [" ^ whereCalled ^ "]")))
     in 
@@ -369,7 +369,7 @@ fun typeNarrowGen () =
 
 (* typeWrapGen   : unit -> (tyc -> tyc) * (lty -> lty) * (tyc -> tyc) * (lty -> lty)
  * Called once in FLINT/reps/wrapping.sml.
- * result is four wrap functions for tyc and lty, unwrap functions for tyc and lty *)
+ * result is two wrap functions for tyc and lty, and two unwrap functions for tyc and lty *)
 fun typeWrapGen () =
   let val tycWrapMap = ref (TcDict.empty)
       val tycUnwrapMap = ref (TcDict.empty)

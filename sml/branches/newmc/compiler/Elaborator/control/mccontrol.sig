@@ -5,7 +5,8 @@ signature MC_CONTROL =
   sig
 
     val mcdebugging : bool ref
-    val stats : bool ref
+    val mcstats : bool ref
+    val printProtoAndor : bool ref
     val printAndor : bool ref
     val printDecisionTree : bool ref
     val printMatchAbsyn : bool ref

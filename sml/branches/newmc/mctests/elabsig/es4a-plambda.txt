@@ -1,0 +1,73 @@
+(* mctests/elabsig/es4a.sml *)
+
+(* es4a.sml *)
+
+fun g nil = ()
+  | g (x::xs) = g xs;
+
+
+[After Translate ...]
+
+FN(v14: STR([]),
+   v1 = TFN((M)                             -- v1 = g
+        FN(v9: TYC(TCAP(list, [DTV(1,0)])), -- v9 : list 'a, g arg
+          v6 = FN(v5: TYC({}), RCD())       -- v6 = \() => () : unit -> unit
+            v8 = FN(v7: TYC({TCAP(list, [DTV(1,0)]),DTV(1,0)}),  -- v7 : list 'a * 'a = \(xs, x) -> g xs
+                    v2 = v7[0]         -- xs
+                      v3 = v7[1]       -- x
+                        APP(v1, v2))   -- g xs  -- missing TAPP(v1,...)
+              SWI v9
+               of ::.v10 => APP(v8, RCD(v10[1],v10[0]))    -- ::(v10) = ::(x, xs) --> v8 (xs, x) --> g xs
+                  nil.v13 => APP(v6, RCD())))              -- nil => v6 () --> ()
+     SRCD(v1))
+
+
+--------------------------------------------------------------------------------
+sml (110.99)
+[After Translate ...]
+
+FN(v18: STR([TYC(TCAP(PRIM(ETG), [{}]))]),
+   v7 = v18[0]
+     v5 = TFN((M)
+          FIX(v1: TYC(AR[rr]([TCAP(list, [TV(1,0)])], [{}])) =
+	      FN(v6: TYC(TCAP(list, [TV(1,0)])),
+                v8 = FN(v9: TYC({}),RCD())
+                  v10 = FN(v11: TYC({TV(1,0),TCAP(list, [TV(1,0)])}),
+                          v3 = v11[0]
+                            v2 = v11[1]
+                              APP(v1, v2))
+                    v12 = <Match raising fn>
+                      SWI v6
+                       of ::.v14 =>
+                             v15 = v14[0]
+                               v16 = v14[1]
+                                 APP(v10, RCD(v15,v16))
+                          nil.v17 => APP(v8, RCD()))
+           IN v1))
+       SRCD(v5))
+
+--------------------------------------------------------------------------------
+revmv
+[After Translate ...]
+
+FN(v18: STR([TYC(TCAP(PRIM(ETG), [{}])),TYC(TCAP(PRIM(ETG), [{}]))]),
+   v7 = v18[0]
+     v6 = v18[1]
+       v5 = TFN((M)
+            FIX(v1: TYC(AR[rr]([TCAP(list, [TV(1,0)])], [{}])) =
+	        FN(v12: TYC(TCAP(list, [TV(1,0)])),
+                   v9 = FN(v8: TYC({}),RCD())          -- v9 = \() => () : unit -> unit
+                     v11 = FN(v10: TYC({TV(1,0),TCAP(list, [TV(1,0)])}),
+                              v3 = v10[0]
+                                v2 = v10[1]
+                                  APP(v1, v2))
+                       SWI v12
+                        of nil.v15 => APP(v9, RCD())   -- v9 () --> ()
+                           ::.v13 => APP(v11, RCD(v13[0],v13[1])))
+             IN v1))
+         SRCD(v5))
+
+
+Missing FIX. Without FIX, the recursive call of v1 is not in scope of the v1 binding.
+FIX also avoids needing to TAPP v1 at its recursive call, since polymorphic abstraction
+is around the FIX.

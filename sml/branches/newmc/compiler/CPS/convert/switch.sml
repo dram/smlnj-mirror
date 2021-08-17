@@ -326,7 +326,8 @@ structure Switch : sig
 
   (* generate switch code for the given argument and cases *)
     fun switch {rename} {cases=[], default, ...} = default
-      | switch {rename} {arg, sign, cases as (c, _)::_, default} = (case c
+      | switch {rename} {arg, sign, cases as (c, _)::_, default} =
+	(case c
 	   of F.INTcon{ival, ty} => let
 		fun un_int (F.INTcon{ival, ...}, act) = (ival, act)
 		  | un_int _ = bug "un_int"
@@ -356,7 +357,6 @@ structure Switch : sig
 		  CPS.PURE(CPS.P.GETEXN, [arg], x, CPSUtil.BOGt, gen cases)
 		end
 	    | F.DATAcon _ => dataconSwitch(arg, sign, cases, default)
-	    | _ => bug "unexpected datacon in switch"
 	  (* end case *))
 
   end

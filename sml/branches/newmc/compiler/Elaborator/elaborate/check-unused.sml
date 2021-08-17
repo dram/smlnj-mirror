@@ -75,7 +75,7 @@ structure CheckUnused : sig
 		      (fn ((_, e), used) => chkExp(region, e, used))
 			used flds
 		  | A.RSELECTexp(var,index) => used
-		  | A.VSELECTexp(var,index) => used
+		  | A.VSELECTexp(exp,_,index) => used
 		  | A.VECTORexp(es, _) => List.foldl
 		      (fn (e, used) => chkExp(region, e, used))
 			used es

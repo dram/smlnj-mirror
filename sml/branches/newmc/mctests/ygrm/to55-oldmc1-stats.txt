@@ -1,0 +1,38 @@
+oldmc1:
+
+- use "to55.sml";
+[opening to55.sml]
+TIME[makeAndor, ]
+   usr: 89, sys: 1
+
+TIME[mkDecision, ]
+   usr: 324, sys: 1
+
+TIME[generate, ]
+   usr: 757, sys: 0
+
+andor stats:
+  total  = 70
+  #AND   = 11
+  #OR    = 11
+  #LEAF  = 48
+
+dectree stats:
+  #CASEdt = 195
+  #RHS    = 250
+  #BINDdt = 0
+
+lvars:
+  initial = 359
+  final   = 1007
+  total   = 649
+
+TIME[makeAndor, ]
+   usr: 1, sys: 1
+
+TIME[mkDecision, ]
+   usr: 1, sys: 0
+
+TIME[generate, ]
+   usr: 2, sys: 1
+

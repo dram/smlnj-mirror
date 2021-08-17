@@ -203,8 +203,8 @@ structure TDPInstrument :> TDP_INSTRUMENT = struct
 
 	fun i_exp _ loc (A.RECORDexp l) =
 	      A.RECORDexp (map (fn (l, e) => (l, i_exp false loc e)) l)
-	  | i_exp _ loc (exp as (A.RSELECTexp (var, i))) = exp
-	  | i_exp _ loc (exp as (A.VSELECTexp (var, i))) = exp
+	  | i_exp _ loc (exp as (A.RSELECTexp _)) = exp
+	  | i_exp _ loc (exp as (A.VSELECTexp _)) = exp
 	  | i_exp _ loc (A.VECTORexp (l, t)) =
 	      A.VECTORexp (map (i_exp false loc) l, t)
 	  | i_exp tail loc (e as A.APPexp (f, a)) =

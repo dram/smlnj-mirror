@@ -35,6 +35,7 @@ struct
 
     val mcdebugging = flag ("matchcomp-debugging", "MatchComp debugging", false)
     val mcstats = flag ("mcstats", "match compiler timing and stats", false)
+    val printProtoAndor = flag ("print-protoandor", "andor print mode", false)
     val printAndor = flag ("print-andor", "andor print mode", false)
     val printDecisionTree = flag ("print-decisiontree", "decision tree print mode", false)
     val printMatchAbsyn = flag ("print-match-absyn", "match absyn print mode", false)

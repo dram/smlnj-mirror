@@ -1,0 +1,125 @@
+tt/to3e.sml
+
+(* to3e.sml *)
+
+structure Y =
+struct
+
+datatype s
+  = C1 of unit
+  | C2 of unit
+  | C3 of unit
+
+fun f (stack: (s * int) list) =
+case (stack)
+
+of ((C1 x0a, _)           -- pat vars: x01: unit, x0b : unit, r0: (s*int) list
+    :: (C2 x0b, _)          -- x0a: cons.0.0.C1;
+    :: r0) =>               -- x0b: cons.1.cons.0.0.C2
+    0                       -- r0 : cons.1.cons.1
+
+ | ((C3 x1a, y1a)         -- pat vars: x1a: unit, y1a: int, x1b: unit, y1b: int, r1 : (s*int) list
+    :: (C2 x1b, y1b)        -- x1a: cons.0.0.C3
+    :: r1) =>	            -- y1a: cons.0.1
+    1                       -- x1b: cons.1.cons.0.0.C2
+                            -- y1b: cons.1.cons.0.1
+                            -- r1 : cons.1.cons.1
+ | _ => 2
+
+end (* structure Y *)
+
+
+oldmc
+
+use "to3e.sml";
+[opening to3e.sml]
+** andor:
+  OR {} CSIG(1,1)
+     :: {0,1} AND {}
+        AND {}
+           OR {} CSIG(3,0)
+              C3 {1} VAR {1}
+              C1 {0} VAR {0}
+           VAR {1}
+        OR {} CSIG(1,1)
+           :: {0,1} AND {}
+              AND {}
+                 OR {} CSIG(3,0)
+                    C2 {0,1} VAR {0,1}
+                 VAR {1}
+              VAR {0,1}
+
+** dectree:
+  CASEdt * CSIG(1,1) 
+     :: CASEdt 1.:: CSIG(1,1) 
+        :: CASEdt 0.0.::.1.:: CSIG(3,0) 
+           C2 CASEdt 0.0.:: CSIG(3,0) 
+              C3 RHS 1
+              C1 RHS 0
+              * RHS 2
+           * RHS 2
+        * RHS 2
+     * RHS 2
+
+** matchComp: code = 
+  v24 = FN(v25: TYC({{},{},TCAP(list, [{s,PRIM(I63)}])}),    --- rhs 0
+           -- v25: unit * unit * (s * int) list
+           v10 = v25[0]
+             v9 = v25[1]            -- destruct pat0 vars record
+               v8 = v25[2]
+                 (I63)0)
+    v22 = FN(v23: TYC({{},PRIM(I63),{},PRIM(I63),TCAP(list, [{s,PRIM(I63)}])}),   -- rhs 1
+             -- v23: unit * int * unit * int * (s * int) list
+             v7 = v23[0]
+               v6 = v23[1]
+                 v5 = v23[2]         -- destruct pat1 vars record
+                   v4 = v23[3]
+                     v3 = v23[4]
+                       (I63)1)
+      v20 = FN(v21: TYC({}), (I63)2)   -- rhs 2
+        v18 = FN(v19: TYC({}),         -- v18 = match exn raiser fn, not used (superfluous)
+                 RAISE(TYC(PRIM(I63)),
+                       APP(PRM(markexn, TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []),
+                           RCD(CON((Match,EXNLVAR(17),TYC(AR[rr]([{}], [PRIM(EXN)]))), [], RCD()),
+		               "to3e.sml:24.10"))))
+          SWI v16
+           of ::.v26 =>
+                 v27 = v26[1]
+                   SWI v27
+                    of ::.v28 =>
+                          v29 = v28[0]
+                            v30 = v29[0]
+                              SWI v30
+                               of C2.v31 =>
+                                    v32 = v26[0]
+                                      v33 = v32[0]
+                                        SWI v33
+                                         of C3.v34 =>
+                                               v35 = v32[1]
+                                                 v36 = v28[1]
+                                                   v37 = v29[1]
+                                                     APP(v22, RCD(v34,v35,v31,v37,v36))  -- RHS 1
+                                            C1.v38 =>
+                                               v39 = v28[1]
+                                                 APP(v24, RCD(v38,v31,v39))  -- RHS 0
+                                            _ => APP(v20, RCD())   -- RHS 2
+                                  _ => APP(v20, RCD())   -- RHS 2
+                       _ => APP(v20, RCD())              -- RHS 2
+              _ => APP(v20, RCD())                       -- RHS 2
+  
+  
+andor stats:
+  total  = 14
+  #AND   = 4
+  #OR    = 4
+  #LEAF  = 6
+
+dectree stats:
+  #CASEdt = 4
+  #RHS    = 6
+  #BINDdt = 0
+
+lvars:
+  initial = 25
+  final   = 39
+  total   = 15

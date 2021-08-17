@@ -1,0 +1,62 @@
+v51{1} : FD[FCT, is, false, NR] = 
+  FN([v102{0} : ???],
+    FIX(v11{2,2} : FD[FCT, is, true, NR] = 
+          FN([v171{0} : ???],
+            FIX(v200{0} : FD[FUN(f), im(0,[34,0]), true, NR] = 
+                  FN([v107{1,1} : TYC(AR([PRIM(VOID)], [PRIM(VOID)])),
+                      v108{1} : TYC(PRIM(VOID))],
+                    FIX(v129{2,2} : FD[FUN(f), is, true, TR[TYC({})]] = 
+                          FN([v25{1} : TYC(PRIM(VOID))],
+                            SWITCH v25
+                              :: => 
+                                  v166{1} = DECON(::,UT,TYC(AR([PRIM(VOID)], [PRIM(VOID)])),[])
+                                  v169{1} = PRIMOP(unwrap, TYC(AR([PRIM(VOID)], [PRIM(VOID)])), []) [v166]
+                                  v168{2} = PRIMOP(unwrap, TYC(AR([PRIM(VOID)], [{PRIM(VOID),PRIM(VOID)}])), []) [v169]
+                                  v36{1} = SELECT(v168, 0)
+                                  v37{1} = SELECT(v168, 1)
+                                  [v27{0}] = APP(v107,[v36])
+                                  APP(v129,[v37])
+                              nil => 
+                                  v59{1} = RECORD []
+                                  RETURN [v59]))
+                    APP(v129,[v108])))
+            FIX(v3{1} : FD[FUN(f), in, false, NR] = 
+                  FN([v201{0} : TYC(AR([PRIM(VOID)], [PRIM(VOID)]))],
+                    FIX(v203{0} : FD[FUN(f), in, false, NR] = 
+                          FN([v202{0} : TYC(PRIM(VOID))],
+                            APP(v200,[v201,v202])))
+                    RETURN [v203]))
+            FIX(v2{1} : FD[FUN(f), im(~17,[0]), false, NR] = 
+                  FN([v45{0} : TYC({})],
+                    v53{1} = RECORD []
+                    RETURN [v53]))
+            v52{1} = RECORD [v2,v3]
+            v175{1} = PRIMOP(wcast, FCT([TYC({AR([{}], [{}]),AR([AR([PRIM(VOID)], [PRIM(VOID)])], [AR([PRIM(VOID)], [{}])])})], [TYC({AR([{}], [{}]),AR([AR([PRIM(VOID)], [{}])], [AR([PRIM(VOID)], [{}])])})]), []) [v52]
+            v125{1} = SELECT(v175, 1)
+            RETURN [v125]))
+    v176{1} = STRUCT [(I63)0]
+    [v120{1,1}] = APP(v11,[v176])
+    v178{1} = STRUCT [(I63)2]
+    [v180{1}] = APP(v11,[v178])
+    v181{1,1} = PRIMOP(wcast, FCT([TYC(AR([AR([PRIM(VOID)], [{}])], [AR([PRIM(VOID)], [{}])]))], [TYC(AR([AR([{PRIM(I63),PRIM(I63)}], [{}])],[AR([PRIM(VOID)], [{}])]))]), []) [v180]
+    FIX(v192{2,2} : FD[FCT, im(~16,[]), true, NR] = 
+          FN([],
+            FIX(v14{1} : FD[FUN(f), im(~17,[0]), false, NR] = 
+                  FN([v19{0} : TYC(PRIM(VOID))],
+                    v79{1} = RECORD []
+                    RETURN [v79]))
+            RETURN [v14]))
+    [v119{1}] = APP(v192,[])
+    [v187{1}] = APP(v192,[])
+    v188{1} = PRIMOP(wcast, FCT([TYC(AR([PRIM(VOID)], [{}]))], [TYC(AR([{PRIM(I63),PRIM(I63)}], [{}]))]), []) [v187]
+    [v83{1,1}] = APP(v120,[v119])
+    v86{1} = WRAP(PRIM(I63), (I63)0)
+    [v18{0}] = APP(v83,[v86])
+    [v152{1,1}] = APP(v181,[v188])
+    v93{1} = RECORD [(I63)0,(I63)0]
+    v94{1} = WRAP(PRIM(I63), (I63)0)
+    v92{1} = RECORD [v93,v94]
+    v189{1} = WRAP({{PRIM(I63),PRIM(I63)},PRIM(VOID)}, v92)
+    [v1{1}] = APP(v152,[v189])
+    v101{1} = STRUCT [v1]
+    RETURN [v101])

@@ -28,6 +28,11 @@ local structure B  = Bindings
       structure DA = Access
       structure DI = DebIndex
       structure EM = ErrorMsg
+      structure LV = LambdaVar
+      structure V  = VarCon
+      structure AS = Absyn
+      structure AU = AbsynUtil
+      structure PL = PLambda
       structure LT = PLambdaType   (* = LtyExtern *)
       structure M  = Modules
       structure MC = MatchComp
@@ -38,14 +43,13 @@ local structure B  = Bindings
       structure SP = SymPath
       structure LN = LiteralToNum
       structure TT = TransTypes
-      structure TP = Types
+      structure T = Types
       structure TU = TypesUtil
-      structure V  = VarCon
       structure EU = ElabUtil
       structure Tgt = Target
 
       structure IIMap = RedBlackMapFn (type ord_key = IntInf.int
-					val compare = IntInf.compare)
+				       val compare = IntInf.compare)
 
       open Absyn PLambda TransUtil
 in
@@ -56,24 +60,110 @@ in
 
 val debugging = FLINT_Control.trdebugging
 fun bug msg = EM.impossible("Translate: " ^ msg)
-val say = Control.Print.say
-fun warn s = say ("*** WARNING: " ^ s ^ "\n")
+fun warn msg = EM.warn("Translate: " ^ msg)
 
+val say = Control.Print.say
+fun newline () = say "\n"
 fun debugmsg (msg : string) =
     if !debugging then (say msg; say "\n") else ()
 
-val ppDepth = Control.Print.printDepth
+val ppDepth = Control.FLINT.printDepth
 
 val with_pp = PP.with_default_pp
 
-fun ppType ty =
-    ElabDebug.withInternals
-     (fn () => ElabDebug.debugPrint debugging
-		("type: ",PPType.ppType StaticEnv.empty, ty))
+fun ppPat pat =
+    PP.with_default_pp
+      (fn ppstrm => PPAbsyn.ppPat StaticEnv.empty ppstrm (pat, (!ppDepth)))
+
+fun ppExp exp =
+    PP.with_default_pp
+      (fn ppstrm => PPAbsyn.ppExp (StaticEnv.empty,NONE) ppstrm (exp, (!ppDepth)))
+
+fun ppDec dec =
+    PP.with_default_pp
+      (fn ppstrm => PPAbsyn.ppDec (StaticEnv.empty,NONE) ppstrm (dec, (!ppDepth)))
+
+fun ppType msg ty =
+    PP.with_default_pp
+	(fn ppstrm => (PP.string ppstrm (msg^": "); PPType.ppType StaticEnv.empty ppstrm ty))
 
 fun ppLexp lexp =
-    PP.with_default_pp(fn s => PPLexp.ppLexp (!ppDepth) s lexp)
+    PP.with_default_pp
+      (fn ppstrm => PPLexp.ppLexp (!ppDepth) ppstrm lexp)
 
+fun ppTycArgs tycs =
+    PP.with_default_pp
+      (fn ppstrm =>
+	  PPUtil.ppBracketedSequence ("[", "]", (PPLty.ppTyc 50)) ppstrm tycs)
+
+	
+(****************************************************************************
+ *                   TRANSLATING NUMBER LITERALS                            *
+ ****************************************************************************)
+
+(* listUnion : T.tyvar list * T.tyvar list -> T.tyvar list *)
+(* utility function used in transRVBs -- append without duplicates *)
+fun listUnion (l : T.tyvar list, m : T.tyvar list) =
+    let val l' = List.filter (fn tv => (not (List.exists (fn tv' => tv' = tv) m))) l
+     in l' @ m
+    end
+
+(* mkTyargs : T.tyvar list * T.tyvar list * 'a * (int -> 'a) -> 'a list *)
+(* map each tyvar, tv, in fromBbtvs to some form of "type" derived from the _position_, k,
+ * of that tyvar in the toBtvs list (maker (k,tv)), or to default if tv is not in toBtvs.
+ * The length of the result is therefore the same as the length of fromBtvs. *)
+fun mkTyargs (fromBtvs, toBtvs, default, maker) =
+    let fun search (tv: Types.tyvar, k, []) = default
+	  | search (tv, k, tv'::r) = if TU.eqTyvar(tv, tv') then maker(k,tv) else search (tv, k+1, r)
+	fun lookup tv = search (tv, 0, toBtvs)
+     in map lookup fromBtvs
+    end
+
+(* transNum : Types.ty IntConst.t * T.ty -> int IntConst.t *)
+(* Translates a front-end numeric literal (Types.ty IntConst.t) into a FLINT-style
+ * numeric literal representation (int IntCons.t).
+ * QUESTION: perhaps we should preserve the size, in the case of
+ * word8, for better jump tables?  Also, chars are represented as default ints. *)
+fun transNum ({ival, ty}: T.ty IntConst.t) : con =
+    let fun mkWORD sz = WORDcon{ival = ival, ty = sz}  (* FLINT-style literal *)
+	fun mkINT sz  = INTcon{ival = ival, ty = sz}   (* FLINT-style literal *)
+	val defaultIntSz = (* 63 *) Target.defaultIntSz
+     in if TU.equalType(ty, BT.intTy)
+	  then mkINT defaultIntSz
+	else if TU.equalType(ty, BT.int32Ty)
+	  then mkINT 32
+	else if TU.equalType(ty, BT.int64Ty)
+	  then mkINT 64
+	else if TU.equalType(ty, BT.intinfTy)
+	  then mkINT 0
+	else if TU.equalType(ty, BT.wordTy)
+	  then mkWORD defaultIntSz
+	else if TU.equalType(ty, BT.word8Ty)
+	  then mkWORD defaultIntSz  (* or:  mkWORD 8 (if we want accurate char size) *)
+	else if TU.equalType(ty, BT.word32Ty)
+	  then mkWORD 32
+        else if TU.equalType(ty, BT.word64Ty)
+          then mkWORD 64
+	else bug "transNum"
+    end
+
+(* selectTyArgs : tyvar list * tyvar list -> LT.tyc list  -- not currently used *)
+(* pattvs are the generalized tyvars of the pattern, vartvs are those for a variable
+ * in the pattern *)
+fun selectTyArgs (pattvs, vartvs) =
+    let val vartvsArity = length vartvs
+	val indices = List.tabulate(vartvsArity, (fn x => x))
+	(* 0-based indexes into btvs, the bound type variable
+	 * sequence for _this_ bvar *)
+	val tvToIndex = ListPair.zip(vartvs,indices)
+	fun lookup (tv: Types.tyvar, nil) = NONE
+	  | lookup (tv, (tv',k)::r) = if tv = tv' then SOME k else lookup (tv,r)
+	val targs = map (fn tv => case lookup (tv, tvToIndex)
+				   of NONE => LT.tcc_void
+				    | SOME k => LT.tcc_var(1,k))
+			pattvs
+    in targs
+    end
 
 (****************************************************************************
  *                          MAIN FUNCTION                                   *
@@ -90,40 +180,30 @@ fun transDec
 	 compInfo as {errorMatch,error,...}: Absyn.dec CompInfo.compInfo } =
 let
 
-(* We take mkLvar from compInfo.  This should answer Zhong's question... *)
-(*
-(*
- * MAJOR CLEANUP REQUIRED ! The function mkv is currently directly taken
- * from the LambdaVar module; I think it should be taken from the
- * "compInfo". Similarly, should we replace all mkLvar in the backend
- * with the mkv in "compInfo" ? (ZHONG)
- *)
-val mkv = LambdaVar.mkLvar
-fun mkvN NONE = mkv()
-  | mkvN (SOME s) = LambdaVar.namedLvar s
-*)
-
+(* lvar generator taken from compInfo *)
 val mkvN = #mkLvar compInfo
 fun mkv () = mkvN NONE
-
 
 (** generate the set of ML-to-FLINT type translation functions *)
 val {tpsKnd, tpsTyc, toTyc, toLty, strLty, fctLty} =
     TT.genTT()
 fun toTcLt d = (toTyc d, toLty d)
 
+(* toDconLty : DebIndex.depth -> Types.ty -> lty *)
 (** translating the typ field in DATACON into lty; constant datacons
     will take ltc_unit as the argument *)
 fun toDconLty d ty =
-  (case ty
-    of TP.POLYty{sign, tyfun=TP.TYFUN{arity, body}} =>
-         if BT.isArrowType body then toLty d ty
-         else toLty d (TP.POLYty{sign=sign,
-                               tyfun=TP.TYFUN{arity=arity,
-                                              body=BT.-->(BT.unitTy, body)}})
-     | _ => if BT.isArrowType ty then toLty d ty
-            else toLty d (BT.-->(BT.unitTy, ty)))
+    (case ty
+       of T.POLYty{sign, tyfun=T.TYFUN{arity, body}} =>
+            if BT.isArrowType body then toLty d ty
+            else toLty d (T.POLYty{sign=sign,
+				    tyfun=T.TYFUN{arity=arity,
+						   body=BT.-->(BT.unitTy, body)}})
+	| _ => if BT.isArrowType ty then toLty d ty
+               else toLty d (BT.-->(BT.unitTy, ty)))
 
+(* CON' : Plambda.dataconstr * PlambdType.tyc list * lexp -> lexp *) 
+(* version of CON with special translation of ref and susp pseudo datacons *)
 fun CON' ((_, DA.REF, lt), ts, e) = APP (PRIM (PO.MAKEREF, lt, ts), e)
   | CON' ((_, DA.SUSP (SOME(DA.LVAR d, _)), lt), ts, e) =
       let val v   = mkv ()
@@ -132,15 +212,20 @@ fun CON' ((_, DA.REF, lt), ts, e) = APP (PRIM (PO.MAKEREF, lt, ts), e)
       end
   | CON' x = CON x
 
+fun patToConsig (APPpat(dcon,_,_)) = TU.dataconSign dcon
+  | patToConsig (CONpat(dcon,_)) = TU.dataconSign dcon
+  | patToConsig _ = DA.CNIL
+
 (*
  * The following code implements the exception tracking and
  * errormsg reporting.
  *)
 
-local val region = ref(0,0)
-      val markexn = PRIM(PO.MARKEXN,
-		      LT.ltc_parrow(LT.ltc_tuple [LT.ltc_exn, LT.ltc_string],
-				    LT.ltc_exn), [])
+local
+  val region = ref(0,0)
+  val markexn = PRIM(PO.MARKEXN,
+		  LT.ltc_parrow(LT.ltc_tuple [LT.ltc_exn, LT.ltc_string],
+				LT.ltc_exn), [])
 in
 
 fun withRegion loc f x =
@@ -156,17 +241,12 @@ fun mkRaise(x, lt) =
    in RAISE(e, lt)
   end
 
-fun complain s = error (!region) s
-fun repErr x = complain EM.COMPLAIN x EM.nullErrorBody
+fun complain msg = error (!region) msg
+fun repErr msg = complain EM.COMPLAIN msg EM.nullErrorBody
+fun repWarn msg = complain EM.WARN msg EM.nullErrorBody
 fun repPolyEq () =
     if !Control.polyEqWarn then complain EM.WARN "calling polyEqual" EM.nullErrorBody
     else ()
-
-fun repWarn msg = complain EM.WARN msg EM.nullErrorBody
-
-(** This may shadow previous definition of mkv ... this version reports the
-    site of introduction of the lvar *)
-fun mkv () = mkvN NONE
 
 end (* markexn-local *)
 
@@ -174,121 +254,169 @@ end (* markexn-local *)
  *          SHARING AND LIFTING OF STRUCTURE IMPORTS AND ACCESSES          *
  ***************************************************************************)
 
-exception HASHTABLE
-type key = int
+(* _Dependent_ or _secondary_ lvars are defined in terms of a base lvar via
+ * an access path (int list). These will be bound to a nested SELECT expression
+ * rooted at the base lvar. "Variables" with access of the form, e.g.,
+ * PATH(PATH(LVAR lv, i1),i2) are translated to the lexp 
+ * SELECT(i2, SELECT(i1, VAR lv)).  A given base lvar may have several
+ * dependent lvars defined by paths based on that lvar. These are registered
+ * in a "dependentLvarsTable" lvar hash table. Each dependent variable is
+ * uniquely determined by the base lvar and the access path. *)
 
-(** hashkey of accesspath + accesspath + resvar *)
-type info = (key * int list * lvar)
-val hashtable : info list LambdaVar.Tbl.hash_table =
-    LambdaVar.Tbl.mkTable(32,HASHTABLE)
-fun hashkey l = foldr (fn (x,y) => ((x * 10 + y) mod 1019)) 0 l
+exception DEP_LVAR_TABLE
+type key = int  (* hash of an accesspath : int list *)
+type accesspath = int list
+type depLvar = (key * accesspath * lvar)
+(* "Dependent lvars and their accesspaths off the base lvar mapping to the depLvar,
+ * where the key is the hash of the accesspath *)
 
-fun buildHdr v =
-  let val info = LambdaVar.Tbl.lookup hashtable v
-      fun h((_, l, w), hdr) =
-             let val le = foldl (fn (k,e) => SELECT(k,e)) (VAR v) l
-	      in fn e => hdr(LET(w, le, e))
+(** dependentLvarsTable: lvar --> depLvar list 
+    or lvar -> (<hashkey(accesspath)> (= int) * accesspath (= int list) * lvar) list *)
+val dependentLvarsTable : depLvar list LambdaVar.Tbl.hash_table =
+    LambdaVar.Tbl.mkTable (32, DEP_LVAR_TABLE)
+
+(* hashkey : int list -> key *)
+(* hash of an accesspath (an int list) *)
+fun hashkey ints = foldr (fn (x,y) => ((x * 10 + y) mod 1019)) 0 ints
+
+(* buildHeader : lvar -> (lexp -> lexp) *)
+(* creates a wrapper function that wraps a nested sequence of let declarations
+ * around a base lvar (the argument), where the definiens of each let is nested SELECTS for
+ * the accesspath in each depLvar item starting from VAR lvar for the baseLvar. *)
+fun buildHeader baseLvar =
+  let val depLvars = LambdaVar.Tbl.lookup dependentLvarsTable baseLvar
+      fun wrapHeader((_, accesspath, accessLvar), hdr) =
+             let val accessExp = foldl (fn (k,e) => SELECT(k,e)) (VAR baseLvar) accesspath
+	      in fn e => hdr (LET (accessLvar, accessExp, e))
 	     end
-   in foldr h ident info
-  end handle _ => ident
+   in foldr wrapHeader ident depLvars   (* ident = TransUtil.ident = identity fn *)
+  end handle DEP_LVAR_TABLE => ident   (* if lvar not in dependentLvarsTable? *)
 
-fun bindvar (v, [], _) =  v
-  | bindvar (v, l, nameOp) =
-      let val info = (LambdaVar.Tbl.lookup hashtable v) handle _ => []
-          val key = hashkey l
-          fun h [] =
-                let val u = mkvN nameOp
-                 in LambdaVar.Tbl.insert hashtable (v,(key,l,u)::info); u
+(* bindvar : lvar * accesspath * symbol option -> lvar *)
+(* returns an dependent lvar to be bound to lvar via accesspath selection, and
+ * if it is new, registers it in dependentLvarsTable *)
+fun bindvar (lvar, [], _) = lvar  (* no access path, hence no new dependent lvar *)
+  | bindvar (baseLvar, accesspath, nameOp) =
+      let val depLvars = LambdaVar.Tbl.lookup dependentLvarsTable baseLvar
+	  	         handle DEP_LVAR_TABLE => []
+          val key = hashkey accesspath  (* hash of accesspath *)
+          fun look [] =
+                let val dependentLvar = mkvN nameOp
+                in LambdaVar.Tbl.insert dependentLvarsTable
+		     (baseLvar, (key, accesspath, dependentLvar) :: depLvars);
+		   dependentLvar
                 end
-            | h((k',l',w)::r) =
-                if (k' = key) then (if (l'=l) then w else h r) else h r
-       in h info
+            | look ((key', accesspath', dependentLvar) :: rest) =
+                if (key' = key) andalso (accesspath' = accesspath)
+	        then dependentLvar
+	        else look rest
+       in look depLvars
       end
 
 datatype pidInfo = ANON of (int * pidInfo) list
                  | NAMED of lvar * lty * (int * pidInfo) list
 
-fun mkPidInfo (t, l, nameOp) =
-  let val v = mkvN nameOp
-      fun h [] = NAMED(v, t, [])
-        | h (a::r) = ANON [(a, h r)]
-   in (h l, v)
-  end
+(* mkPidInfo : lty * int list * symbol option -> pidInfo * lvar *)
+fun mkPidInfo (lty, l, nameOp) =
+    let val lvar = mkvN nameOp
+	fun mkpi [] = NAMED(lvar, lty, [])
+          | mkpi (a::r) = ANON [(a, mkpi r)]
+     in (mkpi l, lvar)
+    end
 
-fun mergePidInfo (pi, t, l, nameOp) =
-  let fun h (z as NAMED(v,_,_), []) = (z, v)
-        | h (ANON xl, [])  =
-              let val v = mkvN nameOp
-               in (NAMED(v, t, xl), v)
-              end
-        | h (z, a::r) =
-              let val (xl, mknode) =
+(* mergePidInfo : pidInfo * lty * int list * symbol option -> pidInfo * lvar *)
+fun mergePidInfo (pi, lty, l, nameOp) =
+  let fun merge (pi as NAMED(v,_,_), []) = (pi, v)
+        | merge (ANON xl, [])  =
+            let val lvar = mkvN nameOp
+             in (NAMED(lvar, lty, xl), lvar)
+            end
+        | merge (z, a::r) =
+            let val (xl, mknode) =
                     case z of ANON c => (c, ANON)
                             | NAMED (v,tt,c) => (c, fn x => NAMED(v,tt,x))
 
-                  fun dump ((np, v), z, y) =
-                        let val nz = (a, np)::z
-                         in (mknode((rev y) @ nz), v)
-                        end
+                fun dump ((np, v), z, y) =
+                      let val nz = (a, np) :: z
+                       in (mknode((rev y) @ nz), v)
+                      end
 
-                  fun look ([], y) = dump(mkPidInfo(t, r, nameOp), [], y)
-                    | look (u as ((x as (i,pi))::z), y) =
-                        if i < a then look(z, x::y)
-                        else if i = a then dump(h(pi, r), z, y)
-                             else dump(mkPidInfo(t, r, nameOp), u, y)
+                fun look ([], y) = dump(mkPidInfo(lty, r, nameOp), [], y)
+                  | look (u as ((x as (i,pi))::z), y) =
+		      (case Int.compare (i, a)
+		         of LESS => look(z, x::y)
+                          | EQUAL => dump (merge (pi, r), z, y)
+                          | GREATER => dump (mkPidInfo (lty, r, nameOp), u, y))
 
-               in look(xl, [])
-              end
-   in h(pi, l)
-  end (* end of mergePidInfo *)
+             in look(xl, [])
+            end
+   in merge(pi, l)
+  end (* mergePidInfo *)
 
 (** a map that stores information about external references *)
 val persmap = ref (PersMap.empty : pidInfo PersMap.map)
 
-fun mkPid (pid, t, l, nameOp) =
+(* mkPid : pid * lty * int list * symbol option -> lvar *)
+fun mkPid (pid, lty, l, nameOp) =
     case PersMap.find (!persmap, pid)
       of NONE =>
-	  let val (pinfo, var) = mkPidInfo (t, l, nameOp)
+	  let val (pinfo, var) = mkPidInfo (lty, l, nameOp)
 	   in persmap := PersMap.insert(!persmap, pid, pinfo);
 	      var
 	  end
        | SOME pinfo =>
-	  let val (npinfo, var) = mergePidInfo (pinfo, t, l, nameOp)
-	      fun rmv (key, map) =
+	  let val (newPinfo, var) = mergePidInfo (pinfo, lty, l, nameOp)
+	      fun rmv (key, map) = (* clear the old pinfo for pid *)
 		  let val (newMap, _) = PersMap.remove(map, key)
 		  in newMap
 		  end handle e => map
-	   in persmap := PersMap.insert(rmv(pid, !persmap), pid, npinfo);
+	   in persmap := PersMap.insert(rmv (pid, !persmap), pid, newPinfo);
 	      var
 	  end
 
 val iimap = ref (IIMap.empty : lvar IIMap.map)
 
+(* getII : IntInf.int -> lvar *)
+(* uses iimap to map IntInf.int to lvars, creating new mappings is necessary *)
 fun getII n =
-    case IIMap.find (!iimap, n) of
-	SOME v => v
-      | NONE => let val v = mkv ()
-		in
-		    iimap := IIMap.insert (!iimap, n, v);
-		    v
-		end
+    case IIMap.find (!iimap, n)
+      of SOME lvar => lvar
+       | NONE =>
+	 let val lvar = mkv ()
+	  in iimap := IIMap.insert (!iimap, n, lvar);
+	     lvar
+	 end
 
-(** converting an access w. type into a lambda expression *)
-fun mkAccT (p, t, nameOp) =
-  let fun h(DA.LVAR v, l) = bindvar(v, l, nameOp)
-        | h(DA.EXTERN pid, l) = mkPid(pid, t, l, nameOp)
-        | h(DA.PATH(a,i), l) = h(a, i::l)
-        | h _ = bug "unexpected access in mkAccT"
-   in VAR (h(p, []))
-  end (* new def for mkAccT *)
+(* transAccessTyped : A.access * lty * S.symbol option -> lvar *)
+(* translating an access with type into a VAR lexp, which is registered
+ * in dependentLvarsTable if local (rooted at LVAR), or in persmap if external,
+ * (rooted at EXTERN). This returns an lvar rather than a VAR because it
+ * is used for both variables (including var, str, fct) and constructors. *)
+fun transAccessTyped (access, lty, nameOp) =
+  let fun register (DA.LVAR lvar, accesspath) = bindvar (lvar, accesspath, nameOp)
+        | register (DA.EXTERN pid, accesspath) = mkPid (pid, lty, accesspath, nameOp)
+        | register (DA.PATH(a,i), accesspath) = register (a, i::accesspath)
+        | register _ = bug "unexpected access in transAccessTyped"
+   in register (access, [])
+  end
 
-(** converting an access into a lambda expression *)
-fun mkAcc (p, nameOp) =
-  let fun h(DA.LVAR v, l) = bindvar(v, l, nameOp)
-        | h(DA.PATH(a,i), l) = h(a, i::l)
-        | h _ = bug "unexpected access in mkAcc"
-   in VAR (h(p, []))
-  end (* new def for mkAcc *)
+(* transAccessLocal : A.access * S.symbol option -> lexp *)
+(* translating a "local" (LVAR or PATH rooted at an LVAR) access into a
+ * VAR lexp, and registering it in dependentLvarsTable if accesspath is not null. *)
+fun transAccessLocal (access, nameOp) =
+  let fun register (DA.LVAR lvar, accesspath) = bindvar(lvar, accesspath, nameOp)
+        | register (DA.PATH(a,i), accesspath) = register (a, i::accesspath)
+        | register _ = bug "unexpected access in transAccess"
+   in VAR (register (access, []))
+  end
+
+(* transAccess: DA.access * lty * S.symbol option -> lexp *)
+(* translating an access into a VAR lexp, using transAccessTyped if
+ * the access is external, or transAccessLocal if it is local *)
+fun transAccess (access, lty, nameOp) =
+    if extern access    (* TransUtil.extern, check if access is EXTERN-based *)
+    then VAR (transAccessTyped (access, lty, nameOp))
+    else transAccessLocal (access, nameOp)
 
 (*
  * These two functions are major gross hacks. The NoCore exceptions would
@@ -304,102 +432,54 @@ fun mkAcc (p, nameOp) =
  *)
 exception NoCore
 
-fun coreExn ids = (case CoreAccess.getCon' (fn () => raise NoCore) oldenv ids
-       of TP.DATACON { name, rep as DA.EXN _, typ, ... } => let
-            val nt = toDconLty DI.top typ
-	    val nrep = mkRep(rep, nt, name)
-	    val _ = debugmsg ">>coreExn in translate.sml: "
-	 (* val _ = PPLexp.printLexp (CON'((name, nrep, nt), [], unitLexp))
-	   val _ = print "\n" *)
-            in
-	      SOME (CON'((name, nrep, nt), [], unitLexp))
-            end
-        | _ => bug "coreExn in translate"
+(* coreExn : S.symbol list -> lexp option *)
+(* Accessing _constructors_ via the Core structure.
+ * Used in TansPrim.trans to access Subscript, Assembly.Div, and Char
+ * exception constructors. *)
+fun coreExn ids =
+    (case CoreAccess.getCon' (fn () => raise NoCore) oldenv ids
+      of T.DATACON { name, rep as DA.EXN _, typ, ... } =>
+	   let val lty = toDconLty DI.top typ
+	       val newrep = mkRep(rep, lty, name)
+	       val _ = debugmsg ">>coreExn in translate.sml: "
+              (* val _ = PPLexp.printLexp (CON'((name, nrep, nt), [], unitLexp))
+	         val _ = print "\n" *)
+            in SOME (CON'((name, newrep, lty), [], unitLexp))
+           end
+       | _ => bug "coreExn in translate"
       (* end case *))
-        handle NoCore => NONE
+    handle NoCore => NONE
 
-and coreAcc id = (case CoreAccess.getVar' (fn () => raise NoCore) oldenv [id]
+(* coreAcc : symbol -> lexp *)
+(* Accessing variables via the Core structure, and localizing access via
+ * transAccessTyped. *)
+and coreAcc id =
+    (case CoreAccess.getVar' (fn () => raise NoCore) oldenv [id]
        of V.VALvar { access, typ, path, ... } =>
-	    mkAccT(access, toLty DI.top (!typ), getNameOp path)
+	    VAR (transAccessTyped (access, toLty DI.top (!typ), getNameOp path))
         | _ => bug "coreAcc in translate"
-      (* end case *))
-	handle NoCore => (
-	  warn(concat["no Core access for '", id, "'\n"]);
-	  INT{ival = 0, ty = Tgt.defaultIntSz})
+    (* end case *))
+    handle NoCore =>
+	(warn(concat["no Core access for '", id, "'\n"]);
+	 INT{ival = 0, ty = Tgt.defaultIntSz})
 
-(** expands the flex record pattern and convert the EXN access pat *)
-(** internalize the conrep's access, always exceptions *)
-and mkRep (rep, lt, name) =
-  let fun g (DA.LVAR v, l, t)  = bindvar(v, l, SOME name)
-        | g (DA.PATH(a, i), l, t) = g(a, i::l, t)
-        | g (DA.EXTERN p, l, t) = mkPid(p, t, l, SOME name)
-        | g _ = bug "unexpected access in mkRep"
-
-   in case rep
-       of (DA.EXN x) =>
-             let val (argt, _) = LT.ltd_parrow lt
-              in DA.EXN (DA.LVAR (g(x, [], LT.ltc_etag argt)))
+(* mkRep : DA.conrep * lty * S.symbol -> DA.conrep *)
+(* "localize" the conrep's access, for exception or SUSP constructors *)
+and mkRep (rep, lty, name) =
+    (case rep
+       of (DA.EXN access) =>
+          let (* val _ = print (concat ["mkRep:EXN:", " ", S.name name,
+				     " ", DA.prAcc access, "\n"]) *)
+		 val (argt, _) = LT.ltd_parrow lty
+		 val lvar = transAccessTyped (access, LT.ltc_etag argt, SOME name)
+              in DA.EXN (DA.LVAR lvar)
              end
         | (DA.SUSP NONE) =>  (* a hack to support "delay-force" primitives *)
              (case (coreAcc "delay", coreAcc "force")
                of (VAR x, VAR y) => DA.SUSP(SOME (DA.LVAR x, DA.LVAR y))
-                | _ => bug "unexpected case on conrep SUSP 1")
-        | (DA.SUSP (SOME _)) => bug "unexpected case on conrep SUSP 2"
-        | _ => rep
-  end
-
-(** converting a value of access into a lambda expression
- ** [KM???} But it is ignoring the prim argument!!!
- ** [DBM: 5/1/07]: I've eliminated the unused prim argument.
- **)
-fun mkAccInfo (acc, getLty, nameOp) =
-  if extern acc then mkAccT(acc, getLty(), nameOp) else mkAcc (acc, nameOp)
-
-(* fillPat : AS.pat * int -> AS.pat *)
-(* (1) fills out flex record patterns according to the known record type, turning them
- *     into nonflex record patterns.  Using WILDpat for the elided fields.
- * (2) uses mkRep to adjust representations for exception constructors and
- *     the SUSP pseudo-constructor *)
-fun fillPat(pat, d) =
-  let fun fill (CONSTRAINTpat (p,_)) = fill p
-	| fill (MARKpat (p,_)) = fill p
-        | fill (LAYEREDpat (p,q)) = LAYEREDpat(fill p, fill q)
-        | fill (RECORDpat {fields, flex=false, typ}) =
-            RECORDpat{fields = map (fn (lab, p) => (lab, fill p)) fields,
-                      typ = typ, flex = false}
-        | fill (pat as RECORDpat {fields, flex=true, typ}) =
-            let val fields' = map (fn (l,p) => (l, fill p)) fields
-
-                fun find (t as TP.CONty(TP.RECORDtyc labels, _)) =
-                             (typ := t; labels)
-                  | find _ = bug "fillPat found unresolved flex record type"
-
-                fun merge (a as ((id,p)::r), lab::s) =
-                      if S.eq(id,lab) then (id,p) :: merge(r,s)
-                                      else (lab,WILDpat) :: merge(a,s)
-                  | merge ([], lab::s) = (lab,WILDpat) :: merge([], s)
-                  | merge ([], []) = []
-                  | merge _ = bug "merge in translate"
-
-             in RECORDpat{fields = merge(fields',
-                                         find(TU.headReduceType (!typ))),
-                          flex = false, typ = typ}
-            end
-        | fill (VECTORpat(pats,ty)) = VECTORpat(map fill pats, ty)
-        | fill (ORpat(p1, p2)) = ORpat(fill p1, fill p2)
-        | fill (CONpat(TP.DATACON{name,const,typ,rep,sign,lazyp}, ts)) =
-            CONpat(TP.DATACON{name=name, const=const, typ=typ, lazyp=lazyp,
-                              sign=sign,rep=mkRep(rep,toDconLty d typ,name)},
-                   ts)
-
-            APPpat(TP.DATACON{name=name, const=const, typ=typ,
-                              sign=sign, lazyp=lazyp,
-                              rep=mkRep(rep, toDconLty d typ, name)},
-                   ts, fill pat)
-        | fill xp = xp
-
-   in fill pat
-  end (* function fillPat *)
+                | _ => bug "unexpected case on mkRep SUSP 1")
+        | (DA.SUSP (SOME _)) => bug "unexpected case on mkRep SUSP 2"
+        | _ => rep)
 
 (** The runtime polymorphic equality and string equality dictionary. *)
 val eqDict =
@@ -439,7 +519,7 @@ val eqGen = PEqual.equal (eqDict, env)
 val boolsign = BT.boolsign
 val (trueDcon', falseDcon') =
   let val lt = LT.ltc_parrow(LT.ltc_unit, LT.ltc_bool)
-      fun h (TP.DATACON{name,rep,typ,...}) = (name, rep, lt)
+      fun h (T.DATACON{name,rep,typ,...}) = (name, rep, lt)
    in (h BT.trueDcon, h BT.falseDcon)
   end
 
@@ -460,22 +540,23 @@ val lt_unit = LT.ltc_unit
 val lt_u_u = LT.ltc_parrow (lt_unit, lt_unit)
 
 (* translation of prim ops *)
-val transPrim = TransPrim.trans {
-	coreAcc = coreAcc, coreExn = coreExn, mkv = mkv, mkRaise = mkRaise
-      }
+val transPrim =
+    TransPrim.trans {coreAcc = coreAcc, coreExn = coreExn, mkv = mkv,
+		     mkRaise = mkRaise}
 
+(* genintinfswitch : var * (con * exp) list * lexp -> lexp *)
 (* generates PLambda.lexp code for a case over an IntInf.int value. *)
 (* where does this belong?  At what level should it be coded?  To Absyn? *)
-(* This belongs in trans/translate.sml. It's input should be an Absyn CASEexp
- * matching against IntInf.int constant keys.
- * E.g. key0 = {ival, ty=IntInf.int}: Types.ty IntConst.t
- * translate.sml has to recognize this special form of a shallow Case. *)
-fun genintinfswitch (sv, cases, default) =
-    let val v = mkv ()
-        (* build a chain of equality tests for checking large pattern values *)
+(* This was moved from the old trans/matchcomp.sml.
+ * con is an IntCON of type IntInf.int (: Types.ty IntConst.t).
+ * translate.sml has to recognize this special form of a shallow Case
+ * and invoke this function to handle it. *)
+fun genintinfswitch (subject: lexp, cases, default) =
+    let (* build a chain of equality tests for checking large pattern values *)
+	val sv = mkv ()  (* lvar bound to the subject *)
 	fun build [] = default
 	  | build ((n, e) :: r) =
-	      COND (APP (#getIntInfEq eqDict (), RECORD [VAR v, VAR (getII n)]),
+	      COND (APP (#getIntInfEq eqDict (), RECORD [VAR sv, VAR (getII n)]),
 		    e, build r)
 	(* make a small int constant pattern *)
 	fun mkSmall n = INTcon{ival = IntInf.fromInt n, ty = Tgt.defaultIntSz}
@@ -492,68 +573,42 @@ fun genintinfswitch (sv, cases, default) =
 		 of ([], largeints) => build largeints
 		  | (smallints, largeints) =>
 		      let val iv = mkv ()
-		       in LET (iv, APP (coreAcc "infLowValue", VAR v),
-			       SWITCH (VAR iv, DA.CNIL, smallints, SOME (build largeints)))
+		       in LET (sv, subject,
+			    LET (iv, APP (coreAcc "infLowValue", VAR sv),
+			      SWITCH (VAR iv, DA.CNIL, smallints, SOME (build largeints))))
 		      end
 	      (* end case *))
-       in LET (v, sv, gen ())
+       in gen ()
       end
-(* similar special cases for REF and SUSP constructors in pattern.  See genswitch in
- * FLINT/trans/matchcomp.sml. *)
 
+(* similar special cases for REF and SUSP constructors in patterns.  mkExp0(SWITCH _)
+ * rule below. *)
 
-(* genswitch : <<SWITCH domain type>> -> Plambda.lexp *)
-(* This function moved here from trans/matchcomp (the old match compiler). It
- * treats the special single (pseudo-) constructor pattern cases involving
- * the "ref" and "susp" constructors, and the special case of switching on
- * intinf constants. For all other cases, immediately builds a SWITCH. *)
-fun genswitch (sv, sign, [(DATAcon((_, DA.REF, lt), ts, x), e)], NONE) =
-      (* deconstructor (DEREF primop) for SINGLE pseudo-constructor "ref". *)
-      LET(x, APP (PRIM (Primop.DEREF, LT.lt_swap lt, ts), sv), e)
-  | genswitch(sv, sign, [(DATAcon((_, DA.SUSP(SOME(_, DA.LVAR f)), lt),
-				  ts, x), e)], NONE) =
-      (* deconstruction for SINGLE pseudo-constructor "susp" --
-       * Should we treat susp as a pseudo-constructor? Let's not! *)
-      let val v = mkv()
-       in LET(x, LET(v, TAPP(VAR f, ts), APP(VAR v, sv)), e)
-      end
-  | genswitch (sv, sign, cases as ((INTcon{ty=0, ...}, _) :: _), default) =
-      let fun strip (INTcon{ty=0, ival}, e) = (ival, e)
-	    | strip _ = bug "genswitch - INTINFcon"
-       in case default
-	    of NONE => bug "genswitch - no default in switch on IntInf"
-	     | SOME d => genintinfswitch (sv, map strip cases, d)
-      end
-  | genswitch x = SWITCH x
-
-(* A SWITCH is build for all other match constructs -- including those for
- * SINGLE datatypes (with a single datacon).  So for SINGLE datacons, deconstruction
- * is handled by SWITCH (where?). *)
 
 (***************************************************************************
  *                                                                         *
  * Translating various bindings into lambda expressions:                   *
  *                                                                         *
  *   val mkVar : V.var * DI.depth -> L.lexp                                *
- *   val mkVE : V.var * T.ty list -> L.lexp                                *
+ *   val mkVE : V.var * T.ty list * DI.depth -> L.lexp                     *
  *   val mkCE : T.datacon * T.ty list * L.lexp option * DI.depth -> L.lexp *
  *   val mkStr : M.Structure * DI.depth -> L.lexp                          *
  *   val mkFct : M.Functor * DI.depth -> L.lexp                            *
  *   val mkBnd : DI.depth -> B.binding -> L.lexp                           *
  *                                                                         *
  ***************************************************************************)
-(* [KM???] mkVar is calling mkAccInfo, which just drops the prim!!! *)
-fun mkVar (V.VALvar{access, prim, btvs, typ, path}, d) =
-      mkAccInfo(access, fn () => toLty d (!typ), getNameOp path)
+(* [KM???] mkVar is calling transAccess, which just drops the prim!!! *)
+fun mkVar (V.VALvar{access, typ, path, ...}, d) =
+      transAccess(access, toLty d (!typ), getNameOp path)
   | mkVar _ = bug "unexpected vars in mkVar"
 
-(* mkVE : V.var * type list * depth -> lexp
- * This translates a variable, which might be bound to a primop.
+(* mkVE : V.var * T.ty list * depth -> lexp
+ * This translates a variable, which may be bound to a primop.
  * In the case of a primop variable, this function reconstructs the
  * type parameters of instantiation of the intrinsic primop type relative
  * to the variable occurrence type *)
-fun mkVE (var as V.VALvar { typ, prim = PrimopId.Prim p, ... }, tys, d) =
-      let val occurenceTy = instPoly(!typ, tys)
+fun mkVE (e as V.VALvar { typ, prim = PrimopId.Prim p, ... }, tys, d) =
+      let val occurenceTy = TU.applyPoly(!typ, tys)
               (* compute the occurrence type of the variable *)
           val primop = PrimopBind.defnOf p
           val intrinsicType = PrimopBind.typeOf p
@@ -561,7 +616,7 @@ fun mkVE (var as V.VALvar { typ, prim = PrimopId.Prim p, ... }, tys, d) =
 	  val intrinsicParams =
               (* compute intrinsic instantiation params of intrinsicType *)
               case (TU.matchInstTypes(true, d, occurenceTy, intrinsicType)
-                      : (TP.tyvar list * TP.tyvar list) option )
+                      : (T.tyvar list * T.tyvar list) option )
                 of SOME(_, tvs) =>
 		   (if !debugging then
                       complain EM.WARN
@@ -571,9 +626,9 @@ fun mkVE (var as V.VALvar { typ, prim = PrimopId.Prim p, ... }, tys, d) =
                             ("tvs length: " ^ Int.toString (length tvs));
                            PP.newline ppstrm;
                            PPVal.ppDebugVar
-                            (fn x => "") ppstrm env var;
+                            (fn x => "") ppstrm env e;
                            if (length tvs) = 1
-                           then PPType.ppType env ppstrm (TP.VARty (hd tvs))
+                           then PPType.ppType env ppstrm (T.VARty (hd tvs))
                            else ()))
                     else ();
                     map TU.pruneTyvar tvs)
@@ -582,7 +637,7 @@ fun mkVE (var as V.VALvar { typ, prim = PrimopId.Prim p, ... }, tys, d) =
                       "mkVE:primop intrinsic type doesn't match occurrence type"
                       (fn ppstrm =>
                           (PP.string ppstrm "VALvar: ";
-                           PPVal.ppVar ppstrm var;
+                           PPVal.ppVar ppstrm e;
                            PP.newline ppstrm;
                            PP.string ppstrm "occtypes: ";
                            PPType.ppType env ppstrm occurenceTy;
@@ -620,212 +675,329 @@ fun mkVE (var as V.VALvar { typ, prim = PrimopId.Prim p, ... }, tys, d) =
       (if !debugging
        then (print "### mkVE nonprimop\n";
              print (SymPath.toString path); print "\n";
-             ppType (!typ); print "\n";
+             ppType "mkVE1: " (!typ);
              print "|tys| = "; print (Int.toString(length tys)); print "\n";
-             app ppType tys; print "\n")
+             app (ppType "mkVE2: ") tys; print "\n")
        else ();
        case tys
-         of [] => mkVar (var, d)
+        of [] => (if !debugging then print "mkVE3\n" else (); mkVar (var, d))
           | _ => TAPP(mkVar(var, d), map (toTyc d) tys))
                  (* dbm: when does this second case occur? *)
   | mkVE _ = bug "non VALvar passed to mkVE"
 
-fun mkCE (TP.DATACON{const, rep, name, typ, ...}, ts, apOp, d) =
-  let val lt = toDconLty d typ
-      val rep' = mkRep(rep, lt, name)
-      val dc = (name, rep', lt)
-      val ts' = map (toTyc d o TP.VARty) ts
-   in if const then CON'(dc, ts', unitLexp)
-      else (case apOp
-             of SOME le => CON'(dc, ts', le)
+(* mkCE : T.datacon * T.tyvar list * lexp option * DB.depth -> lexp *)
+(* Translation of constructor constant and contructor application expressions.
+ * This should deal with rep translation for Match and Bind exceptions,
+ * among others(?). *)
+fun mkCE (T.DATACON{const, rep, name, typ, ...}, tyvars, argOp, d) =
+  let val lty = toDconLty d typ
+      val localRep = mkRep(rep, lty, name)
+      val dataconstr = (name, localRep, lty)
+      val tycs = map (toTyc d o T.VARty) tyvars
+   in if const then CON' (dataconstr, tycs, unitLexp)
+      else (case argOp
+             of SOME le => CON'(dataconstr, tycs, le)
               | NONE =>
-                 let val (argT, _) = LT.ltd_parrow(LT.lt_pinst(lt, ts'))
-                     val v = mkv()
-                  in FN(v, argT, CON'(dc, ts', VAR v))
+                 let val (argLty, _) = LT.ltd_parrow(LT.lt_pinst(lty, tycs))
+                     val paramLvar = mkv()
+                  in FN(paramLvar, argLty, CON'(dataconstr, tycs, VAR paramLvar))
                  end)
   end
 
 fun mkStr (s as M.STR { access, prim, ... }, d) =
-    mkAccInfo(access, fn () => strLty(s, d, compInfo), NONE)
+      transAccess(access, strLty(s, d, compInfo), NONE)
   | mkStr _ = bug "unexpected structures in mkStr"
 
 fun mkFct (f as M.FCT { access, prim, ... }, d) =
-    mkAccInfo(access, fn () => fctLty(f, d, compInfo), NONE)
+      transAccess(access, fctLty(f, d, compInfo), NONE)
   | mkFct _ = bug "unexpected functors in mkFct"
 
 fun mkBnd d =
-  let fun g (B.VALbind v) = mkVar(v, d)
-        | g (B.STRbind s) = mkStr(s, d)
-        | g (B.FCTbind f) = mkFct(f, d)
-        | g (B.CONbind (TP.DATACON{rep=(DA.EXN acc), name, typ, ...})) =
+  let fun transBind (B.VALbind v) = mkVar(v, d)
+        | transBind (B.STRbind s) = mkStr(s, d)
+        | transBind (B.FCTbind f) = mkFct(f, d)
+        | transBind (B.CONbind (T.DATACON {rep=(DA.EXN access), name, typ, ...})) =
           let val nt = toDconLty d typ
               val (argt,_) = LT.ltd_parrow nt
-          in mkAccT (acc, LT.ltc_etag argt, SOME name)
+          in VAR (transAccessTyped (access, LT.ltc_etag argt, SOME name))
           end
-        | g _ = bug "unexpected bindings in mkBnd"
-   in g
+        | transBind _ = bug "unexpected bindings in transBind"
+   in transBind
   end
 
 
-(***************************************************************************
- *                                                                         *
- * Translating core absyn declarations into lambda expressions:            *
- *                                                                         *
- *    val mkVBs  : Absyn.vb list * depth -> PLambda.lexp -> PLambda.lexp     *
- *    val mkRVBs : Absyn.rvb list * depth -> PLambda.lexp -> PLambda.lexp    *
- *    val mkEBs  : Absyn.eb list * depth -> PLambda.lexp -> PLambda.lexp     *
- *                                                                         *
- ***************************************************************************)
+(******************************************************************************
+ *                                                                            *
+ * Translating core absyn declarations into lambda expressions:               *
+ *                                                                            *
+ *    val transVBs  : Absyn.vb list * depth -> PLambda.lexp -> PLambda.lexp   *
+ *    val transRVBs : Absyn.rvb list * depth -> PLambda.lexp -> PLambda.lexp  *
+ *    val mkEBs  : Absyn.eb list * depth -> PLambda.lexp -> PLambda.lexp      *
+ *                                                                            *
+ * transVBs(vbs,d) produces a function taking a "body" or "scope" lexp.       *
+ * Top-level variable binding have special handling specified at the end      *
+ * of the main translate function, transDec.                                  *
+ ******************************************************************************)
 
-(* mkPE : Absyn.exp * depth * Types.tyvar list -> PLambda.lexp
- * translate an expression with potential type parameters, given by "boundtvs", a list
- * of type variables (Types.tyvar) *)
-fun mkPE (exp, d, []) = mkExp(exp, d)
-  | mkPE (exp, d, boundtvs) =
-      let
-          val savedtvs = map ! boundtvs
-            (* save original contents of boundtvs for later restoration
-             * by the restore function below. This is (may be) necessary
-             * because a single OPEN tyvar may be generalized in different
-             * overlapping/nested "scopes".  And my have different depth, index
-             * values for the different scopes.  Need examples! *)
+(* setBoundTyvars : depth * Types.tyvar list * (unit -> 'a) -> 'a *)
+(* Temporarily set the tvkind of polymorphically bound tyvars to LBOUNDs with
+ * the "current" TFN depth while performing a translation. *)
+fun setBoundTyvars (TFNdepth, boundtvs, transfn) =
+    let val savedtvkinds = map ! boundtvs
+        (* save original contents of boundtvs (tvkinds)for restoration
+         * after the invocation of transfn *)
+	fun setLBOUND (i, tv) =
+	    (tv := T.LBOUND {depth=TFNdepth, eq=TU.tyvarIsEq tv, index=i})
+	val _ = List.appi setLBOUND boundtvs
+        (* assign LBOUNDs to the boundtvs to mark them as type
+         * parameter variables _locally_ during translation of exp *)		    
+	val result = transfn ()
+	(* perform and encapsulated translation with the new boundtvs context*)
+	val _ = ListPair.app (op :=) (boundtvs, savedtvkinds)
+        (* restore tyvar contents to state before the translation *)
+    in result
+    end
 
-    (* LBOUND equality property probably does not matter at this point
-       because typechecking and signature matching already completed.
-       [GK 2/24/08] *)
-    (* should be replaced by or merged with TypesUtil.indexBoundTyvars *)
-          fun setbtvs (i, []) = ()
-            | setbtvs (i, (tv as ref (TP.OPEN{eq,...}))::rest) =
-	        (tv := TP.LBOUND {depth=d,index=i,eq=eq};
-		 setbtvs (i+1, rest))
-            | setbtvs (i, (tv as ref (TP.LBOUND{depth=d',index=i',...}))::rest) =
-                (if !debugging
-                 then (say (concat["### setbtvs with: d = ",Int.toString d, ", i = ",Int.toString i,
-				   " -- was: d = ",Int.toString d', ", i = ",Int.toString i',"\n"]))
-                 else ();
-                 tv := TP.LBOUND {depth=d,eq=false,index=i};
-		    (* reset with local values *)
-		 setbtvs (i+1, rest))
-            | setbtvs _ = bug "unexpected tyvar INSTANTIATED in mkPE"
-
-          val _ = setbtvs(0, boundtvs)
-            (* assign LBOUNDs to the boundtvs to mark them as type
-             * parameter variables during translation of exp *)
-
-          val exp' = mkExp(exp, DI.next d)
-            (* increase the depth to indicate that the expression is
-             * going to be wrapped by a type abstraction (TFN); see body *)
-
-          (* [dbm, 6/22/06] Why do we need to restore the original
-             contents of the uninstantiated meta type variables?
-             Only seems to be necessary if a given tyvar gets generalized
-             in two different valbinds. Can we assume that this does not
-             happen (Single Generalization Conjecture)? *)
-
-          (* restore tyvar states to that before the translation *)
-          val _ = ListPair.appEq (op :=) (boundtvs, savedtvs)
-
-          val len = length(boundtvs)
-
-       in TFN(LT.tkc_arg(len), exp')
+(* transPolyExp : Absyn.exp * depth * Types.tyvar list -> PLambda.lexp  (old mkPE)
+ * Translate an expression with (potential) type parameters (boundtvs).
+ * The boundtvs are temporarily set to LBOUNDs with appropriate depth and index
+ * during a call of mkExp, then restored to their previous values. This is done
+ * in case this call of transPolyExp occurs dynamically within an "outer" call
+ * of transPolyExp that sets its own boundtvs which may overlap with
+ * those of this call.
+ * -- exp : Absyn.exp, the expression to be translated with tmv abstracted
+ *      The expression is assumed to be the rhs of a simple var binding (val v = exp)
+ * -- depth : int, the current depth of TFN abstractions (0-based)
+ * -- boundtvs : tyvar list (3rd arg), the generalized tmvs of the expression
+ * QUESTION: Can this happen?  If so, what is an example? 
+ * CONJECTURE: a metatyvar can only be generalized at one declaration level, though
+ * it may be generalized in parallel multiple times in a single declaration (e.g. RVB).
+ * So scopes of a single metatyvar will not be "nested". If so, is the "restoration" of
+ * the tvkinds of "bound tmvs" not necessary? Needs to be justified. *)
+fun transPolyExp (exp, TFNdepth, []) = mkExp(exp, TFNdepth)
+    (* exp is not polymorphic, hence no type abstraction around exp and TFNdepth
+     * is not incremented *)
+  | transPolyExp (exp, TFNdepth, boundtvs) =
+    (* The LBOUND equality property probably does not matter at this point
+     * because typechecking and signature matching are already completed [GK 2/24/08]. *)
+      let val TFNdepth' = TFNdepth + 1  (* TFNdepth incremented for translation of exp *)
+	  val bodyLexp = setBoundTyvars (TFNdepth, boundtvs, (fn () => mkExp (exp, TFNdepth')))
+       in TFN(LT.tkc_arg(length(boundtvs)), bodyLexp)
       end
 
-and mkVBs (vbs, d) =
-  let fun mkVB (VB{pat,exp,boundtvs,...}, body) =
-	  case AbsynUtil.stripPatMarks pat
-            of (VARpat(V.VALvar{access=DA.LVAR v, ...}) |
-                CONSTRAINTpat(VARpat(V.VALvar{access=DA.LVAR v, ...}),_)) =>
-                  (* simple variable pattern: No special case needed for primops [dbm: 5/1/07] *)
-                  LET(v, mkPE(exp, d, boundtvs), body)
+(* transVBs : Absyn.vb list * depth -> PLambda.lexp -> PLambda.lexp *)
+(* implicit _body_: lexp parameter, representing the scope of the vb declarations.
+ * Compound patterns will have been eliminated by match compilation in transMatch,
+ * so the only cases here should be simple VBs with VARpat or WILDpat patterns.
+ * NOTE: there should be a special VB form produced by bindCompile, instead of having
+ *  to examine exp for the special case produced by matchComp. *)
+and transVBs (vbs, d) =
+  let fun transVB (VB{pat, exp, boundtvs,...}, body) =  (* tyvars field of VB not needed *)
+	  let val pat = AU.stripPatMarks pat  (* strip out MARKpat's *)
+	   in (case pat
+		of (VARpat bvar | CONSTRAINTpat(VARpat bvar, _)) =>
+                   (* Simple variable pattern. No special case needed for primops [dbm: 5/1/07] *)
+		   let val (bvarLvar, bvarBtvs) =  (* extract lvar (access) and btvs from bvar *)
+			   (case bvar
+			      of V.VALvar{access=DA.LVAR lvar, btvs, ...} => (lvar, !btvs)
+			       | _ =>  bug "mkVB 1")
+		    in LET(bvarLvar, transPolyExp(exp, d, bvarBtvs), body)
+		   end
+		 | _ => (ppPat pat; bug "transVB -- unexpected compound or wild pat"))
+		   (* can't happen -- after match compilation, all VBs bind a simple variable, or wildcard *)
+	  end (* fun transVB *)
+   in fold transVB vbs
+      (* missing fold(r) argument is the _body_; the return type is lexp -> lexp *)
+  end (* transVBs *)
 
-              | pat =>
-		(* boundtvs is cumulative bound univariables for the whole pattern *)
-		let val (newpat,oldvars,newvars) = aconvertPat(pat, compInfo)
-		      (* this is the only call of aconvertPat; it replaces pattern variables with
-		       * new versions with fresh lvar access values *)
-		    val newVarExps = map (fn v => VARexp(ref v,[])) newvars
-		    val rhsTy = BasicTypes.tupleTy(map (fn (V.VALvar{typ,...}) => !typ) newvars)
-		    val bindRule = RULE(newpat, EU.TUPLEexp(newVarExps))
-		    val defaultRule = RULE(WILDpat,
-					   RAISEexp(CONexp(CoreAccess.getExn env ["Bind"],[]),rhsTy))
-		    val newexp = CASEexp(exp, [bindRule, defaultRule], false)
+(* transRVBs : rvb list * int -> lexp -> lexp *)
+(* mkRVB is rewritten to achieve the effect of the former ElabUtil.wrapRECdec, but post type
+   checking. 
 
-		 in case oldvars
-		     of [] => (* variable-free pattern, implies boundtvs = [], hence no type abs *)
-			  LET(mkv(), mkExp(newexp, d), body) (* the fresh let-bound lvar doesn't occur in body *)
-		      | _ =>
-			let val newVar = mkv() (* new local variable that will be let-bound to newexp *)
-			    fun lookup (tv: Types.tyvar) [] = NONE
-			      | lookup tv ((tv',k)::r) = if tv = tv' then SOME k
-							 else lookup tv r
-			    fun buildDec([], i, body) = body
-			      | buildDec(bvar::rest, i, body) =
-				let val V.VALvar{access=DA.LVAR(lv),btvs,...} = bvar
-				    val btvs = !btvs
-				    (* bound univariables for this particular pattern variable
-				       btvs is a subset of boundtvs -- possibly proper *)
-				    val tvarity = length(btvs)
-				    val defn = case (boundtvs, btvs)
-						of ([],[]) =>
-						   SELECT(i,VAR(newVar))
-						 | (_,[]) =>
-						   SELECT(i,TAPP(VAR(newVar),
-								 map (fn _ => LT.tcc_void) boundtvs))
-						 | _ =>
-						   let val indices = List.tabulate(tvarity, (fn x => x))
-						       (* 0-based index into bound type variable sequence *)
-						       val tvToIndex = ListPair.zip(btvs,indices)
-						       val targs = map (fn tv => case lookup tv tvToIndex
-										  of NONE => LT.tcc_void
-										   | SOME k => LT.tcc_var(1,k))
-								       boundtvs
-						   in TFN(LT.tkc_arg(tvarity),
-							  SELECT(i,TAPP(VAR(newVar),targs)))
-						   end
-				 in buildDec(rest,i+1,LET(lv, defn, body))
-				end
+       rvbs ==>
 
-			   in LET (newVar, mkPE (newexp, d, boundtvs),
-				  buildDec(oldvars, 0, body))
-			  end
-		end
+       local 
+         val fns = let rvbs in (f0, f1, ...)  
+       in
+         val f0' = fns.0      -- TFN((_), SELECT(0, TAPP(fns, f0_tyargs))), 
+	 val f1' = fns.1
+	 ...
+       end
 
-   in fold mkVB vbs
-  end (* mkVBs *)
+   1. extract btvs (btvsLists) from the defined variables (vars).
+   2. Form their "union" to get list of bound tyvars (jointBtvs) for the main variable (fns).
+      There may be overlaps between the btvs lists for the defined functions (f0, f1, ...), so
+      this is not just the concatenation. Does order matter?
+   3. translate the declaration of fns, abstracted wrt jointBtvs using transPolyExp, but the
+      type abstraction is for the entire defn of fns. This produces an lexp of the
+      form TFN(_, FIX rvb* IN fn-var-tuple).
+   3. Construct type argument lists (TV & VOID) for the component functions f0', ,,, using tyargs
+   4  Construct lexp for the wrapped rvb declaration.
 
-and mkRVBs (rvbs, d) =
-  let fun mkRVB (RVB{var=V.VALvar{access=DA.LVAR v, typ=ref ty, btvs, ...},
-                     exp, ...}, (vlist, tlist, elist)) =
-            let val ee = transPolyExp(exp, d) (* was mkPE(exp, d, btvs) *)
-                (* [ZHONG?] we no longer track type bindings at RVB anymore ! *)
-                val vt = toLty d ty
-            in (v::vlist, vt::tlist, ee::elist)
-            end
-        | mkRVB _ = bug "mkRVBs: not a val rec (RVB)"
+  Special Case: single function val recs (recursive or not).  E.g.
 
-      val (vlist, tlist, elist) = foldr mkRVB ([], [], []) rvbs
+   fun f x = x
 
-   in fn b => FIX(vlist, tlist, elist, b)
-  end
+   val rec f = fn x => x
+
+  Translates to?
+
+   val fr = let val rec f = fn x => x in f    (fr : All 'a . 'a -> 'a)
+   val f' = fr
+*)
+and transRVBs (nil, _) = bug "transRVBs - no rbv"
+  | transRVBs ([RVB{var as V.VALvar{access=DA.LVAR defLvar, typ, btvs,...}, exp,...}], d) =
+    (* single function defn, binding defLvar *)
+    let val ([newDefLvar], occurs) = aconvertLvars ([var], [exp])
+     in if occurs
+	then (* recursive case -- produce FIX *)
+	    let val fixLvar = mkv ()  (* fresh lvar to be bound to the FIX lexp -- not used!!! *)
+		val boundTvs = !btvs
+		val numBoundTvs = length boundTvs  (* ??? *)
+		val poly = numBoundTvs > 0
+		fun mkTyArgs (nil, i, tyargs) = rev tyargs
+		  | mkTyArgs (tv::tvs, i, tyargs) = 
+		    mkTyArgs (tvs, i+1, T.VARty(ref(T.LBOUND{depth = d, eq = TU.tyvarIsEq tv, index = i}))::tyargs)
+		val polyTyArgs = mkTyArgs (boundTvs, 0, nil)    (* null boundTvs => null polyTyArgs *)
+		val monoType = TU.applyPoly (!typ, polyTyArgs)  (* de-polymorphize !typ, instantiating with LBOUNDS *)
+		val lty = toLty (if poly then d+1 else d) monoType
+		    (* was d+1; changed to d to fix utils/t1.sml bug. WRONG PLACE! *)
+		val lexp =  (* translate exp without type abstraction, but with LBOUND instantiated boundTvs *)
+		    if poly
+		    then setBoundTyvars(d, boundTvs, (fn () => mkExp (exp, d+1)))
+		    else mkExp (exp, d)
+		val fixLexp = FIX([newDefLvar], [lty], [lexp], VAR newDefLvar)
+		val rvbLexp =
+		    if poly
+		    then TFN(LT.tkc_arg numBoundTvs, fixLexp)      (* <=== BUG! *)
+		    else fixLexp
+(*
+		val argLtycs = List.tabulate (numBoundTvs, (fn k => LT.tcc_var(1,k)))
+		val defn = VAR fixLvar
+		    case boundTvs
+		      of nil => VAR fixLvar
+		       | _ => TFN (LT.tkc_arg numBoundTvs, TAPP(VAR fixLvar, argLtycs))
+*)
+	     in (fn body => LET (defLvar, rvbLexp, body))
+	    end
+        else (* non-recursive case -- translate as though it were a VALdec *)
+	    (fn body => LET(defLvar, transPolyExp(exp, d, !btvs), body))
+    end
+  | transRVBs (rvbs, d) = (* general case with multiple recursive function definitions *)
+    let fun collect (RVB{var as V.VALvar{access=DA.LVAR lvar, typ, btvs, ...}, exp, ...}::rest,
+		     vars, lvars, typs, btvss, exps) =
+	      collect (rest, var::vars, lvar::lvars, !typ::typs, !btvs::btvss, exp::exps)
+	  | collect (nil, vars, lvars, typs, btvss, exps) =
+	      (rev vars, rev lvars, rev typs, rev btvss, rev exps)
+	  | collect _ = bug "transRVB:collect -- bad RVB"
+        val (vars, lvars, typs, btvss, exps) = collect (rvbs, nil, nil, nil, nil, nil)
+	val (newLvars, _) = aconvertLvars (vars, exps)  (* not checking rhs occurrences of vars *)
+        val boundTvs = foldr listUnion [] btvss         (* ordered "union" of btvs lists (duplicates merged) *)
+	val numBoundTvs = length boundTvs
+	val poly = numBoundTvs > 0
+	val voidTycArgs = List.tabulate (numBoundTvs, (fn _ => LT.tcc_void))
+	val fnsLvar = mkv ()  (* fresh lvar to be bound to the tuple of val rec defined functions *)
+	val fntupleLexp = RECORD (map VAR newLvars)
+
+        (* argTys : T.tyvar list -> T.type list *)
+	fun argTys btvs =
+	    mkTyargs (btvs, boundTvs, T.UNDEFty,
+		      (fn (k,tv) => T.VARty(ref(T.LBOUND{depth=d, index=k, eq=TU.tyvarIsEq tv}))))
+				  
+        (* argLtcs : T.tyvar list -> LT.tyc list *)
+        fun argLtcs btvs =
+	    mkTyargs (boundTvs, btvs, LT.tcc_void, (fn (k,_) => LT.tcc_var(1,k)))
+
+	val rvbLexp =
+	    let val lexps =
+		    if poly
+		    then setBoundTyvars (d, boundTvs, (fn () => map (fn e => mkExp (e, d+1)) exps))
+		    else map (fn e => mkExp (e, d)) exps
+		      (* no polymorphism within FIX, so there should be no TFNs introduced *)
+		val ltys = ListPair.map
+			     (fn (ty,btvs) =>
+				 toLty (if poly then d+1 else d)
+				       (TU.applyPoly (ty, argTys btvs)))
+			     (typs, btvss)
+	        val fixLexp = FIX(newLvars, ltys, lexps, fntupleLexp)
+	     in if poly
+		then TFN (LT.tkc_arg numBoundTvs, fixLexp) 
+		else fixLexp
+	    end
+
+	fun buildDec ([], _, _, body) = body
+	  | buildDec (lvar::lvars, btvs::btvss, i, body) =
+	      let val defn = (case (boundTvs, btvs)
+			       of (nil,_) => SELECT (i, VAR fnsLvar)  (* "fnsLvar" not polymorphic *)
+			        | (_,nil) => SELECT (i, TAPP(VAR fnsLvar, voidTycArgs))  (* lvar not polymorphic *)
+				| _ => TFN (LT.tkc_arg (length btvs), (* fnsLvar and lvar both polymorphic *)
+					    SELECT (i, TAPP(VAR fnsLvar, argLtcs btvs))))
+	       in buildDec (lvars, btvss, i+1, LET (lvar, defn, body))
+	      end
+     in (fn body => LET (fnsLvar, rvbLexp, buildDec (lvars, btvss, 0, body)))
+    end
 
 and mkEBs (ebs, d) =
-  let fun g (EBgen {exn=TP.DATACON{rep=DA.EXN(DA.LVAR v), typ, ...},
+  let fun g (EBgen {exn=T.DATACON{rep=DA.EXN(DA.LVAR v), typ, ...},
                     ident, ...}, b) =
               let val nt = toDconLty d typ
                   val (argt, _) = LT.ltd_parrow nt
                in LET(v, ETAG(mkExp(ident, d), argt), b)
               end
-        | g (EBdef {exn=TP.DATACON{rep=DA.EXN(DA.LVAR v), typ, name, ...},
-                    edef=TP.DATACON{rep=DA.EXN(acc), ...}}, b) =
+        | g (EBdef {exn=T.DATACON{rep=DA.EXN(DA.LVAR v), typ, name, ...},
+                    edef=T.DATACON{rep=DA.EXN(acc), ...}}, b) =
               let val nt = toDconLty d typ
                   val (argt, _) = LT.ltd_parrow nt
-               in LET(v, mkAccT(acc, LT.ltc_etag argt, SOME name), b)
+               in LET(v, VAR (transAccessTyped(acc, LT.ltc_etag argt, SOME name)), b)
               end
         | g _ = bug "unexpected exn bindings in mkEBs"
 
    in fold g ebs
   end
 
+(* transVARSELdec : V.var * V.var * int -> lexp -> lexp *)
+and transVARSELdec (pvar, ptupleVar, i) (body: lexp) =
+		  (* ASSERT: VB.boundtvs = !bvar.btvs for the unique pattern variable bvar,
+	           * So it should not matter whether we abstract over the boundtvs of the VB or
+                   * the !btvs of the unique bvar (!btvs) *)
+       let val (pvarLvar, pvarBtvs) =  (* extract lvar (access) and btvs from bvar *)
+	       (case pvar
+		  of V.VALvar{access=DA.LVAR lvar, btvs, ...} => (lvar, !btvs)
+		   | _ =>  bug "mkVB 1")
+	in case ptupleVar
+	     of V.VALvar {access=DA.LVAR ptupleLvar, btvs,...} =>
+		  let val ptupleVarBtvs = !btvs  (* ASSERT: ptupleVarBtvs contains pvarBtvs (as set) *)
+		      val _ = if !debugging
+				then print (concat["transVB: ptupleVar.name = ", S.name(V.varName ptupleVar),
+						   ", ptupleLvar = " ^ LV.lvarName ptupleLvar ^ "\n"])
+				else ()
+		      val _ = checkBoundTvsSubset (pvarBtvs, ptupleVarBtvs)
+		      val defnLexp =
+			    (case (ptupleVarBtvs, pvarBtvs)
+			      of (nil, _) => SELECT(i,VAR ptupleLvar)  (* => null pvarBtvs, so no polymorphism *)
+			       | (_, nil) => (* ptupleVarBtvs non-null, pvarBtvs null; dummy instantiate ptupleVar *)
+				 let val argTvs = List.tabulate (length ptupleVarBtvs, (fn _ => LT.tcc_void))
+				  in SELECT (i, TAPP (VAR ptupleLvar, argTvs))
+				 end
+			       | _ => (* both ptupleVarBtvs and pvarBtvs non null *)
+				 let val pvarArity = length pvarBtvs
+				     val argTvs = mkTyargs (ptupleVarBtvs, pvarBtvs,
+							    LT.tcc_void, (fn (k,_) => LT.tcc_var(1,k)))
+				     val _ = if !debugging
+					     then (print (concat
+						     ["transVB: pvar = ", S.name(V.varName pvar),
+						      "; pvarLvar = ", LV.lvarName pvarLvar,
+						      "\n |pvarBtvs| = ", Int.toString(length(pvarBtvs)),
+						      ", |ptupleVarBtvs| =", Int.toString(length(ptupleVarBtvs)),
+						      "\n argTvs = "]);
+						   ppTycArgs argTvs)
+					     else ()
+				  in TFN(LT.tkc_arg (length pvarBtvs),  (* tuple of M (mono) kinds *)
+					 SELECT(i, TAPP(VAR ptupleLvar, argTvs)))
+				 end)
+		   in LET(pvarLvar, defnLexp, body)
+		  end
+       end (* transVARSELdec *)
 
 (***************************************************************************
  *                                                                         *
@@ -838,81 +1010,117 @@ and mkEBs (ebs, d) =
  *                                                                         *
  ***************************************************************************)
 and mkStrexp (se, d) =
-  let fun g (VARstr s) = mkStr(s, d)
-        | g (STRstr bs) = SRECORD (map (mkBnd d) bs)
-        | g (APPstr {oper, arg, argtycs}) =
+  let fun transStrexp (VARstr s) = mkStr(s, d)
+        | transStrexp (STRstr bs) = SRECORD (map (mkBnd d) bs)
+        | transStrexp (APPstr {oper, arg, argtycs}) =
               let val e1 = mkFct(oper, d)
                   val tycs = map (tpsTyc d) argtycs
                   val e2 = mkStr(arg, d)
                in APP(TAPP(e1, tycs), e2)
               end
-        | g (LETstr (dec, b)) = mkDec (dec, d) (g b)
-        | g (MARKstr (b, reg)) = withRegion reg g b
-
-   in g se
+        | transStrexp (LETstr (dec, b)) = mkDec (dec, d) (transStrexp b)
+        | transStrexp (MARKstr (b, reg)) = withRegion reg transStrexp b
+   in transStrexp se
   end
 
 and mkFctexp (fe, d) =
-  let fun g (VARfct f) = mkFct(f, d)
-        | g (FCTfct {param as M.STR { access, ... }, argtycs, def }) =
+  let fun transFctexp (VARfct f) = mkFct(f, d)
+        | transFctexp (FCTfct {param as M.STR { access, ... }, argtycs, def }) =
 	  (case access of
 	       DA.LVAR v =>
                let val knds = map tpsKnd argtycs
                    val nd = DI.next d  (* reflecting type abstraction *)
                    val body = mkStrexp (def, nd)
-                   val hdr = buildHdr v
+                   val hdr = buildHeader v
                (* binding of all v's components *)
                in
 		   TFN(knds, FN(v, strLty(param, nd, compInfo), hdr body))
                end
 	     | _ => bug "mkFctexp: unexpected access")
-        | g (LETfct (dec, b)) = mkDec (dec, d) (g b)
-        | g (MARKfct (b, reg)) = withRegion reg g b
-        | g _ = bug "unexpected functor expressions in mkFctexp"
-
-   in g fe
+        | transFctexp (LETfct (dec, b)) = mkDec (dec, d) (transFctexp b)
+        | transFctexp (MARKfct (b, reg)) = withRegion reg transFctexp b
+        | transFctexp _ = bug "unexpected functor expressions in mkFctexp"
+   in transFctexp fe
   end
+
+(* new mkStrbs
+and mkStrbs (sbs, d) =
+  let fun transSTRB (STRB{name, str=M.STR { access, sign, rlzn, prim }, def}, b) =
+	  (case access
+	     of DA.LVAR v =>  (* binding of all v's components *)
+                  let val hdr = buildHeader v
+                   in LET(v, mkStrexp(def, d), hdr b)
+                  end
+	      | _ => bug "mkStrbs: unexpected access")
+        | transSTRB _ = bug "unexpected structure bindings in mkStrbs *"
+  in fold transSTRB sbs
+  end
+*)
 
 and mkStrbs (sbs, d) =
-  let fun g (STRB{str=M.STR { access, ... }, def, ... }, b) =
-	  (case access of
-	       DA.LVAR v =>
-               let val hdr = buildHdr v
-               (* binding of all v's components *)
-               in
-		   LET(v, mkStrexp(def, d), hdr b)
-               end
-	     | _ => bug "mkStrbs: unexpected access")
-        | g _ = bug "unexpected structure bindings in mkStrbs"
-  in fold g sbs
+  let fun transSTRB (STRB {str, def, ... }, b) =
+	  (case str
+	    of M.STR {access, ...} =>
+	       (case access
+		 of DA.LVAR v =>  (* binding of all v's components *)
+                    let val hdr = buildHeader v
+                    in LET(v, mkStrexp(def, d), hdr b)
+                    end
+		  | _ => bug "mkStrbs: unexpected access")
+	       | M.STRSIG _ => bug "mkStrbs: str=STRSIG"
+	       | M.ERRORstr => bug "mkStrbs: str=ERRORstr")
+  in fold transSTRB sbs
   end
 
+(* old version saved --
+and mkStrbs (sbs, d) =
+  let fun transSTRB (STRB{str=M.STR { access, ... }, def, ... }, b) =
+	  (case access
+	     of DA.LVAR v =>  (* binding of all v's components *)
+                  let val hdr = buildHeader v
+                   in LET(v, mkStrexp(def, d), hdr b)
+                  end
+	      | _ => bug "mkStrbs: unexpected access")
+        | transSTRB (STRB{str=M.STRSIG _, ...}, b) =
+	    bug "mkStrbs: str=STRSIG"
+        | transSTRB (STRB{str=M.ERRORstr, ...}, b) =
+	    bug "mkStrbs: str=ERRORstr"
+(*        | transSTRB _ = bug "unexpected structure bindings in mkStrbs" *)
+  in fold transSTRB sbs
+  end
+*)
+      
 and mkFctbs (fbs, d) =
-  let fun g (FCTB{fct=M.FCT { access, ... }, def, ... }, b) =
-	  (case access of
-	       DA.LVAR v =>
-               let val hdr = buildHdr v
-               in
-		   LET(v, mkFctexp(def, d), hdr b)
-               end
-	     | _ => bug "mkFctbs: unexpected access")
-        | g _ = bug "unexpected functor bindings in mkStrbs"
-  in fold g fbs
+  let fun transFCTB (FCTB{fct=M.FCT { access, ... }, def, ... }, b) =
+	  (case access
+	     of DA.LVAR v =>
+		let val hdr = buildHeader v
+                 in LET(v, mkFctexp(def, d), hdr b)
+		end
+	      | _ => bug "mkFctbs: unexpected access")
+        | transFCTB _ = bug "unexpected functor bindings in mkFctbs"
+  in fold transFCTB fbs
   end
 
 
 (***************************************************************************
  * Translating absyn decls and exprs into lambda expression:               *
  *                                                                         *
- *    val mkExp : A.exp * DI.depth -> PLambda.lexp                         *
  *    val mkDec : A.dec * DI.depth -> PLambda.lexp -> PLambda.lexp         *
+ *    val mkExp : A.exp * DI.depth -> PLambda.lexp                         *
  *                                                                         *
  ***************************************************************************)
 and mkDec (dec, d) =
-  let fun mkDec0 (VALdec vbs) = mkVBs(vbs, d)
-        | mkDec0 (VALRECdec rvbs) = mkRVBs(rvbs, d)
+(* "let dec in body": mkDec produces a function to be applied to the translation of body,
+ * to translate the entire let expression *)
+  let (* mkDec0 : AS.dec -> (lexp -> lexp) *)
+      fun mkDec0 (VALdec vbs) = transVBs(vbs, d)
+        | mkDec0 (VALRECdec rvbs) = transRVBs(rvbs, d)
 	| mkDec0 (DOdec exp) = (fn body => LET(mkv(), mkExp(exp, d), body))
-        | mkDec0 (ABSTYPEdec{body,...}) = mkDec0 body
+        | mkDec0 (ABSTYPEdec{body,...}) =
+	  ((* print "mkDec:ABSTYPEdec:body = ";
+	   ppDec body; *)
+	   mkDec0 body)
         | mkDec0 (EXCEPTIONdec ebs) = mkEBs(ebs, d)
         | mkDec0 (STRdec sbs) = mkStrbs(sbs, d)
         | mkDec0 (FCTdec fbs) = mkFctbs(fbs, d)
@@ -924,15 +1132,15 @@ and mkDec (dec, d) =
               end
         | mkDec0 (OPENdec xs) =
               let (* special hack to make the import tree simpler *)
-                  fun mkos (_, s as M.STR { access = acc, ... }) =
-                      if extern acc then
-                          let val _ = mkAccT(acc, strLty(s, d, compInfo), NONE)
-                          in ()
-                          end
+                  fun mkos (_, s as M.STR { access, ... }) =
+                      if extern access then
+                          (transAccessTyped (access, strLty(s, d, compInfo), NONE);
+                          ())
                       else ()
                     | mkos _ = ()
                in app mkos xs; ident
               end
+	| mkDec0 (VARSELdec args) = transVARSELdec args
         | mkDec0 _ = ident
    in mkDec0 dec
   end
@@ -941,11 +1149,109 @@ and mkExp (exp, d) =
   let val tTyc = toTyc d
       val tLty = toLty d
 
-      fun mkRules rules = map (fn (RULE(p, e)) => (fillPat(p, d), mkExp0 e)) rules
+      (* mkDcon : Types.datacon -> Plambda.dataconstr *)
+      fun mkDcon (T.DATACON {name, rep, typ, ...}) =
+	  let val lty = toDconLty d typ
+	   in (name, mkRep (rep, lty, name), lty)
+	  end
+
+(* patToCon : AS.pat * -> Plambda.con
+ * maps a "shallow" pattern to a Plambda.con *)
+(* ### REWRITE AND MERGE THESE TWO COMMENTS -- mostly obsolete ### *)
+(* How does the fresh lvar introduced (old translate.sml) in the CONpat and APPpat
+ * cases get connected to the rhs expression of rules? Is a lambda-abstraction over
+ * the new lvar wrapped around the corresponding rhs?  Or is a Let-binding
+ * of the lvar to the argument of the constuctor (unit for constant constructors)
+ * introduced somewhere (or implicit in the semantics of SWITCH)?  We have already
+ * introduced svars that represent the argument to non-constant constructors. *)
+    (* The pattern argument is a "shallow" pattern, i.e. a constant or a
+     * datacon applied to a variable.
+     * How does the fresh lvar introduced in the CONpat case get
+     * It doesn't matter since there is nothing for it to bind to in
+     * a destructed CONpat.
+     * In the old match compiler, fresh lvars created for CONpat and APPpat
+     * are mapped by an "environment" from a path identifying the pattern point.
+     * Here we get the lvar from the var (VALvar) in the shallow pattern for
+     * APPpat and VECLENpat. This variable is already refered to in the corresponding
+     * rule rhs. *)
+(* patToCon has been moved inside function mkExp to give it access to the tTyc type
+ * translation function. *)
+
+(*
+      (* patToCon : AS.pat * -> Plambda.con *)
+      (* this function was brought inside mkExp to give it access to tTyc above *)
+      fun patToCon pat =
+	  (case pat
+	     of CONpat (datacon, tvs) =>
+		  let val dummyLvar = mkv()
+			(* fresh lvar to be bound to nonexistent datacon "argument". This
+			 * var bindings should be a separate var option component in SWITCH
+			 * cases. *)
+		      val nts = map (tTyc o T.VARty) tvs
+		   in DATAcon (mkDcon datacon, nts, dummyLvar)
+		  end
+	      | APPpat (datacon, tvs, VARpat(V.VALvar{access=DA.LVAR lvar,...})) =>
+		  let val nts = map (tTyc o T.VARty) tvs
+		   in DATAcon (mkDcon datacon, nts, lvar)
+		  end
+	      | NUMpat (_, lit) => transNum lit
+	      | STRINGpat s => STRINGcon s
+	      | CHARpat c => bug "patToCon: CHARpat found (should be NUMpat)" 
+	      | pat => (ppPat pat;
+			bug "patToCon: unexpected pattern")
+	    (* end case *))
+*)
+
+    (* conToCon : AS.con * mvar option -> PLambda.con
+     *  translates Absyn.con to PLambda.con incorporating a variable naming
+     *  the destruct of a datacon-headed value (even if the datacon is a constant!)
+     *  -- mvarOp will be SOME mvar if the con is a non-constant datacon or VLENcon,
+     *  NONE for constant datacon. The mvar, if present, was produced by
+     *  Generate.generate..genDectree.
+     * NOTE: conToCon does nothing with the dcvarOp in the vector length case where
+     *  the con is INTcon. *)
+    fun conToCon (con: AS.con, mvarOp: V.var option) =  (* uses toLty and toTyc *)
+            (* mkDataconstr : T.datacon -> PL.dataconstr
+	     *  uses toLty arg of generate; used only in conToCon *)
+	let fun mkDataconstr (T.DATACON {name, rep, typ, ...}: T.datacon) : PL.dataconstr =
+	    let val lty = (* translation of the datacon type *)
+		    (case typ
+		       of T.POLYty{sign, tyfun=T.TYFUN{arity, body}} =>
+			  if BT.isArrowType body then tLty typ
+			  else tLty (T.POLYty{sign=sign,
+						tyfun=T.TYFUN{arity=arity,
+							       body=BT.-->(BT.unitTy, body)}})
+			| _ => if BT.isArrowType typ then tLty typ
+			       else tLty (BT.--> (BT.unitTy, typ)))
+	     in (name, rep, lty)
+	    end
+	 in case con
+	      of AS.DATAcon (datacon, tyvars) =>
+		  let val tycvars = map (tTyc o T.VARty) tyvars
+		      val lvar = getOpt (Option.map V.varToLvar mvarOp, LV.mkLvar())
+			  (* get argument mvar from mvarOp = SOME mvar when the datacon is not
+			     a constant, otherwise when datacon is a constant, mvarOp = NONE, and
+			     we generate a new, but redundant, mvar that is required to construct
+			     a PL.DATAcon. Probably don't need to pass argument mvar via DATAcon. *)
+		   in PL.DATAcon (mkDataconstr datacon, tycvars, lvar)
+		  end
+	       | AS.INTcon i => PL.INTcon i
+	       | AS.WORDcon w => PL.WORDcon w
+	       | AS.STRINGcon s => PL.STRINGcon s
+	       | AS.VLENcon(i, t) => bug "conToCon: VLENcon"
+	end
+
+
+(*      and transRULE (RULE(pat, rhs)) = (patToCon pat, mkExp0 rhs) -- replaced by ... *)
+
+      (* transSRULE : srule -> PL.con * PL.lexp *)
+      (* translate the rhs expression of an SRULE and translate AS.con into
+       * PL.con, incorporating dcvarOp=SOME v into DATAcon using conToCon. *)
+      and transSRULE (SRULE(con, dcvarOp, rhs)) = (conToCon (con, dcvarOp), mkExp0 rhs)
 
       and mkExp0 (VARexp (ref v, ts)) =
             (debugmsg ">>mkExp VARexp";
-	     mkVE(v, map TP.VARty ts, d))
+	     mkVE(v, map T.VARty ts, d))
         | mkExp0 (CONexp (dc, ts)) =
 	  (let val _ = debugmsg ">>mkExp CONexp: "
 	       val c = mkCE(dc, ts, NONE, d)
@@ -967,27 +1273,25 @@ and mkExp (exp, d) =
 	    else if TU.equalType (ty, BT.word8Ty) then WORD{ival = ival, ty = Tgt.defaultIntSz}
 	    else if TU.equalType (ty, BT.word32Ty) then WORD{ival = ival, ty = 32}
 	    else if TU.equalType (ty, BT.word64Ty) then WORD{ival = ival, ty = 64}
-	      else (ppType ty; bug "translate NUMexp"))
+	    else (ppType "NUMexp: " ty; bug "translate NUMexp"))
 (* REAL32: handle 32-bit reals *)
         | mkExp0 (REALexp(_, {rval, ty})) = REAL{rval = rval, ty = Tgt.defaultRealSz}
         | mkExp0 (STRINGexp s) = STRING s
 (* QUESTION: do we want to map characters to word8? *)
 (** NOTE: the following won't work for cross compiling to multi-byte characters **)
-        | mkExp0 (CHARexp s) =
-	    INT{
-	      ival = IntInf.fromInt(Char.ord(String.sub(s, 0))),
-	      ty = Tgt.defaultIntSz
-	    }
+        | mkExp0 (CHARexp c) = INT{ival = IntInf.fromInt (Char.ord c),
+				   ty = Tgt.defaultIntSz}
         | mkExp0 (RECORDexp []) = unitLexp
         | mkExp0 (RECORDexp xs) =
-             if sorted xs then RECORD (map (fn (_,e) => mkExp0 e) xs)
-             else let val vars = map (fn (l,e) => (l,(mkExp0 e, mkv()))) xs
-                      fun bind ((_,(e,v)),x) = LET(v,e,x)
-                      val bexp = map (fn (_,(_,v)) => VAR v) (sortrec vars)
-                   in foldr bind (RECORD bexp) vars
-                  end
+            if sorted xs then RECORD (map (fn (_,e) => mkExp0 e) xs)
+            else let val vars = map (fn (l,e) => (l,(mkExp0 e, mkv()))) xs
+                     fun bind ((_,(e,v)),x) = LET(v,e,x)
+                     val bexp = map (fn (_,(_,v)) => VAR v) (sortrec vars)
+                  in foldr bind (RECORD bexp) vars
+                 end
 
-        | mkExp0 (SELECTexp (LABEL{number=i,...}, e)) = SELECT(i, mkExp0 e)
+        | mkExp0 (RSELECTexp (exp,i)) =  (* record selection, no polymorphism *)
+	    SELECT(i, mkExp0 exp)
 
         | mkExp0 (VECTORexp ([], ty)) =
              TAPP(coreAcc "vector0", [tTyc ty])
@@ -999,6 +1303,19 @@ and mkExp (exp, d) =
               in foldr bind (VECTOR (bexp, tc)) vars
              end
 
+        | mkExp0 (VSELECTexp (exp, elemTy, index)) =
+	    let val tc = tTyc elemTy
+		val lt_sub =
+                    let val vecTyc = LT.ltc_vector (LT.ltc_tv 0)
+                    in LT.ltc_poly([LT.tkc_mono],
+				   [LT.ltc_parrow(LT.ltc_tuple [vecTyc, LT.ltc_int],
+						  LT.ltc_tv 0)])
+                    end
+		val indexLexp = INT{ival = IntInf.fromInt index, ty = Target.defaultIntSz}
+	     in APP(PRIM(PO.SUBSCRIPTV, lt_sub, [tc]),
+		    RECORD[ mkExp0 exp, indexLexp ])
+            end
+
         | mkExp0 (SEQexp [e]) = mkExp0 e
         | mkExp0 (SEQexp (e::r)) = LET(mkv(), mkExp0 e, mkExp0 (SEQexp r))
 
@@ -1007,33 +1324,111 @@ and mkExp (exp, d) =
         | mkExp0 (CONSTRAINTexp (e,_)) = mkExp0 e
 
         | mkExp0 (RAISEexp (e, ty)) = mkRaise(mkExp0 e, tLty ty)
-        | mkExp0 (HANDLEexp (e, (l, ty))) =
-             let val rootv = mkv()
-                 fun f x = FN(rootv, tLty ty, x)
-                 val l' = mkRules l
-              in HANDLE(mkExp0 e, MC.handCompile(env, l', f,
-                                            rootv, toTcLt d, complain,
-					    genintinfswitch))
+
+        | mkExp0 (HANDLEexp (baseExp, (rules, lhsTy, rhsTy))) =
+	    (case rules
+	       of [RULE(VARpat exnvar, handlerExp)] =>
+		    (case V.varAccess exnvar
+		       of DA.LVAR exnlvar =>
+			    HANDLE (mkExp0 baseExp, FN(exnlvar, tLty lhsTy, mkExp0 handlerExp))
+			| _ => bug "mkExp0:HANDLEexp:exnvar:access")
+		| _ => bug "mkExp0:HANDLEexp")
+
+        | mkExp0 (FNexp (rules, argty, resty)) =
+	     (* ty is the type of the patterns (lhs) of the rules, produced
+	      * by the type checker for FNexp *)
+             (case rules
+	        of [RULE(pat, rhs)] =>  (* expect single rule, produced by match compilation *)
+		     (case pat
+		       of VARpat matchVar =>
+			  (case V.varAccess matchVar
+		            of DA.LVAR paramLvar =>
+			         FN (paramLvar, tLty argty, mkExp0 rhs)
+			     | _ => bug "mkExp0:FNexp:matchVar.access not LVAR")
+			| _ => (ppPat pat; bug "mkExp0:FNexp:non-variable pattern"))
+		 | r1::r2::_ => bug "mkExp0:FNexp:multiple rules"
+		 | _ => bug "mkExp0:FNexp:WTF")
+
+        (* For SWITCHexp, we translate to SWITCH lexp except for special cases of
+         * REF and SUSP scrutinees.
+         * NOTE: translate should never see an Absyn.CASEexp, FUNexp, or handler match.
+	 * All CASEexp's, etc. are translated by match compilation after type checking.
+	 * Source matches (FNexp, CASEexp, HANDLEexp) are translated by the MC
+         * into a combination of SWITCHexp, VSWITCHexp and LETexp.
+         * The SWITCHes are "shallow" case expressions with AS.con (constructor/constants)
+	 * as discriminators in its srules or "cases". An srule has the form
+	 * SRULE (con, deconvar option, rhsexp) where con can be a constant
+	 * (INTcon, WORDcon, STRINGcon or constant DATAcon), in which case the
+	 * deconvar option is NONE (no deconstruction), or a nonconstant
+	 * DATAcon(datacon,_), in which case the deconvar option is SOME var,
+         * where the var gets bound to the decon[datacon] of the datatype value.
+         * The rhs expression in this deconl[datacon] case will use the decon variable
+         * to refer to the constructor argument (the decon of the switch subject wrt this
+	 * datacon).
+	 * The special single (pseudo-) constructor pattern cases involving
+         * the "ref" and "susp" constructors, and switching on
+         * intinf constants are treated as special cases. For all other cases,
+         * immediately builds a PLambda.SWITCH.
+	 * The defaultOp arg will be SOME when the srule cons are not
+         * exhaustive and the underlying OR node had default rules (some values matching
+	 * via variables or wildcards).
+	 * NOTE: the scrutinee expression is either a VARexp(ref(var),[]) where var has
+	 *  LVAR access (it is a match compiler administrative variable introduced to denote
+	 *  intermediate values during matching), or such a var expression wrapped in
+	 *  RSELECTexp and VSELECTexp selections.
+	 * ASSERT: length srules > 0 *)
+        | mkExp0 (SWITCHexp (scrutinee: exp, srules, defaultOp)) =
+	     (* non-degenerate case, multiple rules *)
+             let val scrutineeLexp = mkExp0 scrutinee (* was V.varToLvar scrutinee *)
+		 val SRULE(con, _, _) :: _ = srules  (* get con of first rule *)
+		 val consig = AU.conToSign con
+		 val trules as ((con1, lexp1) :: _) = map transSRULE (rev srules)  (* why rev ??? *)
+		 val defaultOp' = Option.map mkExp0 defaultOp
+             in case con1
+		 of DATAcon((_, DA.REF, lt), ts, lvar) =>
+		      (* ref pseudo-constructor, single, hence unique rule *)
+		      LET(lvar,
+			  APP (PRIM (Primop.DEREF, LT.lt_swap lt, ts), scrutineeLexp),
+			  lexp1)
+		  | DATAcon((_, DA.SUSP(SOME(_, DA.LVAR f)), lt), ts, lvar) =>
+		      (* susp pseudo-constructor, single, hence unique rule *)
+		      let val localLvar = mkv()
+		      in LET(lvar,
+			     LET(localLvar, TAPP(VAR f, ts), APP(VAR localLvar, scrutineeLexp)),
+			     lexp1)
+		      end
+		  | INTcon{ty=0, ...} => (* IntInf.int constant *)
+		      let fun strip (INTcon{ty=0, ival}, lexp) = (ival, lexp)
+			    | strip _ = bug "genswitch - INTINFcon"
+		      in genintinfswitch (scrutineeLexp, map strip trules,
+					  Option.valOf defaultOp')
+		      end
+		  | _ => SWITCH(scrutineeLexp, consig, trules, defaultOp')
              end
 
-        | mkExp0 (FNexp (l, ty)) =
-             let val rootv = mkv()
-                 fun f x = FN(rootv, tLty ty, x)
-              in MC.matchCompile (env, mkRules l, f, rootv, toTcLt d,
-				  complain, genintinfswitch)
-             end
+        (* VSWITCHexp:
+	 *  srules for vector switches are of the form SRULE(INTcon n, NONE, exp) *)  
+	| mkExp0 (VSWITCHexp (scrutinee: exp, elemType, srules, default)) = 
+	    let val scrutineeLexp = mkExp0 scrutinee  (* V.varToLvar scrutinee *)
+		val lengthLvar = mkv()  (* fresh lvar to be bound to the length of the vector *)
+(*                val scrutTy = V.varType scrutinee
+		(* val _ = (ppType "Translate.mkExp0[VSWITCH]: scrutTy = " scrutTy; newline()) *)
+		val elemType = TU.vectorElemTy scrutTy
+                               handle exn =>
+				      (ppType "Translate.mkExp0[VSWITCHexp]" scrutTy; newline();
+				       raise exn)
+*)
+		val elemtyc = tTyc elemType
+		val lt_len = LT.ltc_poly([LT.tkc_mono],
+					 [LT.ltc_parrow(LT.ltc_tv 0, LT.ltc_int)])
+		val vectortyc = LT.tcc_vector elemtyc
+	     in LET(lengthLvar,
+		    APP(PRIM(PO.LENGTH, lt_len, [vectortyc]), scrutineeLexp),
+		    SWITCH(VAR lengthLvar, DA.CNIL, map transSRULE srules, SOME(mkExp0 default)))
+	    end
 
-        | mkExp0 (CASEexp (ee, l, isMatch)) =
-             let val rootv = mkv()
-                 val ee' = mkExp0 ee
-                 fun f x = LET(rootv, ee', x)
-                 val l' = mkRules l
-              in if isMatch
-                 then MC.matchCompile (env, l', f, rootv, toTcLt d,
-				       complain, genintinfswitch)
-                 else MC.bindCompile (env, l', f, rootv, toTcLt d,
-				      complain, genintinfswitch)
-             end
+	| mkExp0 (LETVexp (var, definiens, body)) = 
+	    LET(V.varToLvar var, mkExp0 definiens, mkExp0 body)
 
 	| mkExp0 (IFexp { test, thenCase, elseCase }) =
 	    COND (mkExp0 test, mkExp0 thenCase, mkExp0 elseCase)
@@ -1055,24 +1450,24 @@ and mkExp (exp, d) =
 		FIX ([fv], [lt_u_u], [body], APP (VAR fv, unitLexp))
 	    end
 
-        | mkExp0 (LETexp (dc, e)) = mkDec (dc, d) (mkExp0 e)
+        | mkExp0 (LETexp (dec, body)) = mkDec (dec, d) (mkExp0 body)
 
         | mkExp0 e =
-             EM.impossibleWithBody "untranslateable expression"
-              (fn ppstrm => (PP.string ppstrm " expression: ";
-                            PPAbsyn.ppExp (env,NONE) ppstrm (e, !ppDepth)))
+            EM.impossibleWithBody "untranslateable expression:\n  "
+              (fn ppstrm => (PPAbsyn.ppExp (env,NONE) ppstrm (e, !ppDepth)))
 
    in mkExp0 exp
   end
 
+(* DBM: are tranIntInf and wrapII still relevant? Relation with genintinfswitch? *)
 and transIntInf d s =
     (* This is a temporary solution.  Since IntInf literals
      * are created using a core function call, there is
      * no indication within the program that we are really
      * dealing with a constant value that -- in principle --
      * could be subject to such things as constant folding. *)
-    let val consexp = CONexp (BT.consDcon, [ref (TP.INSTANTIATED BT.wordTy)])
-	fun build [] = CONexp (BT.nilDcon, [ref (TP.INSTANTIATED BT.wordTy)])
+    let val consexp = CONexp (BT.consDcon, [ref (T.INSTANTIATED BT.wordTy)])
+	fun build [] = CONexp (BT.nilDcon, [ref (T.INSTANTIATED BT.wordTy)])
 	  | build (d :: ds) = let
 	      val i = Word.toIntX d
 	      in
@@ -1081,19 +1476,20 @@ and transIntInf d s =
 		    build ds
 		  ])
 	      end
-	fun mkSmallFn s = coreAcc(if LN.isNegative s then "makeSmallNegInf" else "makeSmallPosInf")
-	fun mkFn s = coreAcc(if LN.isNegative s then "makeNegInf" else "makePosInf")
+	fun mkSmallFn s =
+	      coreAcc(if LN.isNegative s then "makeSmallNegInf" else "makeSmallPosInf")
+	fun mkFn s =
+	      coreAcc(if LN.isNegative s then "makeNegInf" else "makePosInf")
 	fun small w =
 	      APP (mkSmallFn s,
 		mkExp (
 		  NUMexp("<lit>", {ival = IntInf.fromInt (Word.toIntX w), ty = BT.wordTy}),
 		  d))
-        in
-	  case LN.repDigits s
-           of [] => small 0w0
-	    | [w] => small w
-	    | ws => APP (mkFn s, mkExp (build ws, d))
-        end
+     in case LN.repDigits s
+          of [] => small 0w0
+	   | [w] => small w
+	   | ws => APP (mkFn s, mkExp (build ws, d))
+    end
 
 (* Wrap bindings for IntInf.int literals around body. *)
 fun wrapII body = let
@@ -1110,6 +1506,7 @@ fun wrapPidInfo (body, pidinfos) =
               | p2itree (NAMED _) = ImportTree.ITNODE []
          in map (fn (p, pi) => (p, p2itree pi)) pidinfos
         end
+
 (*
       val _ = let val _ = say "\n ****************** \n"
                   val _ = say "\n the current import tree is :\n"

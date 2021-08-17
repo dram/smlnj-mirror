@@ -72,15 +72,6 @@ sig
 (* get rid of INSTANTIATED indirections throughout a type *)
   val compressTy : Types.ty -> unit
 
-(* "occurrence" or level (lambda depth) tracking for type generalization
- * -- open Occ *)
-  type occ
-  val Abstr : occ -> occ
-  val LetDef: occ -> occ
-  val Root : occ
-  val lamdepth : occ -> int
-  val toplevel : occ -> bool
-
   val instantiatePoly : Types.ty -> Types.ty * Types.tyvar list
 
   val compareTypes : Types.ty * Types.ty -> bool

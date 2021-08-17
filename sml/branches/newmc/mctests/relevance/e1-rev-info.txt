@@ -1,0 +1,105 @@
+tt/e1.sml, revmc
+
+(* e1.sml *)
+
+fun f x =
+    case x
+     of (_,_) :: (_,_) :: (_,_) :: _ => 0
+      | nil => 1;
+
+
+TIME[makeProtoAndor, e1.sml:4.5-6.17]
+   usr: 4, sys: 0
+
+TIME[Andor.makeAndor, e1.sml:4.5-6.17]
+   usr: 3, sys: 0
+
+** matchComp: andor
+  OR 0 {} CSIG(1,1)
+     :: AND 1
+        AND 2
+           VAR 3
+           VAR 4
+        OR 5 {} CSIG(1,1)
+           :: AND 6
+              AND 7
+                 VAR 8
+                 VAR 9
+              OR 10 {} CSIG(1,1)
+                 :: AND 11
+                    AND 12
+                       VAR 13
+                       VAR 14
+                    VAR 15
+     nil CONST
+
+TIME[makeDectree, e1.sml:4.5-6.17]
+   usr: 4, sys: 1
+
+** matchComp: dectree = 
+  CHOICE 0 CSIG(1,1) 
+     :: CHOICE 5 CSIG(1,1) 
+        :: CHOICE 10 CSIG(1,1) 
+           :: RHS 0
+           * FAIL
+        * FAIL
+     nil RHS 1
+
+TIME[genMatch, e1.sml:4.5-6.17]
+   usr: 30, sys: 0
+
+** matchComp: code = 
+  v8 = FN(v7: TYC({}),(I63)0)         -- RHS 0
+    v10 = FN(v9: TYC({}),(I63)1)      -- RHS 1
+      SWI v11
+       of ::.v12 =>
+	     v14 = v12[0]
+	       v13 = v12[1]
+		 v16 = v14[0]
+		   v15 = v14[1]
+		     SWI v13
+		      of ::.v17 =>
+			    v19 = v17[0]
+			      v18 = v17[1]
+			        v21 = v19[0]
+				  v20 = v19[1]
+				    SWI v18
+				     of ::.v22 =>
+				           v24 = v22[0]
+					     v23 = v22[1]
+					       v26 = v24[0]
+					         v25 = v24[1]
+					           APP(v8, RCD())   -- RHS 0
+				        _ => raise Match            -- FAIL
+			_ => raise Match                            -- FAIL
+       nil.v33 => APP(v10, RCD())   -- RHS 1
+  
+"raise Match" = 
+  RAISE(TYC(PRIM(I63)),
+	APP(PRM(markexn, TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []),
+	    RCD(CON((Match,EXNLVAR(5),TYC(AR[rr]([{}], [PRIM(EXN)]))), [], RCD()),
+		"e1.sml:4.5-6.17")))
+  
+andor stats:
+  total = 16
+  #AND  = 6
+  #OR   = 3
+  #VAR  = 7
+
+dectree stats:
+  #CHOICE = 3
+  #RHS    = 2
+  #FAIL   = 2
+
+lvars:
+  initial = 11
+  final   = 33
+  total   = 23
+
+NOTE: what happened to the lvars between 26 and 33?
+
+e1.sml:4.5-6.17 Warning: match nonexhaustive
+          (_,_) :: (_,_) :: (_,_) :: _ => ...
+  
+
+val f = fn : ('a * 'b) list -> int

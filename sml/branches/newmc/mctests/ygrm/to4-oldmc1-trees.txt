@@ -1,0 +1,221 @@
+oldmc1:
+
+ use "to4.sml";
+[opening to4.sml]
+** andor:
+  AND {}
+     OR {}
+        _3 {3} 
+        _2 {2} 
+        _1 {1} 
+        _0 {0} 
+     OR {2}
+        :: {0,1,3} AND {}
+           AND {}
+              OR {}
+                 C5 {3} VAR {3}
+                 C4 {1} VAR {1}
+                 C2 {0} VAR {0}
+              VAR {1}
+              VAR {0,1,3}
+           OR {}
+              :: {0,1,3} AND {}
+                 AND {}
+                    OR {}
+                       C3 {1} VAR {1}
+                    VAR {1,3}
+                    VAR {}
+                 OR {1,3}
+                    :: {0} AND {}
+                       AND {}
+                          OR {}
+                             C3 {0} VAR {0}
+                          VAR {}
+                          VAR {}
+                       OR {}
+                          :: {0} AND {}
+                             AND {}
+                                OR {}
+                                   C1 {0} VAR {0}
+                                VAR {0}
+                                VAR {}
+                             VAR {0}
+
+** dectree:
+  CASEdt @ <0>
+     _3 CASEdt @ <1>
+        :: CASEdt @ <1.::.1>
+           :: CASEdt @ <0.0.::.1>
+              C5 RHS 3
+              * RHS 4
+           * RHS 4
+        * RHS 4
+     _2 RHS 2
+     _1 CASEdt 1 CSIG(1,1) 
+        :: CASEdt 1.::.1
+           :: CASEdt 0.0.::.1
+              C4 CASEdt 0.0.::.1.::.1
+                 C3 RHS 1
+                 * RHS 4
+              * RHS 4
+           * RHS 4
+        * RHS 4
+     _0 CASEdt 1
+        :: CASEdt 1.::.1
+           :: CASEdt 0.0.::.1
+              C2 CASEdt 1.::.1.::.1
+                 :: CASEdt 0.0.::.1.::.1.::.1
+                    C3 CASEdt 1.::.1.::.1.::.1
+                       :: CASEdt 0.0.::.1.::.1.::.1.::.1
+                          C1 RHS 0
+                          * RHS 4
+                       * RHS 4
+                    * RHS 4
+                 * RHS 4
+              * RHS 4
+           * RHS 4
+        * RHS 4
+     * RHS 4
+
+** matchComp: code = 
+  v37 =
+        FN(v38:
+           TYC({{},PRIM(I63),{},{},PRIM(I63),TCAP(list,
+                                                  [{svalue,PRIM(I63),PRIM(I63)}])}),
+           v20 = v38[0]
+             v19 = v38[1]
+               v18 = v38[2]
+                 v17 = v38[3]
+                   v16 = v38[4]
+                     v15 = v38[5]
+                       (I63)0)
+    v35 =
+          FN(v36:
+             TYC({{},PRIM(I63),PRIM(I63),{},PRIM(I63),TCAP(list,
+                                                           [{svalue,PRIM(I63),PRIM(I63)}])}),
+             v14 = v36[0]
+               v13 = v36[1]
+                 v12 = v36[2]
+                   v11 = v36[3]
+                     v10 = v36[4]
+                       v9 = v36[5]
+                         (I63)1)
+      v34 = FN(v8: TYC(TCAP(list, [{svalue,PRIM(I63),PRIM(I63)}])),(I63)2)
+        v32 =
+              FN(v33:
+                 TYC({{},PRIM(I63),PRIM(I63),TCAP(list,
+                                                  [{svalue,PRIM(I63),PRIM(I63)}])}),
+                 v7 = v33[0]
+                   v6 = v33[1]
+                     v5 = v33[2]
+                       v4 = v33[3]
+                         (I63)3)
+          v30 = FN(v31: TYC({}),(I63)4)
+            v28 =
+                  FN(v29:
+                     TYC({}),
+                     RAISE(TYC(PRIM(I63)),
+                     APP(PRM(markexn,
+                         TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []),
+                     RCD(CON((Match,EXNLVAR(27),TYC(AR[rr]([{}], [PRIM(EXN)]))),
+                             [], RCD()),"to4.sml:38.10"))))
+              v39 = v26[0]
+                SWIv39
+                   of (I63)3 =>
+                     v40 = v26[1]
+                       SWIv40
+                          of ::.v41 =>
+                            v42 = v41[1]
+                              SWIv42
+                                 of ::.v43 =>
+                                   v44 = v41[0]
+                                     v45 = v44[0]
+                                       SWIv45
+                                          of C5.v46 =>
+                                            v47 = v44[2]
+                                              v48 = v43[0]
+                                                v49 = v43[1]
+                                                  v50 = v48[1]
+                                                    APP(v32,
+                                                    RCD(v46,v47,v50,v49))
+                                          _ => APP(v30, RCD())
+                                 _ => APP(v30, RCD())
+                          _ => APP(v30, RCD())
+                   (I63)2 => v51 = v26[1]
+                       APP(v34, v51)
+                   (I63)1 =>
+                     v52 = v26[1]
+                       SWIv52
+                          of ::.v53 =>
+                            v54 = v53[1]
+                              SWIv54
+                                 of ::.v55 =>
+                                   v56 = v53[0]
+                                     v57 = v56[0]
+                                       SWIv57
+                                          of C4.v58 =>
+                                            v59 = v55[0]
+                                              v60 = v59[0]
+                                                SWIv60
+                                                   of C3.v61 =>
+                                                     v62 = v56[1]
+                                                       v63 = v56[2]
+                                                         v64 = v55[1]
+                                                           v65 = v59[1]
+                                                             APP(v35,
+                                                             RCD(v58,v62,v63,v61,v65,v64))
+                                                   _ => APP(v30, RCD())
+                                          _ => APP(v30, RCD())
+                                 _ => APP(v30, RCD())
+                          _ => APP(v30, RCD())
+                   (I63)0 =>
+                     v66 = v26[1]
+                       SWIv66
+                          of ::.v67 =>
+                            v68 = v67[1]
+                              SWIv68
+                                 of ::.v69 =>
+                                   v70 = v67[0]
+                                     v71 = v70[0]
+                                       SWIv71
+                                          of C2.v72 =>
+                                            v73 = v69[1]
+                                              SWIv73
+                                                 of ::.v74 =>
+                                                   v75 = v74[0]
+                                                     v76 = v75[0]
+                                                       SWIv76
+                                                          of C3.v77 =>
+                                                            v78 = v74[1]
+                                                              SWIv78
+                                                                 of ::.v79 =>
+                                                                   v80 =
+                                                                         v79[0]
+                                                                     v81 =
+                                                                           v80[0]
+                                                                       SWIv81
+                                                                          of C1.v82 =>
+                                                                            v83
+                                                                                  =
+                                                                                  v70[2]
+                                                                              v84
+                                                                                    =
+                                                                                    v79[1]
+                                                                                v85
+                                                                                      =
+                                                                                      v80[1]
+                                                                                  APP(v37,
+                                                                                  RCD(v72,v83,v77,v82,v85,v84))
+                                                                          _ =>
+                                                                            APP(v30,
+                                                                            RCD())
+                                                                 _ =>
+                                                                   APP(v30,
+                                                                   RCD())
+                                                          _ => APP(v30, RCD())
+                                                 _ => APP(v30, RCD())
+                                          _ => APP(v30, RCD())
+                                 _ => APP(v30, RCD())
+                          _ => APP(v30, RCD())
+                   _ => APP(v30, RCD())
+  

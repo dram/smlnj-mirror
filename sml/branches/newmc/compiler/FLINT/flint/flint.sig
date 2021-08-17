@@ -67,15 +67,13 @@ signature FLINT =
   (*
    * con: used to specify all possible switching statements. Efficient switch
    * generation can be applied to DATAcon and INTcon. Otherwise, the switch is
-   * just a short-hand of the binary branch trees. Some of these instances
-   * such as VLENcon will go away soon.
+   * just a short-hand of the binary branch trees.
    *)
     datatype con
       = DATAcon of dcon * tyc list * lvar
       | INTcon of int IntConst.t	(* sz = 0 for IntInf.int *)
       | WORDcon of int IntConst.t
       | STRINGcon of string
-      | VLENcon of int
 
   (** simple values, including variables and static constants. *)
     datatype value

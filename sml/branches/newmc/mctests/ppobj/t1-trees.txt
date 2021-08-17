@@ -1,0 +1,90 @@
+- use "t1.sml";
+[opening t1.sml]
+** matchComp: andor
+  OR 0 [] {} CNIL
+     L1 VELEMS
+        VAR 1
+
+** matchComp: dectree = 
+  SWITCH 0 CNIL 
+     L1 RHS 0
+     * FAIL
+
+** matchComp: code = 
+  v7 = FN(v2: TYC(PRIM(I63)),v2)
+    v10 = APP(PRM(length, POL([M], [TYC(AR[cr]([TV(1,0)], [PRIM(I63)]))]), [TCAP(PRIM(VEC), [PRIM(I63)])]),
+          v8)
+      SWI v10
+       of (I63)1 =>
+	     APP(v7,
+		 APP(PRM(subscriptv,
+			 POL([M], [TYC(AR[rc]([TCAP(PRIM(VEC), [TV(1,0)]),PRIM(I63)], [TV(1,0)]))]),
+			 [PRIM(I63)]),
+		     RCD(v9,(I63)0)))
+          _ =>
+	    RAISE(TYC(PRIM(I63)),
+	          APP(PRM(markexn, TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []),
+	              RCD(CON((Match,EXNLVAR(5),TYC(AR[rr]([{}], [PRIM(EXN)]))), [], RCD()),
+		          "t1.sml:3.5-3.29")))
+  
+  
+
+andor stats:
+  total = 2
+  #AND  = 0
+  #OR   = 1
+  #VAR  = 1
+
+dectree stats:
+  #SWITCH = 1
+  #RHS    = 1
+  #FAIL   = 1
+
+lvars:
+  initial = 8
+  final   = 10
+  total   = 3
+
+t1.sml:3.5-3.29 Warning: match nonexhaustive
+  
+
+**** hmmm, I didn't find the variable 9
+[unexpected exception: ltUnbound]
+
+uncaught exception ltUnbound
+  raised at: ../compiler/FLINT/kernel/ltybasic.sml:289.11-289.20
+             ../compiler/FLINT/plambda/flintnm.sml:665.25
+             ../compiler/Basics/stats/stats.sml:198.40
+             ../compiler/TopLevel/interact/evalloop.sml:45.54
+             ../compiler/TopLevel/interact/evalloop.sml:306.20-306.23
+             ../compiler/TopLevel/interact/interact.sml:65.13-65.16
+- 
+
+--------------------------------------------------------------------------------
+[After Translate ...]
+
+FN(v12: STR([TYC(TCAP(PRIM(ETG), [{}])),TYC(TCAP(PRIM(ETG), [{}]))]),
+   v6 = v12[0]     -- Bind exn?
+     v5 = v12[1]   -- Match exn
+       v4 =
+         v1 =
+           FN(v8: TYC(TCAP(PRIM(VEC), [PRIM(I63)])),     -- vector arg : int vector  -- also rootvar!
+             v7 = FN(v2: TYC(PRIM(I63)),v2)     -- rhs0  (identity function : int -> int)
+               v10 = APP(PRM(length,            -- vector length 
+                             POL([M], [TYC(AR[cr]([TV(1,0)], [PRIM(I63)]))]), [TCAP(PRIM(VEC), [PRIM(I63)])]),
+                         v8)
+                 SWI v10
+                  of (I63)1 =>  -- vector length = 1
+                       APP(v7,
+                           APP(PRM(subscriptv,
+                                   POL([M], [TYC(AR[rc]([TCAP(PRIM(VEC), [TV(1,0)]),PRIM(I63)], [TV(1,0)]))]),
+				   [PRIM(I63)]),
+                               RCD(v9,(I63)0)))    -- no binding of v9 !!!  should be v8?
+		     _ =>  -- FAIL: raise Match
+		       RAISE(TYC(PRIM(I63)),
+		             APP(PRM(markexn, TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []),
+		       	         RCD(CON((Match,EXNLVAR(5),TYC(AR[rr]([{}], [PRIM(EXN)]))), [], RCD()),
+				     "t1.sml:3.5-3.29"))))  -- end v1
+               v1
+         SRCD(v4))
+

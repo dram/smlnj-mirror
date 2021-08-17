@@ -1,0 +1,84 @@
+revmc1 (07/27/21)  not fixed, or unfixed?
+
+- use "to4.sml";
+[opening to4.sml]
+** matchComp: andor
+  AND 0
+     OR 1 {4} CNIL
+        I0 CONST
+        I1 CONST
+        I2 CONST
+        I3 CONST
+     OR 2 {2,4} CSIG(1,1)
+        :: AND 3
+           AND 4
+              OR 5 {2,4} CSIG(5,0)
+                 C2 VAR 6
+                 C4 VAR 7
+                 C5 VAR 8
+              VAR 9
+              VAR 10
+           OR 11 {2,4} CSIG(1,1)
+              :: AND 12
+                 AND 13
+                    OR 14 {0,2,3,4} CSIG(5,0)
+                       C3 VAR 15
+                    VAR 16
+                    WC
+                 OR 17 {1,2,3,4} CSIG(1,1)
+                    :: AND 18
+                       AND 19
+                          OR 20 {1,2,3,4} CSIG(5,0)
+                             C3 VAR 21
+                          WC
+                          WC
+                       OR 22 {1,2,3,4} CSIG(1,1)
+                          :: AND 23
+                             AND 24
+                                OR 25 {1,2,3,4} CSIG(5,0)
+                                   C1 VAR 26
+                                VAR 27
+                                WC
+                             VAR 28
+
+** matchComp: dectree = 
+  SWITCH 1 CNIL 
+     I0 SWITCH 2 CSIG(1,1) 
+        :: SWITCH 11 CSIG(1,1) 
+           :: SWITCH 5 CSIG(5,0) 
+              C2 SWITCH 17 CSIG(1,1) 
+                 :: SWITCH 20 CSIG(5,0) 
+                    C3 SWITCH 22 CSIG(1,1) 
+                       :: SWITCH 25 CSIG(5,0) 
+                          C1 RHS 0
+                          * RHS 4
+                       * RHS 4
+                    * RHS 4
+                 * RHS 4
+              C4 RHS 4
+              C5 RHS 4
+              * RHS 4
+           * RHS 4
+        * RHS 4
+     I1 SWITCH 2 CSIG(1,1) 
+        :: SWITCH 11 CSIG(1,1) 
+           :: SWITCH 5 CSIG(5,0) 
+              C2 RHS 4
+              C4 SWITCH 14 CSIG(5,0) 
+                 C3 RHS 1
+                 * RHS 4
+              C5 RHS 4
+              * RHS 4
+           * RHS 4
+        * RHS 4
+     I2 RHS 2
+     I3 SWITCH 2 CSIG(1,1) 
+        :: SWITCH 11 CSIG(1,1) 
+           :: SWITCH 5 CSIG(5,0) 
+              C2 RHS 4
+              C4 RHS 4
+              C5 RHS 3
+              * RHS 4
+           * RHS 4
+        * RHS 4
+     * RHS 4

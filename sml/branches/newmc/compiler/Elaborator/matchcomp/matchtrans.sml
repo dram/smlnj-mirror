@@ -3,6 +3,9 @@
 (* translation functions: translate AS.exp and AS.dec while compiling matches
  *   transExp : region -> AS.exp -> AS.exp
  *   transDec : region -> AS.dec -> AS.dec
+ * 
+ * top function (only export) is
+ *   transMatchDec : AS.dec * StaticEnv.staticEnv * ErrorMsg.errorFn * SourceMap.region -> AS.dec
  *)
 
 structure MatchTrans =
@@ -20,6 +23,7 @@ local
   structure AU = AbsynUtil
   structure EU = ElabUtil
   structure PP = PrettyPrint
+  structure MU = MCUtil
   structure MC = MatchComp
   open Absyn
 
@@ -59,11 +63,10 @@ local
   fun ppPat pat =
       PP.with_default_pp(fn ppstrm => PPAbsyn.ppPat StaticEnv.empty ppstrm (pat, 20))
 
-  val matchComp = MatchComp.matchComp
-		      
 in
 
-fun transMatchDec (dec, errorFn, region) =
+(* transMatchDec : AS.dec * StaticEnv.staticEnv * ErrorMsg.errorFn * SourceMap.region -> AS.dec *)
+fun transMatchDec (dec, env, errorFn, region) =
 let
 
 (* simpleVALdec : V.var * AS.exp * T.tyvar list -> AS.dec *)
@@ -71,9 +74,9 @@ fun simpleVALdec (var, exp, boundtvs) =
     VALdec [VB{pat = VARpat var, exp = exp,
 	       typ = V.varType var, boundtvs = boundtvs, tyvars = ref nil}]
 
-(* transRules : region -> AS.rule list -> AS.rule list *)
+(* transRules : region -> AS.rule list -> (AS.pat * AS.exp) list *)
 fun transRules region rules =  (* apply fillPat to rule patterns, translate rhss *)
-    map (fn RULE(pat,exp) => RULE(EU.fillPat pat, transExp region exp)) rules
+    map (fn RULE(pat,exp) => (EU.fillPat pat, transExp region exp)) rules
 
 (* transExp : region -> AS.exp -> AS.exp *)
 and transExp region exp =
@@ -91,12 +94,12 @@ and transExp region exp =
 				 then (say "transExp:FNexp:pat1 = "; ppPat pat1; newline())
 				 else ())
 			val (bodyExp, matchVar) =
-			     MC.matchCompile (transRules region rules, argTy, resTy, errorFn region)
+			    MC.matchCompile (transRules region rules, argTy, resTy, errorFn, region, env)
 		     in FNexp ([RULE(VARpat matchVar, bodyExp)], TU.prune argTy, TU.prune resTy)
 		    end
 		| HANDLEexp (baseExp, (rules, argTy, resTy)) =>
 		    let val (handlerBody, matchVar) =
-			    MC.handlerCompile (transRules region rules, argTy, resTy, errorFn region)
+			    MC.handlerCompile (transRules region rules, resTy, errorFn, region, env)
 			val matchRule = RULE(VARpat matchVar, handlerBody)
 		     in HANDLEexp(trans region baseExp, ([matchRule], TU.prune argTy, TU.prune resTy))
 		    end
@@ -106,7 +109,7 @@ and transExp region exp =
 				 then (say "transExp:CASEexp:pat1 = "; ppPat pat1; newline())
 				 else ())
 			val (caseBody, matchVar) =
-			    MC.matchCompile (transRules region rules, scrutTy, resTy, errorFn region)
+			    MC.matchCompile (transRules region rules, scrutTy, resTy, errorFn, region, env)
 		    in LETexp(VALdec[VB{pat = VARpat matchVar,
 					exp = trans region scrutinee,
 					typ = scrutTy,
@@ -133,7 +136,7 @@ and transExp region exp =
      in trans region exp
     end (* transExp *)
 
-(* transDec : AS.dec -> dec *)
+(* transDec : AS.dec -> AS.dec *)
 and transDec (region: SourceMap.region) (dec: AS.dec): AS.dec =
     let fun transDec0 (region: SourceMap.region) (dec: AS.dec) : AS.dec =
             (case dec
@@ -152,90 +155,77 @@ and transDec (region: SourceMap.region) (dec: AS.dec): AS.dec =
 	(* translation of vb to dec
 	 * -- We can get away without a d (DB depth) parameter, leaving it to Translate.
 	 * -- Looks like we can get away with never dealing with an internal mvar in the match.
-	 * -- we need the type of the pat. Stored as typ field of VB.
-	 * -- do we need an absyn equivalent to mkPE, say transPolyExp? We don't have an equivalent
-	 *      to TFN in absyn -- yet!
-         * -- following revmc translate.sml for treatment of VB: alpha-convert pattern, tuple even
-         *    single variable case -- try special-case-ing single variable patterns later *)
-	and transVB region (VB{pat, exp, typ, boundtvs, tyvars}) =
-	    (* match compile [(pat,exp)] if pat is nontrivial (not a var);
+	 * -- We need the type of the pat, which is available as the typ field of VB.
+	 * -- Do we need an absyn equivalent to mkPE, say transPolyExp? We don't have an equivalent
+	 *      to TFN in absyn -- yet [... deal with this in type system rewrite].
+         * -- following revmc translate.sml for treatment of VB: alpha-convert pattern, bind match
+	 *    to produce value of the tuple of pattern variables *)
+	and transVB region (VB{pat, exp = defExp, typ, boundtvs, tyvars}) =
+	    (* match compile [(pat, defExp)] if pat is nontrivial (not a var);
 	     * -- check what the match compiler does with (single) irrefutable patterns
 	     *    DONE -- it does the right thing. *)
 	    (if !debugging
-	     then (say "transVB:pat = "; ppPat pat; ppExp (exp, "transVB:exp = "))
+	     then (say "transVB:pat = "; ppPat pat; ppExp (defExp, "transVB:exp = "))
 	     else ();
-	     case EU.fillPat(AU.stripPatMarks pat)   (* does fillPat strip MARKpats? *)
-	       of (WILDpat | CONSTRAINTpat(WILDpat, _)) =>  (* WILDpat pattern *)
-		  let val exp' = transExp region exp
-		   (* val _ = (print "transVB:exp' = "; ppExp exp') *)
-		   in VALdec([VB{pat = WILDpat, exp = exp', typ = typ,
-				 boundtvs = boundtvs, tyvars = tyvars}])
-		  end
-		| (VARpat var | CONSTRAINTpat(VARpat var, _)) =>
-		  (* simple single variable pattern *)
-		  let val exp' = transExp region exp
-		  (* val _ = (print "transVB:exp' = "; ppExp exp') *)
-		  in VALdec([VB{pat = VARpat var, exp = exp',
-				typ = typ, boundtvs = boundtvs, tyvars = tyvars}])
-		  end
-		| pat =>  (* compound, possibly refutable, pattern. Does this work for constants? *)
+	     case EU.fillPat(AU.stripPatMarks pat)   (* does fillPat also strip MARKpats? *)
+	       of (WILDpat | CONSTRAINTpat(WILDpat, _)) =>  (* WILDpat pattern -- replace with DOdec *)
+		    DOdec (transExp region defExp)
+		| (VARpat var | CONSTRAINTpat(VARpat var, _)) =>  (* var pattern -- only surviving VB case *)
+		    VALdec([VB{pat = VARpat var, exp = transExp region defExp,
+			       typ = typ, boundtvs = boundtvs, tyvars = tyvars}])
+		| pat =>  (* compound, possibly refutable, pattern. Works for simple constants. *)
 		  let val (newpat,oldpvars,newpvars) = EU.aconvertPat pat
 		      (* this is the only call of aconvertPat; it replaces pattern variables with
-		       * new versions with fresh lvar access values. This is necessary to ensure that
+		       * new versions with fresh lvar access values. This ensures that
 		       * original pvars are only bound once in the generated absyn (and hence in the
-		       * translated PLambda.lexp *)
-		      val newPvarExps = map (fn v => VARexp(ref v,[])) newpvars
-		      val pvarsTy = BT.tupleTy (map V.varType oldpvars)  (* same as newpvars *)
-		      val bindRule = RULE(newpat, EU.TUPLEexp(newPvarExps))
-		      val newexp = CASEexp(exp, ([bindRule], T.UNDEFty, pvarsTy))
-
+		       * translated PLambda.lexp [example showing this is necessary?] *)
 		  in case newpvars
-		       of nil =>   (* "constant" pattern, no pattern variables *)
-			  let val (matchExp, matchVar) =
-				  MC.bindCompile ([bindRule], typ, BT.unitTy,  (* typ = pattern type *)
-						  errorFn region)
-			      val resultDec =
-				  LOCALdec(simpleVALdec(matchVar, transExp region exp, nil),
-					   VALdec([VB{pat=WILDpat, exp = matchExp,
-						      typ=typ, boundtvs=nil, tyvars = ref nil}]))
-			   in if !debugging then ppDec (resultDec, "transVB (no var): \n") else ();
-			      resultDec
+		       of nil =>   (* "constant" pattern, no pattern variables
+				    *  need to generate and execute matchExp in case of match failure
+				    *  -- not necessary if pat is irrefutable *)
+			  if TU.refutable pat  (* true if pat ontains any OR pats *)
+			  then let val bindRules = [(pat, AU.unitExp)]
+				   val (matchExp, rootVar) =
+				       MC.bindCompile (bindRules, typ, BT.unitTy,  (* typ = pattern type *)
+						       errorFn, region, env)
+				      (* bindCompile could tell for sure if pat is refutable, even with OR pats,
+				       * -- or just check whether matchExp could raise Bind! *)
+				   val resultDec =
+				       LOCALdec(simpleVALdec(rootVar, transExp region defExp, nil), (* for effect *)
+						DOdec matchExp) (* also for effect *)
+			       in if !debugging then ppDec (resultDec, "transVB (no var): \n") else ();
+				  resultDec
+			       end
+			  else DOdec (transExp region defExp)
+			| [newpvar] =>     (* single pattern variable *)
+			  let val pvarTy = V.varType newpvar
+			      val (matchExp, rootVar) =
+				  MC.bindCompile ([(newpat, EU.varToExp newpvar)],
+						  typ, pvarTy, errorFn, region, env)
+			   in LOCALdec(simpleVALdec(rootVar, transExp region defExp, nil),
+				       simpleVALdec(hd oldpvars, matchExp, boundtvs))
 			  end
-(* can restore special treatment of single variable patterns later -- should be straightforward after
- *   also special-casing the single variable case of bindRule rhs
-			| [pvar] =>     (* single pattern variable *)
-			  let val pvarTy = V.varType pvar
-			      val (matchExp, matchVar) =
-				  MC.bindCompile ([RULE (pat, VARexp(ref pvar, nil))],
-						  typ, pvarTy, errorFn region)
-			      val resultDec =
-				  LOCALdec(simpleVALdec(matchVar, transExp region exp, nil),
-					   simpleVALdec(pvar, matchExp, boundtvs))
-			   in if !debugging then ppDec (resultDec, "transVB (single var): \n") else ();
-			      resultDec
-			  end
-*)
 			| _ =>  (* "multiple" pattern variables (1 or more) *)
-			  let val (matchExp, matchVar) =
-				  MC.bindCompile ([bindRule], typ, pvarsTy, errorFn region)
-				  (* matchVar will be bound to MC-translation of exp *)
+			  let val pvarsTy = BT.tupleTy (map V.varType oldpvars)  (* same as type of newpvars tuple *)
+			      val newPvarTuple = EU.TUPLEexp(map EU.varToExp newpvars)
+			      val bindRules = [(newpat, newPvarTuple)]  (* single rule match, with new pvars *)
+			      val (matchExp, rootVar) =
+				  MC.bindCompile (bindRules, typ, pvarsTy, errorFn, region, env)
+				  (* rootVar will be bound to MC-translation of exp *)
 			      val ptupleVar = V.VALvar{path = SP.SPATH [S.varSymbol "<ptupleVar>"],
 						       typ = ref(pvarsTy),
 						       btvs = ref(boundtvs),  (* possibly polymorphic *)
 						       access = A.LVAR(LambdaVar.mkLvar()),
 						       prim = PrimopId.NonPrim}
-			      fun selectVBs([], _) = []
-				| selectVBs (pvar::pvars, n) = (* non-polymorphic *)
-				    simpleVALdec(pvar, RSELECTexp (ptupleVar,n), nil)
-				      :: selectVBs(pvars, n+1)
+			      fun varSelDec (n, pvar) = VARSELdec (pvar, ptupleVar, n)
 				    (* defining a pattern var by (record) selection from a
 				     * var (ptupleVar) bound to the tuple of all the pattern
-				     * var values; the btvs of each pattern var is a subset
-				     * of the btvs of ptupleVar. *)
+				     * var values; the btvs of each pvar is a subset
+				     * of the btvs of ptupleVar, which is equal to boundtvs of the VB. *)
 			      val resultDec =
-				  LOCALdec(SEQdec [simpleVALdec(matchVar, transExp region exp, nil),
+				  LOCALdec(SEQdec [simpleVALdec(rootVar, transExp region defExp, nil),
 						   simpleVALdec(ptupleVar, matchExp, boundtvs)],
-					   SEQdec (selectVBs(oldpvars, 0)))
+					   SEQdec (List.mapi varSelDec oldpvars))
 					  (* rebinding orig pattern variables *)
 			   in if !debugging
 			      then ppDec (resultDec, "transVB (multiple vars): \n")

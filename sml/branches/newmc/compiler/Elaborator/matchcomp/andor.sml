@@ -17,11 +17,12 @@ structure Andor =
 struct
 
 local
+  structure AS = Absyn
   structure P = Paths
   structure PP = PrettyPrint
   open MCCommon
 
-  val debugging = Control.MC.debugging
+  val debugging = MCControl.mcdebugging
 
   fun bug msg = ErrorMsg.impossible ("Andor: " ^ msg)
 
@@ -66,19 +67,7 @@ let
     (* generating new nodeIds *)
     val idCounter = ref 0;
     fun newId () = !idCounter before (idCounter := !idCounter + 1)
-(*
-    (* var-relevant rules map on nodeIds *)
-    val relmapRef : relmap ref = ref IM.empty
 
-    (* addRelevantRules: ruleset * trail -> unit *)
-    fun addRelevantRules (relrules, trail) =
-	let fun update (id, relmap) =
-		(case IM.find (relmap, id)
-		   of NONE => IM.insert (relmap, id, relrules)
-		    | SOME rules' => IM.insert (relmap, id, RS.union(relrules, rules')))
-	 in relmapRef := foldl update (!relmapRef) trail
-	end
-*)
     (* ================================================================================ *)
     (* translateAndor : protoAndor * path * ruleset -> andor
        Traverses the protoAndor tree accumulating a bindenv binding all generated paths
@@ -93,11 +82,11 @@ let
        match the (explicit) discriminant of any variant, but because of a variable or
        wildcard.
        NOTE: the paths to vector "element" nodes (accessed via a VELEMS subcase)
-       end in [..., DC(VLENcon (n, ty), VI k], where n is the length discriminator.
+       end in [..., VI k], with no DC(VLENcon _) link.
        and k is the index of the element in the vector.
     *)
 
-    (* translateAndor : ruleset * path -> protoandor -> andor *)
+    (* translateAndor : ruleset * rpath -> protoandor -> andor *)
     fun translateAndor (live, rpath) pandor =
 	case pandor
 	  of ANDp {varRules, children} =>
@@ -122,7 +111,8 @@ let
 				 say "  defaults = ";
 				 ppRules defaults)
 			   else ()
-		in OR {id = id, path = P.rpathToPath rpath, sign = sign, cases = cases', defaults = defaults}
+	       in OR {id = id, path = P.rpathToPath rpath, sign = sign, cases = cases',
+		      defaults = defaults}
 	       end
 	   | VARp {varRules} =>
 	       (* ASSERT: varRules not empty *)
@@ -133,7 +123,7 @@ let
 
     (* translateCase : protoVariant * ruleset * (ruleset * rpath) -> variant *)
     and translateCase ((con, caserules, subcase), defaults, (live, rpath)) =
-	let val caseLive = RS.intersection(caserules, live)  (* == caserules; CLAIM caserule subset live *)
+	let val caseLive = RS.intersection(caserules, live)  (* == caserules?; CLAIM caserule subset live *)
 	    val _ = (* check conjecture that caserules subset live *)
 		    if RS.numItems caseLive < RS.numItems caserules
 		    then saynl "@@@@@@@@@ #caseLive < #caserules @@@@@@@@@@"
@@ -146,15 +136,16 @@ let
 			   say "  stillLive = "; ppRules stillLive)
 		     else ()
 	  in case (con, subcase)
-	      of (P.VLENcon (k, ty), VELEMS elements) =>
-		   let val rpath' = P.addLinkR (P.DC con, rpath)
-		       fun folder (n, pandor, andors) =
-			   translateAndor (live, P.addLinkR(P.VI(n,ty), rpath')) pandor :: andors
+	      of (AS.VLENcon (k, ty), VELEMS elements) => (* no DC link introduced for vector-length "decon" *)
+		   let fun folder (n, pandor, andors) =
+			   translateAndor (live, P.addLinkR(P.VI(n,ty), rpath)) pandor
+			   :: andors
 		       val elements' = List.foldli folder nil elements
 		   in (con, caseLive, VELEMS elements')
 		   end
-	       | (P.DATAcon _, DCARG pandor) => (* non-constant datacon *)
-		   (con, caseLive, DCARG (translateAndor (stillLive, P.addLinkR(P.DC con, rpath)) pandor))
+	       | (AS.DATAcon _, DCARG pandor) => (* non-constant datacon *)
+		   (con, caseLive,
+		    DCARG (translateAndor (stillLive, P.addLinkR(P.DC con, rpath)) pandor))
 	       | (_, CONST) => (* con should be constant, not checked *)
 		   (con, caseLive, CONST)
 	       | _ => bug "translateCase: inconsistent cases"

@@ -21,6 +21,10 @@ structure LambdaVar :> LAMBDA_VAR =
     fun newLvar r () = (inc r; !r)
     val varcount = ref 0
 
+    val mkLvar = newLvar varcount
+    fun nextLvar () = !varcount
+    fun diff (lv1, lv2) = lv2 - lv1
+
     exception NoLvarName
 
     val lvarNames : string Tbl.hash_table = Tbl.mkTable(64, NoLvarName)
@@ -31,20 +35,18 @@ structure LambdaVar :> LAMBDA_VAR =
 
     val lvarIsNamed = Tbl.inDomain lvarNames
 
-    fun prLvar (lvar: lvar) = Int.toString lvar
+    fun toString (lvar:lvar) = Int.toString lvar
+    val prLvar = toString (* temporary, for backward compatibility *)
 
-    fun sameName (v, w) =
-	if !saveLvarNames
-        then (case findName w
-	       of SOME x => giveLvarName(v, x)
-		| NONE => (case findName v
-			    of SOME x => giveLvarName (w, x)
-			     | NONE => ()
-			  (* end case *))
-	     (* end case *))
-	else ()
-
-    val mkLvar = newLvar varcount
+    fun sameName (v, w) = if !saveLvarNames
+	  then (case findName w
+	     of SOME x => giveLvarName(v, x)
+	      | NONE => (case findName v
+		   of SOME x => giveLvarName (w, x)
+		    | NONE => ()
+		  (* end case *))
+	    (* end case *))
+	  else ()
 
     fun clear () = (varcount := 0; Tbl.clear lvarNames)
 
@@ -67,17 +69,15 @@ structure LambdaVar :> LAMBDA_VAR =
 	    nv
           end
 
-    fun lvarSym (lv : lvar) : S.symbol option =
-	(case findName lv
+    fun lvarSym (lv : lvar) : S.symbol option = (case findName lv
 	   of SOME x => SOME(S.varSymbol x)
 	    | NONE => NONE
-	(* end case *))
+	  (* end case *))
 
-    fun lvarName (lv : lvar) : string =
-	(case findName lv
+    fun lvarName (lv : lvar) : string = (case findName lv
 	   of SOME x => x ^ Int.toString lv
 	    | NONE => "v" ^ Int.toString lv
-	(* end case *))
+	  (* end case *))
 
     val toId = Fn.id
     val fromId = Fn.id
@@ -88,15 +88,12 @@ structure LambdaVar :> LAMBDA_VAR =
 
 	type t = lvar list
 
-	fun enter (new : lvar, l: lvar list) =
-	    let fun f [] = [new]
-		  | f (l as h::t) =
-		    case Int.compare (new,h)
-		     of LESS => new::l
-		      | GREATER => h::f t
-		      | EQUAL => l
-	     in f l
-	    end
+	fun enter (new : lvar, l) = let
+	      fun f [] = [new]
+		| f (l as h::t) = if new<h then new::l else if new>h then h::f t else l
+	      in
+		f l
+	      end
 
 	fun merge (a, []) = a
 	  | merge ([], a) = a

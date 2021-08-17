@@ -11,6 +11,7 @@ local
   structure DA = Access
   structure V = VarCon
   structure AS = Absyn
+  structure AU = AbsynUtil
   structure TU = TypesUtil
   structure BT = BasicTypes
   structure P = Paths
@@ -56,12 +57,14 @@ fun numToCon (v, ty) =
 	  else bug "numToCon: unrecognized numeric type"
       end
 
-(* default integer pattern constant *)
+(* intCon : int -> con
+ *  default integer pattern constant *)
 fun intCon n = INTcon {ival = IntInf.fromInt n, ty = Target.defaultIntSz}
 
-(* pattern constant for character literal *)
-(* QUESTION: perhaps this should be a Word8.word literal? *)
-fun charCon s = intCon (Char.ord (String.sub (s, 0)))
+(* charCon : char -> con
+ *  pattern constant for character literal; "promoting" char to int *)
+(* QUESTION: perhaps this should be a Word8.word literal? Or later Word16.word? Word32.word? *)
+fun charCon c = intCon (Char.ord c)
 
 (* addVarRule : ruleno * protoAndor -> protoAndor *)
 fun addVarRule (rule: ruleno, ANDp{varRules, children}) =
@@ -180,7 +183,7 @@ let (* genAndor : pat * ruleno -> andor *)
 	   in [(con, RS.singleton rule, subcase)]
 	  end
       | addACase (con, pats, rule, (aCase as (con', rules, subcase)) :: rest) =
-	  if P.eqCon (con, con')  (* existing variant has the same con *)
+	  if AU.eqCon (con, con')  (* existing variant has the same con *)
 	  then let val subcase' =
 		       case (subcase, pats)
 			of (CONST, nil) => CONST

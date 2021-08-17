@@ -22,12 +22,24 @@ structure Absyn : ABSYN =
 
     datatype numberedLabel = LABEL of {name: S.symbol, number: int}
 
+    (* datatype con -- switch case discriminators  (moved here from matchcomp/paths.sml
+     *  con translates direclty to PLambda.con, except for VLENcon (n,t), which is translated
+     *  to PLambda.INTcon n (in Generate.generate). *)
+    datatype con
+      = DATAcon of T.datacon * T.tyvar list
+      | INTcon of int IntConst.t
+      | WORDcon of int IntConst.t
+      | STRINGcon of string
+      | VLENcon of int * T.ty
+	 (* element type ty is used in VLENcon case of Generate..genDecTree, where it is
+	  * eliminated by translation to INTcon. *)
+
     datatype exp
       = VARexp of VarCon.var ref * T.tyvar list
 	(* the 2nd arg is a type metavar list used to capture the instantiation
 	   parameters for this occurence of V.var when its type is polymorphic.
 	   FLINT will use these to provide explicit type parameters for VarCon.var
-           if VarCon.var is bound to a primop, which will be used to specialize
+           if VarCon.var is bound to a primop, where they will be needed to specialize
 	   the primop. *)
       | CONexp of Types.datacon * T.tyvar list (* ditto *)
       | NUMexp of string * num_lit	(* string is source text of literal *)
@@ -35,31 +47,38 @@ structure Absyn : ABSYN =
       | STRINGexp of string
       | CHARexp of char
       | RECORDexp of (numberedLabel * exp) list
-      | RSELECTexp of VarCon.var * int
+      | RSELECTexp of exp * int
           (* 0-based record/tuple selections, produced only by match compiler for VBs
-           * or the ElabUtil.wrapRECdecGen function (which is questionable (FLINT!)) *)
-      | VSELECTexp of VarCon.var * int
-          (* 0-based vector selections, produced only by match compiler *)
+           * or translating path suffixes. RSELECTexp and VSELECTexp will be nested when
+           * translating path suffixes in Generate.generate. *)
+      | VSELECTexp of exp * T.ty * int  (* need elemTy? *)
+          (* 0-based vector selections, produced only by match compiler, as for RSELECTexp *)
       | VECTORexp of exp list * T.ty
       | APPexp of exp * exp
       | FNexp of fnrules
       | HANDLEexp of exp * fnrules
       | CASEexp of exp * fnrules
-      | SWITCHexp of VarCon.var * rule list * exp option
-      | VSWITCHexp of VarCon.var * rule list * exp
+      | SWITCHexp of exp * srule list * exp option
+      | VSWITCHexp of exp * T.ty * srule list * exp
           (* SWITCHexp, VSWITCHexp created only by match compiler,
-           * VSWITCHexp for vector length *)
+           * VSWITCHexp for vector length, where default is required(?) *)
       | RAISEexp of exp * T.ty
       | IFexp of { test: exp, thenCase: exp, elseCase: exp }
       | ANDALSOexp of exp * exp
       | ORELSEexp of exp * exp
       | WHILEexp of { test: exp, expr: exp }
       | LETexp of dec * exp
+      | LETVexp of VarCon.var * exp * exp  (* only produced by match compiler *)
       | SEQexp of exp list
       | CONSTRAINTexp of exp * T.ty
       | MARKexp of exp * region
 
-    and rule = RULE of pat * exp
+    and rule = RULE of pat * exp  (* in FNexp, CASEexp, HANDLEexp via fnrules *)
+
+    and srule = SRULE of con * VarCon.var option * exp  (* in SWITCHexp, VSWITCHexp *)
+       (* INVARIANT: var option will be SOME iff con is DATAcon(datacon,_) where datacon
+	* is not a constant. The var, when present, will be bound to the decon[con] of the
+        * subject value (where?) *)
 
     and pat
       = WILDpat
@@ -81,6 +100,7 @@ structure Absyn : ABSYN =
       = VALdec of vb list  (* always a single element list (FLINT normalization) *)
       | VALRECdec of rvb list
       | DOdec of exp
+      | VARSELdec of VarCon.var * VarCon.var * int (* produced (only) by match compiler *)
       | TYPEdec of T.tycon list
       | DATATYPEdec of {datatycs: T.tycon list, withtycs: T.tycon list}
       | ABSTYPEdec of {abstycs: T.tycon list, withtycs: T.tycon list, body: dec}

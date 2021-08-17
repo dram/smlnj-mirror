@@ -1,0 +1,182 @@
+t0a.sml transcript
+
+(* tests/json/t0a.sml *)
+
+val x =
+  let val SOME(w, _) = Word.scan StringCvt.HEX Substring.getc (Substring.full "12")
+   in UTF8.encode w
+  end;
+
+
+[opening t0a.sml]
+[autoloading]
+[autoloading done]
+transVB:pat = xtransVB:exp = let val SOME (w,_) =
+                        ((Word.scan HEX) Substring.getc) (Substring.full "12")
+in UTF8.encode w
+end
+>> transExp
+transVB:pat = SOME (w,_)transVB:exp = ((Word.scan HEX) Substring.getc) (Substring.full "12")
+matchComp: match = 
+  
+     SOME (w,_) => w
+
+** matchComp: protoAndor = 
+  ORs  CSIG(1,1)
+     SOME {0} ANDs 
+        VARs (w,0)
+        VARs 
+
+** matchComp: andor (nodeCount = 4) =
+  OR 0 {} CSIG(1,1)
+     SOME AND 1
+        VAR 2
+        VAR 3
+** matchComp: pvarmap = 
+  
+     2 = {(0,2)}
+** matchComp: decTree = 
+  CHOICE 0 CSIG(1,1) 
+     SOME RHS 0
+     * FAIL
+
+matchComp: fullExp =
+let val fvar [lv3] = (fn w [lv2] => w [lv2])
+in (SWITCH n0 [lv4]
+  of SOME n1 [lv5] =>
+       let val n2 [lv7] = #0 n1 [lv5]
+     in let val n3 [lv6] = #1 n1 [lv5] in fvar n2 [lv7] end
+     end
+   | _ => raise Match [PATH(PATH(EXTERN(.65D6E),86),2)])
+end
+t0a.sml:4.11-4.84 Warning: binding not exhaustive
+          SOME (w,_) = ...
+>> transExp
+transVB (single var): 
+local
+  val n0 = ((Word.scan HEX) Substring.getc) (Substring.full "12")
+in val w =
+     let val fvar = (fn w => w)
+      in (SWITCH n0
+            of SOME n1 =>
+                 let val n2 = #0 n1 in let val n3 = #1 n1 in fvar n2 end end
+             | _ => raise Match)
+     end
+end
+
+
+[After Translate ...]
+
+FN(v13: STR([TYC(AR[rr]([PRIM(STR)], [substring])),                                                                    -- Substring.full : string -> substring
+             TYC(AR[rr]([substring], [TCAP(option, [{PRIM(I63),substring}])])),                                        -- Substring.getc : substring -> (int * substring) option
+	     POL([M], [TYC(AR[rr]([radix], [AR[rr]([AR[cr]([DTV(1,0)], [TCAP(option, [{PRIM(I63),DTV(1,0)}])])],
+                                                   [AR[cr]([DTV(1,0)], [TCAP(option, [{PRIM(I63),DTV(1,0)}])])])]))]), -- Word.scan?
+	     TYC(TCAP(PRIM(ETG), [{}])),                                                                               -- Match exn (should be Bind?)
+	     TYC(AR[rr]([PRIM(I63)], [PRIM(STR)])) ]),                                                                 -- UTF8.encode(?) : int63? -> string
+   v12 = v13[0]           -- Substring.full
+     v11 = v13[1]         -- Substring.getc
+       v10 = v13[2]       -- Word.scan
+         v9 = v13[3]      -- Match(?) exception
+           v8 = v13[4]    -- UTF8.encode 
+             v1 =
+                   v4 = APP(APP(APP(TAPP(v10 [substring]),
+                                    CON((HEX,CN(2),TYC(AR[rr]([{}], [radix]))), [], RCD())),
+                                v11),
+                            APP(v12, "12"))
+                     v2 =
+                           v3 = FN(v2: TYC(PRIM(I63)),v2)   -- identity : int63 -> int63
+                             SWI v4
+                              of SOME.v5 => 
+			           v7 = v5[0]
+                                     v6 = v5[1]
+                                       APP(v3, v7)
+                                 _ =>
+                                  RAISE(TYC(TCAP(option, [{PRIM(I63),substring}])),
+					APP(PRM(markexn, TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []),
+					    RCD(CON((Match,EXN(lv9),TYC(AR[rr]([{}], [PRIM(EXN)]))), [], RCD()),
+					        "t0a.sml:4.11-4.84")))
+                       APP(v8, v2)
+               SRCD(v1))
+
+[After deb2names ...]
+
+v14{0} : FD[FCT, SAF, false, NR] = 
+  FN([v25{0} : ???],
+    v26{0} = SELECT(v25, 0)
+    v27{0} = SELECT(v25, 1)
+    v28{0} = SELECT(v25, 2)
+    v29{0} = SELECT(v25, 3)
+    v30{0} = SELECT(v25, 4)
+    v13{0} = STRUCT [v26,v27,v28,v29,v30]
+    v12{0} = SELECT(v13, 0)
+    v11{0} = SELECT(v13, 1)
+    v10{0} = SELECT(v13, 2)
+    v9{0} = SELECT(v13, 3)
+    v8{0} = SELECT(v13, 4)
+    [v1{0}] = 
+      [v4{0}] = 
+        [v15{0}] = 
+          [v16{0}] = 
+            [v17{0}] = TAPP(v10,[substring])
+            v19{0} = RECORD []
+            v18{0} = CON(HEX, [], v19)
+            APP(v17,[v18])
+          APP(v16,[v11])
+        [v20{0}] = APP(v12,["12"])
+        APP(v15,[v20])
+      [v2{0}] = 
+        FIX(v3{0} : FD[FUN(rr), SAF, false, NR] = 
+              FN([v2{0} : TYC(PRIM(I63))],
+                RETURN [v2]))
+        SWITCH v4
+          SOME => 
+              v5{0} = DECON(SOME,UT,POL([M], [TYC(AR[rr]([DTV(1,0)], [TCAP(option, [DTV(1,0)])]))]),[{PRIM(I63),substring}])
+              v7{0} = SELECT(v5, 0)
+              v6{0} = SELECT(v5, 1)
+              APP(v3,[v7])
+          _ => 
+              v23{0} = RECORD []
+              v22{0} = CON(Match, [], v23)
+              v21{0} = PRIMOP(markexn, TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []) [v22,"t0a.sml:4.11-4.84"]
+              RAISE(v21) : [TYC(TCAP(option, [{PRIM(I63),substring}]))]
+      APP(v8,[v2])
+    v24{0} = STRUCT [v1]
+    RETURN [v24])
+
+
+[After lcontract ...]
+
+v14{0} : FD[FCT, SAF, false, NR] = 
+  FN([v25{0} : ???],
+    v26{0} = SELECT(v25, 0)
+    v27{0} = SELECT(v25, 1)
+    v28{0} = SELECT(v25, 2)
+    v29{0} = SELECT(v25, 3)
+    v30{0} = SELECT(v25, 4)
+    [v17{0}] = TAPP(v28,[substring])
+    v19{0} = RECORD []
+    v18{0} = CON(HEX, [], v19)
+    [v16{0}] = APP(v17,[v18])
+    [v15{0}] = APP(v16,[v27])
+    [v20{0}] = APP(v26,["12"])
+    [v4{0}] = APP(v15,[v20])
+    [v2{0}] = 
+      SWITCH v4
+        SOME => 
+            v5{0} = DECON(SOME,UT,POL([M], [TYC(AR[rr]([DTV(1,0)], [TCAP(option, [DTV(1,0)])]))]),[{PRIM(I63),substring}])
+            v7{0} = SELECT(v5, 0)
+            RETURN [v7]
+        _ => 
+            v23{0} = RECORD []
+            v22{0} = CON(Match, [], v23)
+            v21{0} = PRIMOP(markexn, TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])), []) [v22,"t0a.sml:4.11-4.84"]
+            RAISE(v21) : [TYC(TCAP(option, [{PRIM(I63),substring}]))]
+    [v1{0}] = APP(v30,[v7])
+    v24{0} = STRUCT [v1]
+    RETURN [v24])
+
+Error: Compiler bug: FixFix: assertion failed
+
+while in fixfix phase
+  raised at:	../compiler/Basics/errormsg/errormsg.sml:55.14-55.19
+		../compiler/Basics/stats/stats.sml:198.40

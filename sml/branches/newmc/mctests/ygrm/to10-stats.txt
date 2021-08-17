@@ -1,0 +1,40 @@
+oldmc1:
+
+- use "to10.sml";
+[opening to10.sml]
+andor stats:
+  total  = 35
+  #AND   = 9
+  #OR    = 9
+  #LEAF  = 17
+
+dectree stats:
+  #CASEdt = 34
+  #RHS    = 44
+  #BINDdt = 0
+
+lvars:
+  initial = 76
+  final   = 190
+  total   = 115
+
+
+revmc:
+
+- use "to10.sml";
+[opening to10.sml]
+andor stats:
+  total = 31
+  #AND  = 9
+  #OR   = 9
+  #VAR  = 13
+
+dectree stats:
+  #SWITCH = 34
+  #RHS    = 80
+  #FAIL   = 0
+
+lvars:
+  initial = 73
+  final   = 281
+  total   = 209

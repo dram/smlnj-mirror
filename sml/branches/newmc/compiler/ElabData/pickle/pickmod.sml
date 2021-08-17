@@ -607,7 +607,7 @@ in
 	      | c (F.INTcon{ty, ival}, e) = "2" $ [int ty, intinf ival, lexp e]
 	      | c (F.WORDcon{ty, ival}, e) = "4" $ [int ty, intinf ival, lexp e]
 	      | c (F.STRINGcon s, e) = "7" $ [string s, lexp e]
-	      | c (F.VLENcon i, e) = "8" $ [int i, lexp e]
+   (*	      | c (F.VLENcon i, e) = "8" $ [int i, lexp e] *)
 	    in
 	      c arg
 	    end

@@ -1723,10 +1723,11 @@ and elabDecl0
 
             fun chkError () = !anyErrors
             (* note that transform is applied to decl before type checking *)
-            val decl0 = Typecheck.decType(SE.atop(env',env0), transform decl,
+            val env1 = SE.atop(env', env0)
+            val decl0 = Typecheck.decType(env1, transform decl,
                                           top, error, chkError, region)
 	    val decl1 = if !anyErrors then decl0
-			else MatchComp.transMatchDec decl0
+			else MatchTrans.transMatchDec (decl0, env1, error, region)
             val (entEnv, entDec) =
                 bindNewTycs(context, epContext, mkStamp, abstycs, withtycs,
 			    rpath, error region)
@@ -1759,12 +1760,13 @@ and elabDecl0
             val decl1 = transform decl0
             val _ = debugmsg ">>elabDecl0.dec [after transform]"
             fun chkError () = !anyErrors
-            val decl2 = Typecheck.decType(SE.atop(env',env0), decl1,
+	    val env1 = SE.atop(env',env0)
+            val decl2 = Typecheck.decType(env1, decl1,
                                           top, error, chkError, region)
                          handle EE.Unbound => (debugmsg("$decType");
                                                raise EE.Unbound)
 	    val decl3 = if !anyErrors then decl2
-			else MatchComp.transMatchDec decl2
+			else MatchTrans.transMatchDec (decl2, env1, error, region)
             val _ = debugmsg ">>elabDecl0.dec[after decType]"
          in (decl3, M.EMPTYdec, env', EE.empty)
         end handle EE.Unbound =>

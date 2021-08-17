@@ -1,0 +1,71 @@
+revmc, tt/to3.sml
+
+use "tt/to3.sml";
+[opening tt/to3.sml]
+** matchComp: andor
+  AND 0
+     OR 1 {3} CNIL
+        I0 CONST
+        I1 CONST
+        I2 CONST
+     OR 2 {2,3} CSIG(1,1)
+        :: AND 3
+           AND 4
+              OR 5 {2,3} CSIG(6,1)
+                 C1 VAR 6
+                 C4 VAR 7
+              VAR 8
+              VAR 9
+           OR 10 {2,3} CSIG(1,1)
+              :: AND 11
+                 AND 12
+                    OR 13 {0,2,3} CSIG(6,1)
+                       C2 VAR 14
+                    VAR 15
+                    VAR 16
+                 OR 17 {1,2,3} CSIG(1,1)
+                    :: AND 18
+                       AND 19
+                          OR 20 {1,2,3} CSIG(6,1)
+                             C2 VAR 21
+                          VAR 22
+                          VAR 23
+                       OR 24 {1,2,3} CSIG(1,1)
+                          :: AND 25
+                             AND 26
+                                OR 27 {1,2,3} CSIG(6,1)
+                                   C3 VAR 28
+                                VAR 29
+                                VAR 30
+                             VAR 31
+
+** matchComp: dectree = 
+  CHOICE 1 CNIL 
+     I0 CHOICE 2 CSIG(1,1) 
+        :: CHOICE 10 CSIG(1,1) 
+           :: CHOICE 5 CSIG(6,1) 
+              C1 CHOICE 17 CSIG(1,1) 
+                 :: CHOICE 20 CSIG(6,1) 
+                    C2 CHOICE 24 CSIG(1,1) 
+                       :: CHOICE 27 CSIG(6,1) 
+                          C3 RHS 0
+                          * RHS 3
+                       * RHS 3
+                    * RHS 3
+                 * RHS 3
+              C4 RHS 3
+              * RHS 3
+           * RHS 3
+        * RHS 3
+     I1 CHOICE 2 CSIG(1,1) 
+        :: CHOICE 10 CSIG(1,1) 
+           :: CHOICE 5 CSIG(6,1) 
+              C1 RHS 3
+              C4 CHOICE 13 CSIG(6,1) 
+                 C2 RHS 1
+                 * RHS 3
+              * RHS 3
+           * RHS 3
+        * RHS 3
+     I2 RHS 2
+     * RHS 3

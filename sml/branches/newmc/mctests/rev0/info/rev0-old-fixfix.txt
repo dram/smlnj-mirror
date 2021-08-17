@@ -1,0 +1,60 @@
+v51{1} : (FCT)  = 
+  FN([v102{0} : ???],
+    FIX(v180{0} : ((i:~1)FCT)  = 
+          FN([v156{0} : ???,
+              v107{1,1} : <VOID> -f-> <VOID>,
+              v108{1} : VOID],
+            FIX(v129{2,2} : (TRFUN f)  = 
+                  FN([v25{1} : VOID],
+                    SWITCH v25
+                      :: => 
+                          v151{1} = DECON(::,UT,<VOID> -f-> <VOID>,[])
+                          v154{1} = UNWRAP(VOID, v151)
+                          v153{2} = UNWRAP(TT<VOID,VOID>, v154)
+                          v36{1} = SELECT(v153, 0)
+                          v37{1} = SELECT(v153, 1)
+                          [v27{0}] = APP(v107,[v36])
+                          APP(v129,[v37])
+                      nil => 
+                          v59{1} = RECORD []
+                          RETURN [v59]))
+            APP(v129,[v108])))
+    FIX(v11{2,2} : ((i)FCT)  = 
+          FN([v181{0} : ???],
+            FIX(v183{0} : ((i)FUN f)  = 
+                  FN([v182{0} : <VOID> -f-> <VOID>],
+                    FIX(v185{0} : ((i)FUN f)  = 
+                          FN([v184{0} : VOID],
+                            APP(v180,[v181,v182,v184])))
+                    RETURN [v185]))
+            RETURN [v183]))
+    v159{1} = STRUCT [(I63)0]
+    [v120{1,1}] = APP(v11,[v159])
+    v161{1} = STRUCT [(I63)2]
+    [v116{1,1}] = APP(v11,[v161])
+    FIX(v173{2,2} : ((i:~16)FCT)  = 
+          FN([],
+            FIX(v14{1} : ((i:~17)FUN f)  = 
+                  FN([v19{0} : VOID],
+                    v79{1} = RECORD []
+                    RETURN [v79]))
+            RETURN [v14]))
+    [v119{1}] = APP(v173,[])
+    [v168{1}] = APP(v173,[])
+    v169{1,1} = PRIMOP(wcast, (<VOID> -f-> <TT<>>) ==> (<TT<I63,I63>> -f-> <TT<>>), []) [v168]
+    FIX(v144{1} : ((i)FUN f)  = 
+          FN([v145{1} : I63,
+              v146{1} : I63],
+            v141{1} = RECORD [v145,v146]
+            APP(v169,[v141])))
+    [v83{1,1}] = APP(v120,[v119])
+    v86{1} = WRAP(I63, (I63)0)
+    [v18{0}] = APP(v83,[v86])
+    [v88{1,1}] = APP(v116,[v144])
+    v93{1} = RECORD [(I63)0,(I63)0]
+    v94{1} = WRAP(I63, (I63)0)
+    v92{1} = RECORD [v93,v94]
+    v170{1} = WRAP(TT<TT<I63,I63>,VOID>, v92)
+    [v1{1}] = APP(v88,[v170])
+    v101{1} = STRUCT [v1]
+    RETURN [v101])

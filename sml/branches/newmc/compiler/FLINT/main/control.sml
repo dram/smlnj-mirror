@@ -51,8 +51,14 @@ struct
 
     val nmdebugging   = new (flag_cvt, "nmdebugging",
 			     "PLambda normalization debugging", false)
+    val lcdebugging   = new (flag_cvt, "lcdebugging",
+			     "lcontract phase debugging", false)
     val fcdebugging   = new (flag_cvt, "fcdebugging",
 			     "fcontract phase debugging", false)
+    val spdebugging   = new (flag_cvt, "spdebugging",
+			     "specialize phase debugging", false)
+    val ffdebugging   = new (flag_cvt, "ffdebugging",
+			     "fixfix phase debugging", false)
     val wrdebugging   = new (flag_cvt, "wrdebugging",
 			     "wrap phase debugging", false)
     val redebugging   = new (flag_cvt, "redebugging",
@@ -98,7 +104,6 @@ struct
     val dropinvariant = new (flag_cvt, "dropinvariant", "dropinvariant", true)
 
     val specialize = new (flag_cvt, "specialize", "whether to specialize", true)
-    val spdebugging = new (flag_cvt, "spdebugging", "Specialize debugging", false)
 
     (* val liftLiterals	= ref false *)
     val sharewrap = new (flag_cvt, "sharewrap", "whether to share wrappers", true)

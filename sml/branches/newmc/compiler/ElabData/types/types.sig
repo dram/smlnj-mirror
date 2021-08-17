@@ -32,6 +32,7 @@ and tvKind
   = INSTANTIATED of ty
   | OPEN of {depth: int, eq: bool, kind: openTvKind}
   | UBOUND of {depth: int, eq: bool, name: Symbol.symbol}
+     (* name does not include the leading apostrophy(s) *)
   | OVLDV of  (* overloaded variable (operator) *)
     {eq: bool,  (* equality attribute, may be set by unification *)
      sources: varSource list} (* names and locations of overloaded

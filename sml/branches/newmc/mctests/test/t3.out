@@ -1,0 +1,183 @@
+fun mt (nil,       nil) = 0
+  | mt (a :: nil,  b :: nil) = 1
+  | mt (a :: a',   b :: b') = 2
+  | mt x = 3
+
+- use "t3.sml";
+[opening t3.sml]
+matchComp: hmatch = 
+
+  
+     (nil,nil) => (I63)0
+        
+        
+     (:: (a,nil),:: (b,nil)) => (I63)1
+        
+        
+     (:: (c,cs),:: (d,ds)) => (I63)2
+        
+        
+     x => (I63)3
+        
+        
+
+** matchComp: simpleAndor = 
+
+  ANDs (x,3)
+     ORs  CSIG(1,1)
+        :: {1,2} ANDs 
+           VARs (a,1) (c,2)
+           ORs (cs,2) CSIG(1,1)
+              nil {1} CONST
+        nil {0} CONST
+     ORs  CSIG(1,1)
+        :: {1,2} ANDs 
+           VARs (b,1) (d,2)
+           ORs (ds,2) CSIG(1,1)
+              nil {1} CONST
+        nil {0} CONST
+
+translateAndor: AND
+
+>>mapVarBindings, #bindings = 1
+mapVarBindings: bind: lv8 at 3
+<<mapVarBindings
+translateAndor: AND
+
+>>mapVarBindings, #bindings = 0
+<<mapVarBindings
+>>mapVarBindings, #bindings = 2
+mapVarBindings: bind: lv7 at 2
+mapVarBindings: bind: lv3 at 1
+<<mapVarBindings
+>>mapVarBindings, #bindings = 1
+mapVarBindings: bind: lv6 at 2
+<<mapVarBindings
+>>mapVarBindings, #bindings = 0
+<<mapVarBindings
+translateAndor: AND
+
+>>mapVarBindings, #bindings = 0
+<<mapVarBindings
+>>mapVarBindings, #bindings = 2
+mapVarBindings: bind: lv5 at 2
+mapVarBindings: bind: lv2 at 1
+<<mapVarBindings
+>>mapVarBindings, #bindings = 1
+mapVarBindings: bind: lv4 at 2
+<<mapVarBindings
+>>mapVarBindings, #bindings = 0
+<<mapVarBindings
+** matchComp: andor = 
+
+  AND 0 <>
+     OR 4 <P0> {3} CSIG(1,1)
+        :: AND 1 <::.P0>
+           VAR 2 <P0.::.P0>
+           OR 3 <P1.::.P0> {2,3} CSIG(1,1)
+              nil CONST
+        nil CONST
+     OR 8 <P1> {3} CSIG(1,1)
+        :: AND 5 <::.P1>
+           VAR 6 <P0.::.P1>
+           OR 7 <P1.::.P1> {2,3} CSIG(1,1)
+              nil CONST
+        nil CONST
+
+** matchComp: pvarmap = 
+
+     2 = {(1,6)}  -- b
+     3 = {(1,2)}  -- a
+     4 = {(2,7)}  -- ds
+     5 = {(2,6)}  -- d
+     6 = {(2,3)}  -- cs
+     7 = {(2,2)}  -- c
+     8 = {(3,0)}  -- x
+
+** matchComp: decTree = 
+
+  CHOICE 4 <P0> CSIG(1,1) 
+     :: CHOICE 8 <P1> CSIG(1,1) 
+        :: CHOICE 3 <P1.::.P0> CSIG(1,1) 
+           nil CHOICE 7 <P1.::.P1> CSIG(1,1) 
+              nil RHS 1
+              * RHS 2
+           * RHS 2
+        nil FAIL
+     nil CHOICE 8 <P1> CSIG(1,1) 
+        :: FAIL
+        nil RHS 0
+
+>> genMatch
+>> genNode:AND: 0
+>> genNode:OR: 8
+>> genNode:OR: 4
+>> genNode:AND: 1
+>> genNode:OR: 3
+>> genNode:VAR: 2
+>> genNode:AND: 5
+>> genNode:OR: 7
+>> genNode:VAR: 6
+>> genNode:AND: 5
+>> genNode:OR: 7
+>> genNode:VAR: 6
+v14 = FN(v13: TYC({}),(I63)0)
+  v16 = FN(v15: TYC({TV(1,0),TV(1,1)}),
+           v3 = v15[0]
+             v2 = v15[1]
+               (I63)1)
+    v18 =
+          FN(v17:
+             TYC({TV(1,0),TCAP(list, [TV(1,0)]),TV(1,1),TCAP(list, [TV(1,1)])}),
+             v7 = v17[0]
+               v6 = v17[1]
+                 v5 = v17[2]
+                   v4 = v17[3]
+                     (I63)2)
+      v19 = FN(v8: TYC({TCAP(list, [TV(1,0)]),TCAP(list, [TV(1,1)])}),(I63)3)
+        v21 = v12[0]
+          v20 = v12[1]
+            SWIv21
+               of ::.v22 =>
+                 v24 = v22[0]
+                   v23 = v22[1]
+                     SWIv20
+                        of ::.v25 =>
+                          v27 = v25[0]
+                            v26 = v25[1]
+                              SWIv23
+                                 of nil.v31 =>
+                                   SWIv26
+                                      of nil.v29 => APP(v16, RCD(v24,v27))
+                                      _ => APP(v18, RCD(v24,v23,v27,v26))
+                                 _ => APP(v18, RCD(v24,v23,v27,v26))
+                        nil.v34 =>
+                          RAISE(TYC(PRIM(I63)),
+                          APP(PRM(markexn,
+                              TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])),
+                              []),
+                          RCD(CON((Match,EXNLVAR(11),TYC(AR[rr]([{}],
+                                   [PRIM(EXN)]))), [], RCD()),"t3.sml:1.6-4.13")))
+               nil.v43 =>
+                 SWIv20
+                    of ::.v35 =>
+                      v37 = v35[0]
+                        v36 = v35[1]
+                          RAISE(TYC(PRIM(I63)),
+                          APP(PRM(markexn,
+                              TYC(AR[rr]([PRIM(EXN),PRIM(STR)], [PRIM(EXN)])),
+                              []),
+                          RCD(CON((Match,EXNLVAR(11),TYC(AR[rr]([{}],
+                                   [PRIM(EXN)]))), [], RCD()),"t3.sml:1.6-4.13")))
+                    nil.v40 => APP(v14, RCD())
+
+
+** matchComp: code = 
+
+  
+
+t3.sml:1.6-4.13 Error: match redundant and nonexhaustive
+          (nil,nil) => ...
+          (a :: nil,b :: nil) => ...
+          (c :: cs,d :: ds) => ...
+  

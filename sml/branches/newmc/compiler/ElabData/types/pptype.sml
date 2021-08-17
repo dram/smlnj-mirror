@@ -351,8 +351,8 @@ and ppType1 env ppstrm (ty: ty, sign: T.polysign,
                          closeBox())
                    else ppType1 env ppstrm (body,sign, membersOp)
 	       | MARKty(ty, region) => prty ty
-	       | WILDCARDty => pps "_"
-	       | UNDEFty => pps "undef"
+	       | WILDCARDty => pps "<WCty>"
+	       | UNDEFty => pps "<UNDEFty>"
 
 	and ppTypeArgs [] = ()
 	  | ppTypeArgs [ty] =

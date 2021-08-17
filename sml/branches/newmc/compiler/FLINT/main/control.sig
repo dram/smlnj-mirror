@@ -17,7 +17,10 @@ sig
   val tmdebugging     : bool ref   (* TransTypes debugging *)
   val trdebugging     : bool ref   (* Translate debugging *)
   val nmdebugging     : bool ref   (* Plambda normalization (FlintNM) *)
+  val lcdebugging     : bool ref   (* lcontract phase debugging (LContract) *)
   val fcdebugging     : bool ref   (* fcontract phase debugging (FContract) *)
+  val spdebugging     : bool ref   (* specialize phase debugging (Specialize) *)
+  val ffdebugging     : bool ref   (* fixfix phase debugging (FixFix) *)
   val wrdebugging     : bool ref   (* wrap phase debugging (Wrapping) *)
   val redebugging     : bool ref   (* reify phase debugging (Reify) *)
   val rtdebugging     : bool ref   (* runtime types debugging (RuntimeType) *)
@@ -32,7 +35,6 @@ sig
   val dropinvariant	: bool ref
 
   val specialize	: bool ref   (* whether to specialize *)
-  val spdebugging	: bool ref   (* Specialize debugging *)
   (* val liftLiterals	: bool ref *)
   val sharewrap	: bool ref   (* whether to share wrappers *)
   val saytappinfo	: bool ref   (* for verbose typelifting *)

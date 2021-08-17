@@ -57,7 +57,7 @@ signature CONTROL =
     structure Print : PRINTCONTROL
     structure ElabData : ELABDATA_CONTROL
     structure Elab : ELAB_CONTROL
-    structure MC : MCCONTROL
+    structure MC : MC_CONTROL
     structure FLINT : FLINTCONTROL
     structure CG : CGCONTROL
     structure MLRISC : MLRISC_CONTROL

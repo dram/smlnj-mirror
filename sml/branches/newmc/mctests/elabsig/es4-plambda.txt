@@ -1,0 +1,62 @@
+(* es4.sml *)
+
+datatype se = A of se * int list | B;  (* ! B *)
+
+fun f se =
+    let fun loop (A (se,xs), defs) =  (* ! defs *)
+	      let fun loop1 nil = loop (se, nil)  (* ! loop *)
+		    | loop1 (x::rest) = loop1 rest
+	       in loop1 xs
+	      end
+	  | loop (se, defs) = (se, defs)  (* when se = B *)
+     in loop (se, nil)
+    end;
+
+(*
+fun f (se: se) =
+    let fun loop ['a] (A (se,xs), defs: 'a list) =  <== binding occ. of 'a
+	      let fun loop1 (nil: 'b list) = loop (se, nil: 'a list)  (* : se * 'a list *)
+		    | loop1 (x::rest) = loop1 rest     (* loop1 : ['b] 'b list -> se * 'a list *)
+	       in loop1 [int] xs : se * 'a list
+	      end
+	  | loop (se, defs) = (se, defs)  (* when se = B *)
+         (* loop : ['a] (se * 'a list) -> (se * 'a list) *)
+     in loop (se, nil)
+    end;
+*)
+
+
+[After Translate ...]
+
+FN(v51: STR([]),  -- v51 externals (no externals)
+   v17 = TFN((M) FN(v44: TYC(se),  -- v44: eta-expansion of f
+            v43 = FN(v18: TYC(se), -- f
+                     v19 = TFN((M) FN(v41: TYC({se,TCAP(list, [DTV(1,0)])}),  -- v19 = loop?
+                             v38 = FN(v37: TYC({TCAP(list, [DTV(1,0)]),TCAP(list, [PRIM(I63)]),se}),
+                                     v20 = v37[0]
+                                       v21 = v37[1]
+                                         v22 = v37[2]  -- v22: se
+                                           v23 = TFN((M) FN(v35: TYC(TCAP(list, [DTV(1,0)])),
+                                                   v32 = FN(v31: TYC({}),
+                                                           APP(v19,
+                                                               RCD(v22,
+							           CON(<nil>, _, RCD()))))
+                                                     v34 = FN(v33: TYC({TCAP(list, [DTV(1,0)]),DTV(1,0)}),
+                                                             v24 = v33[0]
+                                                               v25 = v33[1]
+                                                                 APP(v23, v24))
+                                                       SWI v35
+                                                        of ::.v36 => APP(v34, RCD(v36[1],v36[0]))
+                                                           nil.v49 => APP(v32, RCD())))
+                                             APP(TAPP(v23 [PRIM(I63)]), v21))  -- end v38
+                                v40 = FN(v39: TYC({TCAP(list, [DTV(1,0)]),se}),
+                                         v27 = v39[0]
+                                           v28 = v39[1]
+                                             RCD(v28,v27))
+                                  SWI v41[0]
+                                   of A.v42 => APP(v38, RCD(v41[1],v42[1],v42[0]))
+                                      _ => APP(v40, RCD(v41[1],v41[0]))))  -- end v19
+                       APP(TAPP(v19 [DTV(1,0)]),
+                       	   RCD(v18,CON(<nil>, [DTV(1,0)], RCD()))))
+              APP(v43, v44)))
+     SRCD(v17))

@@ -15,7 +15,7 @@ sig
 end
 
 (* Maybe later:
- * - hoisting of inner functions out of their englobing function
+ * - hoisting of inner functions out of their enclosing function
  *   so that the outer function becomes smaller, giving more opportunity
  *   for inlining.
  * - eta expand escaping functions
@@ -27,8 +27,9 @@ struct
 
 local
     structure F  = FLINT
-    structure S = LambdaVar.Set
-    structure M = LambdaVar.Map
+    structure LV = LambdaVar
+    structure S = LV.Set
+    structure M = LV.Map
     structure PF = PrintFlint
     structure LT = LtyExtern
     structure LK = LtyKernel
@@ -36,14 +37,28 @@ local
     structure CTRL = FLINT_Control
 in
 
-val say = Control_Print.say
+val debugging = CTRL.ffdebugging
 fun bug msg = ErrorMsg.impossible ("FixFix: "^msg)
+
+val say = Control_Print.say
+fun newline () = say "\n"
+fun saynl msg = (say msg; newline())
+fun says strings = say (concat strings)
+fun saysnl strings = saynl (concat strings)
+
+fun dbsay msg =
+    if !debugging
+    then (say msg; newline())
+    else ()
+fun dbsays msgs = dbsay (concat msgs)
+
 fun buglexp (msg,le) = (say "\n"; PF.printLexp le; say " "; bug msg)
 fun bugval (msg,v) = (say "\n"; PF.printSval v; say " "; bug msg)
-fun assert p = if p then () else bug ("assertion failed")
 fun bugsay s = say ("!*!*! Fixfix: "^s^" !*!*!\n")
 
-val cplv = LambdaVar.dupLvar
+(* copyLvar : LV.lvar -> LV.lvar
+ *  returns a fresh lvar with the same name (if any) as the argument *)
+val copyLvar = LambdaVar.dupLvar
 
 (* to limit the amount of uncurrying *)
 val maxargs = CTRL.maxargs
@@ -53,28 +68,29 @@ structure SCC = GraphSCCFn (struct
     val compare = LambdaVar.compare
   end)
 
-datatype info = Fun of int ref
-	      | Arg of int * (int * int) ref
+datatype info
+  = Fun of int ref
+  | Arg of int * (int * int) ref
 
-(* fexp: int ref LambdaVar.Map.map -> lexp) -> (int * intset * lexp)
- * The map contains refs to counters.  The meaning of the counters
+(* fexp: (int ref LambdaVar.Map.map) -> int -> lexp
+         -> (int * intset * lexp)
+ * The map contains refs to counts.  The meaning of the counters
  * is slightly overloaded:
  * - if the counter is negative, it means the lvar
  *   is a locally known function and the counter's absolute value denotes
  *   the number of calls (off by one to make sure it's always negative).
- * - else, it indicates that the lvar is a
- *   function argument and the absolute value is a (fuzzily defined) measure
- *   of the reduction in code size/speed that would result from knowing
- *   its value (might be used to decide whether or not duplicating code is
- *   desirable at a specific call site).
- * The three subparts returned are:
- * - the size of lexp
- * - the set of freevariables of lexp (plus the ones passed as arguments
- *   which are assumed to be the freevars of the continuation of lexp)
- * - a new lexp with FIXes rewritten.
+ * - else, it indicates that the lvar is a function argument and the
+ *   absolute value is a fuzzy measure of the reduction in code size/speed
+ *   that would result from knowing its value (might be used to decide whether
+ *   or not duplicating code is desirable at a specific call site).
+ * The three components of the tuple returned are:
+ *   (1) the size of lexp
+ *   (2) the set of freevariables of lexp (plus the ones passed as arguments
+ *       which are assumed to be the freevars of the continuation of lexp)
+ *   (3) a new lexp with FIXes rewritten.
  *)
-fun fexp mf depth lexp = let
-
+fun fexp mf depth lexp =
+let
     val loop = fexp mf depth
 
     fun lookup (F.VAR lv) = M.find(mf, lv)
@@ -128,7 +144,7 @@ fun fexp mf depth lexp = let
 
     (* do the actual uncurrying *)
     fun uncurry (args as (fk,f,fargs)::_::_,body) =
-	let val f' = cplv f	(* the new fun name *)
+	let val f' = copyLvar f	(* the new fun name *)
 
 	    (* find the rtys of the uncurried function *)
 	    fun getrtypes (({isrec=SOME(rtys,_),...}:F.fkind,_,_),_) = SOME rtys
@@ -150,7 +166,7 @@ fun fexp mf depth lexp = let
 			known= #known nfk', cconv= ncconv}
 
 	    (* funarg renaming *)
-	    fun newargs fargs = map (fn (a,t) => (cplv a,t)) fargs
+	    fun newargs fargs = map (fn (a,t) => (copyLvar a,t)) fargs
 
 	    (* create (curried) wrappers to be inlined *)
 	    fun recurry ([],args) = F.APP(F.VAR f', map (F.VAR o #1) args)
@@ -158,7 +174,7 @@ fun fexp mf depth lexp = let
 		let val fk = {inline=F.IH_ALWAYS, isrec=NONE,
 			      known=known, cconv=cconv}
 		    val nfargs = newargs fargs
-		    val g = cplv f'
+		    val g = copyLvar f'
 		in F.FIX([(fk, g, nfargs, recurry(rest, args @ nfargs))],
 			 F.RET[F.VAR g])
 		end
@@ -414,15 +430,21 @@ in case lexp
      | F.RAISE _ => bug "bogus F.RAISE"
 end
 
-fun fixfix ((fk,f,args,body):F.prog) =
-    let val (s,fv,nbody) = fexp M.empty 0 body
-	val fv = S.difference(fv, S.addList(S.empty, map #1 args))
+(* fixfix : F.prog(/fundec) -> F.prog *)
+(* checks assertion that free variables of body are contained in set of arg lvars *)			     
+fun fixfix ((fk, f, args, body): F.prog) =
+    let val (_, freeLvars, nbody) = fexp M.empty 0 body
+	val argLvars = map #1 args
+	val fv = S.difference(freeLvars, S.addList(S.empty, argLvars))
     in
-	(*  PrintFlint.printLexp(F.RET(map F.VAR (S.members fv))); *)
-	assert(S.isEmpty(fv));
-	(fk, f, args, nbody)
+        if S.isEmpty(fv)
+	then (fk, f, args, nbody)
+	else (saysnl ["@@@ fixfix:\n    freeLvars = ",
+		      PrintUtil.listToString ("[",",","]") LV.toString (S.toList freeLvars),
+		      ",\n    argLvars = ",
+		      PrintUtil.listToString ("[",",","]") LV.toString argLvars];
+	      bug "fixfix - excess free vars")
     end
 
-end
-end
-
+end (* top local *)
+end (* structure FixFix *)

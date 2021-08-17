@@ -12,7 +12,7 @@ local
   structure IM = Andor.IM
   open MCCommon
 
-  val debugging = Control.MC.debugging
+  val debugging = MCControl.mcdebugging
 
   fun bug msg = ErrorMsg.impossible ("DecisionTree: " ^ msg)
 
@@ -152,7 +152,7 @@ let (* val relmapRef = ref relmap
 			 then NONE (* dtCases saturated the type *)
 			 else SOME (mkDecTree (remainder, liveDefaults))
 			      (* default needed to cover con variants that were absent or killed *)
-		 in SWITCH {andor=node, sign=sign, cases=dtCases, default=defaultDtOp, live = stillLive}
+		 in SWITCH {id=id, path=path, sign=sign, cases=dtCases, defaultOp=defaultDtOp, live = stillLive}
 		 end
 	      | NONE => RHS (RS.minItem live))
 		 (* no further choices => no more rules can be eliminated. In particular,
@@ -183,7 +183,48 @@ let (* val relmapRef = ref relmap
  in mkDecTree (accessible (andor, emptyQ), live)
 end (* makeDectree *)
 
-end (* local *)
+(* =========================================================================== *)
+(* collecting decision tree stats *)
+	      
+structure NodeMap = IntRedBlackMap
+
+type decTreeStats =
+     {rulesUsed : RS.set,
+      failures : int,
+      choiceTotal : int,
+      choiceDist : int NodeMap.map}
+
+(* decTreeStats : dectree * int -> decTreeStats
+ *  returns the set of all rules used in the dectree, maintaining ordering
+ *  (because union operation does). The boolean value indicates presence of FAIL,
+ *  signalling that the rules are non-exhaustive. *)
+fun decTreeStats (dectree: dectree): decTreeStats =
+    let val rules = ref RS.empty
+	val failures = ref 0
+	val choiceTotal = ref 0
+	val choiceDist = ref NodeMap.empty
+	fun scanTree (RHS n) = (rules := RS.add (!rules, n)) 
+	  | scanTree FAIL = (failures := !failures + 1)
+	  | scanTree (SWITCH {id, cases, defaultOp, ...}) =
+	    (choiceTotal := !choiceTotal + 1;
+	     choiceDist :=
+		let val nmap = !choiceDist
+		    val newcount =
+			case NodeMap.find (nmap, id)
+			 of NONE => 1
+			  | SOME k => k+1
+		in NodeMap.insert(nmap, id, newcount)
+		end;
+	     app (fn (_, dt) => scanTree dt) cases;
+	     Option.app scanTree defaultOp)
+    in scanTree dectree;
+       {rulesUsed = !rules,
+	failures = !failures,
+	choiceTotal = !choiceTotal,
+	choiceDist = !choiceDist}
+    end
+
+end (* top local *)
 end (* structure DecisionTree *)
 
 (* NOTES:
