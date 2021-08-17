@@ -244,7 +244,7 @@ structure CoreIntInf :> sig
     fun neg (BI { digits, negative }) =
 	bi { digits = digits, negative = not negative }
 
-    open Order
+    datatype order = datatype Order.order
 
     fun dcmp (x, y) =
 	if InLine.word_lt (x, y) then LESS else
