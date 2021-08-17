@@ -53,6 +53,8 @@ structure TaggedArith : sig
     fun orTag e = pureOp (P.ORB, ity, [e, one])
     fun untagInt e = pureOp (P.RSHIFT, ity, [e, one])
     fun untagUInt e = pureOp (P.RSHIFTL, ity, [e, one])
+    fun untag (false, e) = untagUInt e
+      | untag (true, e) = untagInt e
     fun tagUnsigned e = orTag (pureOp (P.LSHIFT, ity, [e, one]))
 
   (* pure tagged arithmetic; a number "n" is represented as "2*n+1" *)
@@ -62,7 +64,7 @@ structure TaggedArith : sig
 	    | (ADD, [v1, NUM{ival, ...}]) =>
 		pureOp (P.ADD, ity, [comp v1, num (ival+ival)])
 	    | (ADD, [v1, v2]) =>
-		pureOp (P.ADD, ity, [comp v1, comp v2])
+		pureOp (P.ADD, ity, [comp v1, stripTag (comp v2)])
 	    | (SUB, [NUM{ival, ...}, v2]) =>
 		pureOp (P.SUB, ity, [num (ival+ival+2), comp v2])
 	    | (SUB, [v1, NUM{ival, ...}]) =>
@@ -71,9 +73,10 @@ structure TaggedArith : sig
 		addTag(pureOp (P.SUB, ity, [comp v1, comp v2]))
 	    | (MUL, [v1, v2]) => let
 		val (v1, v2) = (case (v1, v2)
-		       of (NUM{ival, ...}, _) => (num ival, untagUInt (comp v2))
-			| (_, NUM{ival, ...}) => (untagUInt (comp v1), num ival)
-			| _ => (stripTag (comp v1), untagUInt (comp v2))
+		       of (NUM{ival=n, ...}, NUM{ival=m, ...}) => (num(n+n), num m)
+			| (NUM{ival, ...}, _) => (num ival, untag (signed, comp v2))
+			| (_, NUM{ival, ...}) => (untag (signed, comp v1), num ival)
+			| _ => (stripTag (comp v1), untag (signed, comp v2))
 		      (* end case *))
 		val oper = if signed then P.SMUL else P.UMUL
 		in
@@ -82,11 +85,11 @@ structure TaggedArith : sig
 	    | (QUOT, [v1, v2]) => let
 		val e1 = (case v1
 		       of NUM{ival, ...} => num ival
-			| _ => untagUInt (comp v1)
+			| _ => untag (signed, comp v1)
 		      (* end case *))
 		val e2 = (case v2
 		       of NUM{ival, ...} => num ival
-			| _ => untagUInt (comp v2)
+			| _ => untag (signed, comp v2)
 		      (* end case *))
 		in
 		  tagUnsigned (pureOp (P.UDIV, ity, [e1, e2]))
@@ -94,11 +97,11 @@ structure TaggedArith : sig
 	    | (REM, [v1, v2]) => let
 		val e1 = (case v1
 		       of NUM{ival, ...} => num ival
-			| _ => untagUInt (comp v1)
+			| _ => untag (signed, comp v1)
 		      (* end case *))
 		val e2 = (case v2
 		       of NUM{ival, ...} => num ival
-			| _ => untagUInt (comp v2)
+			| _ => untag (signed, comp v2)
 		      (* end case *))
 		in
 		  tagUnsigned (pureOp (P.UREM, ity, [e1, e2]))
@@ -173,7 +176,7 @@ structure TaggedArith : sig
 	      | (IADD, [a, b]) => continue (P.IADD, [comp a, stripTag(comp b)])
 	      | (ISUB, [NUM{ival, ...}, b]) => continue (P.ISUB, [num(ival+ival+2), comp b])
 	      | (ISUB, [a, NUM{ival, ...}]) => continue (P.ISUB, [comp a, num(ival+ival)])
-	      | (ISUB, [a, b]) => continue (P.ISUB, [comp a, stripTag(comp b)])
+	      | (ISUB, [a, b]) => tagResult (P.ISUB, [comp a, stripTag(comp b)])
 	      | (IMUL, [NUM{ival=m, ...}, NUM{ival=n, ...}]) =>
 		  tagResult (P.IMUL, [num(m+m), num n])
 	      | (IMUL, [NUM{ival, ...}, b]) =>
