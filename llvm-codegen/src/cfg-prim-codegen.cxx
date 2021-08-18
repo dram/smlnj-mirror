@@ -167,7 +167,6 @@ namespace CFG_Prim {
 
 	switch (this->get_oper()) {
 	    case arithop::IADD:
-
 		pair = buf->build().CreateCall(
 		    (this->get_sz() == 32) ? buf->sadd32WOvflw() : buf->sadd64WOvflw(),
 		    args);
@@ -285,7 +284,8 @@ namespace CFG_Prim {
                 return buf->createZExt (args[0], buf->iType(this->_v_to));
             }
         }
-        else {
+	else {
+	    assert (! this->_v_signed && "unexpected sign extension of ML Value");
             assert (buf->iType(this->_v_to) == buf->intTy);
             return args[0];
         }
