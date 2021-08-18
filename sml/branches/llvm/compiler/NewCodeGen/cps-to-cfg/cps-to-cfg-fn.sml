@@ -473,11 +473,11 @@ C.NUMt{sz=sz}
 		      C.SETTER(rawStore kind, [genV adr, genV offset, genV v], k)
 		  | (P.RAWUPDATE(CPS.FLTt 64), [v, i, w]) =>
 		      C.SETTER(
-			TP.RAW_UPDATE{kind=TP.FLT, sz=64}, [genV v, genV i, genV w],
+			TP.RAW_UPDATE{kind=TP.FLT, sz=64}, [genV v, untagUnsigned i, genV w],
 			k)
 		  | (P.RAWUPDATE _, [v, i, w]) =>
 		      C.SETTER(
-			TP.RAW_UPDATE{kind=TP.INT, sz=ity}, [genV v, genV i, genV w],
+			TP.RAW_UPDATE{kind=TP.INT, sz=ity}, [genV v, untagUnsigned i, genV w],
 			k)
 		  | _ => error ["bogus setter: ", PPCps.setterToString oper]
 		(* end case *))
