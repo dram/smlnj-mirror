@@ -131,9 +131,12 @@ The **CFG** IR has two main types:
     * `ASSIGN` -- reference assignment.  This operation allocates a
       store-list entry, in addition to doing the assignment.
 
-    * `RAW_UPDATE (numkind kind, int sz)`
+    * `RAW_UPDATE (kind, sz)` -- spill-record update.  The second argument
+      to this operator will be an integer index that is scaled by the element size to
+      compute the address.  Note that this operation is also used to write ML values
+      into a spill record, in which case the kind field is the native integer type.
 
-    * `RAW_STORE (numkind kind, int sz)`
+    * `RAW_STORE (kind, int)`
 
     * `SET_HDLR` -- sets the exception-handler register
 
@@ -220,67 +223,67 @@ or raise exceptions.
       values of `sz` bits (`sz` must be a power of 2).  The pure arithmetic
       operators are:
 
-	  * `ADD` -- 2's complement addition
+          * `ADD` -- 2's complement addition
 
-	  * `SUB` -- 2's complement subtraction
+          * `SUB` -- 2's complement subtraction
 
-	  * `SMUL` -- 2's complement signed multiplication (note that signed
-	    and unsigned multiplication are the same operation, but are made
-	    distinct because **MLRISC** makes the distinction).
+          * `SMUL` -- 2's complement signed multiplication (note that signed
+            and unsigned multiplication are the same operation, but are made
+            distinct because **MLRISC** makes the distinction).
 
-	  * `SDIV` -- 2's complement signed division; we assume that zero divisors
-	    have been ruled out by explicit tests.  This operation rounds toward zero.
+          * `SDIV` -- 2's complement signed division; we assume that zero divisors
+            have been ruled out by explicit tests.  This operation rounds toward zero.
 
-	  * `SREM` -- 2's complement signed remainder; we assume that zero divisors
-	    have been ruled out by explicit tests.
+          * `SREM` -- 2's complement signed remainder; we assume that zero divisors
+            have been ruled out by explicit tests.
 
-	  * `UMUL` -- 2's complement unsigned multiplication (note that signed
-	    and unsigned multiplication are the same operation, but are made
-	    distinct because **MLRISC** makes the distinction).
+          * `UMUL` -- 2's complement unsigned multiplication (note that signed
+            and unsigned multiplication are the same operation, but are made
+            distinct because **MLRISC** makes the distinction).
 
-	  * `UDIV` -- 2's complement unsigned division; we assume that zero divisors
-	    have been ruled out by explicit tests.
+          * `UDIV` -- 2's complement unsigned division; we assume that zero divisors
+            have been ruled out by explicit tests.
 
-	  * `UREM` -- 2's complement unsigned remainder; we assume that zero divisors
-	    have been ruled out by explicit tests.
+          * `UREM` -- 2's complement unsigned remainder; we assume that zero divisors
+            have been ruled out by explicit tests.
 
-	  * `LSHIFT` -- left shift operation; the shift amount is guaranteed to be
-	    less than the word size.
+          * `LSHIFT` -- left shift operation; the shift amount is guaranteed to be
+            less than the word size.
 
-	  * `RSHIFT` -- arithmetic-right shift operation (*i.e.*, with sign-extension);
-	    the shift amount is guaranteed to be less than the word size.
+          * `RSHIFT` -- arithmetic-right shift operation (*i.e.*, with sign-extension);
+            the shift amount is guaranteed to be less than the word size.
 
-	  * `RSHIFTL` -- logical-right shift operation (*i.e.*, with zero-extension);
-	    the shift amount is guaranteed to be less than the word size.
+          * `RSHIFTL` -- logical-right shift operation (*i.e.*, with zero-extension);
+            the shift amount is guaranteed to be less than the word size.
 
-	  * `ORB` -- bit-wise logical or
+          * `ORB` -- bit-wise logical or
 
-	  * `XORB` -- bit-wise logical-exclusive or
+          * `XORB` -- bit-wise logical-exclusive or
 
-	  * `ANDB` -- bit-wise logical and
+          * `ANDB` -- bit-wise logical and
 
-	  * `FADD` -- floating-point addition
+          * `FADD` -- floating-point addition
 
-	  * `FSUB` -- floating-point subtraction
+          * `FSUB` -- floating-point subtraction
 
-	  * `FMUL` -- floating-point multiplication
+          * `FMUL` -- floating-point multiplication
 
-	  * `FDIV` -- floating-point division
+          * `FDIV` -- floating-point division
 
-	  * `FNEG` -- floating-point negation
+          * `FNEG` -- floating-point negation
 
-	  * `FABS` -- floating-point absolute value
+          * `FABS` -- floating-point absolute value
 
-	  * `FSQRT` -- floating-point square root
+          * `FSQRT` -- floating-point square root
 
           * `FCOPYSIGN` -- floating-point copysign operation: returns its first argument with
             the sign set to the sign of its second argument.
 
-	  * `FLOAT_TO_BITS` -- bitcast a floating-point value to the equivalently sized
-	    word value.
+          * `FLOAT_TO_BITS` -- bitcast a floating-point value to the equivalently sized
+            word value.
 
-	  * `BITS_TO_FLOAT` -- bitcast a word value to the equivalently sized
-	    float-point value.
+          * `BITS_TO_FLOAT` -- bitcast a word value to the equivalently sized
+            float-point value.
 
     * `EXTEND{signed, from, to}` -- extend a smaller integer representation
       (`from` bits) to a larger size (`to` bits); if `signed` is `true`, then
