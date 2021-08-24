@@ -88,7 +88,7 @@ namespace CFG_Prim {
 	  // get a `char *` pointer to obj+offset
             auto adr = buf->createGEP (initPtr, offset);
             if (argTy == buf->mlValueTy) {
-              // the field should be an native-sized integer
+              // the field should be a native-sized integer
                 assert (elemTy == buf->intTy && "expected native integer field");
                 buf->createStoreML (args[i], adr);
             }
@@ -120,21 +120,24 @@ namespace CFG_Prim {
 	int len = this->_v_len;  // length in bytes
 	int align = this->_v_align; // alignment in bytes
 
-	if (align > buf->wordSzInBytes()) {
-	  // adjust the allocation point to be one word before an aligned address
-	    allocPtr = buf->createIntToPtr(
-		buf->createOr(
-		    buf->createPtrToInt(allocPtr),
-		    buf->uConst(align - buf->wordSzInBytes())),
-		buf->objPtrTy);
-	}
-
 	if (! this->_v_desc.isEmpty()) {
+            if (align > buf->wordSzInBytes()) {
+              // adjust the allocation point to be one word before an aligned address
+                allocPtr = buf->createIntToPtr(
+                    buf->createOr(
+                        buf->createPtrToInt(allocPtr),
+                        buf->uConst(align - buf->wordSzInBytes())),
+                    buf->objPtrTy);
+            }
 	  // write object descriptor
 	    uint64_t desc = this->_v_desc.valOf().toUInt64();
 	    buf->createStoreML (buf->uConst(desc), allocPtr);
 	}
-	// else tagless object for spilling
+        else {
+	    // else tagless object for spilling
+            assert (align == buf->wordSzInBytes()
+                && "unexpected alignment for spill record");
+        }
 
       // compute the object's address and cast it to an ML value
 	Value *obj = buf->createBitCast (
@@ -167,7 +170,6 @@ namespace CFG_Prim {
 
 	switch (this->get_oper()) {
 	    case arithop::IADD:
-
 		pair = buf->build().CreateCall(
 		    (this->get_sz() == 32) ? buf->sadd32WOvflw() : buf->sadd64WOvflw(),
 		    args);
@@ -285,7 +287,8 @@ namespace CFG_Prim {
                 return buf->createZExt (args[0], buf->iType(this->_v_to));
             }
         }
-        else {
+	else {
+	    assert (! this->_v_signed && "unexpected sign extension of ML Value");
             assert (buf->iType(this->_v_to) == buf->intTy);
             return args[0];
         }
