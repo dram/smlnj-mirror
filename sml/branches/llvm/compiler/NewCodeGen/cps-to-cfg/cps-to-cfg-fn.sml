@@ -132,10 +132,7 @@ C.NUMt{sz=sz}
 
   (* get length field of a heap object as tagged integer *)
     fun getObjLength obj =
-	  pureOp (TP.ORB, ity, [
-	      pureOp (TP.RSHIFTL, ity, [getDescriptor obj, w2Num(D.tagWidth - 0w1)]),
-	      one
-	    ])
+	  orTag (pureOp (TP.RSHIFTL, ity, [getDescriptor obj, w2Num(D.tagWidth - 0w1)]))
 
   (* get the data pointer of a sequence (vector, array, string, ...) *)
     fun getSeqData obj = select(0, obj)
@@ -333,7 +330,7 @@ C.NUMt{sz=sz}
 		      in
                         (* use `ref()` as the data representation *)
 			C.ALLOC(mutRecord D.desc_ref, [mlInt' 0], dataP,
-			C.ALLOC(record D.desc_polyarr, [mlInt' 0, var dataP], x,
+			C.ALLOC(record D.desc_polyarr, [var dataP, mlInt' 0], x,
 			  bindVarIn(x, k)))
 		      end
 		  | PURE(P.WRAP(P.INT sz), [v], x, _, k) => if (sz = ity)
@@ -473,11 +470,13 @@ C.NUMt{sz=sz}
 		      C.SETTER(rawStore kind, [genV adr, genV offset, genV v], k)
 		  | (P.RAWUPDATE(CPS.FLTt 64), [v, i, w]) =>
 		      C.SETTER(
-			TP.RAW_UPDATE{kind=TP.FLT, sz=64}, [genV v, untagUnsigned i, genV w],
+			TP.RAW_UPDATE{kind=TP.FLT, sz=64},
+                        [genV v, untagUnsigned i, genV w],
 			k)
 		  | (P.RAWUPDATE _, [v, i, w]) =>
 		      C.SETTER(
-			TP.RAW_UPDATE{kind=TP.INT, sz=ity}, [genV v, untagUnsigned i, genV w],
+			TP.RAW_UPDATE{kind=TP.INT, sz=ity},
+                        [genV v, untagUnsigned i, genV w],
 			k)
 		  | _ => error ["bogus setter: ", PPCps.setterToString oper]
 		(* end case *))
