@@ -60,6 +60,10 @@ struct
     structure PU = PickleUtil
     structure UU = UnpickleUtil
 
+    fun errorNoFile msg = EM.errorNoFile (errcons, anyerrors) SM.nullRegion
+          EM.COMPLAIN (concat msg)
+            EM.nullErrorBody
+
     val libstamp_nbytes = 16
 
     type map = { ss: PU.id SSMap.map, sn: PU.id SmlInfoMap.map, pm: P.map }
@@ -93,17 +97,20 @@ struct
     fun fetch_pickle s = let
 	fun bytesIn n = let
 	    val bv = BinIO.inputN (s, n)
-	in
-	    if n = Word8Vector.length bv then bv
-	    else raise UU.Format
-	end
-
+            in
+              if n = Word8Vector.length bv then bv
+              else (
+                errorNoFile [
+                    "bytesIn: wanted ", Int.toString n, ", but got ",
+                    Int.toString (Word8Vector.length bv), "\n"
+                  ];
+                raise UU.Format)
+            end
 	val libstamp = bytesIn libstamp_nbytes	(* ignored *)
 	val dg_sz = LargeWord.toIntX (PackWord32Big.subVec (bytesIn 4, 0))
-	val dg_pickle = Byte.bytesToString (bytesIn dg_sz)
-    in
-	{ size = dg_sz, pickle = dg_pickle }
-    end
+        in
+          { size = dg_sz, pickle = dg_pickle }
+        end
 
     fun mkPickleFetcher mksname () =
 	SafeIO.perform { openIt = BinIO.openIn o mksname,
@@ -237,9 +244,7 @@ struct
 	val errcons = #errcons (gp: GeneralParams.info)
 	val grpSrcInfo = (errcons, anyerrors)
 	val gdescr = SrcPath.descr group
-	fun error l = EM.errorNoFile (errcons, anyerrors) SM.nullRegion
-	    EM.COMPLAIN (concat ("(stable) " :: gdescr :: ": " :: l))
-	    EM.nullErrorBody
+	fun error l = errorNoFile ("(stable) " :: gdescr :: ": " :: l)
 
 	exception Format = UU.Format
 
@@ -585,9 +590,10 @@ struct
 			       closeIt = BinIO.closeIn,
 			       work = work,
 			       cleanup = fn _ => () })
-	handle Format => (error ["file is corrupted (old version?)"];
-			  NONE)
-             | IO.Io _ => NONE
+	handle (exn as Format) => (
+            error ["file is corrupted (old version?)"];
+            NONE)
+        | IO.Io _ => NONE
     end
 
     fun stabilize _ { group = GG.ERRORGROUP, ... } = NONE
@@ -640,9 +646,10 @@ struct
 
 		val required = StringSet.difference (#required grec, wrapped)
 
+(* FIXME: this description does not match what the code does!!! *)
 		(* The format of a stable archive is the following:
 		 *  - It starts with the size s of the pickled dependency
-		 *    graph. This size itself is written as four-byte string.
+		 *    graph. This size itself is written as a four-byte string.
 		 *  - The size t of the pickled environment for the entire
 		 *    library (using the pickleEnvN interface of the pickler)
 		 *    in the same format as s.
@@ -861,7 +868,7 @@ struct
 			end
 		      | DG.SB_SNODE n => "3" $ [sn n]
 		end
-	
+
 		and fsbn (f, n) = let
 		    val op $ = PU.$ FSBN
 		in
@@ -971,7 +978,7 @@ struct
 		    loadStable { getGroup = getGroup, anyerrors = anyerrors }
 		               (gp, grouppath, NONE, rebindings)
 		end
-			        
+
 		fun writeInt32 (s, i) = let
 		    val a = Word8Array.array (4, 0w0)
 		    val _ = PackWord32Big.update (a, 0, LargeWord.fromInt i)
