@@ -1,3 +1,9 @@
+(* smlnj-version.cm
+ *
+ * COPYRIGHT (c) 2021 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *)
+
 Library
 	structure SMLNJVersion
 is

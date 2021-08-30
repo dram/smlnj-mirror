@@ -56,11 +56,6 @@ structure InteractiveSystem : sig end = struct
     (* install "use" functionality *)
     val _ = UseHook.useHook := (fn f => ignore(Backend.Interact.use f))
 
-    (* put MLRISC controls into the main hierarchy of controls *)
-    val _ = BasicControl.nest (Control.MLRISC.prefix,
-			       Control.MLRISC.registry,
-			       Control.MLRISC.priority)
-
     (* add cleanup code that resets the internal timers and stats
      * when resuming from exportML... *)
     local

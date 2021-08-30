@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+# COPYRIGHT (c) 2021 The Fellowship of SML/NJ (http://www.smlnj.org)
 # All rights reserved.
 #
 # fixpt [-32 | -64]
@@ -19,6 +19,7 @@ cd $here
 SML=$twoup/bin/sml
 ARCH=amd64
 SIZE_OPT="-64"
+ARGS=""
 
 #
 # Parse command line
@@ -49,6 +50,8 @@ while [ "$#" != 0 ] ; do
     -save)
 	SAVE=true;
 	;;
+    -C*) ARGS="$ARGS $arg" ;;
+    -D*) ARGS="$ARGS $arg" ;;
     *)
 	echo "$this: unknown argument \"$arg\""
 	exit 2
@@ -80,7 +83,7 @@ SAVE=false		# should we save intermediate boot and bin directories?
 # (The funky ML comment is there to un-confuse emacs fontlock mode. :)
 #
 initcompile() {
-$SML $SIZE_OPT '$smlnj/cmb.cm' <<EOF
+$SML $SIZE_OPT $ARGS '$smlnj/cmb.cm' <<EOF
 local open OS.Process CMB in
    $SETLIGHT
    val _ = exit (if make' (SOME "$BASE") then success else failure) (* ' *)
@@ -97,7 +100,7 @@ if initcompile ; then
 	prevbase=$iterbase
 	iter=`expr $iter + 1`
 	iterbase=$BASE$iter
-	if ./makeml $SIZE_OPT -boot $prevbase$BOOT $REBUILD $iterbase ; then
+	if ./makeml $SIZE_OPT $ARGS -boot $prevbase$BOOT $REBUILD $iterbase ; then
 	    if diff -r $prevbase$BIN $iterbase$BIN >/dev/null 2>&1 ; then
 		echo "$this: fixpoint reached in round $iter"
 		if $SAVE ; then

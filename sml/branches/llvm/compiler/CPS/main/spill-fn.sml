@@ -1,4 +1,4 @@
-(* spill-new.sml
+(* spill.sml
  *
  * COPYRIGHT (c) 2017 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
@@ -114,9 +114,8 @@ struct
   structure LV  = LambdaVar
   structure H   = LV.Tbl     (* For mapping from lvar *)
 
-  val debug_cps_spill = Control.MLRISC.mkFlag ("debug-cps-spill", "CPS spill debug mode")
-  val debug_cps_spill_info = Control.MLRISC.mkFlag ("debug-cps-spill-info",
-						    "CPS spill info debug mode")
+  val debug_cps_spill = Control_CG.debugSpill
+  val debug_cps_spill_info = Control_CG.debugSpillInfo
 
   infix 6 \/
   infix 7 /\

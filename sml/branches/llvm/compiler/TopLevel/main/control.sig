@@ -61,12 +61,14 @@ signature CGCONTROL =
     val newLiterals : bool ref
     val debugRep : bool ref
     val deadup : bool ref
-    val memDisambiguate : bool ref	(* used by MLRISC *)
     val printit : bool ref
     val printClusters : bool ref
     val printCFG : bool ref
     val dumpCFG : bool ref
     val useLLVM : bool ref
+  (* controls that used to be in the MLRISC control structure *)
+    val debugSpill : bool ref
+    val debugSpillInfo : bool ref
   end (* signature CGCONTROL *)
 
 (* main Control structure *)
@@ -78,7 +80,6 @@ signature CONTROL =
     structure MC : MCCONTROL
     structure FLINT : FLINTCONTROL
     structure CG : CGCONTROL
-    structure MLRISC : MLRISC_CONTROL
     val debugging : bool ref
     val printAst : bool ref
     val printAbsyn : bool ref

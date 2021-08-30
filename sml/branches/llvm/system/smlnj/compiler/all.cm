@@ -70,25 +70,14 @@ Library
 	(* backends *)
 	structure AMD64StdCallBackend
 	structure AMD64CCallBackend
-	structure PPCBackend
-	structure SparcBackend
-	structure X86StdCallBackend
-	structure X86CCallBackend
 
 	(* bootstrap (cross-)compilers *)
 	structure AMD64UnixCMB
-	structure PPCUnixCMB
-	structure SparcUnixCMB
-	structure X86UnixCMB
-	structure X86Win32CMB
+(* TODO:
+        structure AMD64WindowsCMB
+        structure ARM64UnixCMB
+*)
 is
-	$smlnj/compiler/ppc.cm
-	$smlnj/compiler/sparc.cm
-	$smlnj/compiler/x86.cm
 	$smlnj/compiler/amd64.cm
 
-	$smlnj/cmb/ppc-unix.cm
-	$smlnj/cmb/sparc-unix.cm
-	$smlnj/cmb/x86-unix.cm
-	$smlnj/cmb/x86-win32.cm
 	$smlnj/cmb/amd64-unix.cm

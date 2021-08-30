@@ -58,10 +58,48 @@ local structure DA = Access
 in
 
 (* utility functions for managing rule lists (type rules) *)
+local
+(* this module was copied from the MLRISC/library; it probably should be replaced
+ * with something from the SML/NJ Library.
+ *)
+  structure SortedList =
+    struct
+      fun merge(a,[]) = a
+        | merge([],a) = a
+        | merge(l as (i:int)::a, m as j::b) =
+            if j<i then j::merge(l,b) else i::merge(a,if i<j then m else b)
+
+      local fun loop (a::b::rest) = loop(merge(a,b)::loop rest)
+              | loop l = l
+      in fun foldmerge l = hd(loop l) handle Hd => []
+      end
+
+      fun member l (e:int) =
+        let fun f [] = false
+              | f (h::t) = if h<e then f t else e=h
+        in  f l
+        end
+
+      fun intersect(nil,_) = nil
+        | intersect(_,nil) = nil
+        | intersect(l as (a:int)::b,r as c::d) =
+              if a=c then a::intersect(b,d)
+              else if a<c then intersect(b,r)
+              else intersect(l,d)
+
+      fun difference(nil,_) = nil
+        | difference(l,nil) = l
+        | difference(l as (a:int)::b,r as c::d) =
+              if a=c then difference(b,d)
+              else if a<c then a::difference(b,r)
+              else difference(l,d)
+    end (* structure SortedList *)
+in
 val intersect=SortedList.intersect
 val union = SortedList.merge
 val setDifference = SortedList.difference
 fun member(i,set) = SortedList.member set i
+end (* local *)
 
 val debugging = Control.MC.debugging
 fun bug s = EM.impossible ("MatchComp: " ^ s)

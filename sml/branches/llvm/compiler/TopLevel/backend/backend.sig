@@ -1,12 +1,14 @@
 (* backend.sig
  *
- * (C) 2001 Lucent Technologies, Bell Labs
+ * COPYRIGHT (c) 2021 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *)
-signature BACKEND = sig
+
+signature BACKEND =
+  sig
     structure Profile : PROFILE
     structure Compile : COMPILE
     structure Interact : INTERACT
-    structure Machine : MACHINE
     val architecture: string
     val abi_variant: string option
-end
+  end

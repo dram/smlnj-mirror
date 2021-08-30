@@ -312,7 +312,7 @@ Basic datastructures used in elaboration (including type checking)
   ElabData/prim/
   primop representation and machinery
     cproto.sml
-      An ad-hoc encoding of PrimCTypes.c_proto in ML types.
+      An ad-hoc encoding of CTypes.c_proto in ML types.
       defs: CProto
     arithops.sml
       defs: ArithOps (no sig)

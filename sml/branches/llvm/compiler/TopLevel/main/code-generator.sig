@@ -9,12 +9,10 @@
 
 signature CODE_GENERATOR =
   sig
-    structure Machine : MACHINE_GEN
-
     val architecture : string
 
-    val abi_variant : string option (* to distinguish between, e.g., various
-				   * intel-based unices, etc.*)
+  (* to distinguish between, e.g., various intel-based unices, etc.*)
+    val abi_variant : string option
 
     val compile : {
 	    source : string,

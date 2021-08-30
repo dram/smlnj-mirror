@@ -12,7 +12,7 @@ primitive module LambdaVar {
     lvar
 }
 
--- should agree with PrimCTypes
+-- should agree with CTypes
 --
 module CTypes {
 

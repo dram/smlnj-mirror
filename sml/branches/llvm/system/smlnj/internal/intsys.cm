@@ -27,7 +27,7 @@ Library
 
 # if not defined(LIGHT)
 	(* export one representative from $smlnj/compiler/all.cm *)
-	structure X86UnixCMB
+	structure AMD64UnixCMB
 # endif
 is
 	$smlnj/init/init.cmi : cm

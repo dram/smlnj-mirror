@@ -3,7 +3,7 @@
  * COPYRIGHT (c) 2017 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
- * Library exporting "visible" compilers for Alpha32.
+ * Library exporting "visible" compiler.
  *
  * author: Matthias Blume (blume@research.bell-labs.com)
  *)
@@ -102,21 +102,6 @@ is
 # if defined(ARCH_AMD64)
        $smlnj/compiler/amd64.cm
        amd64.sml
-# elif defined(ARCH_PPC)
-	$smlnj/compiler/ppc.cm
-	ppc.sml
-# elif defined(ARCH_SPARC)
-	$smlnj/compiler/sparc.cm
-	sparc.sml
-# elif defined(ARCH_X86)
-	$smlnj/compiler/x86.cm
-#   if defined(OPSYS_UNIX)
-	x86-ccall.sml
-#   elif defined(OPSYS_WIN32)
-	x86-stdcall.sml
-#   else
-#	error Strange OS (for x86)!
-#   endif
 # else
 #   error Strange architecture!
 # endif

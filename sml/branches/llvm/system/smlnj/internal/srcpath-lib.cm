@@ -5,6 +5,7 @@
  *
  * Author: Matthias Blume (blume@kurims.kyoto-u.ac.jp)
  *)
+
 Library
 	group($cm/paths/srcpath-lib.cm)
 is

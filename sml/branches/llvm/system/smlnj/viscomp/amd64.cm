@@ -1,4 +1,8 @@
-(* smlnj/viscomp/amd64.cm *)
+(* amd64.cm
+ *
+ * COPYRIGHT (c) 2021 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *)
 
 Library
 	group($compiler/backend-amd64.cm)
