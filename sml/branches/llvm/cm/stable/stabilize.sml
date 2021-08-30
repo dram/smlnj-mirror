@@ -60,10 +60,6 @@ struct
     structure PU = PickleUtil
     structure UU = UnpickleUtil
 
-    fun errorNoFile msg = EM.errorNoFile (errcons, anyerrors) SM.nullRegion
-          EM.COMPLAIN (concat msg)
-            EM.nullErrorBody
-
     val libstamp_nbytes = 16
 
     type map = { ss: PU.id SSMap.map, sn: PU.id SmlInfoMap.map, pm: P.map }
@@ -100,14 +96,15 @@ struct
             in
               if n = Word8Vector.length bv then bv
               else (
-                errorNoFile [
-                    "bytesIn: wanted ", Int.toString n, ", but got ",
+                TextIO.output (TextIO.stdErr, concat [
+                    "## bytesIn: wanted ", Int.toString n, ", but got ",
                     Int.toString (Word8Vector.length bv), "\n"
-                  ];
+                  ]);
                 raise UU.Format)
             end
 	val libstamp = bytesIn libstamp_nbytes	(* ignored *)
 	val dg_sz = LargeWord.toIntX (PackWord32Big.subVec (bytesIn 4, 0))
+	val dg_pickle = Byte.bytesToString (bytesIn dg_sz)
         in
           { size = dg_sz, pickle = dg_pickle }
         end
@@ -244,8 +241,9 @@ struct
 	val errcons = #errcons (gp: GeneralParams.info)
 	val grpSrcInfo = (errcons, anyerrors)
 	val gdescr = SrcPath.descr group
-	fun error l = errorNoFile ("(stable) " :: gdescr :: ": " :: l)
-
+	fun error l = EM.errorNoFile (errcons, anyerrors) SM.nullRegion
+              EM.COMPLAIN (concat ("(stable) " :: gdescr :: ": " :: l))
+                EM.nullErrorBody
 	exception Format = UU.Format
 
 	val penv = #penv (#param gp)
