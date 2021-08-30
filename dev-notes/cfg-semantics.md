@@ -134,9 +134,14 @@ The **CFG** IR has two main types:
     * `RAW_UPDATE (kind, sz)` -- spill-record update.  The second argument
       to this operator will be an integer index that is scaled by the element size to
       compute the address.  Note that this operation is also used to write ML values
-      into a spill record, in which case the kind field is the native integer type.
+      into a spill record, in which case the kind field is the native integer type
+      (even though the values being written may be pointers).
 
-    * `RAW_STORE (kind, int)`
+    * `RAW_STORE (kind, int)` -- indexed store of raw numeric values, which is used
+      to initialize data being passed to **C** functions.  There are three arguments,
+      the base address, a byte offset, and the value to store. <br/>
+      **NOTE:** unlike the `RAW_UPDATE` function, the index is **not** scaled when
+      computing the store address.
 
     * `SET_HDLR` -- sets the exception-handler register
 

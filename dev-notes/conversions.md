@@ -30,6 +30,9 @@ we assume that (n >= m):
                    function on n-bit values.
 
   `EXTEND`(m,n) -- sign extend an m-bit value to a n-bit value.
+                   Note that it may be helpful to also distinguish
+                   between extending signed and unsigned values, since
+                   the former may be in 2's complement form.
 
   `TRUNC`(n,m)  -- truncate an n-bit value to an m-bit value.
 

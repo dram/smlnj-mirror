@@ -148,3 +148,20 @@ looking up a value in the existing dynamic environment.  In general,
 that value will be a record.  The selector fields of the import tree
 associated with the pid are used to recursively fetch components of that
 record.
+
+== Stable Archives
+
+A __stable archive__ is a single-file representation of a library.
+It consists of a collection of binfiles with their associated
+dependency information stored as a single file (see `base/cm/stable/stabilize.sml`).
+The format of a stable archive is
+
+[cols=">6m,>1m,<30a",options="header"]
+|====
+|   Start | Size | Description
+|     0   |   16 | library stamp
+|    16   |    4 | size of the pickled dependency graph in bytes (`dg`)
+|    20   |   dg | the pickled dependency graph
+|====
+
+**INCOMPLETE**
