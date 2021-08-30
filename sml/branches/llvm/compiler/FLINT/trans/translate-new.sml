@@ -436,7 +436,7 @@ fun mkAccInfo (acc, getLty, nameOp) =
 
 (* fillPat : AS.pat * int -> AS.pat *)
 (* (1) fills out flex record patterns according to the known record type, turning them
- *     into nonflex record patterns.  Using WILDpat for the elided fields.
+ *     into nonflex record patterns.  Using WILDpat when restoring the elided fields.
  * (2) uses mkRep to adjust representations for exception constructors and
  *     the SUSP pseudo-constructor *)
 fun fillPat(pat, d) =
@@ -818,10 +818,8 @@ and mkVBs (vbs, d) =
 		    val newVarExps = map (fn v => VARexp(ref v,[])) newvars
 		    val rhsTy = BT.tupleTy(map (fn (V.VALvar{typ,...}) => !typ) newvars)
 		    val bindRule = RULE(newpat, EU.TUPLEexp(newVarExps))
-		    val defaultRule =
-			RULE(WILDpat, RAISEexp(CONexp(CoreAccess.getExn env ["Bind"],[]),rhsTy))
-		    val newexp = CASEexp(exp, [bindRule, defaultRule], false)
-				 (* evaluates to pattern var tuple *)
+		    val newexp = CASEexp(exp, [bindRule], false)
+				 (* evaluates to tuple of (new) pattern var values *)
  		    (* DBM: FIX. Don't need defaultRule, will be handled by matchComp(...,bindExn). *)
 
 		 in case oldvars
@@ -843,11 +841,9 @@ and mkVBs (vbs, d) =
 					(* length of boundtvs gives type abstraction arity of newVar *)
 				    val defn =
 					case (boundtvs, btvs)
-					  of ([],[]) =>
-					       SELECT(i,VAR(newVar))
-					   | (_,[]) =>
-					       SELECT(i,TAPP(VAR(newVar),
-							     map (fn _ => LT.tcc_void) boundtvs))
+					  of ([],[]) => SELECT(i,VAR(newVar))
+					   | (_, []) => SELECT(i,TAPP(VAR(newVar),
+								      map (fn _ => LT.tcc_void) boundtvs))
 					   | _ => (* coordinating type args of newVar and bvar *)
 					      let val indices = List.tabulate(btvsArity, (fn x => x))
 						    (* 0-based indexes into btvs, the bound type variable
@@ -1354,7 +1350,7 @@ val body = wrapII body
 val (plexp, imports) = wrapPidInfo (body, PersMap.listItemsi (!persmap))
 
 (** type check body (including kind check) **)
-val ltyerrors = if !FLINT_Control.plchk
+val ltyerrors = if !FLINT_Control.checkPLambda
 		then ChkPlexp.checkLtyTop(plexp,0)
 		else false
 val _ = if ltyerrors
