@@ -781,7 +781,7 @@ struct
       fun emitSpill(w, e) = (case findSpill w
              of NONE => e
               | SOME(spillRecord, off, cty) =>
-                  CPS.SETTER(P.RAWUPDATE cty, [spillRecord, tagInt off,CPS.VAR w], e)
+                  CPS.SETTER(P.RAWUPDATE cty, [spillRecord, tagInt off, CPS.VAR w], e)
             (* end case *))
 
       (*
