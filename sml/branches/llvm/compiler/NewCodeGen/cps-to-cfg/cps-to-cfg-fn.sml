@@ -244,6 +244,8 @@ C.NUMt{sz=sz}
 		      C.SWITCH(untagSigned v, List.map genE cases)
 		  | BRANCH(test, vs, _, k1, k2) =>
 		      genBranch (test, vs, genE k1, genE k2)
+		  | SETTER(P.RAWUPDATE cty, [v, i, w], k) =>
+                      genRawUpdate (cty, v, i, w, genE k)
 		  | SETTER(oper, vs, k) =>
 		      genSetter (oper, vs, genE k)
 		  | LOOKER(oper as P.GETHDLR, vs, x, CPS.FUNt, k) =>
@@ -372,7 +374,7 @@ C.NUMt{sz=sz}
 				 *)
 				  (mkDesc(n, D.tag_record), MS.valueSize)
 			    (* end case *))
-		      val len = n * scale
+		      val len = n * scale (* length in bytes *)
 		      val oper = TP.RAW_ALLOC{desc = desc, align = scale, len = len}
 		      in
 			C.ALLOC(oper, [], x, bindVarIn(x, k))
@@ -407,12 +409,25 @@ C.NUMt{sz=sz}
 	(* Allocate a record with machine-int-sized components *)
 	  and allocIntRecord (fields, x, k) = let
 		val len = length fields
-		val desc = D.makeDesc'(wordsPerDbl * len, D.tag_raw)
+		val desc = D.makeDesc'(len, D.tag_raw)
 		val oper = rawRecord (desc, TP.INT, ity, len)
 		in
 		  C.ALLOC(oper, List.map getField fields, x, bindVarIn(x, k))
 		end
 	(***** SETTER *****)
+(* QUESTION: should we introduce a special primop for spill-record updates? *)
+          and genRawUpdate (cty, r, NUM{ival, ...}, v, k) = (case cty
+(* REAL32: FIXME *)
+                 of CPS.FLTt 64 => C.SETTER(
+                      TP.RAW_UPDATE{kind=TP.FLT, sz=64},
+                      [genV r, num ival, genV v],
+                      k)
+                  | _ => C.SETTER(
+                      TP.RAW_UPDATE{kind=TP.INT, sz=ity},
+                      [genV r, num ival, genV v],
+                      k)
+                (* end case *))
+            | genRawUpdate _ = error ["bogus RAWUPDATE"]
 	  and genSetter (oper, args : value list, k) = (case (oper, args)
 		 of (P.NUMUPDATE{kind}, [arr, ix, v]) => let
 		      fun set (kind, sz, arg) = C.SETTER(
@@ -468,16 +483,6 @@ C.NUMt{sz=sz}
 		      C.SETTER(rawStore kind, [genV adr, zero ity, genV v], k)
 		  | (P.RAWSTORE{kind}, [adr, offset, v]) =>
 		      C.SETTER(rawStore kind, [genV adr, genV offset, genV v], k)
-		  | (P.RAWUPDATE(CPS.FLTt 64), [v, i, w]) =>
-		      C.SETTER(
-			TP.RAW_UPDATE{kind=TP.FLT, sz=64},
-                        [genV v, untagUnsigned i, genV w],
-			k)
-		  | (P.RAWUPDATE _, [v, i, w]) =>
-		      C.SETTER(
-			TP.RAW_UPDATE{kind=TP.INT, sz=ity},
-                        [genV v, untagUnsigned i, genV w],
-			k)
 		  | _ => error ["bogus setter: ", PPCps.setterToString oper]
 		(* end case *))
 	(***** LOOKER *****)

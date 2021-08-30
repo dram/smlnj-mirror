@@ -50,12 +50,11 @@ structure TaggedArith : sig
     fun orTag e = pureOp (P.ORB, ity, [e, one])
     fun addTag e = pureOp (P.ADD, ity, [e, one])
     fun stripTag e = pureOp (P.SUB, ity, [e, one])
-    fun orTag e = pureOp (P.ORB, ity, [e, one])
     fun untagInt e = pureOp (P.RSHIFT, ity, [e, one])
     fun untagUInt e = pureOp (P.RSHIFTL, ity, [e, one])
     fun untag (false, e) = untagUInt e
       | untag (true, e) = untagInt e
-    fun tagUnsigned e = orTag (pureOp (P.LSHIFT, ity, [e, one]))
+    fun tag e = orTag (pureOp (P.LSHIFT, ity, [e, one]))
 
   (* pure tagged arithmetic; a number "n" is represented as "2*n+1" *)
     fun pure comp (rator, signed, sz, args) = (case (rator, args)
@@ -66,6 +65,9 @@ structure TaggedArith : sig
 	    | (ADD, [v1, v2]) =>
 		pureOp (P.ADD, ity, [comp v1, stripTag (comp v2)])
 	    | (SUB, [NUM{ival, ...}, v2]) =>
+(* QUESTION: if ival is the maximum tagged word value, then ival+ival+2 is 0w0 in
+ * the native integer size.  Does this cause problems?
+ *)
 		pureOp (P.SUB, ity, [num (ival+ival+2), comp v2])
 	    | (SUB, [v1, NUM{ival, ...}]) =>
 		pureOp (P.SUB, ity, [comp v1, num (ival+ival)])
@@ -74,8 +76,8 @@ structure TaggedArith : sig
 	    | (MUL, [v1, v2]) => let
 		val (v1, v2) = (case (v1, v2)
 		       of (NUM{ival=n, ...}, NUM{ival=m, ...}) => (num(n+n), num m)
-			| (NUM{ival, ...}, _) => (num ival, untag (signed, comp v2))
-			| (_, NUM{ival, ...}) => (untag (signed, comp v1), num ival)
+			| (NUM{ival, ...}, _) => (num(ival+ival), untag (signed, comp v2))
+			| (_, NUM{ival, ...}) => (untag (signed, comp v1), num(ival+ival))
 			| _ => (stripTag (comp v1), untag (signed, comp v2))
 		      (* end case *))
 		val oper = if signed then P.SMUL else P.UMUL
@@ -92,7 +94,7 @@ structure TaggedArith : sig
 			| _ => untag (signed, comp v2)
 		      (* end case *))
 		in
-		  tagUnsigned (pureOp (P.UDIV, ity, [e1, e2]))
+		  tag (pureOp (P.UDIV, ity, [e1, e2]))
 		end
 	    | (REM, [v1, v2]) => let
 		val e1 = (case v1
@@ -104,11 +106,11 @@ structure TaggedArith : sig
 			| _ => untag (signed, comp v2)
 		      (* end case *))
 		in
-		  tagUnsigned (pureOp (P.UREM, ity, [e1, e2]))
+		  tag (pureOp (P.UREM, ity, [e1, e2]))
 		end
 	    | (NEG, [v]) => pureOp (P.SUB, ity, [two, comp v])
 	    | (LSHIFT, [v1, NUM{ival, ...}]) =>
-		addTag (pureOp (P.LSHIFT, ity, [comp v1, num ival]))
+		addTag (pureOp (P.LSHIFT, ity, [stripTag(comp v1), num ival]))
 	    | (LSHIFT, [NUM{ival, ...}, v2]) =>
 		addTag (pureOp (P.LSHIFT, ity, [num(ival+ival), untagUInt(comp v2)]))
 	    | (LSHIFT, [v1, v2]) =>
