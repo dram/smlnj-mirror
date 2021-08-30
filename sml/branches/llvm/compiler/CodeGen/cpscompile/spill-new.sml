@@ -778,12 +778,11 @@ struct
       end
 
       (* This function generate spill code for variable w *)
-      fun emitSpill(w, e) =
-         case findSpill w of
-           NONE => e
-         | SOME(spillRecord, off, cty) =>
-            CPS.SETTER(P.RAWUPDATE cty,
-               [spillRecord, tagInt off,CPS.VAR w], e)
+      fun emitSpill(w, e) = (case findSpill w
+             of NONE => e
+              | SOME(spillRecord, off, cty) =>
+                  CPS.SETTER(P.RAWUPDATE cty, [spillRecord, tagInt off,CPS.VAR w], e)
+            (* end case *))
 
       (*
        * Emit spill record code
