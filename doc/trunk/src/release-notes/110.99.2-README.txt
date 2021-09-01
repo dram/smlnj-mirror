@@ -1,7 +1,7 @@
 // A template for creating release notes for a version
 //
-:version: 110.99.1
-:date: April 12, 2021
+:version: @VERSION@
+:date: @DATE@
 :dist-dir: https://smlnj.org/dist/working/{version}/
 :history: {dist-dir}HISTORY.html
 :stem: latexmath
@@ -31,32 +31,31 @@ FILES::
 
 == Summary
 
-This is a patch release that includes a few bug fixes and which enables
-running **SML/NJ** on **M1** (aka **Arm**) Macs under
-https://developer.apple.com/documentation/apple-silicon/about-the-rosetta-translation-environment[Rosetta2].
-Because the system is running under emulation, it may not be as reliable
-as when running as a native application on a *AMD64* processor.  We are
-working on a native *Arm64* port that we hope to release this summer.
+This is a patch release that includes a few bug fixes.
 
 == Details
 
+// **** details: include those sections that are relevant
+
+=== Compiler
+
+=== CM
+
+=== MLRISC
+
 === Runtime System
 
-Modified the stack frame layout on **AMD64** to better support the **LLVM**
-backend (currently under development).
+=== Basis Library
 
 === SML/NJ Library
 
-The `ListMergeSort.sort` function is now stable (as claimed by the documantation).
+=== Successor ML
 
-Added some additional mechanism to the `JSONUtil` structure to make
-writing robust queries easier.
+=== ML-LPT
+
+=== Documentation
 
 === Installation
-
-It is possible to install the *amd64* version of the system on *M1* Macs.
-Because these machines run Big Sur, you will need to control-click on the
-installer package and open it with the installer application.
 
 === 32-bit macOS issues
 
@@ -90,18 +89,11 @@ for more details.
 
 [.buglist,cols="^1,<15"]
 |=======
-| [.bugid]#278#
-| `ListMergeSort` is documented as stable, but is not (esp. since 110.78 rewrite!)
-| [.bugid]#280#
-| 110.99 `config/install.sh -64` fails on macOS 10.15.7
-// | [.bugid]#@ID#
-// | @DESCRIPTION@
+| [.bugid]#279#
+| `Real.toLargeInt` returns zero for anything in range `[-512,512]`
 |=======
 
-The following unnumbered bug was also fixed:
---
-  * Fixed a performance bug in the implementation of the `CharBuffer` and `MonoBuffer` structures.
---
+// ***** include a list of unnumbered bugs here *****
 
 == Supported systems
 
@@ -116,8 +108,6 @@ tested some of them:
 | | macOS 10.15 (Catalina) | Tested
 | | Ubuntu 16.04.3 LTS | Tested
 | | Ubuntu 18.04.3 LTS | Tested
-| {nbsp} | |
-| Arm64 | macOS 11 (Big Sur) | Tested under Rosetta2
 | {nbsp} | |
 | Power PC | Mac OS X 10.5 (Leopard) |
 | | AIX |

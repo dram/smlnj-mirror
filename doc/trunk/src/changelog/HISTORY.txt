@@ -105,7 +105,8 @@ Split out the `Real.toLargeInt` implementation into target-word-size
 versions (the `Real64ToIntInf` module).  For 64-bit targets, the new
 version uses the bit representation of the real number to compute the
 result.  The 32-bit version is the old code that uses floating-point
-operations.
+operations.  This change fixes bugref:279[] (`Real.toLargeInt` returns
+zero for anything in range `[-512,512]`).
 +
 owner:cs.uchicago.edu/~jhr[John Reppy]
 
