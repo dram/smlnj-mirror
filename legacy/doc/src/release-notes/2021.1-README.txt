@@ -91,6 +91,8 @@ for more details.
 |=======
 | [.bugid]#278#
 | `ListMergeSort` is documented as stable, but is not (esp. since 110.78 rewrite!)
+| [.bugid]#279#
+| `Real.toLargeInt` returns zero for anything in range `[-512,512]`
 | [.bugid]#280#
 | 110.99 `config/install.sh -64` fails on macOS 10.15.7
 // | [.bugid]#@ID#
