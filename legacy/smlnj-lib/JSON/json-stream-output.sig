@@ -16,11 +16,13 @@ signature JSON_STREAM_OUTPUT =
 
   (* print a `null` value *)
     val null : printer -> unit
-  (* print a `null` value *)
+  (* print a boolean value *)
     val boolean : printer * bool -> unit
-  (* print a `null` value *)
+  (* print an integer numeric value *)
+    val int : printer * int -> unit
+  (* print an integer numeric value *)
     val integer : printer * IntInf.int -> unit
-  (* print a `null` value *)
+  (* print a floating-point numeric value *)
     val float : printer * real -> unit
   (* print a UTF8 string value; any necessary escape sequences will be added *)
     val string : printer * string -> unit

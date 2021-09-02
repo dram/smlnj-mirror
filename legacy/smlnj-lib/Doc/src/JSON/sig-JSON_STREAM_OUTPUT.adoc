@@ -36,6 +36,7 @@ val close : printer -> unit
 val null : printer -> unit
 val boolean : printer * bool -> unit
 val integer : printer * IntInf.int -> unit
+val int : printer * int -> unit
 val float : printer * real -> unit
 val string : printer * string -> unit
 val beginObject : printer -> unit
@@ -91,6 +92,13 @@ val value : printer * JSON.value -> unit
   `integer (pr, n)` prints the *JSON* number `n`.  Raises the
   {sml-basis-url}/general.html#SIG:GENERAL.Fail:EXN[`Fail`]
   exception if the printer is closed.
+
+`[.kw]#val# int : printer * int \-> unit`::
+  `int (pr, n)` prints the *JSON* number `n`.  Raises the
+  {sml-basis-url}/general.html#SIG:GENERAL.Fail:EXN[`Fail`]
+  exception if the printer is closed.  This function is a convenience
+  for when one wants to print a default-int-type value without
+  converting it to a `IntInf.int` first.
 
 `[.kw]#val# float : printer * real \-> unit`::
   `float (pr, r)` prints the *JSON* floating-point number `r`.

@@ -102,6 +102,7 @@ functor JSONStreamOutputFn (Out : TEXT_OUTPUT_STREAM) : JSON_STREAM_OUTPUT
     fun null p = prVal (p, "null")
     fun boolean (p, false) = prVal (p, "false")
       | boolean (p, true) = prVal (p, "true")
+    fun int (p, n) = prVal (p, F.format "%d" [F.INT n])
     fun integer (p, n) = prVal (p, F.format "%d" [F.LINT n])
     fun float (p, f) = prVal (p, F.format "%g" [F.REAL f])
     fun string (p, s) = let
