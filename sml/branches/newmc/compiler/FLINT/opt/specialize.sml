@@ -66,11 +66,16 @@ fun mk_click () =
  *                  UTILITY FUNCTIONS FOR KIND AND TYPE BOUNDS              *
  ****************************************************************************)
 
+(****************************************************************************
+ *                  TYPES FOR INFO ENVIRONMENTS                             *
+ ****************************************************************************)
+
 (*
  * Bnd is a lattice on the type hierarchy, used to infer minimum type bounds;
  * Right now, we only deal with first-order kinds. All higher-order kinds
  * will be assigned KTOP.
  *)
+
 datatype bnd
   = KBOX
   | KTOP
@@ -78,27 +83,59 @@ datatype bnd
 
 type bnds = bnd list
 
-(** THE FOLLOWING FUNCTION IS NOT FULLY DEFINED *)
+(*
+ * We maintain a table mapping each lvar to its definition depth,
+ * its type, and a list of its uses, indexed by its specific type
+ * instances.
+ *)
+
+exception ITABLE
+exception DTABLE
+
+datatype dinfo
+  = ESCAPE
+  | NOCSTR
+  | CSTR of bnds
+
+type depth = DI.depth
+type info = (tyc list * lvar list) list
+type itable = info LambdaVar.Tbl.hash_table   (* lvar --> (tyc list * lvar list) list *)
+type dtable = (depth * dinfo) LambdaVar.Tbl.hash_table
+type kenv = (itable * (tvar * tkind) list) list
+
+datatype infoEnv = IENV of kenv * dtable
+
+(* kBnd: kenv -> LT.tyc -> bnd *)
+(* THE FOLLOWING FUNCTION IS NOT FULLY DEFINED! (how?)
+ * kBnd will only return KBOX or KTOP, never TBND. *)
 fun kBnd kenv tc =
     if LT.tcp_var tc then
 	let val (i,j) = LT.tcd_var tc
-	    val (_,ks) = List.nth(kenv, i-1)
-				 handle _ => bug "unexpected case A in kBnd"
-	    val (_,k) = List.nth(ks, j)
-				handle _ => bug "unexpected case B in kBnd"
+	    val (_,ks) =
+		List.nth(kenv, i-1)
+		handle Subscript =>
+		       bug ("kBnd: db tyvar depth: " ^ Int.toString (i-1))
+	    val (_,k) =
+		List.nth(ks, j)
+		handle Subscript =>
+		       bug ("kBnd: db tyvar index: " ^ Int.toString j)
 	in if tk_eqv(tk_tbx, k) then KBOX else KTOP
 	end
-    else if LT.tcp_nvar tc then KTOP	(* FIXME: check the kenv for KBOX *)
+    else if LT.tcp_nvar tc then KTOP	(* FIXME: check the kenv for KBOX ??? *)
     else if LT.tcp_prim tc then
 	let val p = LT.tcd_prim tc
 	in if PT.unboxed p then KTOP else KBOX
 	end
     else KBOX
 
+(* kmBnd : kenv -> (LT.tyc * bnd) -> bnd *)
+(* kmBnd will only return KTOP of KBOX, never TBND *)
 fun kmBnd kenv (tc, KTOP) = KTOP
   | kmBnd kenv (tc, KBOX) = kBnd kenv tc
   | kmBnd kenv (tc, TBND _) = bug "unexpected cases in kmBnd"
 
+(* tBnd: kenv -> LT.tyc -> bnd *)
+(* tBnd only returns TBND *)
 fun tBnd kenv tc = TBND tc
 
 fun tmBnd kenv (tc, KTOP) = KTOP
@@ -165,29 +202,6 @@ fun bndGen(oks, bnds, d, info) =
    in h(oks, bnds, 0, [], [], true)
   end
 
-
-(****************************************************************************
- *                  UTILITY FUNCTIONS FOR INFO ENVIRONMENTS                 *
- ****************************************************************************)
-
-(*
- * We maintain a table mapping each lvar to its definition depth,
- * its type, and a list of its uses, indexed by its specific type
- * instances.
- *)
-exception ITABLE
-exception DTABLE
-
-datatype dinfo
-  = ESCAPE
-  | NOCSTR
-  | CSTR of bnds
-
-type depth = DI.depth
-type info = (tyc list * lvar list) list
-type itable = info LambdaVar.Tbl.hash_table   (* lvar -> (tyc list * lvar) *)
-type dtable = (depth * dinfo) LambdaVar.Tbl.hash_table
-datatype infoEnv = IENV of (itable * (tvar * tkind) list) list * dtable
 
 (****************************************************************************
  *              UTILITY FUNCTIONS FOR TYPE SPECIALIZATIONS                  *
