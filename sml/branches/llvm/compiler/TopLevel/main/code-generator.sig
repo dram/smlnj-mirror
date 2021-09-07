@@ -9,14 +9,14 @@
 
 signature CODE_GENERATOR =
   sig
-    val architecture : string
-
-  (* to distinguish between, e.g., various intel-based unices, etc.*)
-    val abi_variant : string option
 
     val compile : {
 	    source : string,
 	    prog : FLINT.prog
 	  } -> CodeObj.csegments
+
+  (* the following are used by CM *)
+    val architecture : string
+    val abi_variant : string option
 
   end (* CODE_GENERATOR *)

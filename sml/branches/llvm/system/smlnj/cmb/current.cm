@@ -19,22 +19,9 @@ is
 # if defined(ARCH_AMD64)
 	$smlnj/cmb/amd64-unix.cm
 	select-amd64-unix.sml
-# elif defined(ARCH_PPC)
-	$smlnj/cmb/ppc-unix.cm
-	select-ppc-unix.sml
-# elif defined(ARCH_SPARC)
-	$smlnj/cmb/sparc-unix.cm
-	select-sparc-unix.sml
-# elif defined(ARCH_X86)
-#   if defined(OPSYS_WIN32)
-	$smlnj/cmb/x86-win32.cm
-	select-x86-win32.sml
-#   elif defined(OPSYS_UNIX)
-	$smlnj/cmb/x86-unix.cm
-	select-x86-unix.sml
-#   else
-#     error Unknown OS kind under x86!
-#   endif
+# elif defined(ARCH_ARM64)
+	$smlnj/cmb/arm64-unix.cm
+	select-arm64-unix.sml
 # else
 #   error Strange architecture and/or OS!
 # endif

@@ -102,6 +102,9 @@ is
 # if defined(ARCH_AMD64)
        $smlnj/compiler/amd64.cm
        amd64.sml
+# elif defined(ARCH_ARM64)
+       $smlnj/compiler/arm64.cm
+       arm64.sml
 # else
 #   error Strange architecture!
 # endif

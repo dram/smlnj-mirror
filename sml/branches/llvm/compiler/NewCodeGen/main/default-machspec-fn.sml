@@ -15,23 +15,20 @@ functor DefaultMachSpecFn (Sizes : sig
   end) : MACH_SPEC = struct
 
     val architecture = ""
+    val llvmTargetName = ""
 
-    val framesize = 1024 * Sizes.wordByteWidth
-
-    val numRegs = 0
-    val numFloatRegs = 0
+    val numRegs = ~1
+    val numFloatRegs = ~1
     val bigEndian = false
-    val spillAreaSz = 0
-    val initialSpillOffset = 0
-    val startgcOffset = 0
-    val pseudoRegOffset = 0
-    val constBaseRegOffset = 0
 
-    val polling = false
+  (* the area reserved for the register spilling is sized to hold 1K SML
+   * values.
+   *)
+    val spillAreaSz = Sizes.wordByteWidth * 1024
+
     val unboxedFloats = true
-    val newClosure = true
-    val numArgRegs = 10
-    val numFloatArgRegs = 0
+    val numArgRegs = ~1
+    val numFloatArgRegs = ~1
     val numCalleeSaves = 3	(* miscreg0, miscreg1, miscreg2 *)
     val numFloatCalleeSaves = 0
 
@@ -51,23 +48,6 @@ functor DefaultMachSpecFn (Sizes : sig
     val charSize  = 1
     val realSize  = 8
     val realAlign = true
-
-    val floatRegParams = true
-
-    val fixedArgPassing = false
-
-    val spillRematerialization = false
-
-    (* the following defaults happen to be the values for x86 *)
-    val ML_STATE_OFFSET = 176
-    val VProcOffMSP = 4
-    val InMLOffVSP = 8
-    val LimitPtrMaskOffVSP = 200
-
-    val framePtrNeverVirtual = false
-
-    (* x86 and sparc don't use pre-allocated arg space for c-calls *)
-    val ccall_prealloc_argspace = NONE
 
   (* number of bits and bytes per ML word *)
     val wordByteWidth = Sizes.wordByteWidth

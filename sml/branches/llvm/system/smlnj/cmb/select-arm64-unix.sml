@@ -1,7 +1,7 @@
-(* amd64.sml
+(* select-arm64-unix.sml
  *
  * COPYRIGHT (c) 2021 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *)
 
-structure Backend = AMD64CCallBackend
+structure CMB = Arm64UnixCMB

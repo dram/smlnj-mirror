@@ -272,7 +272,7 @@ CPS/opt/num64cnv.sml
 CPS/opt/streqlcnv.sml
 CPS/opt/testcnv.sml
 CPS/opt/uncurry.sml
-CPS/main/cluster.sml
+CPS/main/cluster.sml    (* move to NewCodeGen/main? *)
 CPS/main/cps-comp.sml
 CPS/main/feedback.sml
 CPS/main/limit.sml
@@ -280,36 +280,6 @@ CPS/main/literals.sml
 CPS/main/new-literals.sml
 CPS/main/normalize-cluster.sml
 CPS/main/spill-fn.sml
-
-(*
-(* The code generator (MLRISC specialized for SML/NJ). *)
-CodeGen/cpscompile/argPassing.sig
-CodeGen/cpscompile/argPassing.sml
-CodeGen/cpscompile/check-gc.sml
-CodeGen/cpscompile/cps-aliasing.sml
-CodeGen/cpscompile/cps-c-calls.sml
-CodeGen/cpscompile/cpsBranchProb.sml
-CodeGen/cpscompile/cpsRegions.sig
-CodeGen/cpscompile/cpsRegions.sml
-CodeGen/cpscompile/cpsRegs.sig
-CodeGen/cpscompile/frag.sig
-CodeGen/cpscompile/frag.sml
-CodeGen/cpscompile/invokegc.sig
-CodeGen/cpscompile/invokegc.sml
-CodeGen/cpscompile/smlnj-pseudoOps.sig
-CodeGen/cpscompile/smlnj-const.sml
-CodeGen/cpscompile/smlnj-mltreeext.sig
-CodeGen/cpscompile/smlnj-mltreeext.sml
-CodeGen/cpscompile/smlnj-pseudoOps.sml
-CodeGen/main/clusterAnnotation.sml    (* temporary hack; see comment in file *)
-CodeGen/main/code-string.sml
-CodeGen/main/machine.sig
-CodeGen/main/machine-gen.sig
-CodeGen/main/machine-gen.sml
-(* new simplified code generator *)
-CodeGen/main/mlrisc-gen-fn.sml
-CodeGen/main/spill-table.sml
-*)
 
 NewCodeGen/cfg/cfg.sml
 NewCodeGen/cfg/ppcfg.sml

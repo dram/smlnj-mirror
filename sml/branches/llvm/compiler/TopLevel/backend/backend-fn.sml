@@ -86,6 +86,7 @@ functor BackendFn (
             fun eval (s, e) = Interact.evalStream (TextIO.openString s, e))
             val pervasive = EnvRef.pervasive)
 
+  (* the following are used by CM *)
     val architecture = M.architecture
     val abi_variant = M.abi_variant
 

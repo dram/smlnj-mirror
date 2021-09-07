@@ -9,6 +9,9 @@ signature BACKEND =
     structure Profile : PROFILE
     structure Compile : COMPILE
     structure Interact : INTERACT
-    val architecture: string
-    val abi_variant: string option
+
+  (* the following are used by CM *)
+    val architecture : string
+    val abi_variant : string option
+
   end

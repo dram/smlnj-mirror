@@ -12,14 +12,12 @@ functor MachineCodeGenFn (
 
     structure MachSpec : MACH_SPEC
 
+  (* used by CM to distinguish between different ABIs on Unix systems *)
     val abi_variant : string option
 
   ) : CODE_GENERATOR = struct
 
     structure CPSGen = CPSCompFn (MachSpec)
-
-    val architecture = MachSpec.architecture
-    val abi_variant = abi_variant
 
     fun phase x = Stats.doPhase (Stats.makePhase x)
 
@@ -33,9 +31,17 @@ functor MachineCodeGenFn (
         (* pickle the IR into a vector *)
           val pkl = CFGPickler.toBytes cfg
         (* invoke the LLVM code generator to generate machine code *)
-          val code = CodeObj.generate (source, pkl)
+          val code = CodeObj.generate {
+                  target = MachSpec.llvmTargetName,
+                  src = source,
+                  pkl = pkl
+                }
 	  in
 	    {code = code, data = data}
 	  end
+
+  (* the following are used by CM *)
+    val architecture = MachSpec.architecture
+    val abi_variant = abi_variant
 
   end

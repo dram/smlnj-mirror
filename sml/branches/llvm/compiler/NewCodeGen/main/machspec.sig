@@ -16,19 +16,40 @@
 signature MACH_SPEC =
   sig
 
+  (* the architecture name used by CM when generating bin files, etc. *)
     val architecture : string
 
-    val framesize : int
+  (* the LLVM name for the target architecture.  It must match one of the names
+   * used in `codegen/src/target-info.cxx`.
+   *)
+    val llvmTargetName : string
 
-  (* code generator flags *)
-    val polling : bool
+  (* true to enable use of floating-point registers, for argument passing, etc.
+   * It is true by default.
+   *)
     val unboxedFloats : bool
-    val newClosure : bool
-    val numRegs : int		(* the number of registers used by ML *)
-    val numFloatRegs : int	(* the number of registers used by ML *)
-    val numArgRegs : int	(* the number of registers used to pass args. *)
-    val numFloatArgRegs : int	(* the number of FP registers used for args. *)
+
+  (* the number of registers available for SML values; this value is usually the
+   * number of misc registers plus three (three of stdarg, stdlink, stdclos, and
+   * stdcont, which leaves a register to hold a pointer to a record containing
+   * the other values).
+   *)
+    val numRegs : int
+  (* the number of registers for function-argument passing; this includes the
+   * standard argument and the non-callee-save misc registers.
+   *)
+    val numArgRegs : int
+  (* the number of floating-point registers available to SML code *)
+    val numFloatRegs : int
+  (* the number of FP registers used for args. *)
+    val numFloatArgRegs : int
+  (* number of general-purpose callee-save registers; this should be three
+   * (changing it will break everything!!!).
+   *)
     val numCalleeSaves : int
+  (* the number of floating-point callee-save registers; this is zero for all
+   * targets.
+   *)
     val numFloatCalleeSaves : int
 
   (* machine representations *)
@@ -51,50 +72,11 @@ signature MACH_SPEC =
 
     val bigEndian : bool	(* true, if this is a big-endian machine *)
 
-    val spillAreaSz : int	(* the size of the area for spilling registers *)
-				(* in bytes *)
-    val initialSpillOffset : int (* the offset of the first spill location *)
-
-    val startgcOffset 	: int
-    val constBaseRegOffset : int
-
-    val floatRegParams : bool	(* for old-style codegen; default true *)
-
-   (* get "conreps" into here eventually.
-	Didn't want to do it now, because it would require
-	functorizing the whole front end.  -- A. Appel*)
-
-    val fixedArgPassing : bool
-    (* Use fixed argument passing registers for known functions that
-     * require garbage collection. Only an issue on  the x86 or machines
-     * that have registers implemented as memory locations, i.e., at the
-     * call to GC, there aren't enough registers to hold alll the roots.
-     * The correct way to solve this problem is to create a record of
-     * live variables inside the code that invokes the garbage collector
-     * 							-- Lal George.
-     *)
-
-    val spillRematerialization : bool
-    (* Whether rematerialization of spill locations is performed *)
-
-    (* for accessing the in_ML flag etc.;
-     * These values must be coordinated with their respective runtime
-     * counterparts in ?.prim.asm and mlstate-offsets.h! *)
-    val ML_STATE_OFFSET : int		(* within frame *)
-    val VProcOffMSP : int		(* within ML state struct *)
-    val InMLOffVSP : int		(* within VProc struct *)
-    val LimitPtrMaskOffVSP : int	(* within VProc struct *)
-
-    (* On machines with a real frame pointer, there is no point in
-     * attempting to omit a (virtual) frame pointer.  Example: Sparc
-     *)
-    val framePtrNeverVirtual : bool	(* suppress omit-frame-ptr phase *)
-
-    (* On machines where C arguments are allocated in the caller's frame
-     * we pre-allocate a large chunk of stack space for this purpose.
-     * Example: PPC
-     *)
-    val ccall_prealloc_argspace : int option
+  (* the size (in bytes) of the area reserved for register spilling by
+   * the native code generator. The CPS spill phase should guarantee that we
+   * never have more spillable values that can be held in this area.
+   *)
+    val spillAreaSz : int
 
   (* number of bits and bytes per ML word *)
     val wordBitWidth	: int

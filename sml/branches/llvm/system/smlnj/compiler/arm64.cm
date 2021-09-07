@@ -1,9 +1,9 @@
-(* amd64.cm
+(* arm64.cm
  *
  * COPYRIGHT (c) 2021 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
- * Library exporting "visible" compilers for AMD64.
+ * Library exporting "visible" compilers for Arm64.
  *
  * author: Matthias Blume (blume@research.bell-labs.com)
  *)
@@ -94,9 +94,8 @@ Library
         structure Access
         structure Unify
 
-	(* the amd64 backend(s) *)
-	structure AMD64StdCallBackend
-	structure AMD64CCallBackend
+	(* the arm64 backend(s) *)
+	structure Arm64Backend
 is
 	$smlnj/viscomp/basics.cm
 	$smlnj/viscomp/parser.cm
@@ -104,4 +103,4 @@ is
 	$smlnj/viscomp/elaborate.cm
 	$smlnj/viscomp/execute.cm
 	$smlnj/viscomp/core.cm
-	$smlnj/viscomp/amd64.cm
+	$smlnj/viscomp/arm64.cm
