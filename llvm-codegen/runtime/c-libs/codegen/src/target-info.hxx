@@ -15,6 +15,7 @@
 #include "llvm/ADT/Triple.h"
 
 #include <string>
+#include <vector>
 
 #include "sml-registers.hxx"
 
@@ -37,7 +38,34 @@ struct target_info {
     int raiseOvflwOffset;		// stack offset of raise_overflow entry address
     unsigned int allocSlopSzb;		// byte size of allocation slop
 
-    static target_info const *InfoForTarget (std::string const &name);
+  // initialization functions
+    using init_fn_t = void (*)();
+
+    mutable bool initialized;           // set to true after initialization
+    init_fn_t initTargetInfo;
+    init_fn_t initTarget;
+    init_fn_t initMC;
+    init_fn_t initAsmParser;
+    init_fn_t initAsmPrinter;
+
+    static target_info const *infoForTarget (std::string const &name);
+
+    static std::vector<std::string> targetNames ();
+
+    void initialize () const
+    {
+        if (! this->initialized) {
+            this->initTargetInfo();
+            this->initTarget();
+            this->initMC();
+            this->initAsmParser();
+            this->initAsmPrinter();
+            this->initialized = true;
+        }
+    }
+
+    /// the target info for the native (host) architecture
+    static target_info const *native;
 
   // GC roots are std-link, std-clos, std-cont, callee saves, std-arg
     int numGCRoots () const { return this->numCalleeSaves + 4; }

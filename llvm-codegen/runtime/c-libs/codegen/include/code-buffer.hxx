@@ -67,6 +67,7 @@ class code_buffer {
   public:
 
   // create the code buffer for the given target
+    static code_buffer *create (target_info const * target);
     static code_buffer *create (std::string const & target);
 
     void optimize ();

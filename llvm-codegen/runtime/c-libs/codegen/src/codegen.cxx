@@ -16,6 +16,8 @@
 
 #include "llvm/Support/TargetSelect.h"
 
+static code_buffer *CodeBuf = nullptr;
+
 // Some global flags for controlling the code generator.
 // These are just for testing purposes
 bool disableGC = false;
@@ -55,44 +57,13 @@ class Timer {
     Timer (uint64_t t) : _ns100(t) { }
 };
 
-static code_buffer *CodeBuf = nullptr;
-
-bool_t setTarget (const char *target)
-{
-    if (CodeBuf != nullptr) {
-	if (CodeBuf->targetInfo()->name == target) {
-	    return false;
-	}
-	delete CodeBuf;
-    } else {
-      // initialize LLVM
-#ifdef ALL_TARGETS
-	llvm::InitializeAllTargetInfos ();
-	llvm::InitializeAllTargets ();
-	llvm::InitializeAllTargetMCs ();
-	llvm::InitializeAllAsmParsers ();
-	llvm::InitializeAllAsmPrinters ();
-#else
-	llvm::InitializeNativeTarget ();
-	llvm::InitializeNativeTargetAsmParser ();
-	llvm::InitializeNativeTargetAsmPrinter ();
-#endif // ALL_TARGETS
-    }
-
-    CodeBuf = code_buffer::create (target);
-
-    return (CodeBuf == nullptr);
-
-}
-
 ml_val_t llvm_codegen (ml_state_t *msp, const char *src, const char *pkl, size_t pklSzb)
 {
     Timer totalTimer = Timer::start();
 
     Timer initTimer = Timer::start();
     if (CodeBuf == nullptr) {
-/* FIXME: should be the host architecture */
-	if (setTarget ("x86_64")) {
+	if (llvm_setTarget(nullptr) == ML_true) {
 	    llvm::report_fatal_error ("initialization failure", true);
 	}
     }
@@ -201,4 +172,57 @@ llvm::dbgs() << "\"" << src << "\"," << pklSzb << "," << codeSzb << ","
 	llvm::report_fatal_error ("unable to get code object", true);
     }
 
-}
+} /* llvm_setTarget */
+
+/* return a SML `string list` of the names of the supported target architectures
+ */
+ml_val_t llvm_listTargets (ml_state_t *msp)
+{
+    auto targets = target_info::targetNames();
+
+  // construct a list of the target names
+    ml_val_t lst = LIST_nil;
+    for (int i = targets.size() - 1;  0 <= i;  --i) {
+        ml_val_t name = ML_CString(msp, targets[i].c_str());
+        LIST_cons(msp, lst, name, lst);
+    }
+
+    return lst;
+
+} /* llvm_setTarget */
+
+/* set the target architecture.  This call returns `true` when there
+ * is an error and `false` otherwise.
+ */
+ml_val_t llvm_setTarget (const char *targetName)
+{
+    target_info const *target;
+
+    if (targetName == nullptr) {
+        target = target_info::native;
+    }
+    else {
+        target = target_info::infoForTarget (targetName);
+    }
+
+    if (target == nullptr) {
+        return ML_true;
+    }
+
+    if (CodeBuf != nullptr) {
+	if (CodeBuf->targetInfo() == target) {
+            // the requested target is the same as the current target
+	    return ML_false;
+	}
+        // remove the old code buffer object
+	delete CodeBuf;
+    } else {
+      // initialize LLVM
+        target->initialize ();
+    }
+
+    CodeBuf = code_buffer::create (target);
+
+    return ((CodeBuf == nullptr) ? ML_true : ML_false);
+
+} /* llvm_setTarget */

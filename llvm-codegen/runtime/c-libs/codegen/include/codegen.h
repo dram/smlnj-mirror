@@ -19,10 +19,14 @@ extern "C" {
 
 #include "ml-objects.h"
 
+/* return an SML `string list` of the names of the supported target architectures
+ */
+ml_val_t llvm_listTargets (ml_state_t *msp);
+
 /*  set the target architecture.  This call returns `true` when there
  * is an error and `false` otherwise.
  */
-bool_t setTarget (const char *target);
+ml_val_t llvm_setTarget (const char *target);
 
 /* llvm_codegen:
  *
