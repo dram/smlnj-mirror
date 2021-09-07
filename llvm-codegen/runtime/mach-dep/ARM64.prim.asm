@@ -578,6 +578,11 @@ L_create_r_large:                                   /* else (xtmp1 > SMALL_OBJ_S
         mov     xpc,xlink
         b       CSYM(set_request)
 
+/* MP support is deprecated, but we need to these global symbols for linking */
+ALIGNED_ENTRY(try_lock_a)
+ALIGNED_ENTRY(unlock_a)
+	CONTINUE
+
 /**********************************************************************/
 
 /** Floating-point utility functions **/
