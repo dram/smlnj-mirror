@@ -187,7 +187,7 @@ PVT void CheckRecordArena (arena_t *ap)
 		if (isDESC(w)) {
 		    ERROR;
 		    SayDebug (
-			"** @%p: unexpected descriptor %p in slot %d of %d\n",
+			"** @%p: unexpected descriptor %p in record slot %d of %d\n",
 			p, w, i, GET_LEN(desc));
 		    return;
 		}
