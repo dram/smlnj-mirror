@@ -339,7 +339,9 @@ PVT void ReadHeap (inbuf_t *bp, ml_heap_hdr_t *hdr, ml_state_t *msp, ml_val_t *e
 		HeapIO_ReadBlock (bp, boHdrs, boHdrSizeB);
 
 	      /* read in the big-objects */
+		ENABLE_CODE_WRITE
 		HeapIO_ReadBlock (bp, (void *)(freeObj->obj), totSizeB);
+		DISABLE_CODE_WRITE
 		if (j == CODE_INDX) {
 		    FlushICache ((void *)(freeObj->obj), totSizeB);
 		}

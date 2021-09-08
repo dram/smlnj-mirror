@@ -94,7 +94,7 @@ bigobj_desc_t *BO_AllocRegion (heap_t *heap, Addr_t reqSzB)
 	reqSzB = npages * BIGOBJ_PAGE_SZB;
     }
 
-    if ((memObj = MEM_AllocMemObj (memObjSzB)) == NIL(mem_obj_t *)) {
+    if ((memObj = MEM_AllocMemObj (memObjSzB, TRUE)) == NIL(mem_obj_t *)) {
 	Die ("unable to allocate memory object for bigobject region");
     }
     region = (bigobj_region_t *)MEMOBJ_BASE(memObj);

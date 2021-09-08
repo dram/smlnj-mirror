@@ -11,6 +11,7 @@
 #include "code-buffer.hxx"
 #include "cfg.hxx"
 #include "codegen.h"
+#include "cache-flush.h"
 #include "target-info.hxx"
 #include <iostream>
 
@@ -141,6 +142,7 @@ ml_val_t llvm_codegen (ml_state_t *msp, const char *src, const char *pkl, size_t
         size_t codeObjSzb = alignedCodeSzb      // code + alignment padding
             + paddedSrcFileLen;                 // src name (including nul and length byte)
 	auto codeObj = ML_AllocCode (msp, codeObjSzb);
+	ENABLE_CODE_WRITE
 	obj->getCode (PTR_MLtoC(unsigned char, codeObj));
         // now add the source-file name to the end of the code object
         char *srcNameLoc = PTR_MLtoC(char, codeObj) + alignedCodeSzb;
@@ -149,6 +151,7 @@ ml_val_t llvm_codegen (ml_state_t *msp, const char *src, const char *pkl, size_t
         // add the length in words at the end
         *reinterpret_cast<unsigned char *>(srcNameLoc + paddedSrcFileLen - 1) =
             (paddedSrcFileLen / CodeBuf->wordSzInBytes());
+	DISABLE_CODE_WRITE
 
 	double relocT = relocTimer.msec();
 

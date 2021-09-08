@@ -200,7 +200,7 @@ void InitHeap (ml_state_t *msp, bool_t isBoot, heap_params_t *params)
 
   /* allocate the base memory object that holds the allocation space */
     {
-	baseObj = MEM_AllocMemObj (params->allocSz);
+	baseObj = MEM_AllocMemObj (params->allocSz, FALSE);
 	if (baseObj == NIL(mem_obj_t *)) {
 	    Die ("unable to allocate memory object for allocation spaces");
 	}

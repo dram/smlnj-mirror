@@ -60,10 +60,10 @@ PVT void free_vmem (void *p)
 		   MEM_RELEASE)) {
     Die("unable to VirtualFree memory at %lx\n", p);
   }
-    
+
 }
 
-PVT status_t MapMemory (mem_obj_t *obj, Addr_t szb)
+PVT status_t MapMemory (mem_obj_t *obj, Addr_t szb, bool_t isExec)
 {
   Addr_t offset, addr;
 

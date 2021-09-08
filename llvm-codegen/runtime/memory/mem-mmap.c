@@ -21,7 +21,7 @@
 #define PROT_ALL	(PROT_READ|PROT_WRITE|PROT_EXEC)
 
 /* flags for mmap */
-#ifdef HAS_ANON_MMAP
+#if defined(HAS_ANON_MMAP)
 #  define MMAP_FLGS	(MAP_ANONYMOUS|MAP_PRIVATE)
 #else
 #  define MMAP_FLGS	MAP_PRIVATE
@@ -62,7 +62,7 @@ void MEM_InitMemory ()
  * Map a BIBOP_PAGE_SZB aligned chunk of szb bytes of virtual memory.  Return
  * the address of the mapped memory (or NIL on failure).
  */
-PVT status_t MapMemory (mem_obj_t *obj, Addr_t szb)
+PVT status_t MapMemory (mem_obj_t *obj, Addr_t szb, bool_t isExec)
 {
     int		fd;
     Addr_t	addr, offset;
@@ -80,8 +80,22 @@ PVT status_t MapMemory (mem_obj_t *obj, Addr_t szb)
     }
 #endif
 
+#if defined(OPSYS_DARWIN) && defined(ARCH_ARM64)
+    int prot, flgs;
+    if (isExec) {
+	prot = PROT_ALL;
+	flgs = MAP_ANONYMOUS|MAP_PRIVATE|MAP_JIT;
+    } else {
+	prot = PROT_READ|PROT_WRITE;
+	flgs = MAP_ANONYMOUS|MAP_PRIVATE;
+    }
+#else
+    int prot = PROT_ALL;
+    int flgs = MMAP_FLGS;
+#endif
+
   /* we grab an extra BIBOP_PAGE_SZB bytes to give us some room for alignment */
-    addr = (Addr_t) mmap (0, szb+BIBOP_PAGE_SZB, PROT_ALL, MMAP_FLGS, fd, 0);
+    addr = (Addr_t) mmap (0, szb+BIBOP_PAGE_SZB, prot, flgs, fd, 0);
     if (addr == -1) {
 	Error ("unable to map %d bytes, errno = %d\n", szb, errno);
 #ifndef HAS_ANON_MMAP
