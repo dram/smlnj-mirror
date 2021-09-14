@@ -296,8 +296,8 @@ NewCodeGen/cps-to-cfg/cps-info.sml
 NewCodeGen/cps-to-cfg/invoke-gc.sml
 NewCodeGen/cps-to-cfg/cps-to-cfg-fn.sml
 NewCodeGen/cps-to-cfg/tagged-arith.sml
-NewCodeGen/main/machine-code-gen-fn.sml
-NewCodeGen/main/machspec.sig
+NewCodeGen/main/code-gen-fn.sml
+NewCodeGen/main/mach-spec.sig
 NewCodeGen/main/default-machspec-fn.sml
 NewCodeGen/main/object-desc.sig
 NewCodeGen/main/object-desc.sml

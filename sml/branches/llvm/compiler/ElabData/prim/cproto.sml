@@ -10,6 +10,8 @@
  * Word32.word, and real.)
  *
  * author: Matthias Blume
+ *
+ * TODO: update for 64-bit systems
  *)
 
 (*
@@ -63,9 +65,16 @@
  *     [default]       = unit
  *     [ccall]         = word    -- for x86/win32
  *     [stdcall]       = int     -- for x86/win32
+ *
+ * QUESTION: on 64-bit windows (x64), the __fastcall convention is used for all functions
+ * (see https://docs.microsoft.com/en-us/cpp/build/x64-software-conventions?view=msvc-160).
+ * Should this be encoded as "default" or should we add another type?
  *)
+
 structure CProto : sig
+
     exception BadEncoding
+
     (* Decode the encoding described above.
      * Construct an indicator list for the _actual_ ML arguments of
      * a raw C call and the result type of a raw C call.
@@ -73,12 +82,16 @@ structure CProto : sig
      * passed as a 32-bit integer, a 64-bit integer (currently unused),
      * a 64-bit floating point value, or an Unsafe.Object.object.
      *)
-    val decode : string ->
-		 { fun_ty : Types.ty, encoding : Types.ty } ->
-                 { c_proto    : CTypes.c_proto,
-                   ml_args    : Primop.ccall_type list,
-                   ml_res_opt : Primop.ccall_type option,
-		   reentrant  : bool }
+(* QUESTION: the calling-convention is a per-function property, not a per-target property.
+ * Also, with the move to 64-bits, it is not clear that we need to support multiple
+ * calling conventions.
+ *)
+    val decode : string -> { fun_ty : Types.ty, encoding : Types.ty } -> {
+	    c_proto    : CTypes.c_proto,
+	    ml_args    : Primop.ccall_type list,
+	    ml_res_opt : Primop.ccall_type option,
+	    reentrant  : bool
+	  }
 
   end = struct
 
