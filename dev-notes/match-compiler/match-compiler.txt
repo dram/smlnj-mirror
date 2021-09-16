@@ -5129,7 +5129,7 @@ be performed once or at least fewer times.
 
 
 ================================================================================
-[43] paths in patterns and andor trees (and the pvar to mvar mapping)
+[43] paths in patterns and andor trees (and the pvar to mvar mapping) (OBSOLETE)
 ================================================================================ 
 Files: preprocess.sml, generate.sml
 
@@ -5189,6 +5189,155 @@ length constructor that appears in OR nodes and SWITCHES and paths.
    end in [..., DC(VLENcon (n, ty), VI k], where n is the length discriminator.
    and k is the element index in the vector.  The path to the node
    representing a vector subpattern ends in a DC(VLENcon _) link.
+
+
+================================================================================
+[43A] cons, links, paths, mvar bindings and pathenvs
+================================================================================
+
+Switches are shallow, one-level, case discriminations and destructors.
+The value being analyzed is called the "subject" (or sometimes, the
+"scrutinee"). It's type will have multiple variants. Such types are
+int, word, (char?), string, and datatypes. Datatypes with a single
+constructor (singleton datatypes) do not discriminate different cases,
+but their values still need a (notional, though perhaps not physical)
+deconstruction to strip off the single datacon.
+
+One special case of switching is on the length of vectors (VLENcon
+discrimator). In this case, there is no physical deconstruction. The
+value after a case dispatch is the same as the subject vector. [This
+might justify a separate version of SWITCH for vector-length switches.]
+
+The discriminators of a switch are called "con"s (constant/constructor).
+The front-end version of con, defined in Absyn, is:
+
+    datatype con
+      = DATAcon of T.datacon * T.tyvar list
+      | INTcon of int IntConst.t
+      | WORDcon of int IntConst.t
+      | STRINGcon of string
+      | VLENcon of int * T.ty
+
+Discrimination on vector length is really just discrimination on the
+integer value of the length, so the match compiler will replace
+VLENcon discriminators by INTcon discriminators. The type argument of
+VLENcon is needed eventually during translation to PLambda.
+The PLambda version of con therefore lacks the VLENcon constructor.
+
+The cases of a switch have the type
+
+   con * var option * exp
+
+Here the var option represents a possible "decon variable" that will
+be bound to the deconstruct of a datatype value with a non-constant
+constructor. For example,
+
+  fun length nil = 0
+    | length (_::y) = 1 + length y
+
+The (top) switch for length has cases
+
+  (DATAcon(<nil>,[]), NONE, "0")
+  (DATAcon(<::>,[]), SOME dcvar, "1 + length y")
+
+where dcvar will be bound to the (hd,tl) pair after stripping the "::"
+constructor in the non-null case.
+
+Successive deconstructions (destructs) of a matched value are
+represented by a _path_, which is a list of _links_, where each link
+represents a single level of deconstruction.
+
+  datatype link
+    = PI of int  (* indexed record/tuple selection *)
+    | VI of int * Types.ty (* indexed vector selection, with vector element type *)
+    | DC of AS.con  (* datacon - not VLENcon, INTcon, etc. *)
+
+  type path = link list   (* from root down to node *)
+
+Only DC links are associated with switch deconstructions, while PI and
+VI links represent selections from compound values (records/tuples or
+vectors, respectively). For DC con links, the con will always be a
+DATAcon. This is because
+
+  (1) discrimination on constants are terminal (no deconstruct to link to)
+  (2) discrimination of vector lengths do not "deconstruct" the vector.
+
+Thus paths will never contain a DC(VLENcon _) link. In fact, for DC
+links the con will always be a DATAcon(datacon,_) where datacon is not
+constant. (DC(<nil>,_) would lead to nowhere.)
+
+Paths represent the location of (internal) nodes (OR nodes only) in the andor tree.
+
+When a case deconstructs a datatype value (as in the :: case of the
+length example), there is an implicit variable binding for the dcon
+variable (SOME dcvar component of the switch case). These variable
+bindings are recorded in a pathenv (a mapping from paths to mvars),
+where the path to a deconstructed node maps to the variable
+representing that deconstruct. In the length example, the dcvar will
+represent the (hd,tl) pair (AND)O node and the pathenv maps
+[DC(<::>,_)] to dcvar. The initial pathenv maps the empty path [] to
+a (fresh) mvar called rootvar. rootvar represents the full value being
+matched (e.g. the list argument of the length function).
+
+
+================================================================================
+[44] switches, pathenvs, and mvar bindings
+================================================================================
+
+In the new scheme (revmc 2?), mvars, which are MC administrative
+variables that are introduced to name intermediate values during
+matching, are introduced at just two points: (in genDecTree; generate.sml)
+
+  (1) each non-constant datacon case for the decon[datacon] of the value
+  (2) each vector switch node in the dectree, unless that node's is already mapped by pathenv,
+      the new var denotes the vector value in this case
+
+These new mvars are bound to the paths for (1) the datacon decon or
+(2) the vector in the new pathenv used for the children dectree nodes.
+In the case of a datacon decon, the binding is visible when generating
+code for the rule rhs expression, while in the case of vectors, the
+binding is visible while generating code for all the vector elements.
+
+Not all nodes in the dectree have associated mvars. The only nodes
+that get mapped to mvars (by pathenv) are (1) nodes that are decons
+of a datatype switch (e.g. the (hd,tl) pair node under a :: case of
+a list switch) or (2) vector-length switch nodes.  A vector-length
+switch node that is named under (1) does not get named again under
+(2). The root node is also mapped by default ([] --> rootvar); this
+mapping is in the initial pathenv (pathenv0).
+
+The treatment of vectors and vector switches is anomalous, in that,
+having descriminated on the length via INTcon n, there is a kind of
+"virtual" deconstruct (destruct) consisting of the vector itself,
+which will be named by an mvar (vecmvar) and referred to when matching the
+vector element patterns (via paths like VSELECT(n, vpath), where vpath
+is the path of the vector-length OR node.  The same mvar refers to
+both the vector as subject of the vector-length switch, and its
+"destruct" under each length case.
+
+
+================================================================================
+[44] rootvar
+================================================================================
+
+By default, the empty path, denoting the subject value for a match, is
+denoted (in pathenv0) by a fresh mvar called the "rootvar". In some
+cases, like
+
+    fn () => 2
+    fn _ = exp
+    
+the rootvar is irrelevant because the rule rhs's do not need to refer
+to the argument or its components. (The match dectree will be of
+the form RHS 0, and the match absyn will be "fvar ()".)
+
+The rootvar is returned as one of the two results by the match
+compiler functions matchCompile, bindCompile, and handleCompile, which
+are called in matchcomp/transdec.sml.
+
+In oldmc, the callers of the corresponding functions in
+trans/translate would pass an lvar option for the rootvar, passing
+NONE if the rootvar was not relevant.
 
 
 ================================================================================

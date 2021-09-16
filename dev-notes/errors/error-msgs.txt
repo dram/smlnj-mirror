@@ -1,9 +1,11 @@
+1. Qualified identifiers versus variables
 ../compiler/FLINT/opt/fcontract.sml:1024.12-1024.23 Error: variable found where constructor is required: F.RK_STRUCT
 
   a variable could never have the lexical form "F.RK_STRUCT" (i.e. no qualified identifier should
   be considered a variable
 
 
+2. Undefined type constraint
 ../compiler/FLINT/opt/loopify.sml:73.15-73.34 Error: pattern and constraint do not agree [type mismatch]
   pattern:    {isrec:'Y; 'Z}
   constraint:    [E]
@@ -13,3 +15,9 @@
   Here [E] denotes a type constraint F.fkind where F.fkind is not
   defined (should have been LT.fkind).
   
+3. source file "regions" and their "printing"
+In Basics/errormsg/errormsg.sml, Ramsey has introduced major, no
+longer necessary complications because of (* #line... *) inline
+directives (& literate programming?), which probably no longer work
+after not having been maintained for decades.  Go back to a simpler
+treatment.
