@@ -99,6 +99,14 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Version 1021.1; 2021/??/??
 
 //--------------------------------------------------------------------
+[2021/08/18]::
++
+Fix a benign bug where the size of a floating-point spill record was twice
+as large as necessary on 64-bit systems.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2021/08/10]::
 +
 Split out the `Real.toLargeInt` implementation into target-word-size
