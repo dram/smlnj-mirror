@@ -5,7 +5,7 @@
 :source-highlighter: pygments
 :VERSION: 110.98
 
-Agenda:
+[0] Agenda:
 
 Reunderstand and redesign type SML/NJ type checker.
 
@@ -23,3 +23,42 @@ Reunderstand and redesign type SML/NJ type checker.
 
 * use "modern" BASIS and SML/NJ libraries (such as Atom, sets, maps,
 hash-tables, etc.)
+
+
+[1] The question of implicit binding of "free type variables" in
+expressions.
+
+See Sec 4.6 is Defn of SML 97.
+
+SML 97 introduced syntax for explicitly binding type variables in
+declarations.  In SML 90, all bindings of "free" type variables in
+expressions were implicit. 
+
+Corresponding discussion in Defn 90 and Commentary?
+
+An example:
+
+[code]
+
+    (* implicit type variable binding *)
+    fun f1 (x) =
+    let
+     fun h (z) = 
+	 let fun g () = z :: (nil : 'a list)
+	 in z :: x :: nil
+	    end
+    in h
+    end;
+
+    (* explicit type variable binding *)
+    fun f1 (x) =
+    let
+     fun h (z) = 
+	 let fun 'a g () = z :: (nil : 'a list)
+	 in z :: x :: nil
+	    end
+    in h
+    end;
+
+[end code]
+
