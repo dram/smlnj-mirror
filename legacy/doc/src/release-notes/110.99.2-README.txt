@@ -1,7 +1,7 @@
 // A template for creating release notes for a version
 //
-:version: @VERSION@
-:date: @DATE@
+:version: 110.99.2
+:date: September 23, 2021
 :dist-dir: https://smlnj.org/dist/working/{version}/
 :history: {dist-dir}HISTORY.html
 :stem: latexmath
