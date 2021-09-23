@@ -36,6 +36,20 @@ adds support for *macOS 12* (Monterey).
 
 == Details
 
+=== SML/NJ Library
+
+Several improvements to the *JSON* library:
+--
+* Added convenience function `int` to the `JSON_STREAM_OUTPUT` interface.
+
+* Refactored the output modules in the *JSON* library.  These changes should
+  not affect current clients of the library, but allow the addition of
+  printing *JSON* to a `CharBuffer.buf`.
+
+* Bug fix to `JSONUtil` module; the `FIND` path arc was not getting
+  handled for the update functions (_i.e._, `replace`, `insert`, and `append`).
+--
+
 === 32-bit macOS issues
 
 While the {dist-dir}smlnj-x86-{version}.pkg[x86 installer]
