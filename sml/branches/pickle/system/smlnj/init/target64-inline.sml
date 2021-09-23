@@ -92,13 +92,20 @@ structure InlineT =
 (* FIXME: should use InLine.floor_real64_to_int, but it is currently not supported by
  * the CPS code generator.  Can also use InLine.round_real64_to_int.
  *)
+	local
+	(* the minInt (~4611686018427387904) and maxInt (4611686018427387904)
+	 * values converted to reals (with loss of precision).
+	 *)
+	  val rminInt = ~4611686018427390000.0
+	  val rmaxInt = 4611686018427390000.0
+	in
 	fun floor (x : real) =
-	      if InLine.real64_le(~4611686018427387904.0, x)
-	      andalso InLine.real64_lt(x, 4611686018427387904.0)
+	      if InLine.real64_le(rminInt, x) andalso InLine.real64_le(x, rmaxInt)
 		then Assembly.A.floor x
 	      else if InLine.real64_eql(x, x)
 		then raise Assembly.Overflow
 		else raise Core.Domain (* nan *)
+	end (* local *)
 
 	val signBit : real -> bool = InLine.real64_sgn
 
