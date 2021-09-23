@@ -128,7 +128,7 @@ dnl of a bug in earlier versions of the JSON library.
 dnl
 CHECK_SMLNJ([AC_MSG_ERROR([unable to find SML/NJ installation; please add it to your PATH or set SML_CMD])])
 if test $SMLNJ_MAJOR_VERSION -lt 110 \
-  -o $SMLNJ_MINOR_VERSION -lt 98
+  -o \( $SMLNJ_MAJOR_VERSION -eq 110 -a $SMLNJ_MINOR_VERSION -lt 98 \)
 then
   AC_MSG_ERROR([installation requires SML/NJ version 110.97+ (available from smlnj.org)])
 fi
