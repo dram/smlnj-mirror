@@ -2,6 +2,8 @@
 #
 # "tag" a release snapshot by copying all of the trees into a fresh release tree.
 #
+# Note that this version has been modified for the legacy-branch
+#
 
 if [ $# -lt 1 ] ; then
     echo Usage: $0 '<release-number>'
@@ -10,13 +12,11 @@ fi
 
 relno=$1
 
-gf=https://smlnj-gforge.cs.uchicago.edu/svn/smlnj
+legacy_url=https://smlnj-gforge.cs.uchicago.edu/svn/smlnj/legacy
+release_url=https://smlnj-gforge.cs.uchicago.edu/svn/smlnj/sml/releases/release-$1
 
 here=`pwd`
 
-for tree in config sml smlnj-lib MLRISC ml-yacc trace-debug-profile pgraph \
-            ckit cml eXene smlnj-c ml-burg ml-lex heap2asm nlffi doc
-do
-  echo "tagging $tree..."
-  svn cp $gf/$tree/trunk $gf/$tree/releases/release-$relno -m "Release $relno"
-done
+echo "tagging legacy release ..."
+svn cp $legacy_url $release_url -m "Legacy release $relno"
+
