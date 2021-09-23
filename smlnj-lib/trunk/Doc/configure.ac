@@ -7,7 +7,7 @@ dnl This the configuration script for autoconf version 2.60+.
 
 AC_INIT([smlnj-lib-doc],[1.0],[],[],[http://smlnj.org])
 
-AC_PREREQ(2.60)
+AC_PREREQ([2.71])
 AC_COPYRIGHT([[COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)]])
 AC_CONFIG_SRCDIR(src/JSON/json-lib.adoc)
 AC_CONFIG_AUX_DIR(config)
@@ -54,7 +54,7 @@ dnl
 dnl ******************** get SML/NJ root directory ********************
 dnl
 AC_ARG_WITH([smlnj-root],
-  AC_HELP_STRING([--with-smlnj-root=DIR], [specify the SML/NJ root directory path]),
+  AS_HELP_STRING([--with-smlnj-root=DIR], [specify the SML/NJ root directory path]),
   [SMLNJ_ROOT=$withval],
   [SMLNJ_ROOT=none])
 if test x"$SMLNJ_ROOT" = xnone ; then
@@ -70,7 +70,7 @@ dnl
 dnl ******************** get the output directory ********************
 dnl
 AC_ARG_WITH([output-dir],
-  AC_HELP_STRING([--with-output-dir=DIR], [specify the output directory path]),
+  AS_HELP_STRING([--with-output-dir=DIR], [specify the output directory path]),
   [OUT_DIR=$withval],
   [OUT_DIR=none])
 if test x"$OUT_DIR" = xnone ; then
@@ -84,7 +84,7 @@ dnl
 SMLNJ_DATE=`date "+%B %d, %Y"`
 
 AC_ARG_WITH([version],
-  AC_HELP_STRING([--with-version=VERS], [specify the SML/NJ release version]),
+  AS_HELP_STRING([--with-version=VERS], [specify the SML/NJ release version]),
   [SMLNJ_VERSION=$withval],
   [SMLNJ_VERSION=none])
 if test x"$SMLNJ_VERSION" = xnone ; then
@@ -99,7 +99,7 @@ fi
 AC_SUBST(SMLNJ_VERSION)
 
 AC_ARG_WITH([date],
-  AC_HELP_STRING([--with-date=DATE], [specify the SML/NJ release date]),
+  AS_HELP_STRING([--with-date=DATE], [specify the SML/NJ release date]),
   [SMLNJ_DATE=$withval],
   [SMLNJ_DATE=none])
 if test x"$SMLNJ_DATE" = xnone ; then
