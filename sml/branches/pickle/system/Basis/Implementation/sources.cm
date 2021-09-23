@@ -457,6 +457,7 @@ is
 	Target32Bit/pack-word-b64.sml
 	Target32Bit/pack-word-l64.sml
 	Target32Bit/pointer.sml
+        Target32Bit/real64-to-intinf.sml
 	Target32Bit/word.sml
 	Target32Bit/word64.sml
 #else
@@ -467,6 +468,7 @@ is
 	Target64Bit/pack-word-b64.sml
 	Target64Bit/pack-word-l64.sml
 	Target64Bit/pointer.sml
+        Target64Bit/real64-to-intinf.sml
 	Target64Bit/word.sml
 	Target64Bit/word64.sml
 	Target64Bit/w64-popcount.sml

@@ -54,7 +54,7 @@ structure ToExtern : sig
 	    | conrep A.LISTCONS = XA.LISTCONS
 	    | conrep A.LISTNIL = XA.LISTNIL
 	    | conrep (A.SUSP NONE) = XA.SUSP NONE
-	    | conrep (A.SUSP(SOME (a, b))) = XA.SUSP(SOME(access a, access b))
+	    | conrep (A.SUSP(SOME(a, b))) = XA.SUSP(SOME(access a, access b))
 	  in
 	    { access = access, conrep = conrep }
 	  end

@@ -22,8 +22,6 @@ structure Real64Imp : REAL =
     fun unordered(x:real,y) = Bool.not(x>y orelse x <= y)
     fun ?= (x, y) = (x == y) orelse unordered(x, y)
 
-    val rbase = InlineT.Real64.from_int(InlineT.Word.toIntX CoreIntInf.base)
-
   (* maximum finite 64-bit real value *)
     val maxFinite = Real64Values.maxFinite
   (* minimum normalized positive real value *)
@@ -157,12 +155,6 @@ structure Real64Imp : REAL =
     val radix = 2
     val precision = 53			(* hidden bit gets counted, too *)
 
-    val two_to_the_neg_1000 = let
-          fun f(i,x) = if i=0 then x else f(i - 1, x*0.5)
-	  in
-	    f(1000, 1.0)
-          end
-
     fun fromManExp {man=m, exp=e:int} =
 	  if (m >= 0.5 andalso m <= 1.0  orelse m <= ~0.5 andalso m >= ~1.0)
 	    then if e > 1020
@@ -180,8 +172,9 @@ structure Real64Imp : REAL =
 		in fromManExp { man = m', exp = e'+ e }
 	       end
 
-  (* the conversion from IntInf.int is target dependent *)
+  (* the conversion between reals and IntInf.int are target dependent *)
     val fromLargeInt = IntInfToReal64.cvt
+    fun toLargeInt mode x = Real64ToIntInf.cvt (mode, x)
 
   (* whole and split could be implemented more efficiently if we had
    * control over the rounding mode; but for now we don't.
@@ -217,95 +210,13 @@ structure Real64Imp : REAL =
                        else if isNan x then raise General.Div
 			 else raise General.Overflow
 
-    fun toLargeInt mode x =
-	if isNan x then raise Domain
-	else if x == posInf orelse x == negInf then raise Overflow
-	else let val (negative, x) =
-		     if x < 0.0 then (true, ~x) else (false, x)
-		 fun feven x = #frac (split (x / 2.0)) == 0.0
-	     in
-		 (* if the magnitude is less than 1.0, then
-		  * we just have to figure out whether to return ~1, 0, or 1
-		  *)
-		 if x < 1.0 then
-		     case mode of
-			 IEEEReal.TO_ZERO => 0
-		       | IEEEReal.TO_POSINF =>
-			   if negative then 0 else 1
-		       | IEEEReal.TO_NEGINF =>
-			   if negative then ~1 else 0
-		       | IEEEReal.TO_NEAREST =>
-			   if x < 0.5 then 0
-			   else if x > 0.5 then
-			       if negative then ~1 else 1
-			   else 0	(* 0 is even *)
-		 else
-		     (* Otherwise we start with an integral value,
-		      * suitably adjusted according to fractional part
-		      * and rounding mode: *)
-		     let val { whole, frac } = split x
-			 val start =
-			     case mode of
-				 IEEEReal.TO_NEGINF =>
-				   if frac > 0.0 andalso negative then
-				       whole + 1.0
-				   else whole
-			       | IEEEReal.TO_POSINF =>
-				   if frac > 0.0 andalso not negative then
-				       whole + 1.0
-				   else whole
-			       | IEEEReal.TO_ZERO => whole
-			       | IEEEReal.TO_NEAREST =>
-				   if frac > 0.5 then whole + 1.0
-				   else if frac < 0.5 then whole
-				   else if feven whole then whole
-				   else whole + 1.0
-
-			 (* Now, for efficiency, we construct a
-			  * fairly "small" whole number with
-			  * all the significant bits.  First
-			  * we get mantissa and exponent: *)
-			 val { man, exp } = toManExp start
-			 (* Then we adjust both to make sure the mantissa
-			  * is whole:
-			  * We know that man is between .5 and 1, so
-			  * multiplying man by 2^53 will guarantee wholeness.
-			  * However, exp might be < 53 -- which would be
-			  * bad.  The correct solution is to multiply
-			  * by 2^min(exp,53) and adjust exp by subtracting
-			  * min(exp,53): *)
-			 val adj = IntImp.min (precision, exp)
-			 val man = fromManExp { man = man, exp = adj }
-			 val exp = exp - adj
-
-			 (* Now we can construct our bignum digits by
-			  * repeated div/mod using the bignum base.
-			  * This loop will terminate after two rounds at
-			  * the most because we chop off 30 bits each
-			  * time: *)
-			 fun loop x =
-			     if x == 0.0 then []
-			     else
-				 let val { whole, frac } = split (x / rbase)
-				     val dig = InlineT.Word.fromInt
-						   (Assembly.A.floor
-							(frac * rbase))
-				 in
-				     dig :: loop whole
-				 end
-			 (* Now we make a bignum out of those digits: *)
-			 val iman =
-			     CoreIntInf.abstract
-				 (CoreIntInf.BI { negative = negative,
-						  digits = loop man })
-		     in
-			 (* Finally, we have to put the exponent back
-			  * into the picture: *)
-			 IntInfImp.<< (iman, InlineT.Word.fromInt exp)
-		     end
-	     end
-
-    fun nextAfter _ = raise Fail "Real.nextAfter unimplemented"
+    fun nextAfter (r, t) = if (r == t) then r
+	  else if isNan r then r
+	  else if isNan t then t
+	  else if not (isFinite r) then r
+	  else if (r < t)
+	    then raise Fail "Real.nextAfter unimplemented"  (* next biggest value *)
+	    else raise Fail "Real.nextAfter unimplemented"  (* next smallest value *)
 
     val min : real * real -> real = InlineT.Real64.min
     val max : real * real -> real = InlineT.Real64.max

@@ -11,6 +11,10 @@ structure FromExtern : sig
     structure A = Access and XA = ExtAccess
     structure T = Types and XT = ExtTypes
 
+  (* `access lvar acc` converts from the external representation of a Access.access
+   * value to the internal representation.  The first argument (`lvar`) is a function
+   * for converting lvar IDs (i.e., integers) to internal lvars.
+   *)
     fun access lvar = let
 	  fun access' (XA.LVAR i) = A.LVAR(lvar i)
 	    | access' (XA.EXTERN pid) = A.EXTERN pid

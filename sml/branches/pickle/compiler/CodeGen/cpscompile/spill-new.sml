@@ -1001,7 +1001,11 @@ struct
       if MachSpec.unboxedFloats then
          let val isFP = H.inDomain fpTable
              fun isGP r = not(isFP r) andalso not(isMoveableRec r)
-             val fp = TYPE_INFO{isVar=isFP, maxLive=maxfpfree, itemSize=2}
+(* REAL32: FIXME *)
+             val fp = TYPE_INFO{
+		    isVar = isFP, maxLive = maxfpfree,
+		    itemSize = if Target.is64 then 1 else 2
+		  }
              val gp = TYPE_INFO{isVar=isGP, maxLive=maxgpfree, itemSize=1}
              val cpsFun = spillIt fp cpsFun (* do fp spills first *)
              val cpsFun = spillIt gp cpsFun (* do gp spills *)
