@@ -789,7 +789,7 @@ end
             and skip() = (yystartPos := yygetPos(); 
 			  yylastwasnref := ULexBuffer.lastWasNL (!yystrm);
 			  continue())
-	    in (continue(), (!yystartPos, yygetPos()), !yystrm, !yyss) end
+	    in (continue(), (!yystartPos, yygetPos()-1), !yystrm, !yyss) end
           in 
             lex()
           end
@@ -831,3 +831,4 @@ end
 
   end
 end
+

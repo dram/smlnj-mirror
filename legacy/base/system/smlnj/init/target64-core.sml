@@ -370,7 +370,7 @@ structure Core =
        * to the functions after CPS optimization.
        *)
 
-      (* word64-rep (pairs of 32-bit words) <-> intinf *)
+      (* int64/word64 <-> intinf *)
 	val truncInf64 = CoreIntInf.truncInf64		(* for `P.TRUNC_INF 64` *)
 	val testInf64 = CoreIntInf.testInf64		(* for `P.TEST_INF 64` *)
 	val copy64Inf = CoreIntInf.copy64Inf		(* for `P.COPY_INF 64` *)

@@ -640,9 +640,10 @@ struct
 
 		val required = StringSet.difference (#required grec, wrapped)
 
+(* FIXME: this description does not match what the code does!!! *)
 		(* The format of a stable archive is the following:
 		 *  - It starts with the size s of the pickled dependency
-		 *    graph. This size itself is written as four-byte string.
+		 *    graph. This size itself is written as a four-byte string.
 		 *  - The size t of the pickled environment for the entire
 		 *    library (using the pickleEnvN interface of the pickler)
 		 *    in the same format as s.
@@ -861,7 +862,7 @@ struct
 			end
 		      | DG.SB_SNODE n => "3" $ [sn n]
 		end
-	
+
 		and fsbn (f, n) = let
 		    val op $ = PU.$ FSBN
 		in
@@ -971,7 +972,7 @@ struct
 		    loadStable { getGroup = getGroup, anyerrors = anyerrors }
 		               (gp, grouppath, NONE, rebindings)
 		end
-			        
+
 		fun writeInt32 (s, i) = let
 		    val a = Word8Array.array (4, 0w0)
 		    val _ = PackWord32Big.update (a, 0, LargeWord.fromInt i)
