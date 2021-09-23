@@ -12,8 +12,18 @@ structure Real64ToIntInf : sig
 
   end = struct
 
+    structure W = InlineT.Word
+    structure W64 = InlineT.Word64
+
+    infix 4 == !=
+
+    val op == = InlineT.Real64.==
+    val op != = InlineT.Real64.!=
+
   (* we use 2^30 for the radix on 32-bit systems. *)
     val rbase = 1073741824.0
+
+    val precision = 53			(* hidden bit gets counted, too *)
 
   (* positive infinity *)
     val posInf = Real64Values.posInf
@@ -21,6 +31,43 @@ structure Real64ToIntInf : sig
     val negInf = Real64Values.negInf
   (* This is the IEEE double-precision maxint == 2^52 *)
     val maxInt = 4503599627370496.0
+
+    fun toManExp x = let
+	  val bits = InlineT.Real64.toBits x
+	  in
+	    if (W64.andb(0wx7fffffffffffffff, bits) = 0w0)
+	      then {man = x, exp = 0}
+	      else (case W.andb(W.fromLarge(W64.rshiftl(bits, 0w52)), 0wx7ff)
+		 of 0w0 => let (* subnormal *)
+		      val {man, exp} = toManExp(1048576.0 * x)
+		      in
+			{man = man, exp = exp - 20}
+		      end
+		  | 0w2047 => {man = x, exp = 0}	(* both NaNs and infinities *)
+		  | biasExp => let
+		      val exp = W.toIntX biasExp - 1022
+		      in
+			{man = Assembly.A.scalb(x, ~exp), exp=exp}
+		      end
+		(* end case *))
+	  end
+
+    fun fromManExp {man=m, exp=e:int} =
+	  if (m >= 0.5 andalso m <= 1.0 orelse m <= ~0.5 andalso m >= ~1.0)
+	    then if e > 1020
+	      then if e > 1050 then if m>0.0 then posInf else negInf
+		   else let fun f(i,x) = if i=0 then x else f(i-1,x+x)
+			   in f(e-1020,  Assembly.A.scalb(m,1020))
+			  end
+	      else if e < ~1020
+		   then if e < ~1200 then 0.0
+		     else let fun f(i,x) = if i=0 then x else f(i-1, x*0.5)
+			   in f(1020-e, Assembly.A.scalb(m, ~1020))
+			  end
+		   else Assembly.A.scalb(m,e)  (* This is the common case! *)
+	  else let val {man=m',exp=e'} = toManExp m
+		in fromManExp { man = m', exp = e'+ e }
+	       end
 
   (* whole and split could be implemented more efficiently if we had
    * control over the rounding mode; but for now we don't.
@@ -70,7 +117,7 @@ structure Real64ToIntInf : sig
               else let
                 val { whole, frac } = split x
                 val start = (case mode
-                       of IEEEReal.TO_ZERO =>
+                       of IEEEReal.TO_NEGINF =>
                             if frac > 0.0 andalso negative
                               then whole + 1.0
                               else whole
