@@ -96,7 +96,15 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //====================================================================
-//== Version 110.99.2; 2021/09/??
+//== Version 110.99.2; 2021/09/22
+
+//--------------------------------------------------------------------
+[2021/08/18]::
++
+Fix a benign bug where the size of a floating-point spill record was twice
+as large as necessary on 64-bit systems.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
 
 //--------------------------------------------------------------------
 [2021/08/10]::

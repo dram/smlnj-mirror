@@ -95,11 +95,19 @@ for more details.
 | `Real.toLargeInt` returns zero for anything in range `[-512,512]`
 | [.bugid]#280#
 | 110.99 `config/install.sh -64` fails on macOS 10.15.7
-// | [.bugid]#@ID#
-// | @DESCRIPTION@
+| [.bugid]#286#
+| Installation of *SML/NJ* v110.99.1 fails in fresh *Ubuntu* 20.04/*macOS* 10.15
+| [.bugid]#287#
+| Install errors with `request asdl`
+| [.bugid]#293#
+| SMLNJ Incompatibility with *macOS* 12 Beta
 |=======
 
-// ***** include a list of unnumbered bugs here *****
+The following unnumbered bug was also fixed:
+--
+  * Floating-point spill records were twice as large as necessary on 64-bit
+    systems.
+--
 
 == Supported systems
 
@@ -112,6 +120,8 @@ tested some of them:
 | AMD64 | FreeBSD 12.0 | Tested
 | | macOS 10.14 (Mojave) | Tested
 | | macOS 10.15 (Catalina) | Tested
+| | macOS 11 (Big Sur) | Tested
+| | macOS 12 (Monterey) | Tested
 | | Ubuntu 16.04.3 LTS | Tested
 | | Ubuntu 18.04.3 LTS | Tested
 | {nbsp} | |
