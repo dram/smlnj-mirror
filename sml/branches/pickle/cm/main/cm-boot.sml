@@ -732,9 +732,10 @@ functor LinkCM (structure HostBackend : BACKEND) = struct
 		     \\n\
 		     \  rtsargs:\n\
 		     \    @SMLversion      (echo the version of SML/NJ then exit)\n\
+		     \    @SMLwordsize     (echo the wordsze for the system then exit)\n\
+		     \    @SMLsuffix       (echo the heap suffix for the system then exit)\n\
 		     \    @SMLload=<h>     (load specified heap image)\n\
 		     \    @SMLcmdname=<n>  (set command name)\n\
-		     \    @SMLsuffix       (echo heap suffix for the system then exit)\n\
 		     \    @SMLalloc=<s>    (specify size of allocation area)\n\
                      \    @SMLrun=<rt>     (specify runtime system)\n\
 		     \    @SMLquiet        (load heap image silently)\n\
