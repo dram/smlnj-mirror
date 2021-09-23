@@ -1,9 +1,9 @@
-(* %F version.template
+(* %F
  *
- * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * !!! DO NOT EDIT --- GENERATED FROM version.template !!!
+ *
+ * COPYRIGHT (c) 2021 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
- *
- * Author: Matthias Blume (blume@tti-c.org)
  *)
 
 structure SMLNJVersion : sig
@@ -11,8 +11,15 @@ structure SMLNJVersion : sig
     val version : {
             system : string,      	(* the system title *)
 	    version_id : int list,	(* the version number *)
-            date : string         	(* date of creation *)
+	    suffix : string,		(* optional suffix; e.g., "rc1" *)
+	    buildDate : string,		(* date that the executable was built *)
+	    releaseDate : string	(* release date of version *)
 	  }
+
+    (* should match the contents of config/version; formed from the version_id and
+     * optional suffix.
+     *)
+    val version' : string
 
     val banner : string
 
@@ -20,17 +27,29 @@ structure SMLNJVersion : sig
 
     val size = Int.toString(SMLofNJ.SysInfo.getArchSize())
 
-    (* generate date string at boot time *)
+    (* generate buildDate string at boot time *)
+    val buildDate = Date.toString (Date.fromTimeLocal (Time.now ()))
+
+    val releaseDate = "%D"
+
     val version = {
 	    system = "Standard ML of New Jersey",
 	    version_id = [%V],
-	    date = Date.toString (Date.fromTimeLocal (Time.now ()))
-        }
+	    suffix = "%S",
+	    buildDate = Date.toString (Date.fromTimeLocal (Time.now ())),
+	    releaseDate = if releaseDate = "" then buildDate else releaseDate
+          }
+
+    val version' = let
+	  val vn = String.concatWithMap "." Int.toString (#version_id version)
+	  in
+	    if #suffix version = "" then vn else concat[vn, "-", #suffix version]
+	  end
 
     val banner = concat [
 	    #system version, " (", size, "-bit)",
 	    " v", String.concatWithMap "." Int.toString (#version_id version),
-	    " [built: ", #date version, "]"
+	    " [built: ", #buildDate version, "]"
 	  ]
 
   end
