@@ -81,8 +81,8 @@ structure Core =
             val scalbP : (real, int) pair -> real = cast AA.scalb
 	    val scalb : real * int -> real = fn x => scalbP(PAIR x)
 
-	    val try_lock : spin_lock -> bool = cast AA.try_lock
-	    val unlock : spin_lock -> unit = cast AA.unlock
+	    val try_lock : spin_lock -> bool = cast AA.try_lock         (* DEPRECATED *)
+	    val unlock : spin_lock -> unit = cast AA.unlock             (* DEPRECATED *)
 
 	  end (* structure A *)
 
@@ -370,7 +370,7 @@ structure Core =
        * to the functions after CPS optimization.
        *)
 
-      (* word64-rep (pairs of 32-bit words) <-> intinf *)
+      (* int64/word64 <-> intinf *)
 	val truncInf64 = CoreIntInf.truncInf64		(* for `P.TRUNC_INF 64` *)
 	val testInf64 = CoreIntInf.testInf64		(* for `P.TEST_INF 64` *)
 	val copy64Inf = CoreIntInf.copy64Inf		(* for `P.COPY_INF 64` *)
