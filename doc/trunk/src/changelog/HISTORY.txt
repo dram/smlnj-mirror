@@ -93,10 +93,21 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //////////////////////////////////////////////////////////////////////
 
 //====================================================================
-//== Recent updates
+== Recent updates
 
 //====================================================================
 //== Version 1021.1; 2021/??/??
+
+//--------------------------------------------------------------------
+[2021/09/23]::
++
+Changed the *binfile* representation to remove the pickling of
+the *FLINT* intermediate representation.  The purpose of this
+mechanism was to support cross-module inlining, but it has not
+be enabled for many years.  Removing it is the first step toward
+migrating the pickling infrastructure to use *ASDL*.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
 
 //--------------------------------------------------------------------
 [2021/09/23]::
@@ -110,6 +121,9 @@ The new interface supports the version suffix and includes both a build
 date and a release date in the `version` information record.
 +
 owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//====================================================================
+== Version 110.99.2; 2021/09/23
 
 //--------------------------------------------------------------------
 [2021/08/18]::
