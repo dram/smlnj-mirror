@@ -62,11 +62,9 @@ functor AutoLoadFn (structure L : LINK
 	    val { exports = lTrav, ... } = L.newTraversal (g, #contents o get)
 	    fun combine (ss, d) gp =
 		case ss gp of
-		    SOME { stat, sym } =>
+		    SOME { stat } =>
 		    (case d gp of
-			 SOME dyn => SOME (E.mkenv { static = stat,
-						     symbolic = sym,
-						     dynamic = dyn })
+			 SOME dyn => SOME (E.mkenv { static = stat, dynamic = dyn })
 		       | NONE => NONE)
 		  | NONE => NONE
 	    fun mkNode (sy, ie) =
@@ -82,7 +80,7 @@ functor AutoLoadFn (structure L : LINK
 	(* manage a list of symbols for which modules need to be loaded *)
 	fun manage (genloadmap, ter: ER.envref, quiet) = let
 	    val gp = get_ginfo ()
-		     
+
 	    fun loadit m = let
 		fun one ((_, tr), NONE) = NONE
 		  | one ((_, tr), SOME e) =

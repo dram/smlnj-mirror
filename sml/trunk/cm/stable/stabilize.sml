@@ -194,9 +194,9 @@ struct
 	    case x of
 		DG.SB_BNODE (DG.BNODE { bininfo = i, ... }, ii, _) => let
 		    val (i, sy) = inverseMap i
-		    val { statpid, sympid, ... } = ii
+		    val { statpid, ... } = ii
 		in
-		    "2" $ [int i, pid statpid, pid sympid]
+		    "2" $ [int i, pid statpid]
 		end
 	      | DG.SB_SNODE n => "3" $ [sn n]
 	end
@@ -375,13 +375,12 @@ struct
 			      | NONE => raise Format
 			end
 
-		    val { symenv, statenv, symbol, symbollist } =
+		    val { statenv, symbol, symbollist } =
 			UP.mkUnpicklers
 			{ session = session,
 			  stringlist = stringlist }
 			context
 
-		    val lazy_symenv = UU.r_lazy session symenv
 		    val lazy_statenv = UU.r_lazy session statenv
 
 		    fun symbolset () = let
@@ -484,17 +483,13 @@ struct
 				(* really reads farbnodes! *)
 				val nth = lazy_fsbn ()
 				val ge = lazy_statenv ()
-				val sye = lazy_symenv ()
 				val statpid = pid ()
-				val sympid = pid ()
 				val guid = string ()
 				val allsyms = symbolset ()
 				fun ieth () = let
 				    val (f, n, pos) = nth ()
 				    val ii = { statenv = ge,
-					       symenv = sye,
 					       statpid = statpid,
-					       sympid = sympid,
 					       guid = guid }
 				in
 				    (f, DG.SB_BNODE (n, ii, pos))
@@ -503,8 +498,7 @@ struct
 				(* put a filter in front to avoid having
 				 * the FCTENV being queried needlessly
 				 * (avoids spurious module loadings) *)
-				val e' = DAEnv.FILTER
-					     (SymbolSet.singleton sy, e)
+				val e' = DAEnv.FILTER (SymbolSet.singleton sy, e)
 			    in
 				(sy, (Memoize.memoize ieth, e', allsyms))
 			    end
@@ -608,16 +602,15 @@ struct
 				    (SymbolMap.listItems exports),
 				    sublibs)
 
-		fun writeBFC s (i, { code, data, env, inlinfo }) = let
+		fun writeBFC s (i, { code, data, env }) = let
 		    val { contents, stats } = getBFC i
-		    val { code = c, data = d, env = e, inlinfo = ii } = stats
+		    val { code = c, data = d, env = e } = stats
 		    val v = #version_id SMLNJVersion.version
 		in
 		    ignore (BF.write { arch = arch, version = v,
 				       nopickle = true,
 				       stream = s, contents = contents });
-		    { code = code + c, data = data + d,
-		      env = env + e, inlinfo = inlinfo + ii }
+		    { code = code + c, data = data + d, env = env + e }
 		end
 
 		fun sizeBFC i =
@@ -782,10 +775,7 @@ struct
 
 		val env_orig = P.envPickler (fn _ => ()) (P.LIBRARY libctxt)
 		val env = PU.lift_pickler lifter env_orig
-		val symenv_orig = P.symenvPickler
-		val symenv = PU.lift_pickler lifter symenv_orig
 		val lazy_env = PU.w_lazy env
-		val lazy_symenv = PU.w_lazy symenv
 
 		val bool = PU.w_bool
 		val int = PU.w_int
@@ -861,7 +851,7 @@ struct
 			end
 		      | DG.SB_SNODE n => "3" $ [sn n]
 		end
-	
+
 		and fsbn (f, n) = let
 		    val op $ = PU.$ FSBN
 		in
@@ -879,15 +869,12 @@ struct
 		    case nth () of
 			(_, DG.SB_SNODE (DG.SNODE { smlinfo, ... })) =>
 			(* this is the case of an actual internal node *)
-			let val { statenv, symenv, statpid, sympid, guid } =
-				getII smlinfo
+			let val { statenv, statpid, guid } = getII smlinfo
 			in
 			    "i" $ [symbol s,
 				   lazy_fsbn nth,
 				   lazy_env statenv,
-				   lazy_symenv symenv,
 				   pid statpid,
-				   pid sympid,
 				   string guid,
 				   symbolset allsyms]
 			end
@@ -971,7 +958,7 @@ struct
 		    loadStable { getGroup = getGroup, anyerrors = anyerrors }
 		               (gp, grouppath, NONE, rebindings)
 		end
-			        
+
 		fun writeInt32 (s, i) = let
 		    val a = Word8Array.array (4, 0w0)
 		    val _ = PackWord32Big.update (a, 0, LargeWord.fromInt i)
@@ -993,14 +980,13 @@ struct
 		    (BinIO.output (outs, libstamp_bytes);
 		     writeInt32 (outs, dg_sz);
 		     BinIO.output (outs, dg_pickle);
-		     let val { code, data, env, inlinfo } =
+		     let val { code, data, env } =
 			     foldl (writeBFC outs)
-				   { code = 0, data = 0, env = 0, inlinfo = 0 }
+				   { code = 0, data = 0, env = 0 }
 				   memberlist
 		     in
 			 Say.vsay ["[code: ", Int.toString code,
 				   ", data: ", Int.toString data,
-				   ", inlinable: ", Int.toString inlinfo,
 				   ", env: ", Int.toString dg_sz,
 				   " bytes]\n"]
 		     end)

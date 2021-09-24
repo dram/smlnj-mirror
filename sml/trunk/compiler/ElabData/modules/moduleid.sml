@@ -1,15 +1,20 @@
-(* Copyright 1996 by AT&T Bell Laboratories *)
-(* Re-written by M.Blume (3/2000) *)
-(* moduleid.sml *)
+(* moduleid.sml
+ *
+ * COPYRIGHT (c) 2021 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *
+ * Re-written by M.Blume (3/2000)
+ *)
 
 signature MODULE_ID = sig
 
-    type tycId
-    type sigId
-    type strId
-    type fctId
-    type envId
+    type tycId	(* type-constructor IDs *)
+    type sigId	(* signature IDs *)
+    type strId	(* structure IDs *)
+    type fctId	(* functor IDs *)
+    type envId	(* environment IDs *)
 
+    (* create the various kinds of IDs *)
     val tycId : Types.gtrec -> tycId
     val sigId : Modules.sigrec -> sigId
     val strId : Modules.strrec -> strId
@@ -19,12 +24,16 @@ signature MODULE_ID = sig
     val strId2 : Modules.sigrec * Modules.strEntity -> strId
     val fctId2 : Modules.fctSig * Modules.fctEntity -> fctId
 
+    (* equality tests for IDs *)
     val sameTyc : tycId * tycId -> bool
     val sameSig : sigId * sigId -> bool
     val sameStr : strId * strId -> bool
     val sameFct : fctId * fctId -> bool
     val sameEnv : envId * envId -> bool
 
+    (* tests if IDs are "fresh", which means that they are local to the current
+     * compilation unit.
+     *)
     val freshTyc : tycId -> bool
     val freshSig : sigId -> bool
     val freshStr : strId -> bool
@@ -80,8 +89,15 @@ structure ModuleId : MODULE_ID = struct
 
     type tycId = stamp
     type sigId = stamp
-    type strId = { sign: stamp, rlzn: stamp }
-    type fctId = { paramsig: stamp, bodysig: stamp, rlzn: stamp }
+    type strId = {
+	sign: stamp,	(* the stamp of the structure's signature *)
+	rlzn: stamp	(* the stamp of the structure's realization *)
+      }
+    type fctId = {
+	paramsig: stamp,	(* the stamp of the functor's parameter signature *)
+	bodysig: stamp,		(* the stamp of the functor's signature *)
+	rlzn: stamp		(* the stamp of the functor's realization *)
+      }
     type envId = stamp
 
     val freshTyc = ST.isFresh
@@ -158,19 +174,19 @@ structure ModuleId : MODULE_ID = struct
     fun insertTyc ({ m_tyc, m_sig, m_str, m_fct, m_env }, k, t) =
 	{ m_tyc = StampM.insert (m_tyc, k, t),
 	  m_sig = m_sig, m_str = m_str, m_fct = m_fct, m_env = m_env }
-	  
+
     fun insertSig ({ m_tyc, m_sig, m_str, m_fct, m_env }, k, t) =
 	{ m_sig = StampM.insert (m_sig, k, t),
 	  m_tyc = m_tyc, m_str = m_str, m_fct = m_fct, m_env = m_env }
-	  
+
     fun insertStr ({ m_tyc, m_sig, m_str, m_fct, m_env }, k, t) =
 	{ m_str = StrM.insert (m_str, k, t),
 	  m_tyc = m_tyc, m_sig = m_sig, m_fct = m_fct, m_env = m_env }
-	  
+
     fun insertFct ({ m_tyc, m_sig, m_str, m_fct, m_env }, k, t) =
 	{ m_fct = FctM.insert (m_fct, k, t),
 	  m_tyc = m_tyc, m_sig = m_sig, m_str = m_str, m_env = m_env }
-	  
+
     fun insertEnv ({ m_tyc, m_sig, m_str, m_fct, m_env }, k, t) =
 	{ m_env = StampM.insert (m_env, k, t),
 	  m_tyc = m_tyc, m_sig = m_sig, m_str = m_str, m_fct = m_fct }

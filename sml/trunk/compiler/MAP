@@ -589,11 +589,6 @@ TopLevel/
   combined static and dynamic environments
     environ.sig,sml
       defs: ENVIRONMENT, Environment: ENVIRONMENT
-    symenv.sig,sml
-      defines SYMENV as a specialization of PIDENV, and SymbolicEnv as
-      an instance of PidEnvFn.
-      see: Basics/mlcomp/pidenv.sig, Basics/mlcomp/pidenv.sml
-      defs: SYMENV, SymbolicEnv: SYMENV
 
   backend/
     backend.sig

@@ -7,8 +7,7 @@
 structure FLINTOpt : sig
 
   (* the int option gets passed to lambda-split phases (if any) *)
-    val optimize : FLINT.prog * Absyn.dec CompInfo.compInfo * int option
-	  -> FLINT.prog * FLINT.prog option
+    val optimize : FLINT.prog * Absyn.dec CompInfo.compInfo -> FLINT.prog
 
   end = struct
 
@@ -35,10 +34,6 @@ structure FLINTOpt : sig
     val fcontract = fn opts => fn lexp => fcontract(opts, fcollect lexp)
     val loopify   = phase "FLINT 057 loopify" Loopify.loopify
     val fixfix    = phase "FLINT 056 fixfix" FixFix.fixfix
-    val split     = phase "FLINT 058 split" FSplit.split
-(* not enabled, so don't compile [JHR; 2017-10-16]
-    val abcopt    = phase "FLINT 059 abcopt" ABCOpt.abcOpt
-*)
 
     val typelift  = phase "FLINT 0535 typelift" Lift.typeLift
     val wformed   = phase "FLINT 0536 wformed" Lift.wellFormed
@@ -74,7 +69,7 @@ structure FLINTOpt : sig
     val fcs : (FLINT.prog -> FLINT.prog) list ref = ref []
 
   (** optimizing FLINT code *)
-    fun optimize (flint, compInfo: Absyn.dec CompInfo.compInfo, splitting) = let
+    fun optimize (flint, compInfo: Absyn.dec CompInfo.compInfo) = let
 	  val {sourceName=src, ...} = compInfo
 
 	  fun check (checkE, printE, chkId) (lvl,logId) e = if checkE (e,lvl)
@@ -87,46 +82,33 @@ structure FLINTOpt : sig
 		else print ("\nAfter " ^ s ^ " CODE NOT WELL FORMED\n")
 
 	 (* f:prog        flint code
-	  * fi:prog opt   inlinable approximation of f
 	  * fk:flintkind  what kind of flint variant this is
 	  * l:string      last phase through which it went
 	  *)
-	  fun runphase (p, (f, fi, fk, l)) = (case (p, fk)
+	  fun runphase (p, (f, fk, l)) = (case (p, fk)
 		 of (("fcontract" | "lcontract"), FK_DEBRUIJN) => (
 		      say("\n!! "^p^" cannot be applied to the DeBruijn form !!\n");
-		      (f, fi, fk, l))
+		      (f, fk, l))
 		  | ("fcontract",_) =>
-		    (fcontract {etaSplit=false, tfnInline=false} f,  fi, fk, p)
+		    (fcontract {etaSplit=false, tfnInline=false} f,  fk, p)
 		  | ("fcontract+eta",_)	=>
-		    (fcontract {etaSplit=true, tfnInline=false} f,  fi, fk, p)
-		  | ("lcontract",_) => (lcontract f,  fi, fk, p)
-		  | ("fixfix", _) => (fixfix f, fi, fk, p)
-		  | ("loopify", _) => (loopify f, fi, fk, p)
-(* not enabled, so don't compiler [JHR; 2017-10-16]
-		  | ("abcopt", _) => (abcopt f,    fi, fk, p)
-*)
-		  | ("specialize", FK_NAMED) => (specialize f, fi, fk, p)
-		  | ("wrap", FK_NAMED) => (wrapping f, fi, FK_WRAP, p)
-		  | ("reify", FK_WRAP) => (reify f, fi, FK_REIFY, p)
-		  | ("deb2names",FK_DEBRUIJN) => (deb2names f, fi, FK_NAMED, p)
-		  | ("names2deb",FK_NAMED) => (names2deb f, fi, FK_DEBRUIJN, p)
+		    (fcontract {etaSplit=true, tfnInline=false} f,  fk, p)
+		  | ("lcontract",_) => (lcontract f,  fk, p)
+		  | ("fixfix", _) => (fixfix f, fk, p)
+		  | ("loopify", _) => (loopify f, fk, p)
+		  | ("specialize", FK_NAMED) => (specialize f, fk, p)
+		  | ("wrap", FK_NAMED) => (wrapping f, FK_WRAP, p)
+		  | ("reify", FK_WRAP) => (reify f, FK_REIFY, p)
+		  | ("deb2names",FK_DEBRUIJN) => (deb2names f, FK_NAMED, p)
+		  | ("names2deb",FK_NAMED) => (names2deb f, FK_DEBRUIJN, p)
 		  | ("typelift", _) => let
 		      val f = typelift f
 		      in
 			if !CTRL.check then wff(f, p) else ();
-			(f, fi, fk, p)
-		      end
-		  | ("split", FK_NAMED) => let
-		      val (f,fi) = split (f, splitting)
-		      in
-			(f, fi, fk, p)
+			(f, fk, p)
 		      end
 		  (* pseudo FLINT phases *)
-		  | ("pickle", _) =>
-		    (valOf(UnpickMod.unpickleFLINT(#pickle(PickMod.pickleFLINT(SOME f)))),
-		     UnpickMod.unpickleFLINT(#pickle(PickMod.pickleFLINT fi)),
-		     fk, p)
-		  | ("collect", _) => (fcollect f, fi, fk, p)
+		  | ("collect", _) => (fcollect f, fk, p)
 		  | _ => (case (p, fk)
 		       of ("id",_) => ()
 			| ("wellformed",_) => wff(f,l)
@@ -137,8 +119,6 @@ structure FLINTOpt : sig
 			    end
 			| ("print",_) =>
 			    (say("\n[After "^l^"...]\n\n"); PP.printFundec f; say "\n")
-			| ("printsplit", _) =>
-			    (say "[ splitted ]\n\n"; Option.map PP.printFundec fi; say "\n")
 			| ("check",_) =>
 			    (check (ChkFlint.checkTop, PPFlint.printFundec, "FLINT")
 				   (fk = FK_REIFY, l) f)
@@ -146,19 +126,19 @@ structure FLINTOpt : sig
 			      "\n!! Unknown or badly scheduled FLINT phase '", p, "' !!\n"
 			    ])
 		     (* end case *);
-		     (f, fi, fk, l))
+		     (f, fk, l))
 		(* end case *))
 
-	  fun print (f,fi,fk,l) = (prF l f; (f, fi, fk, l))
-	  fun check' (f,fi,fk,l) = let
+	  fun print (f, fk, l) = (prF l f; (f, fk, l))
+	  fun check' (f, fk , l) = let
 		fun c n reified f =
 		      check (ChkFlint.checkTop, PPFlint.printFundec, n)
 			    (reified, l) (names2deb f)
 	        in
 		  if !CTRL.check
-		    then (c "FLINT" (fk = FK_REIFY) f; Option.map (c "iFLINT" false) fi; ())
+		    then (c "FLINT" (fk = FK_REIFY) f; ())
 		    else ();
-		  (f, fi, fk, l)
+		  (f, fk, l)
 		end
 
 	  fun showhist [s] = say(concat["  raised at:\t", s, "\n"])
@@ -174,8 +154,8 @@ structure FLINTOpt : sig
 			       showhist(SMLofNJ.exnHistory x);
 			       raise x)
 
-	  val (flint,fi,fk,_) = foldl runphase'
-				      (flint, NONE, FK_DEBRUIJN, "flintnm")
+	  val (flint, fk, _) = foldl runphase'
+				      (flint, FK_DEBRUIJN, "flintnm")
 				      ((* "id" :: *) "deb2names" :: !CTRL.phases)
 
         (* run any missing phases *)
@@ -192,7 +172,7 @@ structure FLINTOpt : sig
 	      then (say "\n!!Forgot reify!!\n"; (reify flint, FK_REIFY))
 	      else (flint,fk)
 	  in
-	    (flint, Option.map names2deb fi)
+	    flint
 	  end (* function flintcomp *)
 
     val optimize = phase "FLINT 050 flintopt" optimize

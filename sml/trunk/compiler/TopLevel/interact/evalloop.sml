@@ -105,7 +105,7 @@ functor EvalLoopF (Compile: TOP_COMPILE) : EVALLOOP =
 
 		      fun getenv () = E.layerEnv (#get loc (), #get base ())
 
-		      val {static=statenv, dynamic=dynEnv, symbolic=symenv} = getenv ()
+		      val {static=statenv, dynamic=dynEnv} = getenv ()
 
 		      (* conditional diagnostic code to print ast - could it be involked from parser?
 			 if so, what statenv would be used? *)
@@ -115,14 +115,11 @@ functor EvalLoopF (Compile: TOP_COMPILE) : EVALLOOP =
 			      end
 
 		      val splitting = Control.LambdaSplitting.get ()
-		      val {csegments, newstatenv, absyn, exportPid, exportLvars,
-			   imports, inlineExp, ...} =
+		      val {csegments, newstatenv, absyn, exportPid, exportLvars, imports, ...} =
 			  C.compile {source=source, ast=ast,
 				     statenv=statenv,
-				     symenv=symenv,
 				     compInfo=cinfo,
 				     checkErr=checkErrors,
-				     splitting=splitting,
 				     guid = () }
 		      (** returning absyn and exportLvars here is a bad idea,
 			  they hold on things unnecessarily; this must be
@@ -142,9 +139,7 @@ functor EvalLoopF (Compile: TOP_COMPILE) : EVALLOOP =
 		      val _ = (PC.current := Profile.compileIndex)
 
 		      val newenv =
-			  E.mkenv { static = newstatenv,
-				    dynamic = newdynenv,
-				    symbolic = SymbolicEnv.mk (exportPid,inlineExp) }
+			  E.mkenv { static = newstatenv, dynamic = newdynenv }
 		      val newLocalEnv = E.concatEnv (newenv, #get loc ())
 			  (* refetch loc because execution may
 			     have changed its contents *)
@@ -179,9 +174,7 @@ functor EvalLoopF (Compile: TOP_COMPILE) : EVALLOOP =
 		      val ste1 = StaticEnv.special (look_and_load, get_symbols)
 
 		      val e0 = getenv ()
-		      val e1 = E.mkenv { static = ste1,
-					 symbolic = E.symbolicPart e0,
-					 dynamic = E.dynamicPart e0 }
+		      val e1 = E.mkenv { static = ste1, dynamic = E.dynamicPart e0 }
 		      in
 			PP.with_pp
 			    (#errConsumer source)

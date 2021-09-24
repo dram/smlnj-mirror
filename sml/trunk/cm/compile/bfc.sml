@@ -14,7 +14,7 @@
  *)
 signature BFC = sig
     type bfc
-    type stats = { env: int, inlinfo: int, data: int, code: int }
+    type stats = { env: int, data: int, code: int }
     val new : unit -> { store: SmlInfo.info * { contents: bfc, stats: stats }
 			       -> unit,
 		        get: SmlInfo.info -> { contents: bfc, stats: stats } }
@@ -27,7 +27,7 @@ struct
 
     structure BF = Binfile
     type bfc = BF.bfContents
-    type stats = { env: int, inlinfo: int, data: int, code: int }
+    type stats = { env: int, data: int, code: int }
 
     val version = #version_id SMLNJVersion.version
 

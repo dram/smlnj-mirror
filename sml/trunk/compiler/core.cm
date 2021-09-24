@@ -56,7 +56,6 @@ Group
 
 	(* stuff that lived (or should have) in Frontend (aka GenericVC) *)
 	structure Control
-	structure SymbolicEnv
 	structure ArithOps
 	structure Primop
 	structure PrimopBind
@@ -104,7 +103,6 @@ Group
 
 	(* corresponding signatures *)
 	signature CONTROL
-	signature SYMENV
 	signature ENVIRONMENT
 	signature PRIM_ENV
 	signature ENVREF
@@ -155,8 +153,6 @@ is
 
 TopLevel/environ/environ.sig
 TopLevel/environ/environ.sml
-TopLevel/environ/symenv.sig
-TopLevel/environ/symenv.sml
 
 TopLevel/interact/envref.sml
 TopLevel/interact/evalloop.sig
@@ -227,11 +223,7 @@ FLINT/opt/lcontract.sml
 FLINT/opt/recover.sml
 FLINT/opt/specialize.sml
 FLINT/opt/loopify.sml
-FLINT/opt/split.sml
 FLINT/opt/lift.sml
-(* not enabled, so don't compile [JHR; 2017-10-16]
-FLINT/opt/abcopt.sml
-*)
 FLINT/plambda/chkplexp.sml
 FLINT/plambda/flintnm.sml
 FLINT/plambda/pflatten.sig
@@ -258,8 +250,6 @@ FLINT/trans/translate.sml
 FLINT/trans/transprim.sml
 FLINT/trans/transtypes.sml
 FLINT/trans/literal-to-num.sml    (* uses CoreIntInf functionality *)
-
-FLINT/lsplit/ls-inline.sml
 
 (* The CPS stages *)
 CPS/clos/globalfix.sml

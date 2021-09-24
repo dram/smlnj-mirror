@@ -57,11 +57,6 @@ signature PICKMOD = sig
 		      exportLvars: Access.lvar list,
 		      hasExports: bool }
 
-    val pickleFLINT: FLINT.prog option -> { hash: PersStamps.persstamp,
-					    pickle: Word8Vector.vector }
-
-    val symenvPickler : (map, SymbolicEnv.env) PickleUtil.pickler
-
     val pickle2hash: Word8Vector.vector -> PersStamps.persstamp
 
     val dontPickle :
@@ -86,11 +81,6 @@ in
     fun bug msg = ErrorMsg.impossible ("PickMod: " ^ msg)
 
     structure A = Access
-    structure DI = DebIndex
-    structure LT = Lty
-    structure LK = LtyKernel
-    structure PT = PrimTyc
-    structure F = FLINT
     structure T = Types
     structure SP = SymPath
     structure IP = InvPath
@@ -115,12 +105,6 @@ in
 	if Symbol.symbolGt (a, b) then GREATER
 	else if Symbol.eq (a, b) then EQUAL else LESS
 
-    structure LTMap = MapFn
-	(struct type ord_key = LT.lty val compare = LT.lt_cmp end)
-    structure TCMap = MapFn
-	(struct type ord_key = LT.tyc val compare = LT.tc_cmp end)
-    structure TKMap = MapFn
-	(struct type ord_key = LT.tkind val compare = LT.tk_cmp end)
     structure DTMap = StampMap
     structure MBMap = StampMap
 
@@ -128,15 +112,11 @@ in
     structure PSymPid = PickleSymPid
 
     type map =
-	{ lt: PU.id LTMap.map,
-	  tc: PU.id TCMap.map,
-	  tk: PU.id TKMap.map,
-	  dt: PU.id DTMap.map,
+	{ dt: PU.id DTMap.map,
 	  mb: PU.id MBMap.map,
 	  mi: PU.id MI.umap }
 
-    val emptyMap = { lt = LTMap.empty, tc = TCMap.empty, tk = TKMap.empty,
-		     dt = DTMap.empty, mb = MBMap.empty, mi = MI.emptyUmap }
+    val emptyMap = { dt = DTMap.empty, mb = MBMap.empty, mi = MI.emptyUmap }
 
     (* type info *)
     val (NK, AO, PAO, CO, PO, CS, A, CR, LT, TC,
@@ -156,84 +136,39 @@ in
 
     (* this is a bit awful...
      * (we really ought to have syntax for "functional update") *)
-    val LTs = { find = fn (m: map, x) => LTMap.find (#lt m, x),
-	        insert = fn ({ lt, tc, tk, dt, mb, mi }, x, v) =>
-		         { lt = LTMap.insert (lt, x, v),
-			   tc = tc,
-			   tk = tk,
-			   dt = dt,
-			   mb = mb,
-			   mi = mi } }
-    val TCs = { find = fn (m: map, x) => TCMap.find (#tc m, x),
-	        insert = fn ({ lt, tc, tk, dt, mb, mi }, x, v) =>
-		         { lt = lt,
-			   tc = TCMap.insert (tc, x, v),
-			   tk = tk,
-			   dt = dt,
-			   mb = mb,
-			   mi = mi } }
-    val TKs = { find = fn (m: map, x) => TKMap.find (#tk m, x),
-	        insert = fn ({ lt, tc, tk, dt, mb, mi }, x, v) =>
-		         { lt = lt,
-			   tc = tc,
-			   tk = TKMap.insert (tk, x, v),
-			   dt = dt,
-			   mb = mb,
-			   mi = mi } }
     fun DTs x = { find = fn (m: map, _) => DTMap.find (#dt m, x),
-		  insert = fn ({ lt, tc, tk, dt, mb, mi }, _, v) =>
-		           { lt = lt,
-			     tc = tc,
-			     tk = tk,
-			     dt = DTMap.insert (dt, x, v),
+		  insert = fn ({ dt, mb, mi }, _, v) =>
+		           { dt = DTMap.insert (dt, x, v),
 			     mb = mb,
 			     mi = mi } }
     fun MBs x = { find = fn (m: map, _) => MBMap.find (#mb m, x),
-		  insert = fn ({ lt, tc, tk, dt, mb, mi }, _, v) =>
-		           { lt = lt,
-			     tc = tc,
-			     tk = tk,
-			     dt = dt,
+		  insert = fn ({ dt, mb, mi }, _, v) =>
+		           { dt = dt,
 			     mb = MBMap.insert (mb, x, v),
 			     mi = mi } }
     fun TYCs id = { find = fn (m: map, _) => MI.uLookTyc (#mi m, id),
-		    insert = fn ({ lt, tc, tk, dt, mb, mi }, _, v) =>
-				{ lt = lt,
-				  tc = tc,
-				  tk = tk,
-				  dt = dt,
+		    insert = fn ({ dt, mb, mi }, _, v) =>
+				{ dt = dt,
 				  mb = mb,
 				  mi = MI.uInsertTyc (mi, id, v) } }
     val SIGs = { find = fn (m: map, r) => MI.uLookSig (#mi m, MI.sigId r),
-		 insert = fn ({ lt, tc, tk, dt, mb, mi }, r, v) =>
-			     { lt = lt,
-			       tc = tc,
-			       tk = tk,
-			       dt = dt,
+		 insert = fn ({ dt, mb, mi }, r, v) =>
+			     { dt = dt,
 			       mb = mb,
 			       mi = MI.uInsertSig (mi, MI.sigId r, v) } }
     fun STRs i = { find = fn (m: map, _) => MI.uLookStr (#mi m, i),
-		   insert = fn ({ lt, tc, tk, dt, mb, mi }, _, v) =>
-			       { lt = lt,
-				 tc = tc,
-				 tk = tk,
-				 dt = dt,
+		   insert = fn ({ dt, mb, mi }, _, v) =>
+			       { dt = dt,
 				 mb = mb,
 				 mi = MI.uInsertStr (mi, i, v) } }
     fun FCTs i = { find = fn (m: map, _) => MI.uLookFct (#mi m, i),
-		   insert = fn ({ lt, tc, tk, dt, mb, mi }, _, v) =>
-			       { lt = lt,
-				 tc = tc,
-				 tk = tk,
-				 dt = dt,
+		   insert = fn ({ dt, mb, mi }, _, v) =>
+			       { dt = dt,
 				 mb = mb,
 				 mi = MI.uInsertFct (mi, i, v) } }
     val ENVs = { find = fn (m: map, r) => MI.uLookEnv (#mi m, MI.envId r),
-		 insert = fn ({ lt, tc, tk, dt, mb, mi }, r, v) =>
-			     { lt = lt,
-			       tc = tc,
-			       tk = tk,
-			       dt = dt,
+		 insert = fn ({ dt, mb, mi }, r, v) =>
+			     { dt = dt,
 			       mb = mb,
 			       mi = MI.uInsertEnv (mi, MI.envId r, v) } }
 
@@ -521,196 +456,6 @@ in
 	{ access = access, conrep = conrep }
     end
 
-    (* lambda-type stuff; some of it is used in both picklers *)
-    fun tkind x = let
-	val op $ = PU.$ TK
-	fun tk x =
-	    case LK.tk_out x of
-	    LT.TK_MONO => "A" $ []
-	  | LT.TK_BOX => "B" $ []
-	  | LT.TK_SEQ ks => "C" $ [list tkind ks]
-	  | LT.TK_FUN (ks, kr) => "D" $ [list tkind ks, tkind kr]
-    in
-	share TKs tk x
-    end
-
-    fun mkLty lvar = let
-	fun lty x = let
-	    val op $ = PU.$ LT
-	    fun ltyI x =
-		case LK.lt_out x of
-		    LT.LT_TYC tc => "A" $ [tyc tc]
-		  | LT.LT_STR l => "B" $ [list lty l]
-		  | LT.LT_FCT (ts1, ts2) => "C" $ [list lty ts1, list lty ts2]
-		  | LT.LT_POLY (ks, ts) => "D" $ [list tkind ks, list lty ts]
-		  | LT.LT_IND _ => bug "unexpected LT_IND in mkPickleLty"
-		  | LT.LT_ENV _ => bug "unexpected LT_ENV in mkPickleLty"
-		  | LT.LT_CONT _ => bug "unexpected LT_CONT in mkPickleLty"
-	in
-	    share LTs ltyI x
-	end
-
-	and tyc x = let
-	    val op $ = PU.$ TC
-	    fun tycI x =
-		case LK.tc_out x of
-		    LT.TC_VAR (db, i) => "A" $ [int (DI.di_toint db), int i]
-		  | LT.TC_NVAR n => "B" $ [lvar n]
-		  | LT.TC_PRIM t => "C" $ [int (PT.pt_toint t)]
-		  | LT.TC_FN (ks, tc) => "D" $ [list tkind ks, tyc tc]
-		  | LT.TC_APP (tc, l) => "E" $ [tyc tc, list tyc l]
-		  | LT.TC_SEQ l => "F" $ [list tyc l]
-		  | LT.TC_PROJ (tc, i) => "G" $ [tyc tc, int i]
-		  | LT.TC_SUM l => "H" $ [list tyc l]
-		  | LT.TC_FIX{family={size=n,names,gen=tc,params=ts},index=i} =>
-			"I" $ [int n, list string (Vector.foldr (op ::) [] names),
-                               tyc tc, list tyc ts, int i]
-		  | LT.TC_ABS tc => "J" $ [tyc tc]
-		  | LT.TC_BOX tc => "K" $ [tyc tc]
-		  | LT.TC_TUPLE (_, l) => "L" $ [list tyc l]
-		  | LT.TC_ARROW (LT.FF_VAR (b1, b2), ts1, ts2) =>
-			"M" $ [bool b1, bool b2, list tyc ts1, list tyc ts2]
-		  | LT.TC_ARROW (LT.FF_FIXED, ts1, ts2) =>
-			"N" $ [list tyc ts1, list tyc ts2]
-		  | LT.TC_PARROW _ => bug "unexpected TC_PARREW in mkPickleLty"
-		  | LT.TC_TOKEN (tk, t) => "O" $ [int (LT.token_int tk), tyc t]
-		  | LT.TC_IND _ => bug "unexpected TC_IND in mkPickleLty"
-		  | LT.TC_ENV _ => bug "unexpected TC_ENV in mkPickleLty"
-		  | LT.TC_CONT _ => bug "unexpected TC_CONT in mkPickleLty"
-	in
-	    share TCs tycI x
-	end
-    in
-	{ tyc = tyc, lty = lty }
-    end
-
-    (* the FLINT pickler *)
-    fun flint flint_exp = let
-	val alphaConvert = mkAlphaConvert ()
-	val lvar = int o alphaConvert
-	val { access, conrep } = mkAccess { lvar = lvar,
-					    isLocalPid = fn _ => false }
-	val { lty, tyc } = mkLty lvar
-
-	val op $ = PU.$ V
-	fun value (F.VAR v) = "a" $ [lvar v]
-	  | value (F.INT{ty, ival}) = "b" $ [int ty, intinf ival]
-	  | value (F.WORD{ty, ival}) = "d" $ [int ty, intinf ival]
-	  | value (F.REAL{ty, rval}) = "f" $ [
-		int ty, string (Byte.bytesToString (RealLit.toBytes rval))
-	      ]
-	  | value (F.STRING s) = "g" $ [string s]
-
-	fun con arg = let
-	    val op $ = PU.$ C
-	    fun c (F.DATAcon (dc, ts, v), e) = "1" $ [dcon (dc, ts), lvar v, lexp e]
-	      | c (F.INTcon{ty, ival}, e) = "2" $ [int ty, intinf ival, lexp e]
-	      | c (F.WORDcon{ty, ival}, e) = "4" $ [int ty, intinf ival, lexp e]
-	      | c (F.STRINGcon s, e) = "7" $ [string s, lexp e]
-	      | c (F.VLENcon i, e) = "8" $ [int i, lexp e]
-	    in
-	      c arg
-	    end
-
-	and dcon ((s, cr, t), ts) = let
-	    val op $ = PU.$ DCON
-	    in
-	      "x" $ [symbol s, conrep cr, lty t, list tyc ts]
-	    end
-
-	and dict { default = v, table = tbls } = let
-	    val op $ = PU.$ DICT
-	    in
-	      "y" $ [lvar v, list (pair (list tyc, lvar)) tbls]
-	    end
-
-	and fprim (dtopt, p, t, ts) = let
-	    val op $ = PU.$ FPRIM
-	    in
-	      "z" $ [option dict dtopt, primop p, lty t, list tyc ts]
-	    end
-
-	and lexp arg = let
-	    val op $ = PU.$ E
-	    fun l (F.RET vs) = "j" $ [list value vs]
-	      | l (F.LET (vs, e1, e2)) =
-		"k" $ [list lvar vs, lexp e1, lexp e2]
-	      | l (F.FIX (fdecs, e)) = "l" $ [list fundec fdecs, lexp e]
-	      | l (F.APP (v, vs)) = "m" $ [value v, list value vs]
-	      | l (F.TFN (tfdec, e)) = "n" $ [tfundec tfdec, lexp e]
-	      | l (F.TAPP (v, ts)) = "o" $ [value v, list tyc ts]
-	      | l (F.SWITCH (v, crl, cel, eo)) =
-		"p" $ [value v, consig crl, list con cel, option lexp eo]
-	      | l (F.CON (dc, ts, u, v, e)) =
-		"q" $ [dcon (dc, ts), value u, lvar v, lexp e]
-	      | l (F.RECORD (rk, vl, v, e)) =
-		"r" $ [rkind rk, list value vl, lvar v, lexp e]
-	      | l (F.SELECT (u, i, v, e)) =
-		"s" $ [value u, int i, lvar v, lexp e]
-	      | l (F.RAISE (u, ts)) = "t" $ [value u, list lty ts]
-	      | l (F.HANDLE (e, u)) = "u" $ [lexp e, value u]
-	      | l (F.BRANCH (p, vs, e1, e2)) =
-		"v" $ [fprim p, list value vs, lexp e1, lexp e2]
-	      | l (F.PRIMOP (p, vs, v, e)) =
-		"w" $ [fprim p, list value vs, lvar v, lexp e]
-	in
-	    l arg
-	end
-
-	and fundec (fk, v, vts, e) = let
-	    val op $ = PU.$ FUNDEC
-	in
-	    "a" $ [fkind fk, lvar v, list (pair (lvar, lty)) vts, lexp e]
-	end
-
-	and tfundec (_, v, tvks, e) = let
-	    val op $ = PU.$ TFUNDEC
-	in
-	    "b" $ [lvar v, list (pair (lvar, tkind)) tvks, lexp e]
-	end
-
-	and fkind arg = let
-	    val op $ = PU.$ FK
-	    fun isAlways F.IH_ALWAYS = true
-	      | isAlways _ = false
-	    fun strip (x, y) = x
-	    fun fk { cconv = F.CC_FCT, ... } = "2" $ []
-	      | fk { isrec, cconv = F.CC_FUN fixed, known, inline } =
-		case fixed of
-		    LT.FF_VAR (b1, b2) =>
-			"3" $ [option (list lty) (Option.map strip isrec),
-			       bool b1, bool b2, bool known,
-			       bool (isAlways inline)]
-		  | LT.FF_FIXED =>
-			"4" $ [option (list lty) (Option.map strip isrec),
-			       bool known, bool (isAlways inline)]
-	in
-	    fk arg
-	end
-
-	and rkind arg = let
-	    val op $ = PU.$ RK
-	    fun rk (F.RK_VECTOR tc) = "5" $ [tyc tc]
-	      | rk F.RK_STRUCT = "6" $ []
-	      | rk (F.RK_TUPLE _) = "7" $ []
-	in
-	    rk arg
-	end
-    in
-	fundec flint_exp
-    end
-
-    fun pickleFLINT fo = let
-	val pickle =
-	    Byte.stringToBytes (PU.pickle emptyMap (option flint fo))
-	val hash = pickle2hash pickle
-    in
-	{ pickle = pickle, hash = hash }
-    end
-
-    fun symenvPickler sye =
-	list (pair (pid, flint)) (SymbolicEnv.listItemsi sye)
-
     (* the environment pickler *)
     fun envPickler registerLvar context = let
 	val { tycStub, sigStub, strStub, fctStub, envStub,
@@ -952,9 +697,11 @@ in
 		bug "uninstantiated VARty in pickmod"
 	      | ty (T.CONty (c, l)) = "a" $ [tycon c, list ty l]
 	      | ty (T.IBOUND i) = "b" $ [int i]
+(* we probably do not need to support pickling WILDCARDty *)
 	      | ty T.WILDCARDty = "c" $ []
 	      | ty (T.POLYty { sign, tyfun = T.TYFUN { arity, body } }) =
 		"d" $ [list bool sign, int arity, ty body]
+(* we probably do not need to support pickling UNDEFty *)
 	      | ty T.UNDEFty = "e" $ []
 	      | ty (T.MARKty(ty1, region1)) = ty ty1
 	      | ty _ = bug "unexpected type in pickmod-ty"
@@ -1235,7 +982,7 @@ in
 	end
     in
 	env
-    end
+    end (* envPickler *)
 
     fun pickleEnv context e = let
 	val lvlist = ref []
