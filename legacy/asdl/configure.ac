@@ -58,25 +58,25 @@ AC_PROG_MAKE_SET
 dnl enable C++ generator?
 dnl
 AC_ARG_ENABLE([c++],
-  [AC_HELP_STRING([--disable-c++], [enable support for C++ (default on)])],
+  [AS_HELP_STRING([--disable-c++], [enable support for C++ (default on)])],
   [ENABLE_CXX=yes],
   [ENABLE_CXX=no])
 
 dnl enable Swift generator?
 dnl
 AC_ARG_ENABLE([swift],
-  AC_HELP_STRING([--enable-swift], [enable support for Swift]),
+  AS_HELP_STRING([--enable-swift], [enable support for Swift]),
   [ENABLE_SWIFT=yes],
   [ENABLE_SWIFT=no])
 
 dnl check for a specified target size
 dnl
 AC_ARG_ENABLE([32-bit],
-  AC_HELP_STRING([--enable-32-bit], [build asdlGen for 32-bit hosts]),
+  AS_HELP_STRING([--enable-32-bit], [build asdlGen for 32-bit hosts]),
   [SIZE_32=yes],
   [SIZE_32=no])
 AC_ARG_ENABLE([64-bit],
-  AC_HELP_STRING([--enable-64-bit], [build asdlGen for 64-bit hosts]),
+  AS_HELP_STRING([--enable-64-bit], [build asdlGen for 64-bit hosts]),
   [SIZE_64=yes],
   [SIZE_64=no])
 
@@ -150,7 +150,7 @@ if test x"$with_mlton" = xno ; then
   dnl
   CHECK_SMLNJ([AC_MSG_ERROR([unable to find SML/NJ installation; please add it to your PATH or set SML_CMD])])
   if test $SMLNJ_MAJOR_VERSION -lt 110 \
-    -o $SMLNJ_MINOR_VERSION -lt 95
+    -o \( $SMLNJ_MAJOR_VERSION -eq 110 -a $SMLNJ_MINOR_VERSION -lt 95 \)
   then
     AC_MSG_ERROR([installation requires SML/NJ version 110.95+ (available from smlnj.org)])
   fi
