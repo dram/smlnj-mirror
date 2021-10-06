@@ -64,6 +64,7 @@ fun ppDec ({static,dynamic,...}: Environment.environment)
 
         val pps = PP.string ppstrm
 	fun sp () = PP.space ppstrm 1
+        fun nbSp () = PP.nbSpace ppstrm 1
 	(* trueValType: get the type of the bound variable from static,
 	   since the stamps in the absyn haven't been converted by the pickler *)
        fun trueValType path =
@@ -112,7 +113,7 @@ fun ppDec ({static,dynamic,...}: Environment.environment)
 				    val obj = xtract (objv, pos)
 				    in
 				      ppObj static ppstrm (obj, ty, !printDepth);
-				      sp (); pps ":"; sp();
+				      sp (); pps ":"; nbSp();
 				      ppType static ppstrm (
 					trueValType path handle OVERLOAD => ty)
 				    end
