@@ -1,36 +1,62 @@
 FLINT Types (FLINT/kernel)
 
-MAP
+MAP (./FLINT-types-modules-3.pdf)
 ---
 
-Lty (lty.{sig,sml})
+Lty : LTY (lty.{sig,sml})
 
-LtyKernel (ltykernel.{sig,sml})
-  includes Lty
+FunRecMeta (funrecmeta.sml)
 
-LtyDef (ltydef.{sig,sml})
+LtyKernel : LTYKERNEL (ltykernel.{sig,sml})
+  (opens Lty)
+
+LtyDef : LTYDEF (ltydef.{sig,sml})
   LT = Lty
   LK = LtyKernel (which includes Lty)
 
-LtyBasic (ltybasic.{sig,sml})
-  includes Lty
-  includes LtyDef
+LtyBasic : LTYBASIC (ltybasic.{sig,sml})
+  LT = Lty
   LK = LtyKernel
+  LD = LtyDef
 
-LtyExtern (ltyextern.{sig,sml})
-  includes LtyBasic (=> includes Lty and LtyDef)
+LtyExtern : LTYEXTERN (ltyextern.{sig,sml})
   LT = Lty
   LK = LtyKernel
 
-PLambdaType == LtyExtern
+(PLambdaType == LtyExtern) -- PLambdType has been eliminated
 
-Descriptions
-------------
+Revision 2021:10
 
-Lty:
-  Basic type structure, raw and hash consed (shared)
-  types:
-    tkind: type "kinds", characterizing tycons
+1. The inclusions between these modules have been removed, so that
+all the signatures are disjoint. LtyExtern used to be a cumulative
+collection of types and utility functions including Lty, LtyDef,
+and LtyBasic. Now they represent separate, disjoint layers of
+functionality.
+
+2. Also, the TC_TOKEN constructor for tycI that was an extension
+mechanism that was used exactly once, for adding a TC_WRAP constructor,
+has been eliminated and replaced by an ordinary TC_WRAP constructor.
+The unused TC_ABS constructor (and associated utility function tcc_wrap)
+have also been eliminated. It may be possible to also eliminate the
+TC_BOX constructor.
+
+3. The names of the injection and projection functions for the
+hash-consed types (tkind, tyc, lty) have been simplified. E.g.
+tc_injX becomes tc_inj, tc_outX becomes tc_out, etc.
+
+
+Module Descriptions
+-------------------
+
+* Lty: LTY
+  Basic type structure, raw and hash consed, various utility functions
+  - exported types:
+    aux_info: internal information in hash-consed tycs
+    tycEnv, teBinder: Nadathur type closure environments (lists of Lamb, Beta)
+    fflag: information relating to function "calling conventions"
+    enc_tvar: deBruijn-style type variables
+    tvar: named type variables (== LambdaVar.lvar)
+    tkind: type "kinds", characterizing tycons, hash-consed version of tkindI
     tkindI: raw ty
       TK_MONO -- monomorphic ground tycons (e.g. int63)
       TK_BOX -- "boxed" tycons
@@ -40,19 +66,62 @@ Lty:
          Is TK_BOX a subset of TK_MONO? Yes, and TK_MONO is a subset of TK_BOX!?
       -- TK_FUN taking a TK_SEQ vs TK_FUN taking multiple args?
 
-    tyc: type "constructors" (tycons)
-    tycI: raw form datatype (tyc is the hashconsed version of tycI)
+    tycI: raw form datatype (tyc is the hashconsed version of tycI) 
+    tyc: type "constructors" (tycons), the hash-consed version of tycI
 
-    lty: "types"
+    ltyI: raw form datatype 
+    lty: "(polymorphic) types", the hashconsed version of ltyI
       tyc "included" in lty (?)
       --What is in lty that isn't in tyc?
       --What is the fundamental distinction between tyc and lty, and why
         is it needed?
-    ltyI: raw form datatype (lty is the hashconsed version of ltyI)
 
+* LtyKernel: LTYKERNEL (better name might be "LtyReduce")
+  weak-head normal forms and normal forms for type expressions (tyc and lty)
 
+  - no new types exported
+  - equivalence funtions (4) for tkind, tyc, lty, and Lty.fflag
+  - utility functions (4) relating to deBruijn depth/indexes
+  - utility functions (2) for LC_ENV and LT_ENV types
+  - whnm (weak-head-normal) forms for tyc and lty
+  - normal forms for tyc and lty
+  - flattening and tupling functions on lty and tyc, respectively
+  - tcc_arrow (arrow (function) type construction with whnm reduction
+  - variants of tc_out and lt_out projections with whnm reduction
 
+* LtyDef: LTYDEF
+  utility functions for constructing, destructing, recognizing, case-switching
+   for fflat and hash-consed representations tkind, tyc, lty
+   - no new types exported
+   - continuation type utilities for CPS types
+   - "parrow", etc. utilities for "PLambda-style" types (as opposed to "FLINT-style"
+     types.
 
+* LtyBasic : LTYBASIC
+  utilities related to basic ML types and type constructs (int, unit, bool, etc.)
+  - one new type exported: ltyEnv with utilities (initLtyEnv, ltLookup, ltInsert)
+    used only in plambda/chkplexp.sml, flint/chkflint.sml, flint/chkflint-named.sml,
+      and plambda/flintnm.sml
+
+* LtyExtern : LTYEXTERN
+  final layer of additional utility functions
+  - no new types exported
+  - type instantiation
+  - substitution for named type variable (tvar)
+  - "adjustment" functions used during type specializations
+  - CPS only unility functions (lt_iscont, ltw_iscont)
+  - utilities that manipulate the FLINT function and record types
+  - update primop selection
+  - tkind to lty translation
+  - type wrapping translation generator (for Wrapping.wrapping)
+  - type narrowing translation generator (for Reify.reify)
+
+The partitioning of functionality between these modules could probably be
+improved. Some functionality needed to be moved between layers to avoid
+circular dependency (e.g wrap_is_whnm moved to Lty (replacing token_whnm)
+because it was used in both Lty and LtyKernel. Formerly there was a function
+reference kludge (through token_whnm) that made this function, defined in
+LtyKernel, available in Lty (where it is used in function tc_aux.
 
 
 ================================================================================

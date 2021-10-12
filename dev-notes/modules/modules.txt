@@ -1,0 +1,149 @@
+dev-notes/modules/modules.txt
+
+Description of the modules implementation
+
+1. Basic data structures
+2. Module elaboration
+3. Pickling, sharing, cutoff recompilation (modIds, pickling, stubs)
+
+1. Basic Data Structures
+
+files: ElabData/modules/
+         modules.{sig,sml}
+         moduleutil.{sig,sml}
+         entpath.sml
+         entityenv.{sig,sml}
+         ppmod.sml
+
+1.1. Introduction
+
+A module representation (structure or functor) is factored into a signature
+and a "realization" (abbreviated "rlzn"), which is an "entity".
+
+NOTE on terminology: the word "entity" is unfortunately too generic and carries
+no meaning or connotation that would suggest what it is about. The word "realization"
+is better -- maybe "realization" could replace "entity" in the terminology and
+discussion. It is essentially the (static, but) volatile portion of the static
+description that is created by processes like signature matching and functor
+application.  The term "static" is used to describe information that is developed
+during elaboration, as opposed to dynamic state of exection.
+
+1.2. Signatures
+
+-------------------- 
+datatype Signature
+  = SIG of sigrec
+  | ERRORsig
+
+and fctSig
+  = FSIG of {kind     : S.symbol option,
+	     paramsig : Signature,
+	     paramvar : EP.entVar,
+	     paramsym : S.symbol option,
+	     bodysig  : Signature}
+  | ERRORfsig
+
+... withtype ...
+
+and elements = (S.symbol * spec) list
+
+and sigrec =
+    {stamp      : ST.stamp,
+     name       : S.symbol option,
+     closed     : bool,
+     fctflag    : bool,
+     elements   : elements,
+     properties : PropList.holder, (* FLINT/trans *)
+     typsharing : sharespec list,
+     strsharing : sharespec list,
+     stub       : stubinfo option}  (* for sharing in pickles *)
+
+...
+withtype stubinfo =
+    {owner : PersStamps.persstamp,
+     lib   : bool,
+     tree  : modtree}  (* note 5 *)
+...
+
+and modtree  (* only produced by unpickle, then used to build ModuleId.tmap *)
+  = TYCNODE of Types.gtrec
+  | SIGNODE of sigrec
+  | STRNODE of strrec
+  | FCTNODE of fctrec
+  | ENVNODE of envrec
+  | BRANCH of modtree list
+...  
+
+ and spec
+  = TYCspec of {entVar : EP.entVar, info: tycSpecInfo}
+  | STRspec of {entVar : EP.entVar, sign : Signature,
+		def : (strDef * int) option, slot : int}
+  | FCTspec of {entVar : EP.entVar, sign : fctSig, slot : int}
+  | VALspec of {spec : T.ty, slot : int}
+  | CONspec of {spec : T.datacon, slot : int option}
+
+and tycSpecInfo
+  = RegTycSpec of {spec : T.tycon, repl: bool, scope: int} (* normal signature *)
+  | InfTycSpec of {name: S.symbol, arity: int} (* inferred signature *)
+--------------------
+
+Notes
+1. spec for RegTycSpec should be GENtyc, with FORMAL or DATATYPE tyckinds,
+   or DEFtyc.
+
+2. the stamp and the path for the GENtyc or DEFtyc should be meaningless
+   (but the stamps are in fact used for relativization of withtype bodies and
+   the datacon domains of datatype repl specs)
+
+3. if VALspec and CONspec are using typspec instead of T.ty, then
+   the whole thing can be further cleaned up (???).
+
+4. there are two forms of TYCspec. One for regular, explicitly defined signatures,
+   and the other for inferred signatures, where all the type info is always in the
+   realization. But we need some info for printing in the one case where a
+   realization is not available with the signature, namely an inferred result
+   signature for a functor.
+
+5. modtree: modtrees (TYCNODE, etc.) are produced by the unpickler
+   as a wrapper around the corresponding static env structure (e.g. for TYCNODE
+   this would be Types.gtrec). These modtrees are eliminated by translating
+   them into ModId tmap entries in the function:
+   
+     GenModIdMap.mkMap : StaticEnv.staticEnv -> ModuleId.tmap
+
+   [ElabData/statenv/genmap.sml]. GenModIdMap.mkMap is called in
+   the function pickUnpick defined in the structure CC passed as one of the
+   parameters of CompileF in the body of the functor BackendFn
+   [TopLevel/backend/backend-fn.sml]. Matthias's comment in genmap.sml is:
+
+     Rapid modmap generation based on modtrees.
+        (Modtrees are embedded into static environments during unpickling.
+         This module cannot deal with environments that did not come out
+         of the unpickler.)
+ 
+
+-------------------- 
+
+--------------------
+
+
+
+2. Module Elaboration
+       
+files: ElabData/modules/
+         epcontext.sml
+
+       Elaborator/modules/
+         evalent.sml
+         instantiate.sml
+         sigmatch.{sig,sml}
+
+       Elaborator/elaborate/
+         elabmod.sml
+         include.sml
+
+3. Pickling, sharing, cutoff recompilation
+
+files: ElabData/modules/
+       moduleid.sml
+       epcontext.sml
