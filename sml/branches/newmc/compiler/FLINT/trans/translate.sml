@@ -9,7 +9,7 @@ sig
 
   (* Invariant: transDec always applies to a top-level absyn declaration *)
   val transDec : { rootdec: Absyn.dec,
-		   exportLvars: Access.lvar list,
+		   exportLvars: LambdaVar.lvar list,
                    oldenv: StaticEnv.staticEnv,
                    env: StaticEnv.staticEnv,
 		   cproto_conv: string,
@@ -23,35 +23,39 @@ end (* signature TRANSLATE *)
 structure Translate : TRANSLATE =
 struct
 
-local structure B  = Bindings
-      structure BT = BasicTypes
-      structure DA = Access
-      structure DI = DebIndex
-      structure EM = ErrorMsg
-      structure LV = LambdaVar
-      structure V  = VarCon
-      structure AS = Absyn
-      structure AU = AbsynUtil
-      structure PL = PLambda
-      structure LT = PLambdaType   (* = LtyExtern *)
-      structure M  = Modules
-      structure MC = MatchComp
-      structure PO = Primop
-      structure PP = PrettyPrint
-      structure PU = PPUtil
-      structure S  = Symbol
-      structure SP = SymPath
-      structure LN = LiteralToNum
-      structure TT = TransTypes
-      structure T = Types
-      structure TU = TypesUtil
-      structure EU = ElabUtil
-      structure Tgt = Target
+local
+  structure B  = Bindings
+  structure BT = BasicTypes
+  structure DA = Access
+  structure DI = DebIndex
+  structure EM = ErrorMsg
+  structure LV = LambdaVar
+  structure V  = VarCon
+  structure AS = Absyn
+  structure AU = AbsynUtil
+  structure PL = PLambda
+  structure LT = Lty
+  structure LD = LtyDef
+  structure LB = LtyBasic
+  structure LE = LtyExtern  (* == PLambdaType *)
+  structure M  = Modules
+  structure MC = MatchComp
+  structure PO = Primop
+  structure PP = PrettyPrint
+  structure PU = PPUtil
+  structure S  = Symbol
+  structure SP = SymPath
+  structure LN = LiteralToNum
+  structure TT = TransTypes
+  structure T = Types
+  structure TU = TypesUtil
+  structure EU = ElabUtil
+  structure Tgt = Target
 
-      structure IIMap = RedBlackMapFn (type ord_key = IntInf.int
-				       val compare = IntInf.compare)
+  structure IIMap = RedBlackMapFn (type ord_key = IntInf.int
+				   val compare = IntInf.compare)
 
-      open Absyn PLambda TransUtil
+  open Absyn PLambda TransUtil
 in
 
 (****************************************************************************
@@ -63,9 +67,14 @@ fun bug msg = EM.impossible("Translate: " ^ msg)
 fun warn msg = EM.warn("Translate: " ^ msg)
 
 val say = Control.Print.say
+fun says strs = say (concat strs)
 fun newline () = say "\n"
-fun debugmsg (msg : string) =
-    if !debugging then (say msg; say "\n") else ()
+fun saynl str = (say str; newline())
+fun saysnl strs = saynl (concat strs)
+fun dbsaynl (msg : string) =
+    if !debugging then saynl msg else ()
+fun dbsaysnl (msgs : string list) =
+    if !debugging then saysnl msgs else ()
 
 val ppDepth = Control.FLINT.printDepth
 
@@ -159,8 +168,8 @@ fun selectTyArgs (pattvs, vartvs) =
 	fun lookup (tv: Types.tyvar, nil) = NONE
 	  | lookup (tv, (tv',k)::r) = if tv = tv' then SOME k else lookup (tv,r)
 	val targs = map (fn tv => case lookup (tv, tvToIndex)
-				   of NONE => LT.tcc_void
-				    | SOME k => LT.tcc_var(1,k))
+				   of NONE => LB.tcc_void
+				    | SOME k => LD.tcc_var(1,k))
 			pattvs
     in targs
     end
@@ -207,7 +216,7 @@ fun toDconLty d ty =
 fun CON' ((_, DA.REF, lt), ts, e) = APP (PRIM (PO.MAKEREF, lt, ts), e)
   | CON' ((_, DA.SUSP (SOME(DA.LVAR d, _)), lt), ts, e) =
       let val v   = mkv ()
-          val fe = FN (v, LT.ltc_tuple [], e)
+          val fe = FN (v, LD.ltc_tuple [], e)
        in APP(TAPP (VAR d, ts), fe)
       end
   | CON' x = CON x
@@ -224,8 +233,8 @@ fun patToConsig (APPpat(dcon,_,_)) = TU.dataconSign dcon
 local
   val region = ref(0,0)
   val markexn = PRIM(PO.MARKEXN,
-		  LT.ltc_parrow(LT.ltc_tuple [LT.ltc_exn, LT.ltc_string],
-				LT.ltc_exn), [])
+		  LD.ltc_parrow(LD.ltc_tuple [LB.ltc_exn, LB.ltc_string],
+				LB.ltc_exn), [])
 in
 
 fun withRegion loc f x =
@@ -266,12 +275,12 @@ end (* markexn-local *)
 exception DEP_LVAR_TABLE
 type key = int  (* hash of an accesspath : int list *)
 type accesspath = int list
-type depLvar = (key * accesspath * lvar)
+type depLvar = (key * accesspath * LV.lvar)
 (* "Dependent lvars and their accesspaths off the base lvar mapping to the depLvar,
  * where the key is the hash of the accesspath *)
 
 (** dependentLvarsTable: lvar --> depLvar list 
-    or lvar -> (<hashkey(accesspath)> (= int) * accesspath (= int list) * lvar) list *)
+    or lvar -> (<hashkey(accesspath)>: int * <accesspath> : int list * lvar) list *)
 val dependentLvarsTable : depLvar list LambdaVar.Tbl.hash_table =
     LambdaVar.Tbl.mkTable (32, DEP_LVAR_TABLE)
 
@@ -292,29 +301,16 @@ fun buildHeader baseLvar =
    in foldr wrapHeader ident depLvars   (* ident = TransUtil.ident = identity fn *)
   end handle DEP_LVAR_TABLE => ident   (* if lvar not in dependentLvarsTable? *)
 
-(* bindvar : lvar * accesspath * symbol option -> lvar *)
-(* returns an dependent lvar to be bound to lvar via accesspath selection, and
- * if it is new, registers it in dependentLvarsTable *)
-fun bindvar (lvar, [], _) = lvar  (* no access path, hence no new dependent lvar *)
-  | bindvar (baseLvar, accesspath, nameOp) =
-      let val depLvars = LambdaVar.Tbl.lookup dependentLvarsTable baseLvar
-	  	         handle DEP_LVAR_TABLE => []
-          val key = hashkey accesspath  (* hash of accesspath *)
-          fun look [] =
-                let val dependentLvar = mkvN nameOp
-                in LambdaVar.Tbl.insert dependentLvarsTable
-		     (baseLvar, (key, accesspath, dependentLvar) :: depLvars);
-		   dependentLvar
-                end
-            | look ((key', accesspath', dependentLvar) :: rest) =
-                if (key' = key) andalso (accesspath' = accesspath)
-	        then dependentLvar
-	        else look rest
-       in look depLvars
-      end
+fun apToString (accesspath: int list) =
+    PrintUtil.listToString ("(", ",", ")") Int.toString accesspath
+
+fun nameOpToString (symbolOp: S.symbol option) : string =
+    case symbolOp
+      of NONE => ""
+       | SOME s => S.name s
 
 datatype pidInfo = ANON of (int * pidInfo) list
-                 | NAMED of lvar * lty * (int * pidInfo) list
+                 | NAMED of LV.lvar * LT.lty * (int * pidInfo) list
 
 (* mkPidInfo : lty * int list * symbol option -> pidInfo * lvar *)
 fun mkPidInfo (lty, l, nameOp) =
@@ -374,7 +370,7 @@ fun mkPid (pid, lty, l, nameOp) =
 	      var
 	  end
 
-val iimap = ref (IIMap.empty : lvar IIMap.map)
+val iimap = ref (IIMap.empty : LV.lvar IIMap.map)
 
 (* getII : IntInf.int -> lvar *)
 (* uses iimap to map IntInf.int to lvars, creating new mappings is necessary *)
@@ -387,40 +383,66 @@ fun getII n =
 	     lvar
 	 end
 
-(* transAccessTyped : A.access * lty * S.symbol option -> lvar *)
-(* translating an access with type into a VAR lexp, which is registered
+(* accessLvar : lvar * accesspath * symbol option -> lvar *)
+(* returns an dependent lvar to be bound to lvar via accesspath selection, and
+ * if it is new, registers it in dependentLvarsTable.
+ * Called only (once) in transAccess.
+ * ASSERT: not (null accesspath) *)
+fun accessLvar (baseLvar, accesspath, nameOp) =
+      let val _ = dbsaysnl [">>> accessLvar ", LV.toString baseLvar, apToString accesspath, nameOpToString nameOp]
+	  val depLvars = LambdaVar.Tbl.lookup dependentLvarsTable baseLvar
+	  	         handle DEP_LVAR_TABLE => []
+          val key = hashkey accesspath  (* hash of accesspath *)
+          fun look [] =
+                let val dependentLvar = mkvN nameOp  (* add new dependent lvar *)
+                in LambdaVar.Tbl.insert dependentLvarsTable
+		     (baseLvar, (key, accesspath, dependentLvar) :: depLvars);
+		   dbsaysnl ["### accessLvar[new]: ", LV.toString dependentLvar];
+		   dependentLvar
+                end
+            | look ((key', accesspath', dependentLvar) :: rest) =
+                if (key' = key) andalso (accesspath' = accesspath)
+	        then (dbsaysnl ["### accessLvar[old]", LV.toString dependentLvar];
+		      dependentLvar)
+	        else look rest
+       in look depLvars
+      end
+
+(* transAccess : A.access * lty * S.symbol option -> lvar *)
+(* translating an access with type into an lvar, which is registered
  * in dependentLvarsTable if local (rooted at LVAR), or in persmap if external,
  * (rooted at EXTERN). This returns an lvar rather than a VAR because it
  * is used for both variables (including var, str, fct) and constructors. *)
-fun transAccessTyped (access, lty, nameOp) =
-  let fun register (DA.LVAR lvar, accesspath) = bindvar (lvar, accesspath, nameOp)
-        | register (DA.EXTERN pid, accesspath) = mkPid (pid, lty, accesspath, nameOp)
-        | register (DA.PATH(a,i), accesspath) = register (a, i::accesspath)
-        | register _ = bug "unexpected access in transAccessTyped"
-   in register (access, [])
+fun transAccess (access, lty, nameOp) =
+  let fun unwrapAccess (DA.PATH(a,i), accesspath) = unwrapAccess (a, i::accesspath)
+        | unwrapAccess (DA.LVAR lvar, nil) = lvar
+        | unwrapAccess (DA.LVAR lvar, accesspath) = accessLvar (lvar, accesspath, nameOp)
+        | unwrapAccess (DA.EXTERN pid, accesspath) = mkPid (pid, lty, accesspath, nameOp)
+        | unwrapAccess _ = bug "transAccess: bad access"
+   in unwrapAccess (access, [])
   end
-
-(* transAccessLocal : A.access * S.symbol option -> lexp *)
+(*
+(* transAccessLocal : A.access * S.symbol option -> lvar *)
 (* translating a "local" (LVAR or PATH rooted at an LVAR) access into a
  * VAR lexp, and registering it in dependentLvarsTable if accesspath is not null. *)
 fun transAccessLocal (access, nameOp) =
-  let fun register (DA.LVAR lvar, accesspath) = bindvar(lvar, accesspath, nameOp)
-        | register (DA.PATH(a,i), accesspath) = register (a, i::accesspath)
-        | register _ = bug "unexpected access in transAccess"
-   in VAR (register (access, []))
+  let fun register (DA.PATH(a,i), accesspath) = register (a, i::accesspath)
+        | register (DA.LVAR lvar, accesspath) = accessLvar(lvar, accesspath, nameOp)
+        | register _ = bug "transAccessLocal: bad access"
+   in register (access, [])
   end
 
-(* transAccess: DA.access * lty * S.symbol option -> lexp *)
+(* transAccess: DA.access * lty * S.symbol option -> lvar *)
 (* translating an access into a VAR lexp, using transAccessTyped if
  * the access is external, or transAccessLocal if it is local *)
 fun transAccess (access, lty, nameOp) =
     if extern access    (* TransUtil.extern, check if access is EXTERN-based *)
-    then VAR (transAccessTyped (access, lty, nameOp))
+    then transAccessTyped (access, lty, nameOp)
     else transAccessLocal (access, nameOp)
-
+*)
 (*
- * These two functions are major gross hacks. The NoCore exceptions would
- * be raised when compiling boot/dummy.sml, boot/assembly.sig, and
+ * These two functions (coreExn, coreAcc) are major gross hacks. The NoCore exception
+ * would be raised when compiling boot/dummy.sml, boot/assembly.sig, and
  * boot/core.sml; the assumption is that the result of coreExn and coreAcc
  * would never be used when compiling these three files. A good way to
  * clean up this is to put all the core constructors and primitives into
@@ -441,7 +463,7 @@ fun coreExn ids =
       of T.DATACON { name, rep as DA.EXN _, typ, ... } =>
 	   let val lty = toDconLty DI.top typ
 	       val newrep = mkRep(rep, lty, name)
-	       val _ = debugmsg ">>coreExn in translate.sml: "
+	       val _ = dbsaynl ">>coreExn in translate.sml: "
               (* val _ = PPLexp.printLexp (CON'((name, nrep, nt), [], unitLexp))
 	         val _ = print "\n" *)
             in SOME (CON'((name, newrep, lty), [], unitLexp))
@@ -452,11 +474,11 @@ fun coreExn ids =
 
 (* coreAcc : symbol -> lexp *)
 (* Accessing variables via the Core structure, and localizing access via
- * transAccessTyped. *)
+ * transAccess. *)
 and coreAcc id =
     (case CoreAccess.getVar' (fn () => raise NoCore) oldenv [id]
        of V.VALvar { access, typ, path, ... } =>
-	    VAR (transAccessTyped (access, toLty DI.top (!typ), getNameOp path))
+	    VAR (transAccess (access, toLty DI.top (!typ), getNameOp path))
         | _ => bug "coreAcc in translate"
     (* end case *))
     handle NoCore =>
@@ -468,11 +490,9 @@ and coreAcc id =
 and mkRep (rep, lty, name) =
     (case rep
        of (DA.EXN access) =>
-          let (* val _ = print (concat ["mkRep:EXN:", " ", S.name name,
-				     " ", DA.prAcc access, "\n"]) *)
-		 val (argt, _) = LT.ltd_parrow lty
-		 val lvar = transAccessTyped (access, LT.ltc_etag argt, SOME name)
-              in DA.EXN (DA.LVAR lvar)
+             let (* val _ = saysnl ["mkRep:EXN: ", S.name name, " ", DA.prAcc access] *)
+		 val (argt, _) = LD.ltd_parrow lty
+              in DA.EXN (DA.LVAR (transAccess (access, LB.ltc_etag argt, SOME name)))
              end
         | (DA.SUSP NONE) =>  (* a hack to support "delay-force" primitives *)
              (case (coreAcc "delay", coreAcc "force")
@@ -518,7 +538,7 @@ val eqGen = PEqual.equal (eqDict, env)
 
 val boolsign = BT.boolsign
 val (trueDcon', falseDcon') =
-  let val lt = LT.ltc_parrow(LT.ltc_unit, LT.ltc_bool)
+  let val lt = LD.ltc_parrow(LB.ltc_unit, LB.ltc_bool)
       fun h (T.DATACON{name,rep,typ,...}) = (name, rep, lt)
    in (h BT.trueDcon, h BT.falseDcon)
   end
@@ -532,12 +552,12 @@ fun COND(a,b,c) =
 
 fun composeNOT (eq, t) =
   let val v = mkv()
-      val argt = LT.ltc_tuple [t, t]
+      val argt = LD.ltc_tuple [t, t]
    in FN(v, argt, COND(APP(eq, VAR v), falseLexp, trueLexp))
   end
 
-val lt_unit = LT.ltc_unit
-val lt_u_u = LT.ltc_parrow (lt_unit, lt_unit)
+val lt_unit = LB.ltc_unit
+val lt_u_u = LD.ltc_parrow (lt_unit, lt_unit)
 
 (* translation of prim ops *)
 val transPrim =
@@ -599,7 +619,7 @@ fun genintinfswitch (subject: lexp, cases, default) =
  ***************************************************************************)
 (* [KM???] mkVar is calling transAccess, which just drops the prim!!! *)
 fun mkVar (V.VALvar{access, typ, path, ...}, d) =
-      transAccess(access, toLty d (!typ), getNameOp path)
+      VAR (transAccess(access, toLty d (!typ), getNameOp path))
   | mkVar _ = bug "unexpected vars in mkVar"
 
 (* mkVE : V.var * T.ty list * depth -> lexp
@@ -612,7 +632,7 @@ fun mkVE (e as V.VALvar { typ, prim = PrimopId.Prim p, ... }, tys, d) =
               (* compute the occurrence type of the variable *)
           val primop = PrimopBind.defnOf p
           val intrinsicType = PrimopBind.typeOf p
-	  val _ = debugmsg ">>mkVE: before matchInstTypes"
+	  val _ = dbsaynl ">>mkVE: before matchInstTypes"
 	  val intrinsicParams =
               (* compute intrinsic instantiation params of intrinsicType *)
               case (TU.matchInstTypes(true, d, occurenceTy, intrinsicType)
@@ -653,7 +673,7 @@ fun mkVE (e as V.VALvar { typ, prim = PrimopId.Prim p, ... }, tys, d) =
                            PPType.ppType env ppstrm
                              (#1 (TU.instantiatePoly intrinsicType))));
                     bug "mkVE -- NONE")))
-	  val _ = debugmsg "<<mkVE: after matchInstTypes"
+	  val _ = dbsaynl "<<mkVE: after matchInstTypes"
        in case (primop, intrinsicParams)
             of (PO.POLYEQL, [t]) => eqGen(intrinsicType, t, toTcLt d)
              | (PO.POLYNEQ, [t]) =>
@@ -670,19 +690,23 @@ fun mkVE (e as V.VALvar { typ, prim = PrimopId.Prim p, ... }, tys, d) =
 		    transPrim(primop, (toLty d intrinsicType),
                               map (toTyc d) intrinsicParams)
       end
-  | mkVE (var as V.VALvar{typ, prim = PrimopId.NonPrim, path, ...}, tys, d) =
+  | mkVE (var as V.VALvar{typ, prim = PrimopId.NonPrim, path, access, ...}, tys, d) =
     (* non primop variable *)
       (if !debugging
-       then (print "### mkVE nonprimop\n";
-             print (SymPath.toString path); print "\n";
-             ppType "mkVE1: " (!typ);
-             print "|tys| = "; print (Int.toString(length tys)); print "\n";
-             app (ppType "mkVE2: ") tys; print "\n")
+       then (say "### mkVE nonprimop: ";
+             saynl (SymPath.toString path);
+	     say "   access = "; saynl (DA.prAcc access);
+             ppType "  typ: " (!typ); newline();
+             saysnl ["  |tys| = ", Int.toString(length tys)];
+             say "   tys = ";
+	     app (ppType "   tys = ") tys; newline())
        else ();
        case tys
-        of [] => (if !debugging then print "mkVE3\n" else (); mkVar (var, d))
-          | _ => TAPP(mkVar(var, d), map (toTyc d) tys))
-                 (* dbm: when does this second case occur? *)
+        of [] => (dbsaysnl ["### mkVE[no poly]: ", V.toString var, " ", DA.prAcc(V.varAccess var)];
+		  mkVar (var, d))
+         | _ => (dbsaysnl ["### mkVE[poly]: ", V.toString var, " ", DA.prAcc(V.varAccess var)];
+		 TAPP(mkVar(var, d), map (toTyc d) tys)))
+                 (* dbm: when does this second case occur? (e.g. mctests/mlr/t5.sml) *)
   | mkVE _ = bug "non VALvar passed to mkVE"
 
 (* mkCE : T.datacon * T.tyvar list * lexp option * DB.depth -> lexp *)
@@ -698,18 +722,18 @@ fun mkCE (T.DATACON{const, rep, name, typ, ...}, tyvars, argOp, d) =
       else (case argOp
              of SOME le => CON'(dataconstr, tycs, le)
               | NONE =>
-                 let val (argLty, _) = LT.ltd_parrow(LT.lt_pinst(lty, tycs))
+                 let val (argLty, _) = LD.ltd_parrow(LE.lt_pinst(lty, tycs))
                      val paramLvar = mkv()
                   in FN(paramLvar, argLty, CON'(dataconstr, tycs, VAR paramLvar))
                  end)
   end
 
 fun mkStr (s as M.STR { access, prim, ... }, d) =
-      transAccess(access, strLty(s, d, compInfo), NONE)
+      VAR(transAccess(access, strLty(s, d, compInfo), NONE))
   | mkStr _ = bug "unexpected structures in mkStr"
 
 fun mkFct (f as M.FCT { access, prim, ... }, d) =
-      transAccess(access, fctLty(f, d, compInfo), NONE)
+      PL.VAR(transAccess(access, fctLty(f, d, compInfo), NONE))
   | mkFct _ = bug "unexpected functors in mkFct"
 
 fun mkBnd d =
@@ -718,8 +742,8 @@ fun mkBnd d =
         | transBind (B.FCTbind f) = mkFct(f, d)
         | transBind (B.CONbind (T.DATACON {rep=(DA.EXN access), name, typ, ...})) =
           let val nt = toDconLty d typ
-              val (argt,_) = LT.ltd_parrow nt
-          in VAR (transAccessTyped (access, LT.ltc_etag argt, SOME name))
+              val (argt,_) = LD.ltd_parrow nt
+          in VAR (transAccess (access, LB.ltc_etag argt, SOME name))
           end
         | transBind _ = bug "unexpected bindings in transBind"
    in transBind
@@ -732,11 +756,11 @@ fun mkBnd d =
  *                                                                            *
  *    val transVBs  : Absyn.vb list * depth -> PLambda.lexp -> PLambda.lexp   *
  *    val transRVBs : Absyn.rvb list * depth -> PLambda.lexp -> PLambda.lexp  *
- *    val mkEBs  : Absyn.eb list * depth -> PLambda.lexp -> PLambda.lexp      *
+ *    val transEBs  : Absyn.eb list * depth -> PLambda.lexp -> PLambda.lexp      *
  *                                                                            *
  * transVBs(vbs,d) produces a function taking a "body" or "scope" lexp.       *
- * Top-level variable binding have special handling specified at the end      *
- * of the main translate function, transDec.                                  *
+ * Top-level variable bindings are handled as specified at the end of         *
+ * the main translate function, transDec.                                  *
  ******************************************************************************)
 
 (* setBoundTyvars : depth * Types.tyvar list * (unit -> 'a) -> 'a *)
@@ -778,7 +802,7 @@ fun transPolyExp (exp, TFNdepth, []) = mkExp(exp, TFNdepth)
     (* exp is not polymorphic, hence no type abstraction around exp and TFNdepth
      * is not incremented *)
   | transPolyExp (exp, TFNdepth, boundtvs) =
-    (* The LBOUND equality property probably does not matter at this point
+    (* The LBOUND equality property should not matter at this point
      * because typechecking and signature matching are already completed [GK 2/24/08]. *)
       let val TFNdepth' = TFNdepth + 1  (* TFNdepth incremented for translation of exp *)
 	  val bodyLexp = setBoundTyvars (TFNdepth, boundtvs, (fn () => mkExp (exp, TFNdepth')))
@@ -801,12 +825,13 @@ and transVBs (vbs, d) =
 			   (case bvar
 			      of V.VALvar{access=DA.LVAR lvar, btvs, ...} => (lvar, !btvs)
 			       | _ =>  bug "mkVB 1")
-		    in LET(bvarLvar, transPolyExp(exp, d, bvarBtvs), body)
+		    in LET(bvarLvar, transPolyExp(exp, d, boundtvs), body)
 		   end
 		 | _ => (ppPat pat; bug "transVB -- unexpected compound or wild pat"))
-		   (* can't happen -- after match compilation, all VBs bind a simple variable, or wildcard *)
+		   (* can't happen -- after match compilation, all VBs bind a simple
+		    * variable, or a wildcard (?) *)
 	  end (* fun transVB *)
-   in fold transVB vbs
+   in foldr' transVB vbs
       (* missing fold(r) argument is the _body_; the return type is lexp -> lexp *)
   end (* transVBs *)
 
@@ -847,7 +872,7 @@ and transVBs (vbs, d) =
 *)
 and transRVBs (nil, _) = bug "transRVBs - no rbv"
   | transRVBs ([RVB{var as V.VALvar{access=DA.LVAR defLvar, typ, btvs,...}, exp,...}], d) =
-    (* single function defn, binding defLvar *)
+    (* single function defn, binding defLvar, no FIX needed if not recursive (occurs = false) *)
     let val ([newDefLvar], occurs) = aconvertLvars ([var], [exp])
      in if occurs
 	then (* recursive case -- produce FIX *)
@@ -871,19 +896,13 @@ and transRVBs (nil, _) = bug "transRVBs - no rbv"
 		    if poly
 		    then TFN(LT.tkc_arg numBoundTvs, fixLexp)      (* <=== BUG! *)
 		    else fixLexp
-(*
-		val argLtycs = List.tabulate (numBoundTvs, (fn k => LT.tcc_var(1,k)))
-		val defn = VAR fixLvar
-		    case boundTvs
-		      of nil => VAR fixLvar
-		       | _ => TFN (LT.tkc_arg numBoundTvs, TAPP(VAR fixLvar, argLtycs))
-*)
 	     in (fn body => LET (defLvar, rvbLexp, body))
 	    end
         else (* non-recursive case -- translate as though it were a VALdec *)
 	    (fn body => LET(defLvar, transPolyExp(exp, d, !btvs), body))
     end
   | transRVBs (rvbs, d) = (* general case with multiple recursive function definitions *)
+    (* depend on fact that btvs values have not been nilled-out by signature matching!!! *)
     let fun collect (RVB{var as V.VALvar{access=DA.LVAR lvar, typ, btvs, ...}, exp, ...}::rest,
 		     vars, lvars, typs, btvss, exps) =
 	      collect (rest, var::vars, lvar::lvars, !typ::typs, !btvs::btvss, exp::exps)
@@ -891,11 +910,13 @@ and transRVBs (nil, _) = bug "transRVBs - no rbv"
 	      (rev vars, rev lvars, rev typs, rev btvss, rev exps)
 	  | collect _ = bug "transRVB:collect -- bad RVB"
         val (vars, lvars, typs, btvss, exps) = collect (rvbs, nil, nil, nil, nil, nil)
+	val _ = dbsaysnl ["transRVBs:oldlvars = ", PrintUtil.listToString ("(", ",", ")") LV.toString lvars]
 	val (newLvars, _) = aconvertLvars (vars, exps)  (* not checking rhs occurrences of vars *)
+	val _ = dbsaysnl ["transRVBs:newlvars = ", PrintUtil.listToString ("(", ",", ")") LV.toString newLvars]
         val boundTvs = foldr listUnion [] btvss         (* ordered "union" of btvs lists (duplicates merged) *)
 	val numBoundTvs = length boundTvs
-	val poly = numBoundTvs > 0
-	val voidTycArgs = List.tabulate (numBoundTvs, (fn _ => LT.tcc_void))
+	val isPoly = numBoundTvs > 0
+	val voidTycArgs = List.tabulate (numBoundTvs, (fn _ => LB.tcc_void))
 	val fnsLvar = mkv ()  (* fresh lvar to be bound to the tuple of val rec defined functions *)
 	val fntupleLexp = RECORD (map VAR newLvars)
 
@@ -904,23 +925,23 @@ and transRVBs (nil, _) = bug "transRVBs - no rbv"
 	    mkTyargs (btvs, boundTvs, T.UNDEFty,
 		      (fn (k,tv) => T.VARty(ref(T.LBOUND{depth=d, index=k, eq=TU.tyvarIsEq tv}))))
 				  
-        (* argLtcs : T.tyvar list -> LT.tyc list *)
+        (* argLtcs : T.tyvar list -> LD.tyc list *)
         fun argLtcs btvs =
-	    mkTyargs (boundTvs, btvs, LT.tcc_void, (fn (k,_) => LT.tcc_var(1,k)))
+	    mkTyargs (boundTvs, btvs, LB.tcc_void, (fn (k,_) => LD.tcc_var(1,k)))
 
 	val rvbLexp =
 	    let val lexps =
-		    if poly
+		    if isPoly
 		    then setBoundTyvars (d, boundTvs, (fn () => map (fn e => mkExp (e, d+1)) exps))
 		    else map (fn e => mkExp (e, d)) exps
-		      (* no polymorphism within FIX, so there should be no TFNs introduced *)
+		      (* no polymorphism _within_ FIX, so no TFN is introduced *)
 		val ltys = ListPair.map
 			     (fn (ty,btvs) =>
-				 toLty (if poly then d+1 else d)
+				 toLty (if isPoly then d+1 else d)
 				       (TU.applyPoly (ty, argTys btvs)))
 			     (typs, btvss)
 	        val fixLexp = FIX(newLvars, ltys, lexps, fntupleLexp)
-	     in if poly
+	     in if isPoly
 		then TFN (LT.tkc_arg numBoundTvs, fixLexp) 
 		else fixLexp
 	    end
@@ -937,22 +958,22 @@ and transRVBs (nil, _) = bug "transRVBs - no rbv"
      in (fn body => LET (fnsLvar, rvbLexp, buildDec (lvars, btvss, 0, body)))
     end
 
-and mkEBs (ebs, d) =
-  let fun g (EBgen {exn=T.DATACON{rep=DA.EXN(DA.LVAR v), typ, ...},
-                    ident, ...}, b) =
+and transEBs (ebs, d) =
+  let fun transExn (EBgen {exn=T.DATACON{rep=DA.EXN(DA.LVAR v), typ, name, ...}, ...}, b) =
               let val nt = toDconLty d typ
-                  val (argt, _) = LT.ltd_parrow nt
-               in LET(v, ETAG(mkExp(ident, d), argt), b)
+                  val (argt, _) = LD.ltd_parrow nt
+		  val lexp = STRING(Symbol.name name)
+               in LET(v, ETAG(lexp, argt), b)
               end
-        | g (EBdef {exn=T.DATACON{rep=DA.EXN(DA.LVAR v), typ, name, ...},
+        | transExn (EBdef {exn=T.DATACON{rep=DA.EXN(DA.LVAR v), typ, name, ...},
                     edef=T.DATACON{rep=DA.EXN(acc), ...}}, b) =
               let val nt = toDconLty d typ
-                  val (argt, _) = LT.ltd_parrow nt
-               in LET(v, VAR (transAccessTyped(acc, LT.ltc_etag argt, SOME name)), b)
+                  val (argt, _) = LD.ltd_parrow nt
+               in LET(v, VAR (transAccess(acc, LB.ltc_etag argt, SOME name)), b)
               end
-        | g _ = bug "unexpected exn bindings in mkEBs"
+        | transExn _ = bug "unexpected exn bindings in transEBs"
 
-   in fold g ebs
+   in foldr' transExn ebs
   end
 
 (* transVARSELdec : V.var * V.var * int -> lexp -> lexp *)
@@ -976,13 +997,13 @@ and transVARSELdec (pvar, ptupleVar, i) (body: lexp) =
 			    (case (ptupleVarBtvs, pvarBtvs)
 			      of (nil, _) => SELECT(i,VAR ptupleLvar)  (* => null pvarBtvs, so no polymorphism *)
 			       | (_, nil) => (* ptupleVarBtvs non-null, pvarBtvs null; dummy instantiate ptupleVar *)
-				 let val argTvs = List.tabulate (length ptupleVarBtvs, (fn _ => LT.tcc_void))
+				 let val argTvs = List.tabulate (length ptupleVarBtvs, (fn _ => LB.tcc_void))
 				  in SELECT (i, TAPP (VAR ptupleLvar, argTvs))
 				 end
 			       | _ => (* both ptupleVarBtvs and pvarBtvs non null *)
 				 let val pvarArity = length pvarBtvs
 				     val argTvs = mkTyargs (ptupleVarBtvs, pvarBtvs,
-							    LT.tcc_void, (fn (k,_) => LT.tcc_var(1,k)))
+							    LB.tcc_void, (fn (k,_) => LD.tcc_var(1,k)))
 				     val _ = if !debugging
 					     then (print (concat
 						     ["transVB: pvar = ", S.name(V.varName pvar),
@@ -1053,23 +1074,23 @@ and mkStrbs (sbs, d) =
                   end
 	      | _ => bug "mkStrbs: unexpected access")
         | transSTRB _ = bug "unexpected structure bindings in mkStrbs *"
-  in fold transSTRB sbs
+  in foldr' transSTRB sbs
   end
 *)
 
 and mkStrbs (sbs, d) =
-  let fun transSTRB (STRB {str, def, ... }, b) =
+  let fun transSTRB (STRB {str, def, ... }, body) =
 	  (case str
 	    of M.STR {access, ...} =>
 	       (case access
 		 of DA.LVAR v =>  (* binding of all v's components *)
                     let val hdr = buildHeader v
-                    in LET(v, mkStrexp(def, d), hdr b)
+                    in LET(v, mkStrexp(def, d), hdr body)
                     end
 		  | _ => bug "mkStrbs: unexpected access")
 	       | M.STRSIG _ => bug "mkStrbs: str=STRSIG"
 	       | M.ERRORstr => bug "mkStrbs: str=ERRORstr")
-  in fold transSTRB sbs
+  in foldr' transSTRB sbs
   end
 
 (* old version saved --
@@ -1086,7 +1107,7 @@ and mkStrbs (sbs, d) =
         | transSTRB (STRB{str=M.ERRORstr, ...}, b) =
 	    bug "mkStrbs: str=ERRORstr"
 (*        | transSTRB _ = bug "unexpected structure bindings in mkStrbs" *)
-  in fold transSTRB sbs
+  in foldr' transSTRB sbs
   end
 *)
       
@@ -1099,7 +1120,7 @@ and mkFctbs (fbs, d) =
 		end
 	      | _ => bug "mkFctbs: unexpected access")
         | transFCTB _ = bug "unexpected functor bindings in mkFctbs"
-  in fold transFCTB fbs
+  in foldr' transFCTB fbs
   end
 
 
@@ -1121,7 +1142,7 @@ and mkDec (dec, d) =
 	  ((* print "mkDec:ABSTYPEdec:body = ";
 	   ppDec body; *)
 	   mkDec0 body)
-        | mkDec0 (EXCEPTIONdec ebs) = mkEBs(ebs, d)
+        | mkDec0 (EXCEPTIONdec ebs) = transEBs(ebs, d)
         | mkDec0 (STRdec sbs) = mkStrbs(sbs, d)
         | mkDec0 (FCTdec fbs) = mkFctbs(fbs, d)
         | mkDec0 (LOCALdec(ld, vd)) = (mkDec0 ld) o (mkDec0 vd)
@@ -1133,10 +1154,9 @@ and mkDec (dec, d) =
         | mkDec0 (OPENdec xs) =
               let (* special hack to make the import tree simpler *)
                   fun mkos (_, s as M.STR { access, ... }) =
-                      if extern access then
-                          (transAccessTyped (access, strLty(s, d, compInfo), NONE);
-                          ())
-                      else ()
+			if extern access
+			then ignore (transAccess (access, strLty(s, d, compInfo), NONE))
+			else ()
                     | mkos _ = ()
                in app mkos xs; ident
               end
@@ -1223,7 +1243,7 @@ and mkExp (exp, d) =
 							       body=BT.-->(BT.unitTy, body)}})
 			| _ => if BT.isArrowType typ then tLty typ
 			       else tLty (BT.--> (BT.unitTy, typ)))
-	     in (name, rep, lty)
+	     in (name, mkRep (rep, lty, name), lty)
 	    end
 	 in case con
 	      of AS.DATAcon (datacon, tyvars) =>
@@ -1250,20 +1270,20 @@ and mkExp (exp, d) =
       and transSRULE (SRULE(con, dcvarOp, rhs)) = (conToCon (con, dcvarOp), mkExp0 rhs)
 
       and mkExp0 (VARexp (ref v, ts)) =
-            (debugmsg ">>mkExp VARexp";
+            (dbsaynl ">>mkExp VARexp";
 	     mkVE(v, map T.VARty ts, d))
         | mkExp0 (CONexp (dc, ts)) =
-	  (let val _ = debugmsg ">>mkExp CONexp: "
+	  (let val _ = dbsaynl ">>mkExp CONexp: "
 	       val c = mkCE(dc, ts, NONE, d)
 	       val _ = if !debugging then ppLexp c else ()
 	   in c end)
         | mkExp0 (APPexp (CONexp(dc, ts), e2)) =
-	  (let val _ = debugmsg ">>mkExp APPexp: "
+	  (let val _ = dbsaynl ">>mkExp APPexp: "
 	       val c = mkCE(dc, ts, SOME(mkExp0 e2), d)
 	       val _ = if !debugging then ppLexp c else ()
 	   in c end)
         | mkExp0 (NUMexp(src, {ival, ty})) = (
-	    debugmsg ">>mkExp NUMexp";
+	    dbsaynl ">>mkExp NUMexp";
 	    if TU.equalType (ty, BT.intTy) then INT{ival = ival, ty = Tgt.defaultIntSz}
 	    else if TU.equalType (ty, BT.int32Ty) then INT{ival = ival, ty = 32}
 	    else if TU.equalType (ty, BT.int64Ty) then INT{ival = ival, ty = 64}
@@ -1306,10 +1326,10 @@ and mkExp (exp, d) =
         | mkExp0 (VSELECTexp (exp, elemTy, index)) =
 	    let val tc = tTyc elemTy
 		val lt_sub =
-                    let val vecTyc = LT.ltc_vector (LT.ltc_tv 0)
-                    in LT.ltc_poly([LT.tkc_mono],
-				   [LT.ltc_parrow(LT.ltc_tuple [vecTyc, LT.ltc_int],
-						  LT.ltc_tv 0)])
+                    let val vecTyc = LB.ltc_vector (LB.ltc_tv 0)
+                    in LD.ltc_poly([LT.tkc_mono],
+				   [LD.ltc_parrow(LD.ltc_tuple [vecTyc, LB.ltc_int],
+						  LB.ltc_tv 0)])
                     end
 		val indexLexp = INT{ival = IntInf.fromInt index, ty = Target.defaultIntSz}
 	     in APP(PRIM(PO.SUBSCRIPTV, lt_sub, [tc]),
@@ -1388,7 +1408,7 @@ and mkExp (exp, d) =
 		 of DATAcon((_, DA.REF, lt), ts, lvar) =>
 		      (* ref pseudo-constructor, single, hence unique rule *)
 		      LET(lvar,
-			  APP (PRIM (Primop.DEREF, LT.lt_swap lt, ts), scrutineeLexp),
+			  APP (PRIM (Primop.DEREF, LE.lt_swap lt, ts), scrutineeLexp),
 			  lexp1)
 		  | DATAcon((_, DA.SUSP(SOME(_, DA.LVAR f)), lt), ts, lvar) =>
 		      (* susp pseudo-constructor, single, hence unique rule *)
@@ -1419,9 +1439,9 @@ and mkExp (exp, d) =
 				       raise exn)
 *)
 		val elemtyc = tTyc elemType
-		val lt_len = LT.ltc_poly([LT.tkc_mono],
-					 [LT.ltc_parrow(LT.ltc_tv 0, LT.ltc_int)])
-		val vectortyc = LT.tcc_vector elemtyc
+		val lt_len = LD.ltc_poly([LT.tkc_mono],
+					 [LD.ltc_parrow(LB.ltc_tv 0, LB.ltc_int)])
+		val vectortyc = LB.tcc_vector elemtyc
 	     in LET(lengthLvar,
 		    APP(PRIM(PO.LENGTH, lt_len, [vectortyc]), scrutineeLexp),
 		    SWITCH(VAR lengthLvar, DA.CNIL, map transSRULE srules, SOME(mkExp0 default)))
@@ -1545,7 +1565,7 @@ fun wrapPidInfo (body, pidinfos) =
                in foldr g be xl
               end
             val impvar = mkv()
-            val implty = LT.ltc_str lts
+            val implty = LD.ltc_str lts
             val nbody = mksel (VAR impvar, finfos, body)
          in FN(impvar, implty, nbody)
         end
@@ -1555,10 +1575,10 @@ fun wrapPidInfo (body, pidinfos) =
 (** the list of things being exported from the current compilation unit *)
 val exportLexp = SRECORD (map VAR exportLvars)
 
-val _ = debugmsg ">>mkDec"
+val _ = dbsaynl ">>mkDec"
 (** translating the ML absyn into the PLambda expression *)
 val body = mkDec (rootdec, DI.top) exportLexp
-val _ = debugmsg "<<mkDec"
+val _ = dbsaynl "<<mkDec"
 val _ = if CompInfo.anyErrors compInfo
 	then raise EM.Error
 	else ()
@@ -1591,13 +1611,16 @@ val _ = if !Control.FLINT.print
 	  else ()
 
 (** normalizing the plambda expression into FLINT *)
-val flint = let val _ = debugmsg ">>norm"
-		val _ = if !debugging
-			then complain EM.WARN ">>flintnm" EM.nullErrorBody
-			else ()
+val flint = let val _ = dbsaynl ">> FlintNM.norm"
 		val n = FlintNM.norm plexp
-		val _ = debugmsg "<<postnorm"
+		val _ = dbsaynl "<< FlintNM.norm"
 	    in n end
+
+val _ = if !Control.FLINT.print
+	then (say "\n[After FlintNM.norm ...]\n\n";
+	      PrintFlint.printFundec flint;
+	      say "\n")
+	else ()
 
 in {flint = flint, imports = imports}
 end (* function transDec *)

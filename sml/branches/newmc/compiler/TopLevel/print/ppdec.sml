@@ -225,7 +225,7 @@ fun ppDec ({static,dynamic,...}: Environment.environment)
 	    end
 	  | ppDataTyc _ = bug "unexpected case in ppDataTyc"
 
-	and ppEb(EBgen{exn=DATACON{name,...},etype,...}) =
+	and ppEb(EBgen{exn=DATACON{name,...},etype}) =
 	      (openHVBox ppstrm (PP.Rel 0);
 	       openHOVBox ppstrm (PP.Rel 2);
 	       PP.string ppstrm "exception ";

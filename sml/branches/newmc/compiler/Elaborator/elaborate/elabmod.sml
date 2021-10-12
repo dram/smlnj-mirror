@@ -65,9 +65,16 @@ in
 
 (* debugging *)
 val say = Control_Print.say
+fun says strs = say (concat strs)
+fun newline () = say "\n"
+fun saynl str = (say str; newline())
+fun saysnl strs = (says strs; newline())
+
 val debugging = ElabControl.emdebugging (* ref false; == Control.Elab.emdebugging *)
-fun debugmsg (msg: string) =
-      if !debugging then (say msg; say "\n") else ()
+fun dbsay msg = if !debugging then say msg else ()
+fun dbsaynl msg = if !debugging then saynl msg else ()
+
+val debugmsg = dbsaynl
 
 fun bug msg = ErrorMsg.impossible("ElabMod: "^msg)
 
@@ -505,9 +512,7 @@ fun extractSig (env, epContext, context,
       fun getDeclOrder(decl) =
 	  let fun procstrbs([]) = []
 		| procstrbs((A.STRB{name,...})::rest) = name::(procstrbs rest)
-	      fun procpat(A.VARpat(V.VALvar{path,...})) = [SymPath.first path]
-		| procpat(A.VARpat(_)) =
-		    bug "elabmod: extractSig -- Bad VARpat"
+	      fun procpat(A.VARpat var) = [V.varName var]
 		| procpat(A.RECORDpat{fields,...}) =
 		    foldl (fn ((_,pat), names) => (procpat pat)@names) []
 			  fields
@@ -519,7 +524,7 @@ fun extractSig (env, epContext, context,
 		| procpat(A.VECTORpat(pats,_)) =
 		    foldl (fn (pat,names) => (procpat pat)@names) [] pats
 		| procpat _ = []
-	      fun procvbs([]) = []
+	      fun procvbs [] = []
 		| procvbs((A.VB{pat,...})::rest) =
 		    (procpat pat)@(procvbs rest)
 	      fun proctycs([]) = []
@@ -572,6 +577,7 @@ fun extractSig (env, epContext, context,
 	       | A.MARKdec(dec,_) => getDeclOrder dec
 	       | A.FIXdec{ops,...} => ops
 	       | A.DOdec _ => []
+	       | A.VARSELdec (var, _, _) => [V.varName var]
 	       | _ => bug "extractSig: Unexpected dec"
 	  end
 
@@ -667,21 +673,24 @@ fun elabStr
       : A.dec * M.Structure * M.strExp * EE.entityEnv =
 let
 
-val sname =  case name of SOME n => S.name n
-                        | NONE => "<anonymous>"
+val sname : string =
+    (case name
+       of SOME n => S.name n
+        | NONE => "<anonymous>")
 
-val depth = (case context of EU.INFCT{depth=d,...} => d
-                           | _ => DI.top)
+val depth : int =
+    (case context
+       of EU.INFCT{depth=d,...} => d
+        | _ => DI.top)  (* = 0 *)
 
-val _ = debugmsg (">>>elabStr: " ^ sname)
-val _ = showStrExpAst ("--elabStr: strexp = ", strexp, env)
+val _ = dbsaynl (">>> elabStr: " ^ sname)
+val _ = showStrExpAst ("### elabStr: strexp = ", strexp, env)
 		   
-(* subsidiary function for elaborating strexps:
- * elab: Ast.strexp * staticEnv * entityEnv * region
+(* elab: Ast.strexp * staticEnv * entityEnv * region
  *        -> A.dec * M.Structure * M.strExp * EE.entityEnv
- *)
+ *  subsidiary function for elaborating strexps *)
 fun elab (BaseStr decl, env, entEnv, region) =
-      let val _ = debugmsg ">>elab[BaseStr]"
+      let val _ = dbsaynl ">>> elab[BaseStr]"
 
           (* we enter the epcontext when we get into BaseStr *)
           val epContext' = EPC.enterOpen(epContext,entsv)
@@ -728,6 +737,7 @@ fun elab (BaseStr decl, env, entEnv, region) =
 
           val _ = debugPrint("BaseStr after resStr  - symbols: ", ED.ppSymList,
                              ED.envSymbols env')
+          (* absyn *)
           val resDec =
             let val body = A.LETstr(absDecl, A.STRstr(locations))
              in A.STRdec [A.STRB {name=tempStrId, str=resStr, def=body}]
@@ -762,15 +772,10 @@ fun elab (BaseStr decl, env, entEnv, region) =
           val _ = showStr ("--elab[AppStr-one]: arg str: ", argStr, env)
 
        in case (fct,argStr)
-(*
-	    of ((M.ERRORfct, _) | (_, M.ERRORstr)) =>
-		(debugmsg "<<<elab[AppStr-one]: ERRORfct OR ERRORstr";
-		 (A.SEQdec[], M.ERRORstr, M.CONSTstr(M.bogusStrEntity), EE.empty))
-*)
 	    of (M.ERRORfct, _) =>
 		(debugmsg "<<<elab[AppStr-one]: error functor";
 		 (A.SEQdec[], M.ERRORstr, M.CONSTstr(M.bogusStrEntity), EE.empty))
-	    | (_, M.ERRORstr) =>
+	     | (_, M.ERRORstr) =>
 		(debugmsg "<<<elab[AppStr-one]: error arg structure";
 		 (A.SEQdec[], M.ERRORstr, M.CONSTstr(M.bogusStrEntity), EE.empty))
 	     | (M.FCT { rlzn = fctEnt, ... }, M.STR { rlzn = argEnt, ... }) =>
@@ -860,23 +865,24 @@ fun elab (BaseStr decl, env, entEnv, region) =
 
   | elab (ConstrainedStr(strexp,constraint), env, entEnv, region) =
     let val (entsv, evOp, csigOp, transp) =
-            let fun h x =
-                  ES.elabSig {sigexp=x, nameOp=NONE, env=env,
+            let fun elabsig sigexp =
+                  ES.elabSig {sigexp=sigexp, nameOp=NONE, env=env,
                               entEnv=entEnv, epContext=epContext,
                               region=region, compInfo=compInfo}
 
                 val (csigOp, transp) =
-                 (case constraint
-                   of Transparent x => (SOME (h x), true)
-                    | Opaque x => (SOME (h x), false)
-                    | _ => (NONE, true))
+		    (case constraint
+		      of Transparent x => (SOME (elabsig x), true)
+		       | Opaque x => (SOME (elabsig x), false)
+		       | NoSig => (NONE, true))  (* can this happen? *)
 
                 val (entsv, evOp) =
-                  case constraint
-                   of NoSig => (entsv, NONE)
-                    | _ => let val nentv = SOME(mkStamp())
-                            in (nentv, nentv)
-                           end
+		    (case constraint
+		       of NoSig => (entsv, NONE)
+		        | _ => let val nentv = SOME(mkStamp())
+			        in (nentv, nentv)
+			       end)
+
              in (entsv, evOp, csigOp, transp)
             end
 
@@ -886,17 +892,17 @@ fun elab (BaseStr decl, env, entEnv, region) =
                     epContext, entsv, rpath, region, compInfo)
 
           val resDee =
-            case constraint
-             of NoSig => deltaEntEnv
-              | _ =>
-                 (case evOp
-                   of SOME tmpev =>
-                       let val strEnt =
-                             case str of M.STR { rlzn, ... } => rlzn
-                                       | _ => M.bogusStrEntity
-                        in (EE.bind(tmpev, M.STRent strEnt, deltaEntEnv))
-                       end
-                    | _ => bug "unexpected while elaborating constrained str")
+	      case constraint
+		of NoSig => deltaEntEnv
+		 | _ =>
+		   (case evOp
+		     of SOME tmpev =>
+			 let val strEnt =
+			       case str of M.STR { rlzn, ... } => rlzn
+					 | _ => M.bogusStrEntity
+			  in (EE.bind(tmpev, M.STRent strEnt, deltaEntEnv))
+			 end
+		      | _ => bug "unexpected while elaborating constrained str")
 
           (** elaborating the signature matching *)
           val (resDec, resStr, resExp) =

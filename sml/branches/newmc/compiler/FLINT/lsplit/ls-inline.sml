@@ -18,6 +18,7 @@ structure LSplitInline :> LSPLIT_INLINE = struct
     type symenv = SymbolicEnv.env
 
     structure LT = Lty
+    structure FR = FunRecMeta
     structure LK = LtyKernel
     structure LV = LambdaVar
     structure F  = FLINT
@@ -29,7 +30,7 @@ structure LSplitInline :> LSPLIT_INLINE = struct
 		 imports, symenv) =
 	let
 	    val importTypes =
-		case LK.lt_out mainArgLty of
+		case LK.lt_whnm_out mainArgLty of
 		    LT.LT_STR it => it
 		  | _ => bug "non-structure arg to comp-unit"
 	    val newArgLvar = LV.mkLvar ()
@@ -56,7 +57,7 @@ structure LSplitInline :> LSPLIT_INLINE = struct
 	     *)
 	    fun build ([], [], _, rvl) =
 		([], [],
-		 F.RECORD (F.RK_STRUCT, rev (map F.VAR rvl),
+		 F.RECORD (FR.RK_STRUCT, rev (map F.VAR rvl),
 			   mainArgLvar, mainBody))
 	      | build ([], _, _, _) = bug "build mismatch: too many types"
 	      | build ((imp as (pid, tr)) :: rest, tyl, i, rvl) = let
@@ -93,7 +94,7 @@ structure LSplitInline :> LSPLIT_INLINE = struct
 		end
 
 	    val (tyl, imps, newBody) = build (imports, importTypes, 0, [])
-	    val newArgLty = LK.lt_inj (LT.LT_STR tyl)
+	    val newArgLty = LT.lt_inj (LT.LT_STR tyl)
 	in
 	    ((mainFkind, mainLvar, [(newArgLvar, newArgLty)], newBody), imps)
 	end

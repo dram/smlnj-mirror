@@ -56,9 +56,11 @@ structure UnpickMod : UNPICKMOD = struct
     structure A = Access
     structure DI = DebIndex
     structure LT = Lty
+    structure FR = FunRecMeta
     structure LD = LtyDef
     structure LK = LtyKernel
     structure PT = PrimTyc
+    structure PL = PLambda
     structure F = FLINT
     structure T = Types
     structure SP = SymPath
@@ -1348,14 +1350,12 @@ structure UnpickMod : UNPICKMOD = struct
 	      | tc #"H" = LD.tcc_sum (tyclist ())
 	      | tc #"I" = LD.tcc_fix ((int (), Vector.fromList(strlist ()),
                                        tyc (), tyclist ()), int ())
-	      | tc #"J" = LD.tcc_abs (tyc ())
 	      | tc #"K" = LD.tcc_box (tyc ())
 	      | tc #"L" = LD.tcc_tuple (tyclist ())
-	      | tc #"M" = LD.tcc_arrow (LD.ffc_var (bool (), bool ()),
+	      | tc #"M" = LK.tcc_arrow (LD.ffc_var (bool (), bool ()),
 					tyclist (), tyclist ())
-	      | tc #"N" = LD.tcc_arrow (LD.ffc_fixed, tyclist (), tyclist ())
-	      | tc #"O" = LK.tc_inj (LT.TC_TOKEN (LK.token_key (int ()),
-						  tyc ()))
+	      | tc #"N" = LK.tcc_arrow (LD.ffc_fixed, tyclist (), tyclist ())
+	      | tc #"O" = LT.tc_inj (LT.TC_WRAP (tyc ()))
 	      | tc _ = raise Format
 	in
 	    share tycM tc
@@ -1386,12 +1386,11 @@ structure UnpickMod : UNPICKMOD = struct
 	    fun c #"1" = let
 		    val (dc, ts) = dcon ()
 		    in
-		      (F.DATAcon (dc, ts, lvar ()), lexp ())
+		      (PL.DATAcon (dc, ts, lvar ()), lexp ())
 		    end
-	      | c #"2" = (F.INTcon{ty = int(), ival = intinf()}, lexp ())
-	      | c #"4" = (F.WORDcon{ty = int(), ival = intinf()}, lexp ())
-	      | c #"7" = (F.STRINGcon (string ()), lexp ())
-(*	      | c #"8" = (F.VLENcon (int ()), lexp ()) *)
+	      | c #"2" = (PL.INTcon{ty = int(), ival = intinf()}, lexp ())
+	      | c #"4" = (PL.WORDcon{ty = int(), ival = intinf()}, lexp ())
+	      | c #"7" = (PL.STRINGcon (string ()), lexp ())
 	      | c _ = raise Format
 	in
 	    share conM c
@@ -1463,7 +1462,7 @@ structure UnpickMod : UNPICKMOD = struct
 	and fundeclist () = list fundecListM fundec ()
 
 	and tfundec () = let
-	    fun t #"b" = ({ inline = F.IH_SAFE }, lvar (),
+	    fun t #"b" = ({ inline = FR.IH_SAFE }, lvar (),
 			  list lvTkPLM (pair lvTkPM (lvar, tkind)) (),
 			  lexp ())
 	      | t _ = raise Format
@@ -1472,17 +1471,17 @@ structure UnpickMod : UNPICKMOD = struct
 	end
 
 	and fkind () = let
-	    fun aug_unknown x = (x, F.LK_UNKNOWN)
-	    fun inlflag true = F.IH_ALWAYS
-	      | inlflag false = F.IH_SAFE
-	    fun fk #"2" = { isrec = NONE, cconv = F.CC_FCT,
-			    known = false, inline = F.IH_SAFE }
+	    fun aug_unknown x = (x, FR.LK_UNKNOWN)
+	    fun inlflag true = FR.IH_ALWAYS
+	      | inlflag false = FR.IH_SAFE
+	    fun fk #"2" = { isrec = NONE, cconv = FR.CC_FCT,
+			    known = false, inline = FR.IH_SAFE }
 	      | fk #"3" = { isrec = Option.map aug_unknown (ltylistoption ()),
-			    cconv = F.CC_FUN (LD.ffc_var (bool (), bool ())),
+			    cconv = FR.CC_FUN (LD.ffc_var (bool (), bool ())),
 			    known = bool (),
 			    inline = inlflag (bool ()) }
 	      | fk #"4" = { isrec = Option.map aug_unknown (ltylistoption ()),
-			    cconv = F.CC_FUN LD.ffc_fixed,
+			    cconv = FR.CC_FUN LD.ffc_fixed,
 			    known = bool (),
 			    inline = inlflag (bool ()) }
 	      | fk _ = raise Format
@@ -1493,8 +1492,8 @@ structure UnpickMod : UNPICKMOD = struct
 	and ltylistoption () = option ltyloM ltylist ()
 
 	and rkind () = let
-	    fun rk #"5" = F.RK_VECTOR (tyc ())
-	      | rk #"6" = F.RK_STRUCT
+	    fun rk #"5" = FR.RK_VECTOR (tyc ())
+	      | rk #"6" = FR.RK_STRUCT
 	      | rk #"7" = FlintUtil.rk_tuple
 	      | rk _ = raise Format
 	in

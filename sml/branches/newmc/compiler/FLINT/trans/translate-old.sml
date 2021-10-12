@@ -809,11 +809,11 @@ and mkRVBs (rvbs, d) =
   end
 
 and mkEBs (ebs, d) =
-  let fun g (EBgen {exn=TP.DATACON{rep=DA.EXN(DA.LVAR v), typ, ...},
-                    ident, ...}, b) =
+  let fun g (EBgen {exn=TP.DATACON{rep=DA.EXN(DA.LVAR v), typ, name, ...}, ...}, b) =
               let val nt = toDconLty d typ
                   val (argt, _) = LT.ltd_parrow nt
-               in LET(v, ETAG(mkExp(ident, d), argt), b)
+		  val lexp = STRING(Symbol.name name)
+               in LET(v, ETAG(lexp, argt), b)
               end
         | g (EBdef {exn=TP.DATACON{rep=DA.EXN(DA.LVAR v), typ, name, ...},
                     edef=TP.DATACON{rep=DA.EXN(acc), ...}}, b) =

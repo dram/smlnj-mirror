@@ -134,6 +134,7 @@ Group
 	structure TransUtil
 	structure Translate
 	structure Lty
+        structure FunRecMeta
 	structure LtyKindChk
 	structure LtyKernel
 	structure LtyDef
@@ -214,6 +215,8 @@ FLINT/kernel/ltykernel.sig
 FLINT/kernel/ltykernel.sml
 FLINT/kernel/lty.sig
 FLINT/kernel/lty.sml
+FLINT/kernel/funrecmeta.sig
+FLINT/kernel/funrecmeta.sml
 FLINT/kernel/ltykindchk.sml
 
 FLINT/kernel/pplty.sml

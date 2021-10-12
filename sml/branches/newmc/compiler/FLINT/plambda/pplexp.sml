@@ -26,8 +26,7 @@ local structure A = Absyn
       structure S = Symbol
       structure PP = PrettyPrint
       structure PU = PPUtil
-      structure LT = PLambdaType
-      open PLambda PPUtil
+      open PLambda
 in
 
 fun bug s = ErrorMsg.impossible ("PPLexp: "^s)
@@ -63,7 +62,6 @@ fun complex (le: lexp) : bool =
       | TAPP(l, []) => complex l
       | TAPP(l, _) => true
       | GENOP(_,_,_,_) => true
-      | PACK(_, _, _, l) => complex l
 
       | (RECORD l | SRECORD l | VECTOR(l, _)) => List.exists complex l
       | SELECT(_, l) => complex l
@@ -73,7 +71,6 @@ fun complex (le: lexp) : bool =
 
       | HANDLE _ => true
       | RAISE(l, _) => complex l
-      | ETAG (l, _) => complex l
 
       | WRAP(_, _, l) => complex l
       | UNWRAP(_, _, l) => complex l
@@ -81,7 +78,7 @@ fun complex (le: lexp) : bool =
 
 fun ppLexp (pd:int) ppstrm (l: lexp): unit =
     let val {openHOVBox, openHVBox, closeBox, break, newline, pps, ppi, ...} =
-            en_pp ppstrm
+            PU.en_pp ppstrm
 
         val ppLexp' = ppLexp (pd-1) ppstrm
         val ppLty' = PPLty.ppLty (pd-1) ppstrm
@@ -107,7 +104,7 @@ fun ppLexp (pd:int) ppstrm (l: lexp): unit =
           | ppl pd (REAL{rval, ty}) =
 	      pps(concat["(R", Int.toString ty, ")", RealLit.toString rval])
           | ppl pd (STRING s) = PU.ppString ppstrm s
-          | ppl pd (ETAG (l,_)) = ppl pd l
+          | ppl pd (ETAG (l,_)) = (pps "ETAG("; ppl pd l; pps ")")
 
           | ppl pd (RECORD l) =
             if pd < 1 then pps "<REC>" else
@@ -241,23 +238,6 @@ fun ppLexp (pd:int) ppstrm (l: lexp): unit =
               pps ")";
              closeBox ())
 
-          | ppl pd (PACK(lt, ts, nts, l)) =
-            if pd < 1 then pps "<PACK>" else
-            (openHOVBox 0;
-              pps "PACK(";
-              openHVBox 0;
-               openHOVBox 0;
-                app2 (fn (tc,ntc) =>
-                        (pps "<"; ppTyc' tc; pps ","; ppTyc' ntc;
-                         pps ">,"; br1 0),
-                     ts, nts);
-               closeBox(); br1 0;
-               ppLty' lt; pps ","; br1 0;
-               ppl (pd-1) l;
-              closeBox();
-              pps ")";
-             closeBox())
-
           | ppl pd (SWITCH (l,_,llist,default)) =
             if pd < 1 then pps "<SWI>" else
             let fun switch [(c,l)] =
@@ -294,16 +274,16 @@ fun ppLexp (pd:int) ppstrm (l: lexp): unit =
             if pd < 1 then pps "<FIX>" else
             let fun flist([v],[t],[l]) =
                       let val lv = lvarName v
-                          val len = size lv + 2
-                       in pps lv; pps ": "; ppLty' t; pps " = ";
+                       in pps lv; pps ": "; ppLty' t; pps " == ";
 			  newline();
                           ppl (pd-1) l
                       end
                   | flist(v::vs,t::ts,l::ls) =
                       let val lv = lvarName v
-                          val len = size lv + 2
-                       in pps lv; pps ": "; ppLty' t; pps " :: ";
-                          ppl (pd-1) l; newline();
+                       in pps lv; pps ": "; ppLty' t; pps " == ";
+                          newline();
+			  ppl (pd-1) l;
+			  newline();
                           flist(vs,ts,ls)
                       end
                   | flist(nil,nil,nil) = ()
@@ -374,7 +354,6 @@ fun ppFun ppstrm l v =
              else (app find ll; find b)
            | APP(l,r) => (find l; find r)
            | LET(w,l,r) => (if v=w then ppLexp 20 ppstrm l else find l; find r)
-           | PACK(_,_,_,r) => find r
            | TFN(_, r) => find r
            | TAPP(l, _) => find l
            | SWITCH (l,_,ls,d) =>
@@ -424,7 +403,6 @@ fun stringTag (VAR _) = "VAR"
   | stringTag (RECORD _) = "RECORD"
   | stringTag (SRECORD _) = "SRECORD"
   | stringTag (SELECT _) = "SELECT"
-  | stringTag (PACK _) = "PACK"
   | stringTag (WRAP _) = "WRAP"
   | stringTag (UNWRAP _) = "UNWRAP"
 

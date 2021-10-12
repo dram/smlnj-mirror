@@ -6,15 +6,15 @@
 
 signature TRANSTYPES =
 sig
-  val genTT  : unit -> {tpsKnd : Types.tycpath -> PLambdaType.tkind,
+  val genTT  : unit -> {tpsKnd : Types.tycpath -> Lty.tkind,
                         tpsTyc : DebIndex.depth -> Types.tycpath
-                                 -> PLambdaType.tyc,
-                        toTyc  : DebIndex.depth -> Types.ty -> PLambdaType.tyc,
-                        toLty  : DebIndex.depth -> Types.ty -> PLambdaType.lty,
+                                 -> Lty.tyc,
+                        toTyc  : DebIndex.depth -> Types.ty -> Lty.tyc,
+                        toLty  : DebIndex.depth -> Types.ty -> Lty.lty,
                         strLty : Modules.Structure * DebIndex.depth
-                                 * ElabUtil.compInfo -> PLambdaType.lty,
+                                 * ElabUtil.compInfo -> Lty.lty,
                         fctLty : Modules.Functor * DebIndex.depth
-                                 * ElabUtil.compInfo -> PLambdaType.lty}
+                                 * ElabUtil.compInfo -> Lty.lty}
 end (* signature TRANSTYPES *)
 
 structure TransTypes : TRANSTYPES =
@@ -29,7 +29,11 @@ structure TransTypes : TRANSTYPES =
     structure EV = EvalEntity
     structure INS = Instantiate
     structure IP = InvPath
-    structure LE = LtyExtern (* PLambdaType *)
+    structure LT = Lty
+    structure LK = LtyKernel
+    structure LD = LtyDef
+    structure LB = LtyBasic
+    structure LE = LtyExtern (* == PLambdaType *)
     structure PT = PrimTyc
     structure MU = ModuleUtil
     structure SE = StaticEnv
@@ -39,6 +43,7 @@ structure TransTypes : TRANSTYPES =
 
     fun bug msg = ErrorMsg.impossible ("TransTypes: " ^ msg)
     val say = Control.Print.say
+    fun saynl str = (say str; say "\n")
     val debugging = FLINT_Control.tmdebugging
     fun debugmsg (msg: string) =
 	  if !debugging then (say msg; say "\n") else ()
@@ -77,14 +82,14 @@ in
   fun exitRecTy () = (recTyContext := tl (!recTyContext))
   fun recTyc (i) =
 	let val x = hd(!recTyContext)
-	 in if x = 0 then LE.tcc_var (1, i)  (* innermost TFN *)
-	    else if x > 0 then LE.tcc_var (2, i)  (* second innermost TFN *)
+	 in if x = 0 then LD.tcc_var (1, i)  (* innermost TFN *)
+	    else if x > 0 then LD.tcc_var (2, i)  (* second innermost TFN *)
 		 else bug "unexpected RECtyc"
 	end
   fun freeTyc (i) =
 	let val x = hd (!recTyContext)
-	 in if x = 0 then LE.tcc_var (2, i)  (* second innermost TFN *)
-	    else if x > 0 then LE.tcc_var (3, i)  (* third innermost TFN *)
+	 in if x = 0 then LD.tcc_var (2, i)  (* second innermost TFN *)
+	    else if x > 0 then LD.tcc_var (3, i)  (* third innermost TFN *)
 		 else bug "unexpected RECtyc"
 	end
 end (* end of recTyc and freeTyc hack *)
@@ -102,16 +107,16 @@ fun tycpathToTyc tfd tycpath =
 	   in if dbindex < 0
 	      then bug ("tycpathToTyc: dbindex = " ^ Int.toString dbindex ^ " < 0")
 	      else ();
-              LE.tcc_var (dbindex, num)
+              LD.tcc_var (dbindex, num)
 	  end
         | setTyvarIndex (TP_TYC tc, curTfd) = tycTyc(tc, curTfd)
-        | setTyvarIndex (TP_SEL (tp, i), curTfd) = LE.tcc_proj(setTyvarIndex(tp, curTfd), i)
+        | setTyvarIndex (TP_SEL (tp, i), curTfd) = LD.tcc_proj(setTyvarIndex(tp, curTfd), i)
         | setTyvarIndex (TP_APP (tp, ps), curTfd) =
-              LE.tcc_app(setTyvarIndex(tp, curTfd), map (fn x => setTyvarIndex(x, curTfd)) ps)
+              LD.tcc_app(setTyvarIndex(tp, curTfd), map (fn x => setTyvarIndex(x, curTfd)) ps)
         | setTyvarIndex (TP_FCT (ps, ts), curTfd) =
               let val ks = map tpsKnd ps
                   val ts' = map (fn x => setTyvarIndex(x, curTfd + 1)) ts
-               in LE.tcc_fn(ks, LE.tcc_seq ts')
+               in LD.tcc_fn(ks, LD.tcc_seq ts')
               end
 
    in setTyvarIndex(tycpath, tfd)
@@ -125,39 +130,39 @@ and tycTyc x =
 and tycTyc (tc, d) =
   let fun dtsTyc nd ({dcons: dconDesc list, arity=i, ...} : dtmember) =
             let val nnd = if i=0 then nd else DI.next nd
-                fun f ({domain=NONE, rep, name}, r) = (LE.tcc_unit)::r
+                fun f ({domain=NONE, rep, name}, r) = (LB.tcc_unit)::r
                   | f ({domain=SOME t, rep, name}, r) = (toTyc nnd t)::r
 
                 val _ = enterRecTy i
-                val core = LE.tcc_sum(foldr f [] dcons)
+                val core = LD.tcc_sum(foldr f [] dcons)
                 val _ = exitRecTy()
 
                 val resTyc = if i=0 then core
-                             else (let val ks = LE.tkc_arg i
-                                    in LE.tcc_fn(ks, core)
+                             else (let val ks = LT.tkc_arg i
+                                    in LD.tcc_fn(ks, core)
                                    end)
-             in (LE.tkc_int i, resTyc)
+             in (LT.tkc_int i, resTyc)
             end
 
       fun dtsFam (freetycs, fam as { members, ... } : dtypeFamily) =
 	  case ModulePropLists.dtfLtyc fam of
 	      SOME (tc, od) =>
-              LE.tc_adj(tc, od, d) (* invariant: tc contains no free variables
+              LB.tc_adj(tc, od, d) (* invariant: tc contains no free variables
 				    * so tc_adj should have no effects *)
 	    | NONE =>
-              let fun ttk (GENtyc { arity, ... }) = LE.tkc_int arity
+              let fun ttk (GENtyc { arity, ... }) = LT.tkc_int arity
                     | ttk (DEFtyc{tyfun=TYFUN{arity=i, ...},...}) =
-		      LE.tkc_int i
+		      LT.tkc_int i
                     | ttk _ = bug "unexpected ttk in dtsFam"
                   val ks = map ttk freetycs
                   val (nd, hdr) =
                       case ks of [] => (d, fn t => t)
-                               | _ => (DI.next d, fn t => LE.tcc_fn(ks, t))
+                               | _ => (DI.next d, fn t => LD.tcc_fn(ks, t))
                   val mbs = Vector.foldr (op ::) nil members
                   val mtcs = map (dtsTyc (DI.next nd)) mbs
                   val (fks, fts) = ListPair.unzip mtcs
-                  val nft = case fts of [x] => x | _ => LE.tcc_seq fts
-                  val tc = hdr(LE.tcc_fn(fks, nft))
+                  val nft = case fts of [x] => x | _ => LD.tcc_seq fts
+                  val tc = hdr(LD.tcc_fn(fks, nft))
                   val _ = ModulePropLists.setDtfLtyc (fam, SOME(tc, d))
               in tc
               end
@@ -165,18 +170,18 @@ and tycTyc (tc, d) =
       and g (tycon as GENtyc { arity, kind, ... }) =
 	  (case kind
 	     of PRIMITIVE => (* translation defined in FLINT/kernel/primtyc.sml *)
-		  LE.tcc_prim(PrimTyc.pt_fromtyc tycon)
+		  LD.tcc_prim(PrimTyc.pt_fromtyc tycon)
               | DATATYPE {index, family, freetycs, stamps, ...} =>
-		if TU.eqTycon(tycon, BT.refTycon) then LE.tcc_prim (PT.ptc_ref)
+		if TU.eqTycon(tycon, BT.refTycon) then LD.tcc_prim (PT.ptc_ref)
 		else let val tc = dtsFam (freetycs, family)
 			 val n = Vector.length stamps
 			 val names = Vector.map
 				       (fn ({tycname,...}: dtmember) => Symbol.name tycname)
 				       (#members family)
                           (* invariant: n should be the number of family members *)
-		     in LE.tcc_fix((n, names, tc, (map g freetycs)), index)
+		     in LD.tcc_fix((n, names, tc, (map g freetycs)), index)
 		     end
-              | ABSTRACT tc => (g tc) (*>>> LE.tcc_abs(g tc) <<<*)
+              | ABSTRACT tc => (g tc)
               | FLEXTYC tp => tycpathToTyc d tp
               | FORMAL => bug "unexpected FORMAL kind in tycTyc-h"
               | TEMP => bug "unexpected TEMP kind in tycTyc-h")
@@ -190,8 +195,8 @@ and tycTyc (tc, d) =
                say " in translate: ";
                say (EntPath.entPathToString entPath);
                say "\n"; *)
-               if arity > 0 then LE.tcc_fn(LE.tkc_arg arity, LE.tcc_void)
-               else LE.tcc_void)
+               if arity > 0 then LD.tcc_fn(LT.tkc_arg arity, LB.tcc_void)
+               else LB.tcc_void)
         | g (ERRORtyc) = bug "unexpected tycon in tycTyc-g"
 
    in (g tc)
@@ -199,13 +204,13 @@ and tycTyc (tc, d) =
 
 and tfTyc (TYFUN{arity=0, body}, d) = toTyc d body
   | tfTyc (TYFUN{arity, body}, d) =
-      let val ks = LE.tkc_arg arity
-       in LE.tcc_fn(ks, toTyc (DI.next d) body)
+      let val ks = LT.tkc_arg arity
+       in LD.tcc_fn(ks, toTyc (DI.next d) body)
       end
 
-(* toTyc : DI.depth -> ty -> LE.tyc *)
+(* toTyc : DI.depth -> ty -> LT.tyc *)
 and toTyc d t =
-  let val tvDict : (tyvar * LE.tyc) list ref = ref []
+  let val tvDict : (tyvar * LT.tyc) list ref = ref []
       fun lookTv tv =
         let val tv_alist = !tvDict
             fun lookup ((a,x)::rest) =
@@ -220,21 +225,21 @@ and toTyc d t =
 
       and trMTyvarKind (INSTANTIATED t) = trTy t
         | trMTyvarKind (LBOUND{depth,index,...}) =
-	     (* ASSERT: depth <= d *)
-	    let val dbindex = d - depth  (* ASSERT: dbindex >= 0 *)
-	    in if dbindex < 0
+	     (* ASSERT: depth < d *)
+	    let val dbindex = d - depth  (* ASSERT: dbindex > 0 *)
+	    in if dbindex <= 0
 	       then (say (concat["toTyc:trMTyvarKind/LBOUND -- dbindex = ", Int.toString dbindex,
-				 " < 0\n   d = ", Int.toString d, "; depth = ", Int.toString depth,
+				 " <= 0\n   d = ", Int.toString d, "; depth = ", Int.toString depth,
 				 "\n"]);
 		     bug "trMTyvarKind: dbindex < 0")
 	       else ();
-               LE.tcc_var (dbindex, index)
+               LD.tcc_var (dbindex, index)
 	    end
-        | trMTyvarKind (UBOUND _) = LE.tcc_void
+        | trMTyvarKind (UBOUND _) = LB.tcc_void
             (* dbm: a user-bound type variable that didn't get generalized;
                treat the same as an uninstantiated metatyvar.
 	       E.g. val x = ([]: 'a list; 1) *)
-        | trMTyvarKind (OPEN _) = LE.tcc_void
+        | trMTyvarKind (OPEN _) = LB.tcc_void
             (* dbm: a metatyvar that was neither instantiated nor
 	       generalized.  E.g. val x = ([],1); -- the metatyvar
                introduced by the generic instantiation of the type of [] is
@@ -242,26 +247,26 @@ and toTyc d t =
         | trMTyvarKind _ = bug "toTyc:trMTyvarKind" (* OVLD should have been resolved *)
 
       and trTy (VARty tv) = lookTv tv
-        | trTy (CONty(RECORDtyc _, [])) = LE.tcc_unit
-        | trTy (CONty(RECORDtyc _, tys)) = LE.tcc_tuple (map trTy tys)
+        | trTy (CONty(RECORDtyc _, [])) = LB.tcc_unit
+        | trTy (CONty(RECORDtyc _, tys)) = LD.tcc_tuple (map trTy tys)
         | trTy (CONty(tyc, [])) = tycTyc(tyc, d)
         | trTy (CONty(DEFtyc{tyfun,...}, args)) = trTy (TU.applyTyfun(tyfun,args))
 	| trTy (CONty (tc as GENtyc { kind, ... }, ts)) =
 	  (case (kind, ts) of
 	       (ABSTRACT _, ts) =>
-	       LE.tcc_app(tycTyc(tc, d), map trTy ts)
+	       LD.tcc_app(tycTyc(tc, d), map trTy ts)
              | (_, [t1, t2]) =>
-               if TU.eqTycon(tc, BT.arrowTycon) then LE.tcc_parrow(trTy t1, trTy t2)
-               else LE.tcc_app(tycTyc(tc, d), [trTy t1, trTy t2])
-	     | _ => LE.tcc_app (tycTyc (tc, d), map trTy ts))
-        | trTy (CONty(tyc, ts)) = LE.tcc_app(tycTyc(tyc, d), map trTy ts)
-        | trTy (IBOUND i) = LE.tcc_var(DI.innermost, i)
+               if TU.eqTycon(tc, BT.arrowTycon) then LD.tcc_parrow(trTy t1, trTy t2)
+               else LD.tcc_app(tycTyc(tc, d), [trTy t1, trTy t2])
+	     | _ => LD.tcc_app (tycTyc (tc, d), map trTy ts))
+        | trTy (CONty(tyc, ts)) = LD.tcc_app(tycTyc(tyc, d), map trTy ts)
+        | trTy (IBOUND i) = LD.tcc_var(DI.innermost, i)
 			 (* [KM] IBOUNDs are encountered when toTyc
                           * is called on the body of a POLYty in
                           * toLty (see below). *)
 	| trTy (MARKty (t, _)) = trTy t
         | trTy (POLYty _) = bug "unexpected poly-type in toTyc"
-        | trTy (UNDEFty) = (* mkVB kluge!!! *) LE.tcc_void
+        | trTy (UNDEFty) = (* mkVB kluge!!! *) LB.tcc_void
 	    (* bug "unexpected undef-type in toTyc" *)
         | trTy (WILDCARDty) = bug "unexpected wildcard-type in toTyc"
    in trTy t
@@ -269,11 +274,11 @@ and toTyc d t =
 
 and toLty d (POLYty {tyfun=TYFUN{arity=0, body}, ...}) = toLty d body
   | toLty d (POLYty {tyfun=TYFUN{arity, body},...}) =
-      let val ks = LE.tkc_arg arity
-       in LE.ltc_poly(ks, [toLty (DI.next d) body])
+      let val ks = LT.tkc_arg arity
+       in LD.ltc_poly(ks, [toLty (DI.next d) body])
       end
 
-  | toLty d x = LE.ltc_tyc (toTyc d x)
+  | toLty d x = LD.ltc_tyc (toTyc d x)
 
 (****************************************************************************
  *               TRANSLATING ML MODULES INTO FLINT TYPES                    *
@@ -316,9 +321,9 @@ fun specLty (elements, entEnv, depth, compInfo) =
                                            typ, ...}, ...} =>
                         let val argt =
                               if BT.isArrowType typ then
-                                   #1(LE.ltd_parrow (mapty typ))
-                              else LE.ltc_unit
-                         in g(rest, entEnv, (LE.ltc_etag argt)::ltys)
+                                   #1(LD.ltd_parrow (mapty typ))
+                              else LB.ltc_unit
+                         in g(rest, entEnv, (LB.ltc_etag argt)::ltys)
                         end
                     | CONspec{spec=DATACON _, ...} =>
                         g(rest, entEnv, ltys)
@@ -331,7 +336,7 @@ fun specLty (elements, entEnv, depth, compInfo) =
 (*
 and signLty (sign, depth, compInfo) =
   let fun h (SIG {kind=SOME _, lambdaty=ref (SOME(lt, od)), ...}) = lt
-             (* LE.lt_adj(lt, od, depth) *)
+             (* LB.lt_adj(lt, od, depth) *)
         | h (sign as SIG{kind=SOME _, lambdaty as ref NONE, ...}) =
           (* Invariant: we assum that all Named signatures (kind=SOME _) are
            * defined at top-level, outside any functor definitions. (ZHONG)
@@ -344,7 +349,7 @@ and signLty (sign, depth, compInfo) =
                  val nlty = strMetaLty(sign, rlzn, nd, compInfo)
 
                  val ks = map tpsKnd tycpaths
-                 val lt = LE.ltc_poly(ks, nlty)
+                 val lt = LD.ltc_poly(ks, nlty)
               in lambdaty := SOME (lt, depth); lt
              end
         | h _ = bug "unexpected sign in signLty"
@@ -353,11 +358,11 @@ and signLty (sign, depth, compInfo) =
 *)
 and strMetaLty (sign, rlzn as { entities, ... }: strEntity, depth, compInfo) =
     case (sign, ModulePropLists.strEntityLty rlzn) of
-	(_, SOME (lt, od)) => LE.lt_adj(lt, od, depth)
+	(_, SOME (lt, od)) => LB.lt_adj(lt, od, depth)
       | (SIG { elements, ... }, NONE) =>
 	let val ltys = specLty (elements, entities, depth, compInfo)
             val lt = (* case ltys of [] => LE.ltc_int
-                                   | _ => *) LE.ltc_str(ltys)
+                                   | _ => *) LD.ltc_str(ltys)
         in
 	    ModulePropLists.setStrEntityLty (rlzn, SOME(lt, depth));
 	    lt
@@ -366,7 +371,7 @@ and strMetaLty (sign, rlzn as { entities, ... }: strEntity, depth, compInfo) =
 
 and strRlznLty (sign, rlzn : strEntity, depth, compInfo) =
     case (sign, ModulePropLists.strEntityLty rlzn) of
-	(sign, SOME (lt,od)) => LE.lt_adj(lt, od, depth)
+	(sign, SOME (lt,od)) => LB.lt_adj(lt, od, depth)
 
 (* Note: the code here is designed to improve the "toLty" translation;
    by translating the signature instead of the structure, this can
@@ -389,7 +394,7 @@ and strRlznLty (sign, rlzn : strEntity, depth, compInfo) =
 
 and fctRlznLty (sign, rlzn, depth, compInfo) =
     case (sign, ModulePropLists.fctEntityLty rlzn, rlzn) of
-	(sign, SOME (lt, od), _) => LE.lt_adj(lt, od, depth)
+	(sign, SOME (lt, od), _) => LB.lt_adj(lt, od, depth)
       | (FSIG{paramsig, bodysig, ...}, _,
          {closure as CLOSURE{env,...}, ...}) =>
         let val {rlzn=argRlzn, tycpaths=tycpaths} =
@@ -404,7 +409,7 @@ and fctRlznLty (sign, rlzn, depth, compInfo) =
                            IP.empty, compInfo)
             val bodyLty = strRlznLty(bodysig, bodyRlzn, nd, compInfo)
 
-            val lt = LE.ltc_poly(ks, [LE.ltc_fct([paramLty],[bodyLty])])
+            val lt = LD.ltc_poly(ks, [LD.ltc_fct([paramLty],[bodyLty])])
         in
 	    ModulePropLists.setFctEntityLty (rlzn, SOME (lt, depth));
 	    lt
@@ -413,7 +418,7 @@ and fctRlznLty (sign, rlzn, depth, compInfo) =
 
 and strLty (str as STR { sign, rlzn, ... }, depth, compInfo) =
     (case ModulePropLists.strEntityLty rlzn of
-	 SOME (lt, od) => LE.lt_adj(lt, od, depth)
+	 SOME (lt, od) => LB.lt_adj(lt, od, depth)
        | NONE =>
          let val lt = strRlznLty(sign, rlzn, depth, compInfo)
          in
@@ -424,7 +429,7 @@ and strLty (str as STR { sign, rlzn, ... }, depth, compInfo) =
 
 and fctLty (fct as FCT { sign, rlzn, ... }, depth, compInfo) =
     (case ModulePropLists.fctEntityLty rlzn of
-	 SOME (lt,od) => LE.lt_adj(lt, od, depth)
+	 SOME (lt,od) => LB.lt_adj(lt, od, depth)
        | NONE =>
          let val lt = fctRlznLty(sign, rlzn, depth, compInfo)
 	 in
@@ -450,7 +455,7 @@ structure MIDict = RedBlackMapFn(struct type ord_key = ModuleId.modId
       fun tycTycLook (t as (GENtyc _ | DEFtyc _), d) =
             let tid = MU.tycId t
              in (case MIDict.peek(!m1, tid)
-                  of SOME (t', od) => LE.tc_adj(t', od, d)
+                  of SOME (t', od) => LB.tc_adj(t', od, d)
                    | NONE =>
                        let val x = tycTyc (t, d)
                            val _ = (m1 := TcDict.insert(!m1, tid, (x, d)))
@@ -468,7 +473,7 @@ structure MIDict = RedBlackMapFn(struct type ord_key = ModuleId.modId
       fun strLtyLook (s as STR _, d) =
             let sid = MU.strId s
              in (case MIDict.peek(!m2, sid)
-                  of SOME (t', od) => LE.lt_adj(t', od, d)
+                  of SOME (t', od) => LB.lt_adj(t', od, d)
                    | NONE =>
                        let val x = strLty (coreDict, strLtyLook,
                                            fctLtyLook) (s, d)
@@ -481,7 +486,7 @@ structure MIDict = RedBlackMapFn(struct type ord_key = ModuleId.modId
       and fctLtyLook (f as FCT _, d) =
             let fid = fctId f
              in (case MIDict.peek(!m2, fid)
-                  of SOME (t', od) => LE.lt_adj(t', od, d)
+                  of SOME (t', od) => LB.lt_adj(t', od, d)
                    | NONE =>
                        let val x = fctLty (tycTycLook, strLtyLook,
                                            fctLtyLook) (s, d)

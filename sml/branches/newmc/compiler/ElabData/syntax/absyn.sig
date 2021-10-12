@@ -128,7 +128,7 @@ signature ABSYN =
     and rvb = RVB of {var: VarCon.var, exp: exp, resultty: Types.ty option,
 		      tyvars: Types.tyvar list ref}
 
-    and eb = EBgen of {exn: Types.datacon, etype: Types.ty option, ident: exp}
+    and eb = EBgen of {exn: Types.datacon, etype: Types.ty option (* , ident: exp *)}
 	   | EBdef of {exn: Types.datacon, edef: Types.datacon}
 
     and strb = STRB of {name: Symbol.symbol, str: Modules.Structure, def: strexp}

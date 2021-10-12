@@ -26,15 +26,17 @@ structure FixFix :> FIXFIX =
 struct
 
 local
-    structure F  = FLINT
-    structure LV = LambdaVar
-    structure S = LV.Set
-    structure M = LV.Map
-    structure PF = PrintFlint
-    structure LT = LtyExtern
-    structure LK = LtyKernel
-    structure OU = OptUtils
-    structure CTRL = FLINT_Control
+  structure LV = LambdaVar
+  structure S = LV.Set
+  structure M = LV.Map
+  structure FR = FunRecMeta
+  structure LD = LtyDef
+  structure LE = LtyExtern
+  structure PL = PLambda
+  structure F  = FLINT
+  structure PF = PrintFlint
+  structure OU = OptUtils
+  structure CTRL = FLINT_Control
 in
 
 val debugging = CTRL.ffdebugging
@@ -53,7 +55,7 @@ fun dbsay msg =
 fun dbsays msgs = dbsay (concat msgs)
 
 fun buglexp (msg,le) = (say "\n"; PF.printLexp le; say " "; bug msg)
-fun bugval (msg,v) = (say "\n"; PF.printSval v; say " "; bug msg)
+fun bugval (msg,v) = (say "\n"; PF.printValue v; say " "; bug msg)
 fun bugsay s = say ("!*!*! Fixfix: "^s^" !*!*!\n")
 
 (* copyLvar : LV.lvar -> LV.lvar
@@ -118,7 +120,7 @@ let
      * - hd:fkind option identifies the head of the curried function
      * - na:int gives the number of args still allowed *)
     fun curry (hd,na)
-	      (le as (F.FIX([(fk as {inline=F.IH_SAFE,...},f,args,body)],
+	      (le as (F.FIX([(fk as {inline=FR.IH_SAFE,...},f,args,body)],
 			    F.RET[F.VAR lv]))) =
 	if lv = f andalso na >= length args then
 	    case (hd,fk)
@@ -126,8 +128,8 @@ let
 	      * if they are the head of the function or if the head
 	      * is already recursive *)
 	     of ((SOME{isrec=NONE,...},{isrec=SOME _,...}) |
-		 (SOME{cconv=F.CC_FCT,...},{cconv=F.CC_FUN (Lty.FF_VAR _),...}) |
-		 (SOME{cconv=F.CC_FUN _,...},{cconv=F.CC_FCT,...})) =>
+		 (SOME{cconv=FR.CC_FCT,...},{cconv=FR.CC_FUN (Lty.FF_VAR _),...}) |
+		 (SOME{cconv=FR.CC_FUN _,...},{cconv=FR.CC_FCT,...})) =>
 		([], le)
 	      | _ =>
 		let val (funs,body) =
@@ -147,19 +149,19 @@ let
 	let val f' = copyLvar f	(* the new fun name *)
 
 	    (* find the rtys of the uncurried function *)
-	    fun getrtypes (({isrec=SOME(rtys,_),...}:F.fkind,_,_),_) = SOME rtys
+	    fun getrtypes (({isrec=SOME(rtys,_),...}:FR.fkind,_,_),_) = SOME rtys
 	      | getrtypes ((_,_,_),rtys) =
-		Option.map (fn [lty] => #2(LT.ltd_fkfun lty)
-					handle LT.DeconExn => bug "uncurry"
+		Option.map (fn [lty] => #2(LE.ltd_fkfun lty)
+					handle LD.DeconExn => bug "uncurry"
 			     | _ => bug "strange isrec") rtys
 
 	    (* create the new fkinds *)
 	    val ncconv =
 		case #cconv(#1(hd args))
-		 of F.CC_FCT => F.CC_FCT
+		 of FR.CC_FCT => FR.CC_FCT
 		  | _ => case #cconv(#1(List.last args))
-			  of F.CC_FUN(Lty.FF_VAR(_,raw)) =>
-			     F.CC_FUN(Lty.FF_VAR(true, raw))
+			  of FR.CC_FUN(Lty.FF_VAR(_,raw)) =>
+			     FR.CC_FUN(Lty.FF_VAR(true, raw))
 			   | cconv => cconv
 	    val (nfk,nfk') = OU.fk_wrap(fk, foldl getrtypes NONE args)
 	    val nfk' = {inline= #inline nfk', isrec= #isrec nfk',
@@ -171,7 +173,7 @@ let
 	    (* create (curried) wrappers to be inlined *)
 	    fun recurry ([],args) = F.APP(F.VAR f', map (F.VAR o #1) args)
 	      | recurry (({inline,isrec,known,cconv},f,fargs)::rest,args) =
-		let val fk = {inline=F.IH_ALWAYS, isrec=NONE,
+		let val fk = {inline=FR.IH_ALWAYS, isrec=NONE,
 			      known=known, cconv=cconv}
 		    val nfargs = newargs fargs
 		    val g = copyLvar f'
@@ -197,7 +199,7 @@ let
 		in case fk
 		    of {isrec=SOME _,cconv,known,inline} =>
 		       let val nfargs = newargs fargs
-			   val fk = {isrec=NONE, inline=F.IH_ALWAYS,
+			   val fk = {isrec=NONE, inline=FR.IH_ALWAYS,
 				     known=known, cconv=cconv}
 		       in F.FIX([(fk, f, nfargs,
 				  recurry(rest, args @ nfargs))],
@@ -235,7 +237,7 @@ in case lexp
 			       fdecs
 
 	   (* process each fun *)
-	   fun ffun (fdec as (fk as {isrec,...}:F.fkind,f,args,body,cf),
+	   fun ffun (fdec as (fk as {isrec,...}:FR.fkind,f,args,body,cf),
 		     (s,fv,funs,m)) =
 	       case curry (NONE,!maxargs)
 			  (F.FIX([(fk,f,args,body)], F.RET[F.VAR f]))
@@ -253,7 +255,7 @@ in case lexp
 		 | _ =>	(* non-curried function *)
 		   let val newdepth =
 			   case isrec
-			    of SOME(_,(F.LK_TAIL | F.LK_LOOP)) => depth + 1
+			    of SOME(_,(FR.LK_TAIL | FR.LK_LOOP)) => depth + 1
 			     | _ => depth
 		       val (mf,cs) = foldr (fn ((v,t),(m,cs)) =>
 					    let val c = ref(0, 0)
@@ -281,8 +283,8 @@ in case lexp
 	   val m = M.insert(M.empty,
 			    lename,
 			    (S.listItems(S.intersection(fv, funs)), 0,
-			     {inline=F.IH_SAFE, isrec=NONE,
-			      known=true,cconv=F.CC_FCT},
+			     {inline=FR.IH_SAFE, isrec=NONE,
+			      known=true,cconv=FR.CC_FCT},
 			     [], le, ref 0, []))
 
 	   (* process the functions, collecting them in map m *)
@@ -299,19 +301,12 @@ in case lexp
 	       let (* small functions inlining heuristic *)
 		   val ilthreshold = !CTRL.inlineThreshold + (length args)
 		   val ilh =
-		       if inline = F.IH_ALWAYS then inline
-		       (* else if s < ilthreshold then F.IH_ALWAYS *)
+		       if inline = FR.IH_ALWAYS then inline
+		       (* else if s < ilthreshold then FR.IH_ALWAYS *)
 		       else let val cs = map (fn ref(sp,ti) => sp + ti div 2) cs
 				val s' = foldl (op+) 0 cs
 		       in if s < 2*s' + ilthreshold
-			  then ((* say((Collect.LVarString f)^
-				" {"^(Int.toString(!cf))^
-				"} = F.IH_MAYBE "^
-				(Int.toString (s-ilthreshold))^
-				(foldl (fn (i,s) => s^" "^
-				        (Int.toString i))
-				       "" cs)^"\n"); *)
-				F.IH_MAYBE (s-ilthreshold, cs))
+			  then FR.IH_MAYBE (s-ilthreshold, cs)
 			  else inline
 		       end
 		   val fk = {isrec=NONE, inline=ilh, known=known, cconv=cconv}
@@ -323,9 +318,9 @@ in case lexp
 			* This heuristic is pretty bad since it doesn't
 			* take the number of rec-calls into account *)
 		       case (isrec,inline)
-			of (SOME(_,(F.LK_LOOP|F.LK_TAIL)),F.IH_SAFE) =>
+			of (SOME(_,(FR.LK_LOOP|FR.LK_TAIL)),FR.IH_SAFE) =>
 			   if s < !CTRL.unrollThreshold then
-			       {inline=F.IH_UNROLL, isrec=isrec,
+			       {inline=FR.IH_UNROLL, isrec=isrec,
 				cconv=cconv, known=known}
 			   else fk
 			 | _ => fk
@@ -369,7 +364,7 @@ in case lexp
 	* become cheaper once inlined) *)
        (3, S.singleton f, lexp)
      | F.SWITCH (v,ac,arms,def) =>
-       let fun farm (dcon as F.DATAcon(dc,_,lv),le) =
+       let fun farm (dcon as PL.DATAcon(dc,_,lv),le) =
 	       (* the binding might end up costly, but we count it as 1 *)
 	       let val (s,fv,le) = loop le
 	       in (1+s, fdcon(S_rmv(lv, fv),dc), (dcon, le))

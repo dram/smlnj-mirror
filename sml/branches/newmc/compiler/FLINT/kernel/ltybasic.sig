@@ -20,105 +20,72 @@ signature LTYBASIC =
 sig
 
 (*
- * The abstract definitions of tkind, tyc, and lty are in separate files,
- * i.e., ltydef.sig and ltydef.sml. The internal implementation of tkind,
+ * The internal implementation of tkind,
  * tyc, and lty are in the ltykernel.sig and ltykernel.sml files. In general,
  * the clients of the lambda types should never need to understand what is
  * going on inside the LtyKernel.
  *)
 
 (** the definitions of tkind, tyc, and lty *)
-include LTYDEF        (* see ltydef.sig for details *)
-
-(** new a type variable, currently not used *)
-val mkTvar : unit -> tvar
+(* include LTYDEF        (* see ltydef.sig for details *)  -- not including *)
 
 (** primitives and utility functions for fflags *)
-val ffc_plambda: fflag
-val ffc_rrflint: fflag
-val ffc_fspec  : fflag * (bool * bool) -> fflag
-val ffd_fspec  : fflag -> bool * bool
+val ffc_plambda: Lty.fflag
+val ffc_rrflint: Lty.fflag
+val ffc_fspec  : Lty.fflag * (bool * bool) -> Lty.fflag
+val ffd_fspec  : Lty.fflag -> bool * bool
 
 (** primitive lambda tycs *)
-val tcc_int    : tyc		(* default tagged int type *)
-val tcc_num    : int -> tyc	(* int type of given size *)
-val tcc_real   : tyc
-val tcc_string : tyc
-val tcc_exn    : tyc
-val tcc_void   : tyc
-val tcc_unit   : tyc
-val tcc_bool   : tyc
+val tcc_int    : Lty.tyc		(* default tagged int type *)
+val tcc_num    : int -> Lty.tyc	(* int type of given size *)
+val tcc_real   : Lty.tyc
+val tcc_string : Lty.tyc
+val tcc_exn    : Lty.tyc
+val tcc_void   : Lty.tyc
+val tcc_unit   : Lty.tyc
+val tcc_bool   : Lty.tyc
 
-val tcc_tv     : int -> tyc
-val tcc_ref    : tyc -> tyc
-val tcc_array  : tyc -> tyc
-val tcc_vector : tyc -> tyc
-val tcc_etag   : tyc -> tyc
+val tcc_tv     : int -> Lty.tyc
+val tcc_ref    : Lty.tyc -> Lty.tyc
+val tcc_array  : Lty.tyc -> Lty.tyc
+val tcc_vector : Lty.tyc -> Lty.tyc
+val tcc_etag   : Lty.tyc -> Lty.tyc
 
 (** primitive lambda ltys *)
-val ltc_num    : int -> lty
-val ltc_int    : lty	(* = ltc_num Target.defaultIntSz *)
-val ltc_real   : lty	(* REAL32: need ltc_real32/ltc_real64 *)
-val ltc_string : lty
-val ltc_exn    : lty
-val ltc_void   : lty
-val ltc_unit   : lty
-val ltc_bool   : lty
+val ltc_num    : int -> Lty.lty
+val ltc_int    : Lty.lty	(* = ltc_num Target.defaultIntSz *)
+val ltc_real   : Lty.lty	(* REAL32: need ltc_real32/ltc_real64 *)
+val ltc_string : Lty.lty
+val ltc_exn    : Lty.lty
+val ltc_void   : Lty.lty
+val ltc_unit   : Lty.lty
+val ltc_bool   : Lty.lty
 
-val ltc_tv     : int -> lty
-val ltc_ref    : lty -> lty
-val ltc_array  : lty -> lty
-val ltc_vector : lty -> lty
-val ltc_etag   : lty -> lty
+val ltc_tv     : int -> Lty.lty
+val ltc_ref    : Lty.lty -> Lty.lty
+val ltc_array  : Lty.lty -> Lty.lty
+val ltc_vector : Lty.lty -> Lty.lty
+val ltc_etag   : Lty.lty -> Lty.lty
 
-val ltc_top    : lty    (* used in a dirty hack in prim.sml *)
-
-(** testing equivalence of tkinds, tycs, ltys, fflags *)
-val tk_eqv     : tkind * tkind -> bool
-val tc_eqv     : tyc * tyc -> bool
-val lt_eqv     : lty * lty -> bool
-val ff_eqv     : fflag * fflag -> bool
+val ltc_top    : Lty.lty    (* used in a dirty hack in prim.sml *)
 
 (** pretty printing of tkinds, tycs, and ltys *)
-val tk_print   : tkind -> string
-val tc_print   : tyc -> string
-val lt_print   : lty -> string
+val tk_print   : Lty.tkind -> string
+val tc_print   : Lty.tyc -> string
+val lt_print   : Lty.lty -> string
 
-(** adjusting an lty or tyc from one depth to another *)
-val lt_adj     : lty * depth * depth -> lty
-val tc_adj     : tyc * depth * depth -> tyc
+(** adjusting an lty or tyc from one DebIndex.depth to another *)
+val lt_adj     : Lty.lty * DebIndex.depth * DebIndex.depth -> Lty.lty
+val tc_adj     : Lty.tyc * DebIndex.depth * DebIndex.depth -> Lty.tyc
 
-val lt_adj_k   : lty * depth * depth * int -> lty
-val tc_adj_k   : tyc * depth * depth * int -> tyc
+val lt_adj_k   : Lty.lty * DebIndex.depth * DebIndex.depth * int -> Lty.lty
+val tc_adj_k   : Lty.tyc * DebIndex.depth * DebIndex.depth * int -> Lty.tyc
 
-(** finding out the depth for a tyc's innermost-bound free variables *)
-val tc_depth : tyc * depth -> depth
-val tcs_depth: tyc list * depth -> depth
-
-(** automatically flattening the argument or the result type *)
-val lt_autoflat : lty -> bool * lty list * bool
-
-(** testing if a tyc is a unknown constructor *)
-val tc_unknown : tyc -> bool
-
-(** utility functions on tkindEnv *)
-type tkindEnv
-exception tkUnbound
-val initTkEnv: tkindEnv
-val tkLookup : tkindEnv * int * int -> tkind
-val tkInsert : tkindEnv * tkind list -> tkindEnv
-
-(** utility functions on tycEnv *)
-type tycEnv = Lty.tycEnv
-datatype teBinder = datatype Lty.teBinder
-val teEmpty : tycEnv
-val teCons : teBinder * tycEnv -> tycEnv
-
-(** the ltyEnv maps from lvar to its lty; notice lty is depth-dependent *)
+(** an ltyEnv maps from lvars to their ltys; notice that the ltys are depth-dependent *)
 type ltyEnv
 val initLtyEnv : ltyEnv
-val ltLookup : ltyEnv * LambdaVar.lvar * depth -> lty option
-val ltInsert : ltyEnv * LambdaVar.lvar * lty * depth -> ltyEnv
+val ltLookup : ltyEnv * LambdaVar.lvar * DebIndex.depth -> Lty.lty option
+val ltInsert : ltyEnv * LambdaVar.lvar * Lty.lty * DebIndex.depth -> ltyEnv
 
 end (* signature LTYBASIC *)
 

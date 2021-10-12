@@ -21,6 +21,14 @@ in
 val debugging = FLINT_Control.trdebugging
 fun bug msg = ErrorMsg.impossible("TransUtil: " ^ msg)
 val say = Control.Print.say
+fun says strs = say (concat strs)
+fun newline () = say "\n"
+fun saynl str = (say str; newline())
+fun saysnl strs = saynl (concat strs)
+fun dbsaynl (msg : string) =
+    if !debugging then saynl msg else ()
+fun dbsaysnl (msgs : string list) =
+    if !debugging then saysnl msgs else ()
 
 fun ppType ty =
     ElabDebug.withInternals
@@ -36,8 +44,9 @@ fun getNameOp p = if SP.null p then NONE else SOME(SP.last p)
 type pid = PersStamps.persstamp
 type compInfo = Absyn.dec CompInfo.compInfo
 
-(** old-style fold for cases where it is partially applied *)
-fun fold f l init = foldr f init l
+(* foldr' : ('a * 'b -> 'b) -> 'a list -> 'b -> 'b
+ *   old-style foldr for cases where it is partially applied *)
+fun foldr' f l init = foldr f init l
 
 (** sorting the record fields for record types and record expressions *)
 fun elemgtr ((LABEL{number=x,...},_),(LABEL{number=y,...},_)) = (x>y)
@@ -227,12 +236,15 @@ fun aconvertLvars (vars, exps) =
 	fun substExp e =
             (case e
               of VARexp (var as ref(V.VALvar {access = DA.LVAR x, ...}), _) =>
-		 (case !var
+		 (dbsaysnl ["aconvertLvars:old ", V.toString (!var), " ", LV.toString x];
+		  case !var
 		    of V.VALvar {access = DA.LVAR x, ...} =>
                        (case LV.Map.find (lvarMap,x)
-			  of NONE => ()
-			   | SOME newVar => (var := newVar; occurs := true))
-		     | _ => ())
+			 of NONE => (dbsaysnl ["aconvertLvars:not bound ", LV.toString x]; ())
+			   | SOME newVar =>
+			     (dbsaynl ("aconvertLvars:newVar = " ^ VarCon.toString newVar);
+			      var := newVar; occurs := true))
+		     | _ => (dbsaynl "aconvertLvars:not LVAR"; ()))
 	       | VARexp _ => ()
                | RECORDexp l => app (fn (lab, x) => substExp x) l
                | SEQexp l => app substExp l
@@ -269,6 +281,7 @@ fun aconvertLvars (vars, exps) =
                | SEQdec l => app substDec l
                | ABSTYPEdec {body, ...} => substDec body
                | MARKdec (dec,_) => substDec dec
+	       | DOdec exp => substExp exp
                | _ => ())
 
     in app substExp exps;

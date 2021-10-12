@@ -4,71 +4,46 @@
 signature LTYKERNEL =
 sig 
 
-type tkind = Lty.tkind
-type fflag = Lty.fflag
-type tvar = Lty.tvar
-type tyc = Lty.tyc
-type lty = Lty.lty
-type token = Lty.token
-type tycEnv = Lty.tycEnv
-
 exception TCENV
-exception TeUnbound2 
-
-(** injections and projections on tkind, tyc, and lty *)
-val tk_inj   : Lty.tkindI -> tkind 
-val tc_inj   : Lty.tycI -> tyc
-val lt_inj   : Lty.ltyI -> lty
-
-val tk_out   : tkind -> Lty.tkindI
-val tc_out   : tyc -> Lty.tycI
-val lt_out   : lty -> Lty.ltyI
+exception TeUnbound
 
 (** testing equivalence of tkinds, tycs, ltys, and fflags *)
-val tk_eqv   : tkind * tkind -> bool
-val tc_eqv   : tyc * tyc -> bool
-val lt_eqv   : lty * lty -> bool
-val ff_eqv   : fflag * fflag -> bool
+val tk_eqv   : Lty.tkind * Lty.tkind -> bool
+val tc_eqv   : Lty.tyc * Lty.tyc -> bool
+val lt_eqv   : Lty.lty * Lty.lty -> bool
+val ff_eqv   : Lty.fflag * Lty.fflag -> bool
 
 (** finding out the depth for a tyc's innermost-bound free variables *)
-val tc_depth : tyc * DebIndex.depth -> DebIndex.depth
-val tcs_depth: tyc list * DebIndex.depth -> DebIndex.depth
-val tc_nvars : tyc -> tvar list
-val lt_nvars : lty -> tvar list
+val tc_depth : Lty.tyc * DebIndex.depth -> DebIndex.depth
+val tcs_depth: Lty.tyc list * DebIndex.depth -> DebIndex.depth
+val tc_nvars : Lty.tyc -> Lty.tvar list
+val lt_nvars : Lty.lty -> Lty.tvar list
 
 (** utility functions for TC_ENV and LT_ENV types *)
-val tcc_env  : tyc * int * int * tycEnv -> tyc
-val ltc_env  : lty * int * int * tycEnv -> lty
+val tcc_env  : Lty.tyc * int * int * Lty.tycEnv -> Lty.tyc
+val ltc_env  : Lty.lty * int * int * Lty.tycEnv -> Lty.lty
 
-(** reducing a tyc or lty into the weak-head normal form *)
-val tc_whnm : tyc -> tyc
-val lt_whnm : lty -> lty
+(** reducing a tyc or lty to the weak-head normal form *)
+val tc_whnm : Lty.tyc -> Lty.tyc
+val lt_whnm : Lty.lty -> Lty.lty
 
-(** reducing a tyc or lty into the true normal form *)
-val tc_norm : tyc -> tyc
-val lt_norm : lty -> lty
+(* "wh-normalizing" projections of tyc and lty *)
+val tc_whnm_out : Lty.tyc -> Lty.tycI
+val lt_whnm_out : Lty.lty -> Lty.ltyI
+
+(** reducing a tyc or lty to the true normal form *)
+val tc_norm : Lty.tyc -> Lty.tyc
+val lt_norm : Lty.lty -> Lty.lty
 
 (** automatically flattening the argument or the result type *)
-val lt_autoflat : lty -> bool * lty list * bool
-
-(** testing if a tyc is a unknown constructor *)
-val tc_unknown : tyc -> bool 
+val lt_autoflat : Lty.lty -> bool * Lty.lty list * bool
 
 (** automatically tupling up the multiple argument/result into a single one *)
-val tc_autotuple : tyc list -> tyc
+val tc_autotuple : Lty.tyc list -> Lty.tyc
 
-(** tcc_arw does automatic argument and result flattening, so go away *)
-val tcc_arw : fflag * tyc list * tyc list -> tyc
-
-(** token-related functions *)
-val token_name    : token -> string 
-val token_abbrev  : token -> string            (* used by tc_print *)
-val token_isvalid : token -> bool   
-val token_eq      : token * token -> bool      
-val token_int     : token -> int               (* for pickling *)
-val token_key     : int -> token
-
-(** primitive TC_WRAP constructor, built through the token facility *)
-val wrap_token    : token
+(** tcc_arrow does automatic argument and result flattening.
+ *   perhaps belongs with other tcc_ functions in LtyDef, but depends on
+ *   tc_autoflat, which is not currently exported from LtyKernel *)
+val tcc_arrow : Lty.fflag * Lty.tyc list * Lty.tyc list -> Lty.tyc
 
 end (* signature LTYKERNEL *)

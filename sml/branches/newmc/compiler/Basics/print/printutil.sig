@@ -35,4 +35,7 @@ sig
        * as beginning and ending brackets, and sep as the separator, using prfn to print
        * the members of the list *)
 
+  val interpws : string list -> string
+  (* interpolate white space (" ") between the elements of a list of strings, then concat *)
+
 end (* signature PRINTUTIL *)

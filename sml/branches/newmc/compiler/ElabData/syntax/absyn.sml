@@ -163,7 +163,7 @@ structure Absyn : ABSYN =
     and rvb = RVB of {var: VarCon.var, exp: exp, resultty: T.ty option,
 		      tyvars: T.tyvar list ref}
 
-    and eb = EBgen of {exn: T.datacon, etype: T.ty option, ident: exp}
+    and eb = EBgen of {exn: T.datacon, etype: T.ty option (*, ident: exp *)}
 	   | EBdef of {exn: T.datacon, edef: T.datacon}
 
     and strb = STRB of {name: S.symbol, str: Modules.Structure, def: strexp}

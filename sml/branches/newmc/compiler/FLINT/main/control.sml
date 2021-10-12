@@ -39,13 +39,14 @@ struct
 	   end
    in
 
-    val print	      = new (flag_cvt, "print", "show IR", false)
+    val print	      = new (flag_cvt, "print", "show IR after each phase", false)
     val printPhases   = new (flag_cvt, "print-phases", "show phases", false)
     val printFctTypes = new (flag_cvt, "print-fct-types",
 			     "show function types", false)
     val printDepth    = new (int_cvt, "printDepth", "FLINT PP print depth", 200)
     val lineWidth     = new (int_cvt, "lineWidth", "FLINT PP line width", 200)
 
+    val lkdebugging   = new (flag_cvt, "lkdebugging", "LtyKernel debugging", false)
     val tmdebugging   = new (flag_cvt, "tmdebugging", "TransTypes debugging", false)
     val trdebugging   = new (flag_cvt, "trdebugging", "Translate debugging", false)
 
@@ -55,6 +56,8 @@ struct
 			     "lcontract phase debugging", false)
     val fcdebugging   = new (flag_cvt, "fcdebugging",
 			     "fcontract phase debugging", false)
+    val fccounters    = new (flag_cvt, "fccounters",
+			     "fcontract counter messages", false)
     val spdebugging   = new (flag_cvt, "spdebugging",
 			     "specialize phase debugging", false)
     val ffdebugging   = new (flag_cvt, "ffdebugging",
@@ -110,7 +113,7 @@ struct
     val saytappinfo = new (flag_cvt, "saytappinfo", "whether to show typelifting stats", false)
 
     (* only for temporary debugging *)
-    val misc = ref 0
+    val misc = new (int_cvt, "misc FLINT debugging", "misc debugging", 0)
 
     (* ======== TYPE CHECKING IR ========= *)
 

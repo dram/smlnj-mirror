@@ -23,18 +23,17 @@ end (* signature PPLEXP *)
 structure PPLexp : PPLEXP =
 struct
 
-local structure A = Absyn
-      structure DA = Access
-      structure S = Symbol
-      structure PP = PrettyPrint
-      structure PU = PPUtil
-      structure LT = PLambdaType
-      open PLambda PPUtil
+local
+  structure A = Access
+  structure S = Symbol
+  structure PP = PrettyPrint
+  structure PU = PPUtil
+  open PLambda
 in
 
 fun bug s = ErrorMsg.impossible ("PPLexp: "^s)
 
-fun sayrep rep = say (DA.prRep rep)
+fun sayrep rep = say (A.prRep rep)
 val lvarName = LambdaVar.lvarName
 
 fun app2(f, [], []) = ()
@@ -64,7 +63,6 @@ fun complex le =
         | g (TAPP(l, [])) = g l
         | g (TAPP(l, _)) = true
         | g (GENOP(_,_,_,_)) = true
-        | g (PACK(_, _, _, l)) = g l
 
         | g (RECORD l) = h l
         | g (SRECORD l) = h l
@@ -179,7 +177,7 @@ fun ppLexp (pd:int) ppstrm (l: lexp): unit =
             (openHOVBox 4;
               pps "CON(";
               openHOVBox 1; pps "("; pps(S.name s); pps ",";
-               pps(DA.prRep c); pps ",";
+               pps(A.prRep c); pps ",";
                prLty' lt; pps ")";
               closeBox ();
               pps ","; br1 0;
@@ -246,22 +244,6 @@ fun ppLexp (pd:int) ppstrm (l: lexp): unit =
                 closeBox ()
                 pps ")";
                closeBox ())
-
-        | ppl (PACK(lt, ts, nts, l)) =
-            (openHOVBox 0;
-              pps "PACK(";
-              openHVBox 0;
-               openHOVBox 0;
-                app2 (fn (tc,ntc) =>
-                        (pps "<"; ppTyc' tc; pps ","; ppTyc' ntc;
-                         pps ">,"; br1 0),
-                     ts, nts);
-               closeBox(); br1 0;
-               prLty' lt; pps ","; br1 0;
-               ppl l;
-              closeBox();
-              pps ")";
-             closeBox())
 
         | ppl (SWITCH (l,_,llist,default)) =
             let fun switch [(c,l)] =
@@ -365,8 +347,8 @@ fun printMatch env ((p,r)::more) =
   | printMatch _ [] = ()
 
 fun ppFun ppstrm l v =
-  let fun last (DA.LVAR x) = x
-        | last (DA.PATH(r,_)) = last r
+  let fun last (A.LVAR x) = x
+        | last (A.PATH(r,_)) = last r
         | last _ = bug "unexpected access in last"
 
       fun find le =
@@ -381,7 +363,6 @@ fun ppFun ppstrm l v =
              else (app find ll; find b)
            | APP(l,r) => (find l; find r)
            | LET(w,l,r) => (if v=w then ppLexp 20 ppstrm l else find l; find r)
-           | PACK(_,_,_,r) => find r
            | TFN(_, r) => find r
            | TAPP(l, _) => find l
            | SWITCH (l,_,ls,d) =>
@@ -391,12 +372,8 @@ fun ppFun ppstrm l v =
            | SRECORD l => app find l
            | VECTOR (l, t) => app find l
            | SELECT(_,l) => find l
-           | CON((_, DA.EXN p, _), _, e) => (find(VAR(last p)); find e)
+           | CON((_, A.EXN p, _), _, e) => (find(VAR(last p)); find e)
            | CON(_,_,e) => find e
-(*
-         | DECON((_, DA.EXN p, _), _, e) => (find(VAR(last p)); find e)
-         | DECON(_,_,e) => find e
-*)
            | HANDLE(e,h) => (find e; find h)
            | RAISE(l,_) => find l
            | INT _ => () | WORD _ => ()
@@ -436,7 +413,6 @@ fun stringTag (VAR _) = "VAR"
   | stringTag (RECORD _) = "RECORD"
   | stringTag (SRECORD _) = "SRECORD"
   | stringTag (SELECT _) = "SELECT"
-  | stringTag (PACK _) = "PACK"
   | stringTag (WRAP _) = "WRAP"
   | stringTag (UNWRAP _) = "UNWRAP"
 

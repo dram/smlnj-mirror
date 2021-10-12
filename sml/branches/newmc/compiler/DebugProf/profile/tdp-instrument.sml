@@ -328,9 +328,8 @@ structure TDPInstrument :> TDP_INSTRUMENT = struct
 			resultty = resultty, tyvars = tyvars }
 	    end
 
-	and i_eb loc (A.EBgen { exn, etype, ident }) =
-	      A.EBgen { exn = exn, etype = etype,
-			ident = i_exp false loc ident }
+	and i_eb loc (A.EBgen { exn, etype }) =
+	      A.EBgen { exn = exn, etype = etype }
 	  | i_eb _ eb = eb
 
 	and i_strb (n, r) (A.STRB { name, str, def }) =

@@ -14,11 +14,13 @@ sig
   val phases		: string list ref  (* determines phases and their order *)
   val insertPhase     : string * int -> unit
 
+  val lkdebugging     : bool ref   (* LtyKernel debugging *)
   val tmdebugging     : bool ref   (* TransTypes debugging *)
   val trdebugging     : bool ref   (* Translate debugging *)
   val nmdebugging     : bool ref   (* Plambda normalization (FlintNM) *)
   val lcdebugging     : bool ref   (* lcontract phase debugging (LContract) *)
   val fcdebugging     : bool ref   (* fcontract phase debugging (FContract) *)
+  val fccounters      : bool ref   (* fcontract counter messages (FContract) *)
   val spdebugging     : bool ref   (* specialize phase debugging (Specialize) *)
   val ffdebugging     : bool ref   (* fixfix phase debugging (FixFix) *)
   val wrdebugging     : bool ref   (* wrap phase debugging (Wrapping) *)

@@ -1,34 +1,23 @@
 FLINT Notes re Match Compiler
 -----------------------------
+newmc0/base/compiler/FLINT/flint-notes.txt
 
-Pambda types vs flint types:
+--------------------------------------------------------------------------------
+[1] PLambda types vs flint types:
+--------------------------------------------------------------------------------
 
   PLambdaType == LtyExtern  (FLINT/plambda/plambdatype.sml)
 
-plambda/plambda.sml:
+  FLINT uses the same types as PLambda (Lty ... LtyExtern).
 
-  structure LK = PLambdaType == LtyExtern
-  type tkine = LK.tkind = Lty.tkind
-  type tyc = LK.tyc = Lty.tyc
-  type lty = LK.lty = Lty.lty
-
+plambda/plambda.sml
 flint/flint.sml
+no longer export FLINT types (tyc, lty, tkind, etc.). These are
+accessed (generally) from Lty, which is the structure in which they
+are originally defined.
 
-  structure LD = LtyDef
-  type tkind = LD.tkind = Lty.tkind
-  type tyc = LD.tyc = Lty.tyc
-  type lty = LD.lty = Lty.lty
-
-So
-
-  Flint.tkind = Plambda.tkind = Lty.tkind
-  Flint.tyc = Plambda.tyc = Lty.tyc
-  Flint.lty = Plambda.lty = Lty.lty
-
-Similarly for tvar, fflag, rflag
-I.e. there is no difference between plambda types and flint types.
-
-But, see this comment in ltydef.sml ---
+But see this comment in ltydef.sml, where it was implied that PLambda
+and FLINT types might diverge at some point. This never happened.
 
 (* 
  * The following functions are written for PLambdaType only. If you
@@ -41,7 +30,6 @@ But, see this comment in ltydef.sml ---
  *
  * Ultimately, LtyDef should be separated into two files: one for 
  * FLINT, another for PLambda, but we will see if this is necessary.
- *
  *)
 
 (** plambda tyc-lty constructors *)
@@ -49,7 +37,7 @@ val tcc_parrow : tyc * tyc -> tyc
 ...
 
 From this it appears that plambda types are a "subset" of FLINT types
-obeying the stated restrictions.
+obeying the stated restrictions. (What "stated restrictions"?)
 
 ----------------------------------------------------------------------
 Type rflag useless:
@@ -63,7 +51,7 @@ It's main use is as the first argument to the TC_TUPLE constructor of
 datatype tycI (the raw tyc representation defined in Lty); 50 occurrences,
 in kernel and reps directories.
 
-This is a minor cleanup.
+This is minor cleanup has been accomplished.
 
 --------------------------------------------------------------------------------
 Type error after wrap (manifested by vis/t28i.sml)
@@ -118,3 +106,143 @@ produce any coercion.
 Best, 
 
 -Zhong
+
+
+--------------------------------------------------------------------------------
+[2] FLINT type cleanup
+--------------------------------------------------------------------------------
+
+The function and record metadata types (fkind, tfkind, ...) have been
+moved from FLINT (FLINT/flint/flint.sml) to Lty (FLINT/kernel/lty.sml)
+to allow FLINT to use the con and dataconstr type defined in PLambda
+without introducing a circular dependency (PLambda -> FLINT ->
+LtyKernel -> PLambda).
+
+The metadata types could have been put in a separate structure (say
+FunRecMeta) which would depend on Lty and be depended on by LtyExtern,
+FLINT, etc.
+
+            /----------------\ 
+           /                  \
+       Lty --> FunRecMeta --> FLINT
+           \                  /
+	    \--> PLambda ----/
+
+       
+       FunRecMeta ---> LtyExtern
+
+PLambda and FLINT both refer to Lty (tyc, lty), as would FunRecMeta.
+Lots of FLINT files (and a couple CPS files) would refer to FunRecMeta
+where they now refer to Lty for those types. LtyExtern would also
+refer to FunRecMeta as well as Lty (LtyDef, LtyBasic, LtyKernel, ...?).
+This would be cleaner.  THIS HAS BEEN DONE (DBM: 9/22/21).
+
+Note: Could invert the dependency relation between Lty and FunRecMeta by
+moving the fflag type from Lty to FunRecMeta. The fflag seems to fit
+the notion of function metadata.
+
+Note: A first step is to eliminate "inclusions" between the the FLINT/kernel
+structures, so their functionalities are disjoint, not cumulative.
+
+
+--------------------------------------------------------------------------------
+[3] FContract (FLINT/opt/fcontract.sml)
+--------------------------------------------------------------------------------
+Collect is a subsidiary module suporting (only)
+FConstract. Collect.collect is called before FContract.contract to
+collect initial information on (lvar) variable usage.
+
+Collect maintains a global (hash)table T mapping lvars to info records.
+
+(1) T (Collect), a hashtable mapping lvars to "info", which is an
+accounting record that contains counts of
+
+(a) uses: all occurrences of the lvar
+(b) calls: a subset of occurrences where the lvar is bound to a
+    function and the function is called (the lvar is the rator of an APP)
+    (F.APP(V.VAR lvar, _)).
+(c) intuses (internal uses): uses of a function name in the body of
+    that function.
+
+These counts are all references that can be updated during analysis.
+Sometimes they are incremented (useInfo, callInfo), sometimes
+decremented (unuseInfo, uncallInfo), and sometimes infos are
+"combined" (Collect.transfer) when their variables are "merged".
+
+Keeping the usage counts accurate while transforming the code in
+contract is critical.
+
+intuses counts the internal uses of a function name lvar within the body
+of the function defintion. This is computed once (in collect) and not
+modified later during analysis (contract). Note that Collect does not
+export any functions that modify intuses except ireset, that resets
+the count to 0.
+
+How is intuses used?  In fcFun there is a tests of !intuses = !uses,
+which if true causes the current function (sval Fun argument, Fun_arg)
+to be discarded. Presumably this is because, having all uses internal,
+the function is not used at all outside of its own definition and is
+therefore "dead".
+
+But the intuses value, if not modified, can become
+inaccurate.
+
+Example: b294/t1.sml
+================================================================================
+ (* b294/t1.sml -- signature constraint, polymorphic test => bug *)
+
+structure S : sig val loop : unit -> unit end = (* ! sig constraint *)
+struct
+
+fun test x = true  (* ! arg x or _, but not (), i.e. polymorphic *)
+
+fun loop () =
+  if test () then loop ()
+  else loop ()
+
+end
+================================================================================
+
+For the loop function (v51) in b294/t1.sml, there are
+originally 2 internal calls of loop, so intuses is initially set to
+2. When the function test in inlined and the loop body switch is
+simplified, the body of the function becomes
+
+   FN [] (APP (VAR v51), [])
+
+in the context
+
+   FIX(v51{2,2,2} : FD[FUN(rr), SAF, true, TR[TYC({})]] = 
+	 FN([], APP(v51,[])))
+   APP(v51,[])
+
+so the intuses should be decremented to 1.  But the info for v51
+(finfo in fcFun) is {2,2,2}, so the function definition (Fun_arg) is
+discarded in fcFun because iusenb finfo = 2 = usenb finfo.
+
+Note: the only place where the intuses field of info is modified
+during the contract analysis is in the dropargs function in wrap in
+fcFix (fcexp/fcFix/wrap/dropargs), which does not apply in the t1.sml
+example.
+
+So the fix for bug 294 (t1.sml) probably involves either appropriately
+modifying the intuses counts during contraction, or possibly dropping
+this test in fcFun (if that would not do any harm).
+
+Trying the latter (deleting the if-then-else case for iusesnb = usesnb
+in fcFun) seems to work. Compiler fixpoints and b294/t1.sml compiles
+without the bug occurring.
+
+
+(2) m : bindings (FContract)
+
+bindings are mappings of lvars to "svals", which are
+symbolic values representing the "meaning" of the lvar. E.g. a Fun if
+the lvar is the "name" of a function. 
+
+The Fun sval contains the same fields as F.fundec, but in a different
+order. Fun should probably have the type:
+
+   Fun of {fundec: fundec, actuals: sval list list ref}
+
+

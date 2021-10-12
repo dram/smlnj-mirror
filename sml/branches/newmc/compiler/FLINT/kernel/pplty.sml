@@ -87,7 +87,7 @@ fun ppTKind pd ppstrm (tk : LT.tkind) =
 	       pps "KSEQ";
 	       ppList' {sep=",", pp=ppTKind (pd-1)} tkinds;
 	      closeBox())
-     in ppTKindI (LT.tk_outX tk)
+     in ppTKindI (LT.tk_out tk)
     end (* ppTKind *)
 
 fun tycEnvFlatten(tycenv) =
@@ -216,10 +216,6 @@ and ppTyc pd ppstrm (tycon : LT.tyc) =
                pps ")";
               closeBox();
 	     closeBox())
-	  | ppTycI (LT.TC_ABS tyc) =
-	    (pps "ABS(";
-	     ppTyc' tyc;
-	     pps ")")
 	  | ppTycI (LT.TC_BOX tyc) =
 	    (pps "BOX(";
 	     ppTyc' tyc;
@@ -258,11 +254,8 @@ and ppTyc pd ppstrm (tycon : LT.tyc) =
 	     break {nsp=1,offset=0};
 	     ppTyc' resTyc;
 	     pps ")")
-	  | ppTycI (LT.TC_TOKEN (tok, tyc)) =
-	    (pps "TOK(";
-	     pps (LT.token_name tok);
-	     pps ",";
-	     break {nsp=1,offset=0};
+	  | ppTycI (LT.TC_WRAP tyc) =
+	    (pps "TC_WRAP(";
 	     ppTyc' tyc;
 	     pps ")")
 	  | ppTycI (LT.TC_CONT tycs) =
@@ -298,7 +291,7 @@ and ppTyc pd ppstrm (tycon : LT.tyc) =
 	     ppList' {sep=",", pp=ppTEBinder (pd-1)} (tycEnvFlatten tenv);
              pps ")";
 	     closeBox())
-    in ppTycI (LT.tc_outX tycon)
+    in ppTycI (LT.tc_out tycon)
     end (* ppTyc *)
 
 
@@ -369,7 +362,7 @@ fun ppLty pd ppstrm (lty: LT.lty) =
 	     ppList' {sep=",", pp=ppTEBinder (pd-1)} (tycEnvFlatten tenv);
              pps ")";
 	     closeBox())
-    in ppLtyI (LT.lt_outX lty)
+    in ppLtyI (LT.lt_out lty)
     end (* ppLty *)
 
 end (* local *)

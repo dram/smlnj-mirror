@@ -259,8 +259,7 @@ let
 	           val exn =
 		     T.DATACON{name=ename, const=const, typ=ety, lazyp=false,
 			       rep = A.EXN (A.LVAR(mkv(SOME ename))), sign = A.CNIL}
-		in (EBgen{exn=exn, etype=etyOp,
-                          ident=STRINGexp(S.name ename)},
+		in (EBgen{exn=exn, etype=etyOp},
 		    ename, SE.bind(ename, B.CONbind exn, SE.empty), evt)
 	       end
 	   | EbDef{exn=ename,edef=qid} =>

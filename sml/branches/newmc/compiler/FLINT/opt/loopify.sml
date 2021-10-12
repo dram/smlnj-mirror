@@ -13,13 +13,15 @@ end
 structure Loopify :> LOOPIFY =
 struct
 local
-    structure F  = FLINT
     structure O  = Option
-    structure M  = LambdaVar.Map
-    structure S  = LambdaVar.Set
+    structure LV = LambdaVar
+    structure M  = LV.Map
+    structure S  = LV.Set
     structure OU = OptUtils
     structure LT = Lty
+    structure FR = FunRecMeta
     structure LK = LtyKernel
+    structure F  = FLINT
     structure CTRL = FLINT_Control
 in
 
@@ -29,7 +31,7 @@ val cplv = LambdaVar.dupLvar
 
 type al = F.value list list
 datatype info = I of {tails : al ref, calls: al ref, icalls: al ref,
-		      tcp: bool ref, parent: F.lvar}
+		      tcp: bool ref, parent: LV.lvar}
 exception NotFound
 
 fun loopify (prog as (progkind,progname,progargs,progbody)) = let
@@ -58,7 +60,7 @@ fun collect p tfs le = let
 in case le
     of F.RET _ => ()
      | F.LET(_,body,le) => (collect p S.empty body; loop le)
-     | F.FIX([({isrec=(NONE | SOME(_,F.LK_TAIL)),known,...},f,_,body)],le) =>
+     | F.FIX([({isrec=(NONE | SOME(_,FR.LK_TAIL)),known,...},f,_,body)],le) =>
        let val I{tcp,calls,icalls,...} = new(f, known, p)
 	   val _ = loop le
 	   val necalls = length(!calls)
@@ -70,7 +72,7 @@ in case le
 	   val fs = map (fn (fk as {known,...},f,_,body) =>
 			 (fk, f, body, new(f, false, p)))
 			fdecs
-	   fun cfun ({isrec,...}:F.fkind,f,body,I{calls,icalls,...}) =
+	   fun cfun ({isrec,...}: FR.fkind, f, body, I{calls,icalls,...}) =
 	       let val necalls = length(!calls)
 	       in collect f (S.singleton f) body;
 		  icalls := List.take(!calls, length(!calls) - necalls)
@@ -125,7 +127,7 @@ in case le
     of F.RET _ => le
      | F.LET(lvs,body,le) => F.LET(lvs, lexp m [] body, loop le)
      | F.FIX(fdecs,le) =>
-       let fun cfun (fk:F.fkind as {isrec=SOME(ltys,F.LK_UNKNOWN),cconv,...},
+       let fun cfun (fk: FR.fkind as {isrec=SOME(ltys,FR.LK_UNKNOWN),cconv,...},
 		     f,args,body) =
 	       let val I{tcp=ref tcp,icalls=ref icalls,tails=ref tails,...} =
 		       get f
@@ -153,9 +155,9 @@ in case le
 		  else
 		      let val cconv' =
 			      case cconv
-			       of (F.CC_FCT | F.CC_FUN(LT.FF_FIXED)) => cconv
-				| F.CC_FUN(LT.FF_VAR(f1,f2)) =>
-				  F.CC_FUN(LT.FF_VAR(true,f2))
+			       of (FR.CC_FCT | FR.CC_FUN(LT.FF_FIXED)) => cconv
+				| FR.CC_FUN(LT.FF_VAR(f1,f2)) =>
+				  FR.CC_FUN(LT.FF_VAR(true,f2))
 
 			  (* figure out what arguments of the tail loop
 			   * are invariants and create the corresponding
@@ -192,8 +194,8 @@ in case le
 			  (* wrap into a tail loop if necessary.  *)
 			  val nbody =
 			      if null tails then nbody else
-				  F.FIX([({isrec=SOME(ltys, F.LK_TAIL),
-					   known=true, inline=F.IH_SAFE,
+				  F.FIX([({isrec=SOME(ltys, FR.LK_TAIL),
+					   known=true, inline=FR.IH_SAFE,
 					   cconv=cconv'}, ft, atfun,
 					  nbody)],
 				    F.APP(F.VAR ft, atcall))
@@ -201,8 +203,8 @@ in case le
 			  (* wrap into a non-tail loop if necessary.  *)
 			  val nbody =
 			      if null icalls then nbody else
-				  F.FIX([({isrec=SOME(ltys, F.LK_LOOP),
-					   known=true, inline=F.IH_SAFE,
+				  F.FIX([({isrec=SOME(ltys, FR.LK_LOOP),
+					   known=true, inline=FR.IH_SAFE,
 					   cconv=cconv'}, fl, alfun,
 					  nbody)],
 				    F.APP(F.VAR fl, alcall))
@@ -210,7 +212,7 @@ in case le
 		      in (fk, f, args, nbody)
 		      end
 	       end
-	     | cfun (fk as {inline=F.IH_UNROLL,isrec=SOME _,...},f,args,body) =
+	     | cfun (fk as {inline=FR.IH_UNROLL,isrec=SOME _,...},f,args,body) =
 	       let val I{tcp=ref tcp,...} = get f
 	       in (fk, f, args, lexp m (if tcp then tfs else []) body)
 	       end

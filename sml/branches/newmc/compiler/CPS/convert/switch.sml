@@ -21,12 +21,14 @@ structure Switch : sig
 	  } -> {
 	    arg     : CPS.value,
 	    sign    : Access.consig,
-	    cases   : (FLINT.con * CPS.cexp) list,
+	    cases   : (PLambda.con * CPS.cexp) list,
 	    default : CPS.cexp
 	  } -> CPS.cexp
 
   end = struct
 
+    structure LT = Lty
+    structure PL = PLambda
     structure F = FLINT
     structure A = Access
 
@@ -235,7 +237,7 @@ structure Switch : sig
   (* generate a switch for string patterns *)
     fun stringSwitch (arg, cases, default : CPS.cexp) = let
 	  fun ifeq (s, tr, fl) = CPS.BRANCH(CPS.P.STREQL s, [arg], mkv(), tr, fl)
-	  fun un_str (F.STRINGcon s, act) = (s, act)
+	  fun un_str (PL.STRINGcon s, act) = (s, act)
 	    | un_str _ = bug "un_str"
 	(* group cases by length of the string *)
 	  fun coalesce cases = let
@@ -271,15 +273,15 @@ structure Switch : sig
 	  end
 
   (* does a datatype constructor have a boxed representation? *)
-    fun isboxed (F.DATAcon((_,A.CONSTANT _, _),_,_)) = false
-      | isboxed (F.DATAcon((_,A.LISTNIL,_),_,_)) = false
-      | isboxed (F.DATAcon((_,rep,_),_,_)) = true
+    fun isboxed (PL.DATAcon((_,A.CONSTANT _, _),_,_)) = false
+      | isboxed (PL.DATAcon((_,A.LISTNIL,_),_,_)) = false
+      | isboxed (PL.DATAcon((_,rep,_),_,_)) = true
       | isboxed _ = bug "isboxed"
 
   (* generate switch code for a datatype with the given signature *)
     fun dataconSwitch (arg, sign, cases, default) = let
-	  fun tag (F.DATAcon((_, A.CONSTANT i, _), _, _), act) = (toII i, act)
-	    | tag (F.DATAcon((_, A.TAGGED i, _), _, _), act) = (toII i, act)
+	  fun tag (PL.DATAcon((_, A.CONSTANT i, _), _, _), act) = (toII i, act)
+	    | tag (PL.DATAcon((_, A.TAGGED i, _), _, _), act) = (toII i, act)
 	    | tag (_, act) = (0, act)
 	  val (boxed, unboxed) = List.partition (isboxed o #1) cases
 	  val boxed = List.map tag boxed
@@ -328,8 +330,8 @@ structure Switch : sig
     fun switch {rename} {cases=[], default, ...} = default
       | switch {rename} {arg, sign, cases as (c, _)::_, default} =
 	(case c
-	   of F.INTcon{ival, ty} => let
-		fun un_int (F.INTcon{ival, ...}, act) = (ival, act)
+	   of PL.INTcon{ival, ty} => let
+		fun un_int (PL.INTcon{ival, ...}, act) = (ival, act)
 		  | un_int _ = bug "un_int"
 		val cases = List.map un_int cases
 		in
@@ -337,8 +339,8 @@ structure Switch : sig
 		    then taggedNumSwitch(arg, tagIntKind, cases, default, NONE)
 		    else boxedNumSwitch(arg, boxNumTy ty, CPS.P.INT ty, cases, default)
 		end
-	    | F.WORDcon{ival, ty} => let
-		fun un_word (F.WORDcon{ival, ...}, act) = (ival, act)
+	    | PL.WORDcon{ival, ty} => let
+		fun un_word (PL.WORDcon{ival, ...}, act) = (ival, act)
 		  | un_word _ = bug "un_int"
 		val cases = List.map un_word cases
 		in
@@ -346,17 +348,17 @@ structure Switch : sig
 		    then taggedNumSwitch(arg, tagWordKind, cases, default, NONE)
 		    else boxedNumSwitch(arg, boxNumTy ty, CPS.P.UINT ty, cases, default)
 		end
-	    | F.STRINGcon _ => stringSwitch(arg, cases, default)
-	    | F.DATAcon((_, A.EXN _, _), _, _) => let
+	    | PL.STRINGcon _ => stringSwitch(arg, cases, default)
+	    | PL.DATAcon((_, A.EXN _, _), _, _) => let
 		val x = mkv()
 		fun gen [] = default
-		  | gen ((F.DATAcon((_, A.EXN(A.LVAR p), _), _, _), act)::r) =
+		  | gen ((PL.DATAcon((_, A.EXN(A.LVAR p), _), _, _), act)::r) =
 		      CPS.BRANCH(CPS.P.PNEQ, [CPS.VAR x, rename p], mkv(), gen r, act)
 		  | gen _ = bug "exnSwitch"
 		in
 		  CPS.PURE(CPS.P.GETEXN, [arg], x, CPSUtil.BOGt, gen cases)
 		end
-	    | F.DATAcon _ => dataconSwitch(arg, sign, cases, default)
+	    | PL.DATAcon _ => dataconSwitch(arg, sign, cases, default)
 	  (* end case *))
 
   end

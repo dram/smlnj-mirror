@@ -15,7 +15,8 @@ end = struct
 
     structure CTRL = FLINT_Control  (* == Control.FLINT *)
     structure PF = PrintFlint  (* structure PPF = PPFlint *)
-    structure LT = LtyExtern
+    structure LB = LtyBasic
+    structure LE = LtyExtern
     structure F  = FLINT
 
     fun bug s = ErrorMsg.impossible ("FLINTOpt:" ^ s)
@@ -30,9 +31,9 @@ end = struct
     datatype flintkind = FK_DEBRUIJN | FK_NAMED | FK_WRAP | FK_REIFY
 
     (* phase mapping of flintkind:
-       fcontract : fk --> fk  (fk <> FK_DEBRUIJN; not applicable to FK_DEBRUIJN)
        lcontract : fk --> fk  (fk <> FK_DEBRUIJN; not applicable to FK_DEBRUIJN)
-       fcontract+eta : fk --> fk  (fk <> FK_DEBRUIJN)
+       fcontract : fk --> fk  (fk <> FK_DEBRUIJN; not applicable to FK_DEBRUIJN)
+       fcontract+eta : fk --> fk  (fk <> FK_DEBRUIJN)  -- fcontract+eta = fcontract[etaSplit=true]
        fixfix : fk --> fk
        loopify : fk --> fk
        specialize : FK_NAMED --> FK_NAMED
@@ -42,7 +43,7 @@ end = struct
        names2deb : fk --> FK_DEBRUIJN  (fk = FK_NAMED, FK_WRAP?, FK_REIFY?)
        typelift : fk --> fk
        split : FK_NAMED --> FK_NAMED
-       pickle, collect, id, wellformed, recover, print, printsplit, check : fk --> fk
+       pickle, id, wellformed, recover, print, printsplit, check : fk --> fk
          (check may require FK_DEBRUIJN)
 
        Progression of flintkinds starting with flintnm:
@@ -69,18 +70,11 @@ end = struct
     val names2deb  = phase "FLINT 057 names2deb" TvarCvt.names2debIndex
 
     val lcontract  = phase "FLINT 052 lcontract" LContract.lcontract
-    val fcollect   = phase "FLINT 052a fcollect" Collect.collect
-    val fcontract  = phase "FLINT 052b fcontract"
-			  (fn (opts,lexp) => FContract.contract opts lexp)
-    val fcontract  = fn opts => fn lexp => fcontract(opts, fcollect lexp)
+    val fcontract  = phase "FLINT 052b fcontract" FContract.contract
     val loopify    = phase "FLINT 057 loopify" Loopify.loopify
     val fixfix     = phase "FLINT 056 fixfix" FixFix.fixfix
-(* not enabled; LambdaSplitting.get returns NONE  [DBM: 2020-11-28]
-    val split      = phase "FLINT 058 split" FSplit.split
-*)
     val typelift   = phase "FLINT 0535 typelift" Lift.typeLift
     val wformed    = phase "FLINT 0536 wformed" Lift.wellFormed
-
     val specialize = phase "FLINT 053 specialize" Specialize.specialize
     val wrap       = phase "FLINT 054 wrap" Wrapping.wrapping
     val reify      = phase "FLINT 055 reify" Reify.reify
@@ -113,9 +107,10 @@ end = struct
     (* optimize : F.prog * string * int option -> F.prog * F.prog option *)
     (** optimizing FLINT code *)
     fun optimize (prog, sourceName) =
-      let val _ = (FContract.contractCount := 0)  (* keeping track of fcontract rounds, initialized to 0 *)
+	let val _ = (FContract.contractCount := 0)
+	    (* keeping track of fcontract rounds, initialized to 0 *)
 
-	  val baseName = OS.Path.base sourceName
+	    val baseName = OS.Path.base sourceName
 
           (* dump: F.prog * string -> unit *)
           (* ASSUME: prog uses named type variables (FK_NAMED, FK_WRAP, FK_REIFY) *)
@@ -152,9 +147,9 @@ end = struct
 		      (say ("\n!! " ^ phase ^ " cannot be applied to the DeBruijn form !!\n");
 		       pdata)
 		  | ("fcontract", _) =>
-		      (fcontract {etaSplit=false, tfnInline=false} f, fk, phase)
+		      (fcontract (false, f), fk, phase)   (* etaSplit = false *)
 		  | ("fcontract+eta", _) =>
-		      (fcontract {etaSplit=true, tfnInline=false} f, fk, phase)
+		      (fcontract (true, f), fk, phase)    (* etaSplit = true *)
 		  | ("lcontract",_) =>
 		      (lcontract f, fk, phase)
 		  | ("fixfix", _) =>
@@ -190,7 +185,6 @@ end = struct
 		  | ("pickle", _) =>
 		      (valOf(UnpickMod.unpickleFLINT(#pickle(PickMod.pickleFLINT(SOME f)))),
 		       fk, phase)
-		  | ("collect", _) => (fcollect f, fk, phase)
 		  | ("dump", _) =>
 		      (dump (l, f, fk); pdata)
 		  | _ => (case phase
@@ -198,7 +192,7 @@ end = struct
 			     | "wellformed" => wff(f,l)
 			     | "recover" =>
 			         let val getlty = recover(f, fk = FK_REIFY)
-				  in CTRL.recover := (say o LT.lt_print o getlty o F.VAR)
+				  in CTRL.recover := (say o LB.lt_print o getlty o F.VAR)
 				 end
 			     | "print" =>
 			         (say("\n[After "^l^"...]\n\n"); PF.printFundec f; say "\n")

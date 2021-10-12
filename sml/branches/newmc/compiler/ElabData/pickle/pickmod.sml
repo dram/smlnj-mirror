@@ -70,27 +70,21 @@ signature PICKMOD = sig
 	  exportLvars: Access.lvar list, hasExports: bool }
 end
 
+structure PickMod :> PICKMOD =
+struct
+
 local
-    functor MapFn = RedBlackMapFn
-in
-  structure PickMod :> PICKMOD = struct
-
-    datatype context =
-	INITIAL of ModuleId.tmap
-      | REHASH of PersStamps.persstamp
-      | LIBRARY of ((int * Symbol.symbol) option * ModuleId.tmap) list
-
-    (* to gather some statistics... *)
-    val addPickles = Stats.addStat (Stats.makeStat "Pickle Bytes")
-
     fun bug msg = ErrorMsg.impossible ("PickMod: " ^ msg)
 
+    functor MapFn = RedBlackMapFn
     structure A = Access
     structure DI = DebIndex
     structure LT = Lty
     structure LK = LtyKernel
     structure PT = PrimTyc
+    structure PL = PLambda
     structure F = FLINT
+    structure FR = FunRecMeta
     structure T = Types
     structure SP = SymPath
     structure IP = InvPath
@@ -102,6 +96,14 @@ in
     structure P = Primop
     structure M = Modules
     structure B = Bindings
+in
+    (* to gather some statistics... *)
+    val addPickles = Stats.addStat (Stats.makeStat "Pickle Bytes")
+
+    datatype context =
+	INITIAL of ModuleId.tmap
+      | REHASH of PersStamps.persstamp
+      | LIBRARY of ((int * Symbol.symbol) option * ModuleId.tmap) list
 
     (** NOTE: the CRC functions really ought to work on Word8Vector.vectors **)
     fun pickle2hash pickle =
@@ -525,7 +527,7 @@ in
     fun tkind x = let
 	val op $ = PU.$ TK
 	fun tk x =
-	    case LK.tk_out x of
+	    case LT.tk_out x of
 	    LT.TK_MONO => "A" $ []
 	  | LT.TK_BOX => "B" $ []
 	  | LT.TK_SEQ ks => "C" $ [list tkind ks]
@@ -538,7 +540,7 @@ in
 	fun lty x = let
 	    val op $ = PU.$ LT
 	    fun ltyI x =
-		case LK.lt_out x of
+		case LK.lt_whnm_out x of
 		    LT.LT_TYC tc => "A" $ [tyc tc]
 		  | LT.LT_STR l => "B" $ [list lty l]
 		  | LT.LT_FCT (ts1, ts2) => "C" $ [list lty ts1, list lty ts2]
@@ -553,7 +555,7 @@ in
 	and tyc x = let
 	    val op $ = PU.$ TC
 	    fun tycI x =
-		case LK.tc_out x of
+		case LK.tc_whnm_out x of
 		    LT.TC_VAR (db, i) => "A" $ [int (DI.di_toint db), int i]
 		  | LT.TC_NVAR n => "B" $ [lvar n]
 		  | LT.TC_PRIM t => "C" $ [int (PT.pt_toint t)]
@@ -565,7 +567,6 @@ in
 		  | LT.TC_FIX{family={size=n,names,gen=tc,params=ts},index=i} =>
 			"I" $ [int n, list string (Vector.foldr (op ::) [] names),
                                tyc tc, list tyc ts, int i]
-		  | LT.TC_ABS tc => "J" $ [tyc tc]
 		  | LT.TC_BOX tc => "K" $ [tyc tc]
 		  | LT.TC_TUPLE l => "L" $ [list tyc l]
 		  | LT.TC_ARROW (LT.FF_VAR (b1, b2), ts1, ts2) =>
@@ -573,7 +574,7 @@ in
 		  | LT.TC_ARROW (LT.FF_FIXED, ts1, ts2) =>
 			"N" $ [list tyc ts1, list tyc ts2]
 		  | LT.TC_PARROW _ => bug "unexpected TC_PARREW in mkPickleLty"
-		  | LT.TC_TOKEN (tk, t) => "O" $ [int (LT.token_int tk), tyc t]
+		  | LT.TC_WRAP t => "O" $ [tyc t]
 		  | LT.TC_IND _ => bug "unexpected TC_IND in mkPickleLty"
 		  | LT.TC_ENV _ => bug "unexpected TC_ENV in mkPickleLty"
 		  | LT.TC_CONT _ => bug "unexpected TC_CONT in mkPickleLty"
@@ -603,11 +604,10 @@ in
 
 	fun con arg = let
 	    val op $ = PU.$ C
-	    fun c (F.DATAcon (dc, ts, v), e) = "1" $ [dcon (dc, ts), lvar v, lexp e]
-	      | c (F.INTcon{ty, ival}, e) = "2" $ [int ty, intinf ival, lexp e]
-	      | c (F.WORDcon{ty, ival}, e) = "4" $ [int ty, intinf ival, lexp e]
-	      | c (F.STRINGcon s, e) = "7" $ [string s, lexp e]
-   (*	      | c (F.VLENcon i, e) = "8" $ [int i, lexp e] *)
+	    fun c (PL.DATAcon (dc, ts, v), e) = "1" $ [dcon (dc, ts), lvar v, lexp e]
+	      | c (PL.INTcon{ty, ival}, e) = "2" $ [int ty, intinf ival, lexp e]
+	      | c (PL.WORDcon{ty, ival}, e) = "4" $ [int ty, intinf ival, lexp e]
+	      | c (PL.STRINGcon s, e) = "7" $ [string s, lexp e]
 	    in
 	      c arg
 	    end
@@ -671,11 +671,11 @@ in
 
 	and fkind arg = let
 	    val op $ = PU.$ FK
-	    fun isAlways F.IH_ALWAYS = true
+	    fun isAlways FR.IH_ALWAYS = true
 	      | isAlways _ = false
 	    fun strip (x, y) = x
-	    fun fk { cconv = F.CC_FCT, ... } = "2" $ []
-	      | fk { isrec, cconv = F.CC_FUN fixed, known, inline } =
+	    fun fk { cconv = FR.CC_FCT, ... } = "2" $ []
+	      | fk { isrec, cconv = FR.CC_FUN fixed, known, inline } =
 		case fixed of
 		    LT.FF_VAR (b1, b2) =>
 			"3" $ [option (list lty) (Option.map strip isrec),
@@ -690,9 +690,9 @@ in
 
 	and rkind arg = let
 	    val op $ = PU.$ RK
-	    fun rk (F.RK_VECTOR tc) = "5" $ [tyc tc]
-	      | rk F.RK_STRUCT = "6" $ []
-	      | rk F.RK_TUPLE = "7" $ []
+	    fun rk (FR.RK_VECTOR tc) = "5" $ [tyc tc]
+	      | rk FR.RK_STRUCT = "6" $ []
+	      | rk FR.RK_TUPLE = "7" $ []
 	in
 	    rk arg
 	end
@@ -1335,6 +1335,7 @@ in
 	{ newenv = newenv, hash = hash,
 	  exportLvars = rev lvars, hasExports = hasExports }
     end
-  end
-end
+
+end (* top local *)
+end (* structure PickMod *)
 

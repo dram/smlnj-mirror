@@ -322,8 +322,8 @@ fun makeLAYEREDpat ((x as VARpat _), y, _) = LAYEREDpat(x,y)
 (* fillPat : AS.pat -> AS.pat *)
 (* (1) fills out flex record patterns according to the known record type, turning them
  *     into nonflex record patterns.  Using WILDpat for the elided fields.
- * (2) uses mkRep to adjust representations for exception constructors and
- *     the SUSP pseudo-constructor *)
+ * [used to (in translate.sml) use mkRep to adjust representations for exception constructors and
+ *     the SUSP pseudo-constructor ] *)
 fun fillPat pat =
   let fun fill (pat as RECORDpat {fields, flex=true, typ}) =
             let val fields' = map (fn (l,p) => (l, fill p)) fields

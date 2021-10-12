@@ -16,20 +16,24 @@ end (* signature TVARCVT *)
 (* DBM: the named type variable form (FK_NAMED) is retained throughout the optimization
  * phases, so the deBruijn-style type variables are probably not needed. If
  * the front-end, PLambda, and FlintNM were modified to work with named type
- * variables, then these two functions and the TvarCvt structure could be 
+ * variables (in expressions), then these two functions and the TvarCvt structure could be 
  * eliminated. *)
     
 structure TvarCvt :> TVARCVT =
 struct
 
     (* local abbreviations *)
-    structure F  = FLINT
     structure DI = DebIndex
     structure LV = LambdaVar
-    structure LE = LtyExtern
+    structure LT = Lty
+    structure FR = FunRecMeta
     structure LK = LtyKernel
-
+    structure LD = LtyDef
+    structure LE = LtyExtern
+    structure PL = PLambda
+    structure F  = FLINT
     structure PP = PrettyPrint
+
     val with_pp  = PP.with_default_pp
 
     fun ppTyc tyc =
@@ -53,15 +57,15 @@ struct
     val debIndex2names =
 	let fun extendEnv (env, tvtks) =
                 let val (tvars,ks) = ListPair.unzip tvtks
-		in Lty.teCons(Lty.Beta (0, map LE.tcc_nvar tvars, ks), env)
+		in Lty.teCons(Lty.Beta (0, map LD.tcc_nvar tvars, ks), env)
 		end
 
             fun cvtExp (env: Lty.tycEnv, depth: depth, lexp: F.lexp) =
 		let fun tcSubst tyc = LK.tcc_env (tyc, depth, depth, env)
 		    fun ltSubst lty = LK.ltc_env (lty, depth, depth, env)
 
-		    fun cvtCon (F.DATAcon ((sym, cr, lty), tycs, lv)) =
-			  F.DATAcon ((sym, cr, ltSubst lty),
+		    fun cvtCon (PL.DATAcon ((sym, cr, lty), tycs, lv)) =
+			  PL.DATAcon ((sym, cr, ltSubst lty),
 				     map tcSubst tycs, lv)
 		      | cvtCon c = c
 
@@ -106,7 +110,7 @@ struct
 
 			  | F.RECORD (rkind, vs, lvar, e) =>
 			    F.RECORD ((case rkind
-					 of F.RK_VECTOR tyc => F.RK_VECTOR (tcSubst tyc)
+					 of FR.RK_VECTOR tyc => FR.RK_VECTOR (tcSubst tyc)
 					  | _ => rkind),
 				      vs, lvar, cvt e)
 
@@ -188,7 +192,7 @@ struct
 	      of NONE => (dbsay ("findDTvar: not found: " ^ LV.prLvar tvar ^ "\n"); NONE)
 	       | SOME (binderDepth, i) =>
 		  (dbsay ("findDTvar: found: " ^ LV.prLvar tvar ^ "\n");
-	           SOME (LE.tcc_var (relativeDepth (currDepth, binderDepth), i)))
+	           SOME (LD.tcc_var (relativeDepth (currDepth, binderDepth), i)))
            (*esac*))
 
         (* tc_nvar_elim: (tvar * DebIndex.depth -> tyc option)
@@ -203,11 +207,11 @@ struct
 	    let val find = findDTvar env
 		(* instantiate a new subst dictionary on each invocation..
 		 * clean this up later. HOW??? *)
-		val tcSubst : LE.tyc -> LE.tyc = tc_nvar_elim find depth
-		val ltSubst : LE.lty -> LE.lty = lt_nvar_elim find depth
+		val tcSubst : LT.tyc -> LT.tyc = tc_nvar_elim find depth
+		val ltSubst : LT.lty -> LT.lty = lt_nvar_elim find depth
 
-		fun cvtCon (F.DATAcon ((sym, cr, lty), ts, lv)) =
-		    F.DATAcon ((sym, cr, ltSubst lty), map tcSubst ts, lv)
+		fun cvtCon (PL.DATAcon ((sym, cr, lty), ts, lv)) =
+		    PL.DATAcon ((sym, cr, ltSubst lty), map tcSubst ts, lv)
 		  | cvtCon c = c
 
 		fun cvtDict ({default, table} : F.dict) : F.dict =
@@ -256,8 +260,8 @@ struct
 
 		      | F.RECORD (rk, vs, lv, e) =>
 			F.RECORD ((case rk of
-				       F.RK_VECTOR t =>
-				       F.RK_VECTOR (tcSubst t)
+				       FR.RK_VECTOR t =>
+				       FR.RK_VECTOR (tcSubst t)
 				     | _ => rk),
 				  vs, lv, cvt e)
 

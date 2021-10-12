@@ -7,77 +7,9 @@
 signature FLINT =
   sig
 
-    type tkind = LtyDef.tkind  (* = Lty.tkind *)
-    type tyc = LtyDef.tyc      (* = Lty.tyc *)
-    type lty = LtyDef.lty      (* = Lty.lty *)
-
-    type tvar = LtyDef.tvar    (* = Lty.tvar *)
-    type lvar = LambdaVar.lvar
-
-    type fflag = LtyDef.fflag  (* = Lty.fflag *)
-
-  (* specifies what kind of inlining behavior is desired for the function *)
-    datatype ilhint
-      = IH_SAFE				(* only inline if trivially size-safe *)
-      | IH_ALWAYS			(* inline whenever possible *)
-      | IH_UNROLL			(* only inline once within itself *)
-    (* call-site dependent inlining:
-     *     #1 < sum (map2 (fn (a,w) => (known a) * w) (actuals, #2)
-     *)
-      | IH_MAYBE of int * int list
-
-  (* what kind of recursive function (aka loop) is this *)
-  (* the distinction between LK_LOOP and LK_UNKNOWN is not clear
-   * and might get dropped so that we only need `tail:bool'
-   *)
-    datatype loopkind
-      = LK_UNKNOWN			(* something else *)
-      | LK_LOOP				(* loop wrapped in a preheader *)
-      | LK_TAIL				(* like LK_LOOP but tail-recursive *)
-
-  (* calling convention *)
-    datatype cconv
-      = CC_FCT				(* it's a functor *)
-      | CC_FUN of fflag			(* it's a function *)
-
-  (** classifying various kinds of functions *)
-    type fkind = {
-	inline: ilhint,			(* when should it be inlined *)
-	known : bool,			(* are all the call sites known *)
-	cconv : cconv,			(* calling convention *)
-	isrec : (lty list * loopkind) option (* is it recursive *)
-      }
-
-  (* additional attributes for type abstractions *)
-    type tfkind = {inline: ilhint}
-
-  (** classifying various kinds of records *)
-    datatype rkind
-      = RK_VECTOR of tyc   (* vector: all elements have same type *)
-      | RK_STRUCT          (* module: elements may be polymorphic *)
-      | RK_TUPLE           (* tuple: all fields are monomorphic *)
-
-  (*
-   * dcon records the name of the constructor (for debugging), the
-   * corresponding conrep, and the flint type lty (which must be an
-   * arrow type). The use of conrep will go away soon.
-   *)
-    type dcon = Symbol.symbol * Access.conrep * lty
-
-  (*
-   * con: used to specify all possible switching statements. Efficient switch
-   * generation can be applied to DATAcon and INTcon. Otherwise, the switch is
-   * just a short-hand of the binary branch trees.
-   *)
-    datatype con
-      = DATAcon of dcon * tyc list * lvar
-      | INTcon of int IntConst.t	(* sz = 0 for IntInf.int *)
-      | WORDcon of int IntConst.t
-      | STRINGcon of string
-
   (** simple values, including variables and static constants. *)
     datatype value
-      = VAR of lvar
+      = VAR of LambdaVar.lvar
       | INT of int IntConst.t	(* sz = 0 for IntInf.int *)
       | WORD of int IntConst.t
       | REAL of int RealConst.t
@@ -86,30 +18,30 @@ signature FLINT =
   (** the definitions of the lambda expressions *)
     datatype lexp
       = RET of value list
-      | LET of lvar list * lexp * lexp
+      | LET of LambdaVar.lvar list * lexp * lexp
 
       | FIX of fundec list * lexp
       | APP of value * value list
 
       | TFN of tfundec * lexp
-      | TAPP of value * tyc list
+      | TAPP of value * Lty.tyc list
 
-      | SWITCH of value * Access.consig * (con * lexp) list * lexp option
-      | CON of dcon * tyc list * value * lvar * lexp
+      | SWITCH of value * Access.consig * (PLambda.con * lexp) list * lexp option
+      | CON of PLambda.dataconstr * Lty.tyc list * value * LambdaVar.lvar * lexp
 
-      | RECORD of rkind * value list * lvar * lexp
-      | SELECT of value * int * lvar * lexp          (* add rkind ? *)
+      | RECORD of FunRecMeta.rkind * value list * LambdaVar.lvar * lexp
+      | SELECT of value * int * LambdaVar.lvar * lexp
 
-      | RAISE of value * lty list
+      | RAISE of value * Lty.lty list
       | HANDLE of lexp * value
 
       | BRANCH of primop * value list * lexp * lexp
-      | PRIMOP of primop * value list * lvar * lexp
+      | PRIMOP of primop * value list * LambdaVar.lvar * lexp
 
-    withtype fundec = fkind * lvar * (lvar * lty) list * lexp
-    and tfundec = tfkind * lvar * (tvar * tkind) list * lexp
-    and dict = {default: lvar, table: (tyc list * lvar) list}
-    and primop = dict option * Primop.primop * lty * tyc list
+    withtype fundec = FunRecMeta.fkind * LambdaVar.lvar * (LambdaVar.lvar * Lty.lty) list * lexp
+    and tfundec = FunRecMeta.tfkind * LambdaVar.lvar * (Lty.tvar * Lty.tkind) list * lexp
+    and dict = {default: LambdaVar.lvar, table: (Lty.tyc list * LambdaVar.lvar) list}
+    and primop = dict option * Primop.primop * Lty.lty * Lty.tyc list
 	(* Invariant: primop's lty is always fully closed *)
 
     type prog = fundec  (* was "lvar * lty * lexp" *)

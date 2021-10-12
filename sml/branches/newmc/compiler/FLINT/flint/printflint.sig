@@ -3,21 +3,21 @@
 
 signature PRINT_FLINT =
 sig
-    val printFKind : FLINT.fkind -> unit
-    val printRKind : FLINT.rkind -> unit
-    val printCon   : FLINT.con -> unit
-    val printSval  : FLINT.value -> unit
+    val printFKind : FunRecMeta.fkind -> unit
+    val printRKind : FunRecMeta.rkind -> unit
+    val printCon   : PLambda.con -> unit
+    val printValue : FLINT.value -> unit
     val printLexp  : FLINT.lexp -> unit
     val printFundec: FLINT.fundec -> unit
     val printProg  : FLINT.prog -> unit
 
-    val printTyc : LtyExtern.tyc -> unit
-    val printLty : LtyExtern.lty -> unit
-    val printTycList : LtyExtern.tyc list -> unit
-    val printLtyList : LtyExtern.lty list -> unit
+    val printTyc : Lty.tyc -> unit
+    val printLty : Lty.lty -> unit
+    val printTycList : Lty.tyc list -> unit
+    val printLtyList : Lty.lty list -> unit
 
     (* defaults to LV.lvarName *)
-    val lvarToStringRef  : (FLINT.lvar -> string) ref
+    val lvarToStringRef  : (LambdaVar.lvar -> string) ref
 
     val valueToString : FLINT.value -> string
 

@@ -17,8 +17,14 @@ local
   structure DA = Access
   structure LV = LambdaVar
   structure M  = LambdaVar.Tbl
-  structure LT = LtyExtern
-  structure F = FLINT
+  structure LT = Lty
+  structure FR = FunRecMeta
+  structure LK = LtyKernel
+  structure LD = LtyDef
+  structure LB = LtyBasic
+  structure LE = LtyExtern
+  structure PL = PLambda
+  structure F  = FLINT
   structure FU = FlintUtil
   structure PO = Primop
   open FLINT
@@ -57,8 +63,8 @@ fun isEqs (vs, us) =
 datatype info
   = SimpVal of value
   | ListExp of value list
-  | FunExp of lvar list * lexp
-  | ConExp of dcon * tyc list * value
+  | FunExp of LV.lvar list * lexp
+  | ConExp of PL.dataconstr * LT.tyc list * value
   | StdExp
 
 exception LContPass1
@@ -193,7 +199,7 @@ fun swiInfo (VAR v, ces, oe) =
       ((case get v
          of (_, SimpVal u) => swiInfo(u, ces, oe)
           | (_, ConExp (dc as (_,rep,_), ts, u)) =>
-               let fun h ((DATAcon(dc as (_,nrep,_),ts,x),e)::r) =
+               let fun h ((PL.DATAcon(dc as (_,nrep,_),ts,x),e)::r) =
                          if rep=nrep then SOME(LET([x], RET [u], e)) else h r
                      | h (_::r) = bug "unexpected case in swiInfo"
                      | h [] = oe
@@ -216,9 +222,9 @@ fun appInfo (VAR v) =
 local
 
 fun isBoolLty lt =
-  (case LT.ltd_arrow lt
+  (case LD.ltd_arrow lt
     of (_, [at], [rt]) =>
-         (LT.lt_eqv(at, LT.ltc_unit)) andalso (LT.lt_eqv(rt, LT.ltc_bool))
+         (LK.lt_eqv(at, LB.ltc_unit)) andalso (LK.lt_eqv(rt, LB.ltc_bool))
      | _ => false)
 
 fun isBool true (RECORD(RK_TUPLE, [], x,
@@ -230,13 +236,13 @@ fun isBool true (RECORD(RK_TUPLE, [], x,
   | isBool _ _ = false
 
 (* functions that do the branch optimizations *)
-fun boolDcon((DATAcon((_,DA.CONSTANT 1,lt1),[],v1), e1),
-             (DATAcon((_,DA.CONSTANT 0,lt2),[],v2), e2)) =
+fun boolDcon((PL.DATAcon((_,DA.CONSTANT 1,lt1),[],v1), e1),
+             (PL.DATAcon((_,DA.CONSTANT 0,lt2),[],v2), e2)) =
       if (isBoolLty lt1) andalso (isBoolLty lt2) then
         SOME(RECORD(FU.rk_tuple,[],v1,e1), RECORD(FU.rk_tuple,[],v2,e2))
       else NONE
-  | boolDcon(ce1 as (DATAcon((_,DA.CONSTANT 0,_),[],_), _),
-             ce2 as (DATAcon((_,DA.CONSTANT 1,_),[],_), _)) =
+  | boolDcon(ce1 as (PL.DATAcon((_,DA.CONSTANT 0,_),[],_), _),
+             ce2 as (PL.DATAcon((_,DA.CONSTANT 1,_),[],_), _)) =
       boolDcon (ce2, ce1)
   | boolDcon _ = NONE
 
@@ -277,7 +283,7 @@ end (* branchopt local *)
      and lpdc (s, DA.EXN acc, t) = (s, DA.EXN(lpacc acc), t)
        | lpdc (s, rep, t) = (s, rep, t)
 
-     and lpcon (DATAcon (dc, ts, v)) = DATAcon(lpdc dc, ts, v)
+     and lpcon (PL.DATAcon (dc, ts, v)) = PL.DATAcon(lpdc dc, ts, v)
        | lpcon c = c
 
      and lpdt {default=v, table=ws} =
@@ -293,10 +299,10 @@ end (* branchopt local *)
      and lpfd ({isrec, known, inline, cconv}, v, vts, e) =
 	 (* The function body might have changed so we need to reset
 	  * the inlining hint *)
-	 ({isrec=isrec, known=known, inline=IH_SAFE, cconv=cconv},
+	 ({isrec=isrec, known=known, inline=FR.IH_SAFE, cconv=cconv},
 	  v, vts, #1(loop e))
 
-     and lplet (hdr: lexp -> lexp, pure, v: lvar, info: info, e) =
+     and lplet (hdr: lexp -> lexp, pure, v: LV.lvar, info: info, e) =
        let val _ = chkIn(v, info)
            val (ne, b) = loop e
         in if pure then (if dead v then (ne, b) else (hdr ne, b))
@@ -345,7 +351,7 @@ end (* branchopt local *)
               end
 
           | FIX(fdecs, e) =>
-              let fun g ({isrec=SOME _, ...} :fkind, v, _, _) =
+              let fun g ({isrec=SOME _, ...}: FR.fkind, v, _, _) =
                          chkIn(v, StdExp)
                     | g ((_, v, vts, xe) : fundec) =
                          chkIn(v, if isCand v then FunExp(map #1 vts, xe)

@@ -43,8 +43,9 @@ local
   structure SP = SymPath
   structure PP = PrettyPrint
   structure PU = PPUtil
+  structure PV = PPVal
 
-  open Absyn Tuples Fixity VarCon Types PPType PPVal
+  open Absyn Tuples Fixity VarCon Types PPType
 in
 
 (* debugging *)
@@ -108,7 +109,7 @@ fun ppStr ppstrm str =
       of M.STR{access,rlzn={rpath,...},...} =>
 	 (ppRpath ppstrm rpath;
 	  PP.string ppstrm "[";
-	  ppAccess ppstrm access;
+	  PV.ppAccess ppstrm access;
 	  PP.string ppstrm "]")
        | M.STRSIG _ => PP.string ppstrm "SIGSTR"
        | M.ERRORstr => PP.string ppstrm "ERRORstr")
@@ -118,14 +119,14 @@ fun ppFct ppstrm fct =
       of M.FCT{access,rlzn={rpath,...},...} =>
 	 (ppRpath ppstrm rpath;
 	  PP.string ppstrm "[";
-	  ppAccess ppstrm access;
+	  PV.ppAccess ppstrm access;
 	  PP.string ppstrm "]")
        | M.ERRORfct => PP.string ppstrm "ERRORfct")
 
 fun ppPat env ppstrm =
     let val {openHOVBox, openHVBox, closeBox, pps, ppi, ...} = PU.en_pp ppstrm
 	fun ppPat' (_,0) = pps "<pat>"
-	  | ppPat' (VARpat v,_) = ppVar ppstrm v
+	  | ppPat' (VARpat v,_) = PV.ppVar ppstrm v
 	  | ppPat' (WILDpat,_) = pps "_"
           | ppPat' (NUMpat(src, _), _) = pps src
 	  | ppPat' (STRINGpat s, _) = PU.ppString ppstrm s
@@ -185,7 +186,7 @@ fun ppPat env ppstrm =
 		    style = PU.INCONSISTENT
 		  } (mkList pat)
 	      end
-	  | ppPat' (CONpat(e,_),_) = ppDcon ppstrm e
+	  | ppPat' (CONpat(e,_),_) = PV.ppDcon ppstrm e
 	  | ppPat' (p as APPpat _, d) =
 	      ppDconPat (env,ppstrm) (p,nullFix,nullFix,d)
 	  | ppPat' (CONSTRAINTpat (p,t),d) =
@@ -261,8 +262,8 @@ fun ppExp (context as (env,source_opt)) ppstrm =
 	fun lpcond atom = if atom then pps "(" else ()
 	fun rpcond atom = if atom then pps ")" else ()
 	fun ppExp' (_,_,0) = pps "<exp>"
-	  | ppExp' (VARexp(ref var,_),_,_) = ppVar ppstrm var
-	  | ppExp' (CONexp(con,_),_,_) = ppDcon ppstrm con
+	  | ppExp' (VARexp(ref var,_),_,_) = PV.ppVar ppstrm var
+	  | ppExp' (CONexp(con,_),_,_) = PV.ppDcon ppstrm con
           | ppExp' (NUMexp(src, _), _, _) = pps src
 	  | ppExp' (REALexp(src, _),_,_) = pps src
 	  | ppExp' (STRINGexp s,_,_) = PU.ppString ppstrm s
@@ -595,7 +596,7 @@ and ppVB (context as (env,source_opt)) ppstrm (VB{pat,exp,...},d) =
 and ppRVB context ppstrm (RVB{var, exp, ...},d) =
     if d>0
     then (PP.openHOVBox ppstrm (PP.Rel 0);
-	  ppVar ppstrm var; PP.string ppstrm " =";
+	  PV.ppVar ppstrm var; PP.string ppstrm " =";
 	  PP.break ppstrm {nsp=1,offset=2}; ppExp context ppstrm (exp,d-1);
 	  PP.closeBox ppstrm)
     else PP.string ppstrm "<rec binding>"
@@ -673,7 +674,7 @@ and ppDec (context as (env,source_opt)) ppstrm =
         | ppDec'(ABSTYPEdec _,d) = pps "abstype"
 
         | ppDec'(EXCEPTIONdec ebs,d) = let
-	      fun f ppstrm (EBgen{exn=DATACON{name,...},etype,...}) =
+	      fun f ppstrm (EBgen{exn=DATACON{name,...},etype}) =
 		  (PU.ppSym ppstrm name;
 		   case etype
 		    of NONE => ()
@@ -689,7 +690,7 @@ and ppDec (context as (env,source_opt)) ppstrm =
         | ppDec'(STRdec sbs,d) = let
 	      fun f ppstrm (STRB{name, str=M.STR { access, ... }, def}) =
 		  (PU.ppSym ppstrm name;
-		   ppAccess ppstrm access;
+		   PV.ppAccess ppstrm access;
 		   pps " = ";
 		   PP.break ppstrm {nsp=1,offset=2};
 		   ppStrexp context ppstrm (def,d-1))
@@ -702,7 +703,7 @@ and ppDec (context as (env,source_opt)) ppstrm =
         | ppDec'(FCTdec fbs,d) = let
 	      fun f ppstrm (FCTB{name=fname, fct=M.FCT { access, ... }, def}) =
                   (PU.ppSym ppstrm fname;
-		   ppAccess ppstrm access;
+		   PV.ppAccess ppstrm access;
 		   pps " = ";
 		   PP.break ppstrm {nsp=1,offset= 2};
 		   ppFctexp context ppstrm (def,d-1))
@@ -772,7 +773,7 @@ and ppDec (context as (env,source_opt)) ppstrm =
 	   closeBox ())
 
         | ppDec'(OVLDdec ovldvar,d) =
-	  (pps "overload "; ppVar ppstrm ovldvar)
+	  (pps "overload "; PV.ppVar ppstrm ovldvar)
 
         | ppDec'(OPENdec strbs,d) =
 	  (openHVBox 0;
