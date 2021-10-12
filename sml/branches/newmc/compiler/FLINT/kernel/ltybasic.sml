@@ -9,6 +9,7 @@ struct
 
 local
   structure DI = DebIndex
+  structure LV = LambdaVar
   structure PT = PrimTyc
   structure LT = Lty
   structure LK = LtyKernel
