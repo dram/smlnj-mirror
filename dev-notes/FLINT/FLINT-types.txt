@@ -5,7 +5,7 @@ MAP (./FLINT-types-modules-3.pdf)
 
 Lty : LTY (lty.{sig,sml})
 
-FunRecMeta (funrecmeta.sml)
+FunRecMeta : FUN_REC_META (funrecmeta.sml)
 
 LtyKernel : LTYKERNEL (ltykernel.{sig,sml})
   (opens Lty)
@@ -48,7 +48,7 @@ tc_injX becomes tc_inj, tc_outX becomes tc_out, etc.
 Module Descriptions
 -------------------
 
-* Lty: LTY
+* Lty: LTY  (kernel/lty.{sig,sml})
   Basic type structure, raw and hash consed, various utility functions
   - exported types:
     aux_info: internal information in hash-consed tycs
@@ -75,6 +75,8 @@ Module Descriptions
       --What is in lty that isn't in tyc?
       --What is the fundamental distinction between tyc and lty, and why
         is it needed?
+
+* FunRecMeta: FUN_REC_META (kernel/funrecmeta.{sig,sml})
 
 * LtyKernel: LTYKERNEL (better name might be "LtyReduce")
   weak-head normal forms and normal forms for type expressions (tyc and lty)
