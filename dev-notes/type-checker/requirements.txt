@@ -5,7 +5,7 @@ Requirements for Type Checker rewrite.
 * Exploit new computational resources (do more work)
 
 * Survey related literature
-  - HMX
+  - HMX (Remy, TIPL 2)
 
 * Fix all known type checker bugs
 
