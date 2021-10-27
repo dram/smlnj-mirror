@@ -77,6 +77,11 @@ Module Descriptions
         is it needed?
 
 * FunRecMeta: FUN_REC_META (kernel/funrecmeta.{sig,sml})
+  Metadata for functions and records. These were originally defined in
+  flint/flint.sml, but they were used in kernel/ltyextern.sml, which caused
+  a near dependency cycle (on type fkind). fflag is a piece of function
+  metadata that could not be included here because Lty uses it, and
+  FunRecMeta depends on Lty.
 
 * LtyKernel: LTYKERNEL (better name might be "LtyReduce")
   weak-head normal forms and normal forms for type expressions (tyc and lty)
