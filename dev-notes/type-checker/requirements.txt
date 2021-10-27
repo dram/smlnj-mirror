@@ -1,0 +1,23 @@
+Requirements for Type Checker rewrite.
+
+* New (sML) record operations
+
+* Exploit new computational resources (do more work)
+
+* Survey related literature
+  - HMX
+
+* Fix all known type checker bugs
+
+* Revamp error mechanisms
+  - type error infrastructure
+  - type error ordering
+  - identifying clashes in "large" types
+
+* printing types
+  - avoid "?"
+  - special cases for "built-in" types
+
+* making implicit (user-) type variable bindings explicit in absyn
+
+
