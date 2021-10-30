@@ -5,7 +5,7 @@
 :source-highlighter: pygments
 :VERSION: 110.98
 
-[0] Agenda:
+[0] Agenda: (also, see requirements.txt)
 
 Reunderstand and redesign type SML/NJ type checker.
 
@@ -61,4 +61,115 @@ An example:
     end;
 
 [end code]
+
+--------------------------------------------------------------------------------
+[1] etyvars (appearing free in type definitions)
+-------------------------------------------------------------------------------- 
+Terminology: a type variable appearing free in an _expression_ (i.e.
+appearing ina type constraint or declared type parameter of a val or
+fun decl, but not a formal parameter in a type declaration) is called
+an "explicit type variable" in the Defn (S 4.6). Another name would be
+an "expression type variable".  In either case, the abbreviation
+or meta-classificaiton could be "etyvar".
+
+[code]
+
+fun 'a f (x: 'a list) =
+    let type 'b t = 'a * 'b  (* SML/NJ doesn't accept "free" 'a in body of defn of t *)
+    in (hd x, 3): int t
+    end;
+
+[end code]
+
+This is not accepted in SML/NJ, but the Defn appears to allow it
+(Section 4.4 and rules (16) and (27)). What do other SML compilers
+do with this?  Eplicitly, the question is whether etyvars are allowed
+to appear in type declarations (abbreviations or datatypes).
+
+PROPOSAL [sML]: This should be outlawed. The only type variables
+allowed in the defn of a type (rhs of a type abbreviation) are
+(immediate) parameter variables of that definition appearing on
+the lhs.
+
+PROPOSAL [sML]: No type definitions allowed inside expressions.
+
+
+As a programming guideline, it is also a bad idea to declare
+exceptions inside of expressions (i.e. not at "top level", meaning
+REPL (interactive) top level or structure top level). There are
+algorithms that can make use of "dynamically" declared exceptions
+with, say, the body of a recursive function, but this is "tricky"
+programming that should not be encouraged.
+
+
+--------------------------------------------------------------------------------
+[2] tycon equality and strictness for DEFtycs
+--------------------------------------------------------------------------------
+
+Can two "different" (resulting from different declarations)
+strict or non-strict DEFtycs turn out to be equal when their
+strictness differs?
+
+Definition of equal for DEFtycs tyc1, tyc2:
+- check arities have to be equal, otherwise tyc1 <> tyc2
+- apply them both to a tuple of "fresh" atomic types
+- fully normalize the results and compare (eqType)
+
+CONJECTURE:
+   eqTycon (deftyc1, deftyc2) => strict(deftyc1) = strict(deftyc2)
+
+where strict(DEFtyc{strict,...}) = strict  -- strictness signature : bool list
+
+-------------- 
+QUESTION: can a DEFtyc tycon be equal to a non-DEFtyc (atomic/basic) tycon?
+
+E.g. given
+
+   type 'a t = 'a list
+
+is eqTycon(t,list) true?
+
+ANSWER: no, eqTycon is only true when tycons are the same "kind" (e.g.
+both GENtyc, both DEFtyc, both PATHtyc, etc).  So a DEFtyc will never
+agree (eqTycon) with a basic (atomic) tycon. (but they _can_ unify!)
+--------------
+
+
+--------------------------------------------------------------------------------
+[3] deftycs and "equality strictness"
+--------------------------------------------------------------------------------
+For a deftyc (DEFtyc _), which arguments need to be equality types for
+the CONty(deftyc, args) to be an equality type?
+
+E.g.
+
+    type ('a,'b) t = ('a, 'b ref)
+
+is equality strict in 'a but not in beta.  Its equality strictness
+signature would therefore be (true, false).
+
+
+--------------------------------------------------------------------------------
+[4] false positive occurrence checks with non-strict deftycs
+--------------------------------------------------------------------------------
+Sometimes deeper (or full) normalization may be required to detect and
+eliminate irrelevant variable occurrences causing false occurrence
+check failures.
+
+E.g.
+
+< deftyc application within a deftyc definition >
+
+
+--------------------------------------------------------------------------------
+[5] Issues relating to unification and overloading (functions and literals)
+--------------------------------------------------------------------------------
+
+Instantiating an OVLDV tyvar (associated with an overloaded function)
+to OVLDI and OVLDW tyvars (associated with overloaded literals).
+[See function tyvarInst in Unify (Elaborator/types/unify.sml), and
+also possibly unifyTyvars.]
+
+Resolving literal overloading before resolving function overloading
+(or vice versa?).
 
