@@ -13,6 +13,10 @@ Requirements for Type Checker rewrite.
   - type error infrastructure
   - type error ordering
   - identifying clashes in "large" types
+  - when printing two types, make sure that equal type are represented with the same
+    names
+  - add control flag to adjust amount of feedback detail
+  - add control to limit number of error messages (i.e., >25 is "too many errors")
 
 * printing types
   - avoid "?"
