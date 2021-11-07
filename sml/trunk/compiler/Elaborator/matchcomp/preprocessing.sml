@@ -7,8 +7,10 @@ struct
 
 local
 
+  structure T = Types
+  structure TU = TypesUtil
   structure BT = BasicTypes
-  structure V  = VarCon		       
+  structure V  = Variable
   structure AS = Absyn
   structure AU = AbsynUtil
   structure P  = Paths
@@ -54,9 +56,13 @@ fun orExpand (ORpat(pat1,pat2)) =
                 -> int * pat list * (exp -> exp) list * ruleMap
  *  preProcessPat is applied to each hybrid rule in the match. All the patterns
  *  in the ramifiedLHS are derived from the original single pattern by OR expansion.
+ * QUESTION: can argTy and/or resTy be polymorphic (i.e. POLYty)?
  *)
 fun expandPats (rules, argTy, resTy) =
 let
+    val argTy = TU.dePoly argTy
+    val resTy = TU.dePoly resTy
+
     fun processRule ((pat, rhs), (expandedRuleno, originalRuleno, ruleTable, pats, paths, rhsBinders)) =
 	 let val pat = AU.stripPatMarks pat
 	     val patVariables = AU.patternVars pat (* works even with OR patterns *)
@@ -69,22 +75,22 @@ let
 			 in AS.FNexp ([RULE(AS.VARpat(argVar), rhs)], BT.unitTy, resTy)
 			end
 		    | [var] =>
-		        let val varTy = V.varType var
-			in AS.FNexp ([AS.RULE(AS.VARpat var, rhs)], varTy, resTy)
+		        let val argVarTy = TU.dePolyVar var  (* not the same as argTy! *)
+			 in AS.FNexp ([AS.RULE(AS.VARpat var, rhs)], argVarTy, resTy)
 			end
 		    | vars =>
-			let val argVarTy = BT.tupleTy (map V.varType vars)
-			    val argVar = V.newVALvar (Symbol.varSymbol "rulevars", argVarTy)
+			let val argVarsTy = BT.tupleTy (map TU.dePolyVar vars) (* not the same as argTy! *)
+			    val argVar = V.newVALvar (Symbol.varSymbol "rulevars", argVarsTy)
 			    val argVarExp = VARexp (ref argVar, nil)
 			    fun wrapLet (nil, n) = rhs
 			      | wrapLet (v::rest, n) =
 				  AS.LETVexp (v, AS.RSELECTexp (argVarExp, n), wrapLet (rest, n+1))
 			    val body = wrapLet (vars, 0)
-			 in AS.FNexp ([AS.RULE (AS.VARpat(argVar), body)], argVarTy, resTy)
+			 in AS.FNexp ([AS.RULE (AS.VARpat(argVar), body)], argVarsTy, resTy)
 			end)
 
 	     val rhsFun = abstractRHS (patVariables, rhs)
-   
+
              (* var naming the abstracted rhs function *)
 	     val fvar: V.var = V.newVALvar (Symbol.varSymbol "fvar", BT.--> (argTy, resTy))
 
@@ -102,7 +108,7 @@ let
 	     val nextOriginalRuleno = originalRuleno + 1
 
 	     val blockVarPaths: P.path list list =
-		 map (MU.bindingPaths patVariables) ramifiedPats						   
+		 map (MU.bindingPaths patVariables) ramifiedPats
 
 	 in (nextExpandedRuleno, nextOriginalRuleno,
 	     (expandedRuleno, originalRuleno, expandSize, patVariables, fvar)::ruleTable,

@@ -4,8 +4,8 @@
  * All rights reserved.
  *)
 
-structure CPSUtil : sig
-
+structure CPSUtil :
+sig
   (* flip the meaning of a branch *)
     val opp : CPS.P.branch -> CPS.P.branch
 
@@ -19,11 +19,11 @@ structure CPSUtil : sig
 
     val BOGt : CPS.cty
 
-    val ctyc  : LtyDef.tyc -> CPS.cty
-    val ctype : LtyDef.lty -> CPS.cty
+    val ctyc  : Lty.tyc -> CPS.cty
+    val ctype : Lty.lty -> CPS.cty
+end =
 
-  end = struct
-
+struct
     structure P = CPS.P
     structure PT = PrimTyc
 
@@ -118,15 +118,18 @@ structure CPSUtil : sig
     val BOGt = CPS.PTRt CPS.VPT  (* bogus pointer type whose length is unknown *)
 
     local
-      structure LT = LtyExtern
-      val tc_real = LT.tcc_real (* REAL32: this code assumes only one float type *)
-      val lt_real = LT.ltc_real
+      structure LT = Lty
+      structure LK = LtyKernel
+      structure LD = LtyDef
+      structure LB = LtyBasic
+      val tc_real = LB.tcc_real (* REAL32: this code assumes only one float type *)
+      val lt_real = LB.ltc_real
       val ptc_int = PT.ptc_int
     in
 
     (* REAL32: this code assumes only one float type *)
-    fun tcflt tc = if LT.tc_eqv(tc, tc_real) then true else false
-    fun ltflt lt = if LT.lt_eqv(lt, lt_real) then true else false
+    fun tcflt tc = if LK.tc_eqv(tc, tc_real) then true else false
+    fun ltflt lt = if LK.lt_eqv(lt, lt_real) then true else false
 
     fun rtyc (f, []) = CPS.RPT 0
       | rtyc (f, ts) = let
@@ -137,7 +140,7 @@ structure CPSUtil : sig
 	    loop(ts, true, 0)
 	  end
 
-    fun ctyc tc = LT.tcw_prim (tc,
+    fun ctyc tc = LD.tcw_prim (tc,
 	  fn pt => (case PT.numSize pt
 	       of SOME 0 => BOGt
 		| SOME sz => CPS.NUMt{sz = sz, tag = (sz <= Target.defaultIntSz)}
@@ -146,19 +149,19 @@ structure CPSUtil : sig
 		      | NONE => BOGt
 		    (* end case *))
 	      (* end case *)),
-	  fn tc => LT.tcw_tuple (tc,
+	  fn tc => LD.tcw_tuple (tc,
 	      fn ts => CPS.PTRt(rtyc(tcflt, ts)),
 	      fn tc =>
-		if LT.tcp_arrow tc then CPS.FUNt
-		else if LT.tcp_cont tc then CPS.CNTt
+		if LD.tcp_arrow tc then CPS.FUNt
+		else if LD.tcp_cont tc then CPS.CNTt
 		else BOGt))
 
     fun ctype lt =
-	  LT.ltw_tyc(lt, fn tc => ctyc tc,
+	  LD.ltw_tyc(lt, fn tc => ctyc tc,
 	      fn lt =>
-		LT.ltw_str(lt, fn ts => CPS.PTRt(rtyc(fn _ => false, ts)),
-		    fn lt => if LT.ltp_fct lt then CPS.FUNt
-			     else if LT.ltp_cont lt then CPS.CNTt
+		LD.ltw_str(lt, fn ts => CPS.PTRt(rtyc(fn _ => false, ts)),
+		    fn lt => if LD.ltp_fct lt then CPS.FUNt
+			     else if LD.ltp_cont lt then CPS.CNTt
 				  else BOGt))
     end (* local *)
 

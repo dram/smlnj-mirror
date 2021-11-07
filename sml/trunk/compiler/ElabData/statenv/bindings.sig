@@ -8,8 +8,8 @@ signature BINDINGS =
   sig
 
     datatype binding
-      = VALbind of VarCon.var
-      | CONbind of VarCon.datacon
+      = VALbind of Variable.var
+      | CONbind of Types.datacon
       | TYCbind of Types.tycon
       | SIGbind of Modules.Signature
       | STRbind of Modules.Structure

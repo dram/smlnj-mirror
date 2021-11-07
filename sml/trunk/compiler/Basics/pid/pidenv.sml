@@ -1,9 +1,10 @@
 (* pidenv.sml
  *
- * (C) 2001 Lucent Technologies, Bell Labs
+ * (C) 2020 The Fellowship of SML/NJ.
  *
  * Environments that bind persistent IDs.
- * (Instantiated to dynamic and symbolic environments by the compiler.)
+ * It is instantiated to define dynamic and "symbolic" (i.e. FLINT.prog)
+ * environments in the compiler.)
  *)
 functor PidEnvFn (type binding) : PIDENV where type binding = binding =
 struct

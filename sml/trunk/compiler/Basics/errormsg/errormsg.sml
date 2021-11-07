@@ -54,6 +54,10 @@ struct
        Control_Print.flush();
        raise Error)
 
+  fun warn msg =
+      (app Control_Print.say ["Warning: ",msg,"\n"];
+       Control_Print.flush())
+
 (* [Ramsey] With the advent of source-map resynchronization (a.k.a
  * ( *#line...* ) comments), a contiguous region as seen by the compiler
  * can correspond to one or more contiguous segments in source code, with
@@ -71,6 +75,7 @@ struct
  *    the file names of both endpoints (even if the endpoints are the same
  *    file).
  *)
+(* [DBM] hasn't been supported for along while. get rid of the complication *)
 
   fun location_string ({sourceMap,fileOpened,...}:Source.inputSource)
                       ((p1,p2): SourceMap.region) : string =

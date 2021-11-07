@@ -56,7 +56,7 @@ structure UnpickMod : UNPICKMOD = struct
     structure SP = SymPath
     structure IP = InvPath
     structure MI = ModuleId
-    structure V = VarCon
+    structure V = Variable
     structure ED = EntPath.EvDict
     structure PS = PersStamps
     structure P = Primop
@@ -1222,7 +1222,7 @@ structure UnpickMod : UNPICKMOD = struct
 
 	fun env () = let
 	    val bindlist = list envM (pair symBindPM (symbol, binding')) ()
-	    fun bind ((s, (b, t)), e) = StaticEnv.bind0 (s, (b, SOME t), e)
+	    fun bind ((s, (b, t)), e) = StaticEnv.bindRB (s, (b, SOME t), e)
 	in
 	    StaticEnv.consolidate (foldl bind StaticEnv.empty bindlist)
 	end

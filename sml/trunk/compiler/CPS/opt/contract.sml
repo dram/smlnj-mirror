@@ -49,7 +49,7 @@ structure Contract : CONTRACT =
 struct
 
 open CPS
-structure LT = LtyExtern
+structure LB = LtyBasic
 structure LV = LambdaVar
 structure CA = ConstArith
 
@@ -88,12 +88,12 @@ fun sameName (x, VAR y) = LV.sameName(x,y)
 
 fun complain(t1,t2,s) =
   (say (s^"  ____ Type conflicting while contractions =====> \n    ");
-   say (LT.lt_print t1); say "\n and   \n    "; say (LT.lt_print t2);
+   say (LB.lt_print t1); say "\n and   \n    "; say (LB.lt_print t2);
    say "\n \n";
    say "_____________________________________________________ \n")
 
 fun checklty s (t1,t2) =  ()
-(*
+(*  -- LT.INT, etc. ?
   let fun g (LT.INT, LT.INT) = ()
         | g (LT.INT32, LT.INT32) = ()
         | g (LT.BOOL, LT.BOOL) = ()

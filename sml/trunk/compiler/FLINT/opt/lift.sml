@@ -6,31 +6,30 @@
 
 signature LIFT =
   sig
-
       val typeLift: FLINT.prog -> FLINT.prog
       val wellFormed: FLINT.prog -> bool
   end
 
-
-
-structure Lift:LIFT =
+structure Lift : LIFT =
 struct
 
-local structure LE = LtyExtern
-      structure DI = DebIndex
-      structure PT = PrimTyc
-(*    structure DA = Access    *)
-      structure LB = LtyBasic
-      structure LD = LtyDef
-      structure CTRL = FLINT_Control
-      open LtyKernel
-      open FLINT
-      open Access
+local
+  structure A  = Access
+  structure LV = LambdaVar
+  structure LE = LtyExtern
+  structure DI = DebIndex
+  structure PT = PrimTyc
+  structure LT = Lty
+  structure FR = FunRecMeta
+  structure LB = LtyBasic
+  structure LD = LtyDef
+  structure LK = LtyKernel
+  structure PL = PLambda
+  structure CTRL = FLINT_Control
+  open FLINT
 in
 
-
 (*****  Utility functions *****)
-
 
 exception PartialTypeApp
 exception VarNotFound
@@ -45,7 +44,7 @@ exception abstract
 fun bug s = ErrorMsg.impossible ("Lift: " ^ s)
 
 
-val mkv = LambdaVar.mkLvar
+val mkv = LV.mkLvar
 
 val wellfixed = ref true
 val welltapped = ref true
@@ -56,16 +55,14 @@ type tdepth = int
 type num = int
 type abstract = bool
 
-type var = (lty * lvar list * depth * tdepth * abstract * num)
+type var = (LT.lty * LV.lvar list * depth * tdepth * abstract * num)
 type venv = var LambdaVar.Tbl.hash_table
 
-type freevar = (lvar * lty)
+type freevar = (LV.lvar * LT.lty)
 type fenv = (freevar LambdaVar.Tbl.hash_table) list
 
-
-
 datatype Ltype = Tfn | Tapp
-type header =  (Ltype * lvar * lexp) list
+type header =  (Ltype * LV.lvar * lexp) list
 
 datatype env = Ienv of venv * fenv
 
@@ -73,9 +70,9 @@ datatype env = Ienv of venv * fenv
 
 val ABS = true
 val NOABS = false
-val fkfct = {isrec=NONE, known=false, inline=IH_SAFE, cconv=CC_FCT}
+val fkfct = {isrec=NONE, known=false, inline=FR.IH_SAFE, cconv=FR.CC_FCT}
 
-fun adjust(t, ntd, otd) = LE.lt_adj(t, otd, ntd)
+fun adjust(t, ntd, otd) = LB.lt_adj(t, otd, ntd)
 
 fun findEnv(v, Ienv(venv,fenvs)) =
     (LambdaVar.Tbl.lookup venv v)
@@ -145,8 +142,8 @@ fun writeLambda([], exp) = exp
   | writeLambda(fvs, exp) =
     let fun g(fvs', exp') =
 	    let val newvar = mkv()
-		val fund = {isrec = NONE, cconv = CC_FUN(Lty.FF_VAR(true,true)), known = false,
-				  inline = IH_SAFE }
+		val fund = {isrec = NONE, cconv = FR.CC_FUN(Lty.FF_VAR(true,true)), known = false,
+				  inline = FR.IH_SAFE }
 	    in  FIX([(fund, newvar, fvs', exp')], RET [VAR newvar])
 	    end
     in
@@ -202,7 +199,7 @@ fun initInfoEnv () =
 
 fun wellFormed (fdec : fundec) =
     case fdec of
-	(fk as {cconv = CC_FCT, ...}, v, vts, e) =>
+	(fk as {cconv = FR.CC_FCT, ...}, v, vts, e) =>
 	let
 	    fun formed (RET _, d) = true
 	      | formed (LET(vs, e1, e2), d) = formed(e1, d) andalso formed(e2, d)
@@ -232,7 +229,7 @@ fun wellFormed (fdec : fundec) =
 		let
 		    val b1 = formed(e, d)
 		    val b2 = case fds of
-			({cconv = CC_FCT, ...}, l, vs, e')::r => map formed [(e', d)]
+			({cconv = FR.CC_FCT, ...}, l, vs, e')::r => map formed [(e', d)]
 		      | _ => let fun f (v1, v2, v3, v4) = (v4, d + 1)
 				 val es = map f fds
 				 val b' = map formed es
@@ -260,7 +257,7 @@ fun lift (e, env, td, d, ad, rename) =
 
 	fun arglty(lt, ts) =
 	    let
-		val (_, atys, _) = LE.ltd_arrow(ltInst(lt, ts))
+		val (_, atys, _) = LD.ltd_arrow(ltInst(lt, ts))
 	    in
 		case atys of
 		    [x] => x
@@ -269,7 +266,7 @@ fun lift (e, env, td, d, ad, rename) =
 
 	fun reslty(lt, ts) =
 	    let
-		val (_, _, rtys) = LE.ltd_arrow(ltInst(lt, ts))
+		val (_, _, rtys) = LD.ltd_arrow(ltInst(lt, ts))
 	    in
 		case rtys of
 		    [x] => x
@@ -287,33 +284,33 @@ fun lift (e, env, td, d, ad, rename) =
 	in
 	    case v
 	     of VAR v' => loopcv env VAR v'
-	      | INT{ty, ...} => c (LE.ltc_num ty)
-	      | WORD{ty, ...} => c (LE.ltc_num ty)
-	      | REAL _  => c LE.ltc_real		(* REAL32: FIXME *)
-	      | STRING _ => c LE.ltc_string
+	      | INT{ty, ...} => c (LB.ltc_num ty)
+	      | WORD{ty, ...} => c (LB.ltc_num ty)
+	      | REAL _  => c LB.ltc_real		(* REAL32: FIXME *)
+	      | STRING _ => c LB.ltc_string
 	end
 
-	fun lpacc env (LVAR v) =
+	fun lpacc env (A.LVAR v) =
 	    let val (v', _, fv, _) = loopcv env (fn v => v) v
-	    in  (LVAR v', fv)
+	    in  (A.LVAR v', fv)
 	    end
-	  | lpacc env (PATH(a,i)) =
+	  | lpacc env (A.PATH(a,i)) =
 	    let val (a', fvs) = lpacc env a
-	    in  (PATH(a',i), fvs)
+	    in  (A.PATH(a',i), fvs)
 	    end
 	  | lpacc env a = (a, nil)
 
-	fun lpcon env (EXN a) =
+	fun lpcon env (A.EXN a) =
 	    let val (a', fv) = lpacc env a
-	    in  (EXN(a'), fv)
+	    in  (A.EXN a', fv)
 	    end
-	  | lpcon env (SUSP NONE) = (SUSP(NONE), nil)
-	  | lpcon env (SUSP (SOME (a', a''))) =
+	  | lpcon env (A.SUSP NONE) = (A.SUSP NONE, nil)
+	  | lpcon env (A.SUSP (SOME (a', a''))) =
 	    let
 		val (a1, fv1) = lpacc env a'
 		val (a2, fv2) = lpacc env a''
 	    in
-		(SUSP(SOME (a', a'')), fv1 @ fv2)
+		(A.SUSP(SOME (a', a'')), fv1 @ fv2)
 	    end
 	  | lpcon env a = (a, nil)
 
@@ -337,7 +334,7 @@ fun lift (e, env, td, d, ad, rename) =
 	       val (v1', t, fvs, hd) = loopc env v1
 	       val vls = map (loopc env) vs
 	       val (vs', ts', fvs', hd') = foldr comb (nil, nil, nil, nil) vls
-	       val nt = #2(LE.ltd_fkfun t) handle LE.DeconExn => bug "loope"
+	       val nt = #2(LE.ltd_fkfun t) handle LD.DeconExn => bug "loope"
 	   in
 	       (APP(v1', vs'), nt, fvs@fvs', hd@hd')
 	   end
@@ -386,7 +383,7 @@ fun lift (e, env, td, d, ad, rename) =
 		   let
 		       val (e1', nt', fv', hd') = lift(e1, env, DI.next td, d, ad, true)
 		       val ks = map (fn (t,k) => k) tvs
-		       val nt = LE.ltc_poly(ks, nt')
+		       val nt = LD.ltc_poly(ks, nt')
 
 	           (*  Hack for Tapp.Stores the number of tvs instead of td  *)
 
@@ -402,7 +399,7 @@ fun lift (e, env, td, d, ad, rename) =
 		       val (e1', nt', fvs, hd) = lift(e1, env', DI.next td, d, DI.next ad, true)
 		       val freevars = getFreeVar(fvs, env')
 		       val ks = map (fn (t,k) => k) tvs
-		       val nt = LE.ltc_poly(ks, nt')
+		       val nt = LD.ltc_poly(ks, nt')
 
 	          (* Hack for Tapp. Stores the number of tvs *)
 
@@ -422,7 +419,7 @@ fun lift (e, env, td, d, ad, rename) =
 		    let
 			val _ =
 			    case c of
-				DATAcon((_, _, lt), ts, v) =>
+				PL.DATAcon((_, _, lt), ts, v) =>
 				addEnv(env, [v], [arglty(lt,ts)], nil, td, d, ABS)
 			      | _ => [()]
 			val (e', nt', fvs, hds) = loope(e, env, d, ad)
@@ -506,7 +503,7 @@ fun lift (e, env, td, d, ad, rename) =
 	     in
 		 (PRIMOP(pr,vls',l,e'), nt'', fvs'@fvs'', hd'@hd'')
 	     end
-	 | loope(e as FIX([({cconv = CC_FCT, ...}, v, lvs, e1)],e2), env, d, ad) =
+	 | loope(e as FIX([({cconv = FR.CC_FCT, ...}, v, lvs, e1)],e2), env, d, ad) =
 	   let
 	       val vs = map #1 lvs
 	       val ts = map #2 lvs
@@ -524,7 +521,7 @@ fun lift (e, env, td, d, ad, rename) =
 	   end
 	 | loope(e as FIX([(fk, v, lvs, e1)], e2), env, d, ad) =
 	   (case fk of
-	       {isrec = NONE, cconv = CC_FUN _, ...} =>
+	       {isrec = NONE, cconv = FR.CC_FUN _, ...} =>
 	       let
 		   val vs = map #1 lvs
 		   val ts = map #2 lvs
@@ -540,7 +537,7 @@ fun lift (e, env, td, d, ad, rename) =
 		     | _ => (ne', hd'@hd'')
 	       in (ne, nt'', fvs'@fvs'', hd)
 	       end
-	     | {isrec = SOME(rts,_), cconv = CC_FUN _, ...} =>
+	     | {isrec = SOME(rts,_), cconv = FR.CC_FUN _, ...} =>
 	       let
 		   val vs = map (#1) lvs
 		   val ts = map (#2) lvs
@@ -592,12 +589,12 @@ td, d, ABS)
 
        in loope(e, env, d, ad)
        end
-    (* end fun lift *)
+
 
 fun typeLift fdec:fundec =
     (* if !Control.CG.lifttype then *)
 	case fdec of
-	    (fk as {cconv = CC_FCT, ...}, v, vts, e) =>
+	    (fk as {cconv = FR.CC_FCT, ...}, v, vts, e) =>
 		let
 		    val env = initInfoEnv()
 		    val d = 0 (* DI.top ?? *)
@@ -630,7 +627,7 @@ fun typeLift fdec:fundec =
 	  | _ => bug "non FCT program in Lift"
     (* else fdec *)
 
-end
-end
+end (* top local *)
+end (* structure Lift *)
 
 

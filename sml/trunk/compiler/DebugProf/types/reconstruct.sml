@@ -11,7 +11,7 @@ structure Reconstruct : sig
   end = struct
 
     structure TU = TypesUtil
-    open Absyn (* ElabUtil *) VarCon Types BasicTypes TypesUtil
+    open Absyn Variable Types BasicTypes TypesUtil
 
     fun bug msg = ErrorMsg.impossible("Reconstruct: "^msg)
 
@@ -37,13 +37,12 @@ structure Reconstruct : sig
       | expType(STRINGexp _) = stringTy
       | expType(CHARexp _) = charTy
       | expType(RECORDexp fields) =
-	 let fun extract(LABEL{name,...},exp) = (name,expType exp)
-	  in recordTy(map extract (sortFields fields))
-	 end
-      | expType(SELECTexp (LABEL{name,...},e)) =
-	 (case TU.projectField (name, reduceType(expType e))
-	   of SOME ty => ty
-	    | NONE => bug "expType: SELECTexp")
+	  let fun extract(LABEL{name,...},exp) = (name,expType exp)
+	   in recordTy(map extract (sortFields fields))
+	  end
+      | expType(RSELECTexp (var, index)) = bug "expType: SELECTexp"
+      | expType(VSELECTexp (var, _, index)) = bug "expType: SELECTexp"
+          (* only produced in match compilation post type checking *)
       | expType(VECTORexp(nil,vty)) = CONty(vectorTycon,[vty])
       | expType(VECTORexp((a::_),vty)) = CONty(vectorTycon,[vty])
       | expType(APPexp(rator,rand)) =
@@ -57,14 +56,14 @@ structure Reconstruct : sig
 	    | _ => bug "rator")
       | expType(HANDLEexp(e,h)) = expType e
       | expType(RAISEexp(e,t)) = t
-      | expType(CASEexp(_,RULE(_,e)::_,_)) = expType e
-      | expType(CASEexp(_,nil,_)) = bug "expType(CASEexp(_,nil,_))"
+      | expType(CASEexp(_,(RULE(_,e)::_, _, _))) = expType e
+      | expType(CASEexp(_,(nil,_,_))) = bug "expType(CASEexp(_,nil))"
       | expType(IFexp {thenCase,...}) = expType thenCase
       | expType(ANDALSOexp _) = boolTy
       | expType(ORELSEexp _) = boolTy
       | expType(WHILEexp _) = unitTy
-      | expType(FNexp(RULE(_,e)::_, ty)) = ty --> expType e
-      | expType(FNexp(nil, ty)) = bug "expType(FNexp(nil,ty))"
+      | expType(FNexp(RULE(_,e)::_, lhsTy, rhsTy)) = lhsTy --> rhsTy
+      | expType(FNexp(nil, _, _)) = bug "expType(FNexp(nil,ty))"
       | expType(LETexp(_,e)) = expType e
       | expType(SEQexp [a]) = expType a
       | expType(SEQexp (_::rest)) = expType(SEQexp rest)
@@ -73,5 +72,3 @@ structure Reconstruct : sig
       | expType(MARKexp(e,_)) = expType e
 
   end (* structure Reconstruct *)
-
-

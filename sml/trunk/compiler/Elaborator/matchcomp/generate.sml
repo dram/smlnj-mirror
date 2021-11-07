@@ -1,5 +1,5 @@
 (* FLINT/trans/generate.sml *)
-(* revised "old" match compiler *)
+(* based on revised "old" match compiler *)
 
 (* generation of "code" (in the form of PLambda.lexp) from decision trees (type dectree) *)
 
@@ -11,7 +11,7 @@ local
   structure BT = BasicTypes
   structure LV = LambdaVar
   structure A = Access
-  structure V = VarCon
+  structure V = Variable
   structure AS = Absyn
   structure AU = AbsynUtil
   structure EU = ElabUtil
@@ -248,123 +248,3 @@ end (* fun generate *)
 
 end (* top local *)
 end (* structure Generate *)
-
-
-(* discarded code:
-   conToCon and genSwitch not relevant to in newmv code generator -- should move to translate.sml?
-
-    (* conToCon : AC.con * mvar option -> PLambda.con
-     *  translates MCCommon.con to PLambda.con and introduces a variable naming
-     *  the destruct of a datacon-headed value (even if the datacon is a constant!)
-     *  -- mvarOp will be SOME mvar if the con is a non-constant datacon or VLENcon,
-     *  NONE for constant datacon. The mvar, if provided, is generated in genDecTree. *)
-    fun conToCon (con, mvarOp) =  (* uses toLty and toTyc *)
-    (* transDcon : T.datacon -> PL.dataconstr
-     *  uses toLty arg of generate; used only in conToCon *)
-	let fun transDcon (T.DATACON {name, rep, typ, ...}: T.datacon) : PL.dataconstr =
-	    let val lty = (* translation of the datacon type *)
-		    (case typ
-		       of T.POLYty{sign, tyfun=T.TYFUN{arity, body}} =>
-			  if BT.isArrowType body then toLty typ
-			  else toLty (T.POLYty{sign=sign,
-						tyfun=T.TYFUN{arity=arity,
-							       body=BT.-->(BT.unitTy, body)}})
-			| _ => if BT.isArrowType typ then toLty typ
-			       else toLty (BT.--> (BT.unitTy, typ)))
-	     in (name, rep, lty)
-	    end
-	 in case con
-	      of P.DATAcon (datacon, tyvars) =>
-		  let val tycvars = map (toTyc o T.VARty) tyvars
-		      val mvar = getOpt (mvarOp, MU.mkMvar())
-			  (* get argument mvar from mvarOp = SOME mvar when the datacon is not
-			     a constant, otherwise when datacon is a constant, mvarOp = NONE, and
-			     we generate a new, but redundant, mvar that is required to construct
-			     a PL.DATAcon. Probably don't need to pass argument mvar via DATAcon. *)
-		   in PL.DATAcon (transDcon datacon, tycvars, mvar)
-		  end
-	       | P.VLENcon(i, t) => intCon i  (* element type t is no longer needed after conToCon us used *)
-	       | P.INTcon i => PL.INTcon i
-	       | P.WORDcon w => PL.WORDcon w
-	       | P.STRINGcon s => PL.STRINGcon s
-	end
-
-    (* genSwitch : AS.exp * A.sign * (P.con * PL.lexp) list * lexp option -> lexp
-     * -- uses toTyc, which was passed to genMatch
-     * -- the default will be SOME dt if the cons in the variants are not exhaustive (saturated)
-     * -- Detects the vector length switch case and extracts the vector element
-     *    type from the VLENcon constructor. Generates code to calculate the length of
-     *    the vector and binds it to an fresh mvar (lenMvar) used as the switch subject.
-     * -- Handles ref and susp constructors as special cases.
-     * -- Handles intinf INTcon discrimination as special cases.
-     * ASSERT: not (null cases) *)
-    fun genSwitch (subject: AS.exp, sign, cases: (P.con * MU.mvar option * AS.exp) list,
-		   defaultOp: AS.exp option) =
-	let fun transCase (con, mvarOp, lexp) = (conToCon (con, mvarOp), lexp)
-	        (* only used in the general case where con is not a VLENcon or an intinf con,
-		 * if con is a non-constant datacon, then mvarOp = SOME mvar, and the mvar
-		 * is incorporated into the PL.datacon *)
-	 in case cases
-	      of nil => bug "Switch: empty cases"
-	       | (con, mvarOp, lexp) :: rest => 
-	         (case (con, mvarOp)
-		    of (P.VLENcon (n,ty), SOME mvar) => (* switch on vector length(s) *)
-			 (* "let val len = Vector.length mvar in <<switch over int values of len>>"
-			  * where "len" is a fresh internal variable -- this is generated in 
-			  * the VSWITCHexp case of Translate.mkExp0 to avoid the problem of
-			  * accessing the vector length primop in absyn.
-			  * -- defaultOp should be SOME _, not checked *)
-		         let val elemTyc = toTyc ty  (* translated vector element type *)
-			     val lt_len = LT.ltc_poly([LT.tkc_mono],
-					      [LT.ltc_parrow(LT.ltc_tv 0, LT.ltc_int)])
-			     val argtyc = LT.tcc_vector elemTyc
-			     val lenMvar = MU.mkMvar ()
-			     fun transVecCase (P.VLENcon(n, _), _, lexp) = (intCon n, lexp)
-			       | transVecCase _ = bug "Switch:vector case: con not VLENcon"
-			 in PL.LET (lenMvar,  (* bind lenMvar to the computed vector length *)
-				    PL.APP (PL.PRIM(PO.LENGTH, lt_len, [argtyc]), (* apply vec length primop *)
-					    subject), (* designates the vector *)
-				    PL.SWITCH (PL.VAR lenMvar, A.CNIL, map transVecCase cases, defaultOp))
-			 end
-		     | (P.INTcon{ty=0, ...}, NONE) => (* switch on IntInf constant(s) *)
-		         let fun strip (P.INTcon{ty=0, ival}, NONE, lexp) = (ival, lexp)
-			       | strip _ = bug "genswitch - INTINFcon"
-			  in case defaultOp
-			      of NONE => bug "Switch - no default in switch on IntInf"  (* ??? *)
-			       | SOME d => genIntInfSwitch (subject, map strip cases, d)
-			 end
-		    |  _ =>  (* the general case, dispatching on the con *)
-		       let val plcon = conToCon (con, mvarOp)  (* convert to PLambda con *)
-                        in case plcon  (* first check for REF and SUSP special cases *)
-		             of PL.DATAcon((_, A.REF, lty), tycs, lvar) => (* ref constructor *)
-				(case rest (* check there is only one case *)
-				  of nil =>
-			             PL.LET(lvar,
-					    PL.APP (PL.PRIM (Primop.DEREF, LT.lt_swap lty, tycs), subject),
-					    lexp)
-				   | _ => bug "switch: ref not singleton case")
-			      | PL.DATAcon((_, A.SUSP(SOME(_, A.LVAR f)), lty), tycs, lvar) =>
-				  (* SUSP constructor; "force" the suspension function *)
-				(case rest
-				   of nil => (* check there is only one case *)
-				      let val v = MU.mkMvar ()
-				      in PL.LET(lvar,
-						PL.LET(v, PL.TAPP(PL.VAR f, tycs), PL.APP(PL.VAR v, subject)),
-						lexp)
-				      end
-				    | _ => bug "switch: susp not singleton case")
-			      | _ => PL.SWITCH (subject, sign, map transCase cases, defaultOp)
-		       end)
-	end (* fun genSwitch *)
-
-    fun genVSWITCH (subject: AS.exp, cases: AS.srule list, SOME default) =
-	(* ASSERT: defaultOp is SOME _ (supplied in decisiontree.sml) *)
-	      let fun transCase (AS.VLENcon (n,_), varOp, rhsexp) =
-		      (* varOp = SOME v, where v denotes the vector value *)
-			  AS.SRULE (AS.INTcon n, varOp, rhsexp)  (* anomalous switch rule: constant con with SOME dcvar *)
-		      | docase _ = bug "genVSWITCH: con not VLENcon"
-		 in AS.VSWITCHexp (subject, map transCase cases, default)
-		end
-      | genVSWITCH _ = "Switch: default NONE"
-			 
-*)

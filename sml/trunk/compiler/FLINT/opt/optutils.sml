@@ -8,8 +8,8 @@ sig
 
     (* takes the fk of a function and returns the fk of the wrapper
      * along with the new fk of the actual body *)
-    val fk_wrap : FLINT.fkind * FLINT.lty list option ->
-	              (FLINT.fkind * FLINT.fkind)
+    val fk_wrap : FunRecMeta.fkind * Lty.lty list option ->
+	              (FunRecMeta.fkind * FunRecMeta.fkind)
 
     (* this is a known APL function, but I don't know its real name *)
     val filter : bool list -> 'a list -> 'a list
@@ -30,6 +30,7 @@ local
 
   structure F = FLINT
   structure LT = Lty
+  structure FR = FunRecMeta
   structure LK = LtyKernel
 
 in
@@ -40,13 +41,14 @@ in
     fun fk_wrap ({inline,known,isrec,cconv},rtys') =
 	let val cconv' =
 		case cconv
-		 of F.CC_FUN(LT.FF_VAR(f1,f2)) => F.CC_FUN(LT.FF_VAR(true, f2))
-		  | (F.CC_FCT | F.CC_FUN(LT.FF_FIXED)) => cconv
-	    val isrec' = Option.map (fn ltys => (ltys, F.LK_UNKNOWN)) rtys'
-	in ({isrec=isrec, known=known, cconv=cconv, inline=F.IH_ALWAYS},
+		 of FR.CC_FUN(LT.FF_VAR(f1,f2)) => FR.CC_FUN(LT.FF_VAR(true, f2))
+		  | (FR.CC_FCT | FR.CC_FUN(LT.FF_FIXED)) => cconv
+	    val isrec' = Option.map (fn ltys => (ltys, FR.LK_UNKNOWN)) rtys'
+	in ({isrec=isrec, known=known, cconv=cconv, inline=FR.IH_ALWAYS},
 	    {isrec=isrec', known=true, cconv=cconv', inline=inline})
 	end
 
+    (* filter : bool list -> 'a list -> 'a list *)
     fun filter [] [] = []
       | filter (true::fs) (x::xs)  = x::(filter fs xs)
       | filter (false::fs) (x::xs) = (filter fs xs)

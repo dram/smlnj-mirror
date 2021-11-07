@@ -4,6 +4,13 @@
  * All rights reserved.
  *)
 
+(* Lty: definition of "raw" (or internal) types ltyI and tycI and their
+ * hash-consed version lty and tyc -- the basic types and "contstructors"
+ * for PLambda/FLINT types. 
+ * Hash-consing machinery for lty and tyc.
+ * Nadathur closure machinery for type functions.
+ * [DBM, 2021.10] *)
+
 structure Lty : LTY =
 struct
 
@@ -17,11 +24,12 @@ fun bug s = ErrorMsg.impossible ("Lty:" ^ s)
 
 (** hashconsing implementation basics *)
 local (* hashconsing *)
-  val MVAL = 10000     (* big enough? No more than MVAL variables per binder *)
+  val MVAL = 10000     (* No more than MVAL variables _per binder_ *)
   val BVAL = MVAL * 2  (* bound on encoded tvars of innermost binder *)
 in
 
-(* enc_tvar: encoded type variables = deBruijn indexes * binder arity indexes *)
+(* enc_tvar: encoded type variables = deBruijn indexes * binder arity indexes,
+ * encoded as a single int *)
 (* Type lambda bindings (TC_FN) bind several variables at a time,
  * i.e. they are n-ary for some n, with each type variable given a kind.
  * A type variable is represented by a pair (d,k), where d is a
@@ -47,15 +55,19 @@ fun exitLevel (xs: enc_tvar list) : enc_tvar list =
     in h(xs, [])
     end
 
-(* tvar : "named"(?) tyc variables.
-   For now(?), these share the same "namespace" with lvars. *)
-(* [KM ???] Are these used at all? Yes, they are used after
- * translation into the flint language(?). Are these the
- * "run-time" type parameters? *)
+(* tvar : "named" type variables.
+ *  For now, these share the lvar "namespace". But they could be given
+ *  their own "namespace" (i.e. variable generator, mkTvar).
+ *  These are used as args of TC_NVAR, and are introduced by deb2names
+ *  Are these used at all? Yes, they are used after
+ *  translation into the flint language and deb2names.
+ *  - Are these "run-time" type parameters?
+ *  - What does the reify phase do with them?
+ *)
 type tvar = LambdaVar.lvar (* = int, coincidentally = enc_tvar *)
 val mkTvar = LambdaVar.mkLvar
 
-(* aus_info: auxiliary information maintained in hash_cells.
+(* aux_info: auxiliary information maintained in hash_cells.
  * bool records whether the contents is fully normalized,
  * enc_tvar list and tvar list contain free type variables (both sorted) *)
 
@@ -74,19 +86,19 @@ datatype aux_info
             * tvar list      (* free named type vars, sorted? *)
   | AX_NO                    (* no aux_info available *)
 
-(* Functions for merging lists of env_tvars and tvars. *)
+(* Functions for merging lists of enc_tvars and tvars. *)
 local
-  fun mergeLists cmp = let
-	fun merge (l, []) = l
-	  | merge ([], l) = l
-	  | merge (xs as (x :: xr), ys as (y :: yr)) = (case cmp (x, y)
-	       of LESS => x :: merge (xr, ys)
-		| EQUAL => x :: merge (xr, yr)
-		| GREATER => y :: merge (xs, yr)
-	      (* end case *))
-	in
-	  merge
-	end
+  fun mergeLists cmp =
+      let fun merge (l, []) = l
+	    | merge ([], l) = l
+	    | merge (xs as (x :: xr), ys as (y :: yr)) =
+	        (case cmp (x, y)
+		   of LESS => x :: merge (xr, ys)
+		    | EQUAL => x :: merge (xr, yr)
+		    | GREATER => y :: merge (xs, yr)
+		(* end case *))
+       in merge
+      end
 in
 val mergeTvs = mergeLists LambdaVar.compare	(* regular type variables *)
 val mergeEncTvs = mergeLists Int.compare	(* deBruijn encoded type variables *)
@@ -108,7 +120,9 @@ end (* local of hashconsing implementation basics *)
  ***************************************************************************)
 
 (** definition of kinds for all the lambda tycs *)
-(* [KM???] TK_BOX does not appear to be used *)
+(* [KM???] TK_BOX does not appear to be used. TK_BOX and TK_MONO are "subkinds"
+ * of one another, according to tkSubkind, defined below. Does this mean that 
+ * any tyc of kind TK_BOX is also of kind TK_MONO, and vice versa? *)
 datatype tkindI
   = TK_MONO                                    (* ground mono tycon *)
   | TK_BOX                                     (* boxed/tagged tycon *)
@@ -117,21 +131,14 @@ datatype tkindI
 
 withtype tkind = tkindI hash_cell              (* hash-consing-impl of tkind *)
 
-(* an special extensible token key *)
-type token = int
+datatype fflag                                 (* function "calling conventions" *)
+  = FF_VAR of bool * bool                      (* arg, result representations "known" *)
+  | FF_FIXED                                   (* used after representation analysis *)
 
-datatype fflag                                 (* calling conventions *)
-  = FF_VAR of bool * bool                      (* is it fixed ? *)
-  | FF_FIXED                                   (* used after rep. analysis *)
-
-datatype rflag = RF_TMP                        (* tuple kind: a template *)
- (* [dbm] only one rflag value, so doesn't discriminate anything,
-  * therefore redundant, could be removed *)
-
-(** definitions of concrete plambda type constructors *)
+(** definitions of concrete plambda type "constructors" *)
 datatype tycI
-  = TC_VAR of DebIndex.index * int             (* tyc variables [why not enc_tvar?] *)
-  | TC_NVAR of tvar                            (* "named" tyc variables *)
+  = TC_VAR of DebIndex.index * int             (* deBruijn tyc variables [why not enc_tvar?] *)
+  | TC_NVAR of tvar                            (* "named" tyc variables; tvar = lvar = int (for now) *)
   | TC_PRIM of PrimTyc.primtyc                 (* primitive tyc *)
 
   | TC_FN of tkind list * tyc                  (* tyc abstraction, n-ary *)
@@ -147,15 +154,14 @@ datatype tycI
        gen : tyc,                              (* common generator fn *)
        params: tyc list},                      (* parameters for generator *)
       index : int}                             (* index of this dt in family *)
-     (* TC_FIX are built in trans/transtypes.sml*)
+     (* TC_FIX are built in FLINT/trans/transtypes.sml *)
 
-  | TC_TUPLE of rflag * tyc list               (* std record tyc *)
-  | TC_ARROW of fflag * tyc list * tyc list    (* std function tyc *)
+  | TC_TUPLE of tyc list                       (* standard record tyc *)
+  | TC_ARROW of fflag * tyc list * tyc list    (* standard function tyc *)
   | TC_PARROW of tyc * tyc                     (* special fun tyc [not used] *)
 
   | TC_BOX of tyc                              (* boxed tyc *)
-  | TC_ABS of tyc                              (* abstract tyc  [not used] *)
-  | TC_TOKEN of token * tyc                    (* extensible token tyc *)
+  | TC_WRAP of tyc                             (* WRAP tyc -- was TC_TOKEN *)
   | TC_CONT of tyc list                        (* intern continuation tycon *)
   | TC_IND of tyc * tycI                       (* indirect tyc "thunk" *)
   | TC_ENV of tyc * int * int * tycEnv         (* tyc closure *)
@@ -182,60 +188,45 @@ withtype lty = ltyI hash_cell                  (* hash-consed lty cell *)
 
 
 (***************************************************************************
- *                   TOKEN TYC UTILITY FUNCTIONS                           *
+ *    unkown and wrap_is_whnm                                              *
  ***************************************************************************)
+(* Needed for hash-consing, and also in LtyKernel for reducing TC_WRAP *)
 
-type token_info
-  = {name      : string,
-     abbrev    : string,
-     reduce_one: token * tyc -> tyc,
-     is_whnm   : tyc -> bool,
-     is_known  : token * tyc -> bool}
+(* unknown : tyc -> bool
+ *  used in wrap_is_whnm (below) and wrap_reduce (in LtyKernel)
+ *  notice that there is no normalization *)
+fun unknown (tc: tyc) =
+  (case #2(!tc)
+    of (TC_VAR _ | TC_NVAR _) => true
+     | (TC_APP(tc, _)) => unknown tc
+     | (TC_PROJ(tc, _)) => unknown tc
+     | _ => false)
 
-local val token_key = ref 0
-      val token_table_size = 10
-      val default_token_info : token_info =
-        {name="TC_GARBAGE",
-         abbrev="GB",
-         reduce_one=(fn _ => bug "token not implemented"),
-         is_whnm=(fn _ => bug "token not implemented"),
-         is_known=(fn _ => bug "token not implemented")}
-      val token_array : token_info Array.array =
-            Array.array(token_table_size,default_token_info)
-      val token_validity_table = Array.array(token_table_size,false)
-      fun get_next_token () =
-        let val n = !token_key
-         in if n > token_table_size then bug "running out of tokens"
-            else (token_key := n+1; n)
-        end
-      fun store_token_info (x, k) = Array.update(token_array, k, x)
-      fun get_is_whnm k = #is_whnm (Array.sub(token_array, k))
-      fun get_reduce_one (z as (k, t)) =
-            (#reduce_one (Array.sub(token_array, k))) z
-      fun get_name k = #name (Array.sub(token_array, k))
-      fun get_abbrev k = #abbrev (Array.sub(token_array, k))
-      fun get_is_known (z as (k, t)) =
-            (#is_known (Array.sub(token_array, k))) z
-      fun is_valid k = Array.sub(token_validity_table, k)
-      fun set_valid k = Array.update(token_validity_table, k, true)
-in
-
-val register_token: token_info -> token =
-  (fn x => let val k = get_next_token ()
-            in store_token_info(x, k); set_valid k; k
-           end)
-
-val token_name    : token -> string = get_name
-val token_abbrev  : token -> string = get_abbrev
-val token_whnm    : token -> tyc -> bool = get_is_whnm
-val token_reduce  : token * tyc -> tyc = get_reduce_one
-val token_isKnown : token * tyc -> bool = get_is_known
-val token_isvalid : token -> bool = is_valid
-val token_eq      : token * token -> bool = fn (x,y) => (x=y)
-val token_int     : token -> int = fn x => x
-val token_key     : int -> token = fn x => x
-
-end (* end of all token-related hacks *)
+(* wrap_is_whnm : tyc -> bool
+ *  used here in TC_WRAP case of tc_aux;
+ *  used in LtyKernel for TC_WRAP case of tc_whnm *)
+fun wrap_is_whnm (tc: tyc) =
+    let  (* flex_tuple : tyc list -> bool *)
+	fun flex_tuple (tycs: tyc list) =
+	    let fun loop (tyc::rest, ukn, wfree) =
+		    let fun iswp (tc: tyc) =
+			    (case #2(!tc)
+			      of TC_WRAP tc' =>
+				 (case #2(!tc')
+				   of TC_PRIM pt => false
+				    | _ => true)
+			       | _ => true)
+		    in loop (rest, (unknown tyc) orelse ukn, (iswp tyc) andalso wfree)
+		    end
+		  | loop ([], ukn, wfree) = ukn andalso wfree
+	    in loop (tycs, false, true)
+	    end
+    in case #2(!tc)
+	 of (TC_ARROW(FF_FIXED, [t], _)) => (unknown t)
+	  | (TC_TUPLE ts) => flex_tuple ts
+	  | (TC_PRIM pt) => PT.unboxed pt
+	  | _ => false
+    end (* wrap_is_whnm *)
 
 (***************************************************************************
  *                   HASHCONSING IMPLEMENTATIONS                           *
@@ -337,9 +328,8 @@ local (* hashconsing impl *)
       | (TC_FIX{family={size=n,gen=t,params=ts,...},index=i}) =>
           (* names not involved the the hash *)
           combine (8::n::i::(getnum t)::(map getnum ts))
-      | (TC_ABS t) => combine [9, getnum t]
       | (TC_BOX t) => combine [10, getnum t]
-      | (TC_TUPLE (_, ts)) => combine (11::(map getnum ts))
+      | (TC_TUPLE ts) => combine (11::(map getnum ts))
       | (TC_ARROW(rw, ts1, ts2)) =>
           let fun h (FF_FIXED) = 10
                 | h (FF_VAR(true,b2)) = if b2 then 20 else 30
@@ -347,7 +337,7 @@ local (* hashconsing impl *)
           in combine (12::(h rw)::(map getnum (ts1@ts2)))
           end
       | (TC_PARROW (t1,t2)) => combine [13, getnum t1, getnum t2]
-      | (TC_TOKEN (i, tc)) => combine [14, i, getnum tc]
+      | (TC_WRAP tc) => combine [14, 0, getnum tc]
       | (TC_CONT ts) => combine (15::(map getnum ts))
       | (TC_ENV(t,i,j,env)) =>
           combine[16, getnum t, i, j, getnum env]
@@ -377,7 +367,8 @@ local (* hashconsing impl *)
 
   val baseAux = AX_REG (true, [], [])
 
-  fun getAux (ref(i : int, _, x)) = x
+  (* getAux : 'a hash_cell -> aux_info *)
+  fun getAux (ref(_, _, x) : 'a hash_cell) = x
 
   fun mergeAux(AX_NO, _) = AX_NO
     | mergeAux(_, AX_NO) = AX_NO
@@ -420,14 +411,13 @@ local (* hashconsing impl *)
                  | AX_REG _ => bug "unexpected TC_FIX freevars in tc_aux"
                  | AX_NO => AX_NO
             end
-        | (TC_ABS t) => getAux t
         | (TC_BOX t) => getAux t
-        | (TC_TUPLE (_, ts)) => fsmerge ts
+        | (TC_TUPLE ts) => fsmerge ts
         | (TC_ARROW(_, ts1, ts2)) => fsmerge (ts1@ts2)
-        | (TC_PARROW(t1, t2)) => fsmerge [t1, t2]
-        | (TC_TOKEN (k, (ref(_, t, AX_NO)))) => AX_NO
-        | (TC_TOKEN (k, (x as ref(_, t, AX_REG(b,vs,nvs))))) =>
-            AX_REG((token_whnm k x) andalso b, vs, nvs)
+        | (TC_PARROW(t1, t2)) => fsmerge [t1, t2] 
+        | (TC_WRAP (ref(_, t, AX_NO))) => AX_NO
+        | (TC_WRAP (tyc as ref(_, t, AX_REG(b,vs,nvs)))) =>
+              AX_REG (wrap_is_whnm tyc andalso b, vs, nvs)
         | (TC_CONT ts) => fsmerge ts
         | (TC_IND _) => bug "unexpected TC_IND in tc_aux"
         | (TC_ENV _) => AX_NO
@@ -455,14 +445,19 @@ fun lt_vs (ref(_ : int, _ : ltyI, AX_NO)) = NONE
   | lt_vs (ref(_ : int, _ : ltyI, AX_REG (_,x,_))) = SOME x
 
 (** converting from the hash-consing reps to the standard reps *)
-fun tk_outX (r as ref(_ : int, t : tkindI, _ : aux_info)) = t
-fun tc_outX (r as ref(_ : int, t : tycI, _ : aux_info)) = t
-fun lt_outX (r as ref(_ : int, t : ltyI, _ : aux_info)) = t
+fun hc_out (hc: 'a hash_cell) : 'a = #2(!hc)
+fun tk_out (tk: tkind) = hc_out tk
+fun tc_out (tc: tyc) = hc_out tc
+fun lt_out (lt: lty) = hc_out lt
+(*fun tk_out (ref(_ : int, tk : tkindI, _ : aux_info)) = tk
+  fun tc_out (ref(_ : int, tc : tycI, _ : aux_info)) = tc
+  fun lt_out (ref(_ : int, lt : ltyI, _ : aux_info)) = lt
+*)
 
 (** converting from the standard reps to the hash-consing reps *)
-fun tk_injX t = look(tk_table, wtoi(tk_hash t), t, tkI_eq, tk_mk)
-fun tc_injX t = look(tc_table, wtoi(tc_hash t), t, tcI_eq, tc_mk)
-fun lt_injX t = look(lt_table, wtoi(lt_hash t), t, ltI_eq, lt_mk)
+fun tk_inj t = look(tk_table, wtoi(tk_hash t), t, tkI_eq, tk_mk)
+fun tc_inj t = look(tc_table, wtoi(tc_hash t), t, tcI_eq, tc_mk)
+fun lt_inj t = look(lt_table, wtoi(lt_hash t), t, ltI_eq, lt_mk)
 
 (** key-comparison on tkind, tyc, lty *)
 fun tk_cmp (k1, k2) = cmp(tk_table, k1, k2)
@@ -486,12 +481,12 @@ fun ltp_norm ((ref(_, LT_TYC (ref (_,TC_IND _, _)), AX_REG(true,_,_))) : lty) =
   | ltp_norm _ = false
 
 (** accessing free named tyvars *)
-fun tc_nvars (tyc:tyc) =
+fun tc_nvars (tyc: tyc) =
     case getAux tyc
      of AX_REG (_,_,tvs) => tvs
       | AX_NO => bug "unexpected case in tc_nvars"
 
-fun lt_nvars (lty:lty) =
+fun lt_nvars (lty: lty) =
     case getAux lty
      of AX_REG (_,_,tvs) => tvs
       | AX_NO => bug "unexpected case in lt_nvars"
@@ -533,7 +528,7 @@ datatype teBinder
             point where the closure was originally created;
          ks: the kinds of the abstraction parameters *)
 
-val teEmpty : tycEnv = tc_injX(TC_SUM[])
+val teEmpty : tycEnv = tc_inj (TC_SUM [])
 
 (** utility functions for manipulating tycEnvs and teBinders **)
 
@@ -542,30 +537,30 @@ val teEmpty : tycEnv = tc_injX(TC_SUM[])
  * Lamb(j,ks) <=> TC_PROJ(TC_FN(ks,TC_SUM[]), j)
  *)
 fun teEncodeBinder (Beta(j,args,ks)) : tyc =
-      tc_injX(TC_FN(ks,tc_injX(TC_PROJ(tc_injX(TC_SEQ args), j))))
+      tc_inj(TC_FN(ks,tc_inj(TC_PROJ(tc_inj(TC_SEQ args), j))))
   | teEncodeBinder (Lamb(j,ks)) =
-      tc_injX(TC_PROJ(tc_injX(TC_FN(ks,tc_injX(TC_SUM[]))), j))
+      tc_inj(TC_PROJ(tc_inj(TC_FN(ks,tc_inj(TC_SUM[]))), j))
 
 fun teDecodeBinder (tyc : tyc) : teBinder =
-    case tc_outX(tyc)
+    case tc_out(tyc)
      of TC_FN(ks,tyc') =>
-          (case tc_outX tyc'
+          (case tc_out tyc'
              of TC_PROJ(tyc'',j) =>
-                  (case tc_outX tyc''
+                  (case tc_out tyc''
                      of TC_SEQ(args) => Beta(j,args,ks)
                       | _ => bug "teDecodeBinder")
               | _ => bug "teDecodeBinder")
       | TC_PROJ(tyc',j) =>
-          (case tc_outX tyc'
+          (case tc_out tyc'
              of TC_FN(ks,_) => Lamb(j, ks)
               | _ => bug "teDecodeBinder")
       | _ => bug "teDecodeBinder"
 
 fun teCons (b: teBinder, tenv: tycEnv) : tycEnv =
-    tc_injX(TC_PARROW(teEncodeBinder b, tenv))
+    tc_inj(TC_PARROW(teEncodeBinder b, tenv))
 
 fun teDest (tenv: tycEnv) : (teBinder * tycEnv) option =
-    case tc_outX tenv
+    case tc_out tenv
      of TC_PARROW(b,tenv) => SOME(teDecodeBinder b, tenv)
       | TC_SUM [] => NONE
       | _ => bug "teDest"
@@ -614,7 +609,7 @@ fun tk_eq (x: tkind, y) = (x = y)
 
 local
   fun stripIND tyc =
-      (case tc_outX tyc
+      (case tc_out tyc
 	of (TC_IND(new,_)) => stripIND new
 	 | _ => tyc)
 
@@ -639,50 +634,6 @@ in
       (verify x; verify y;
        x = y)
 end
-(*
-	     (case (tc_outX tyc1, tc_outX tyc2)
-	       of (TC_PRIM pt1, TC_PRIM pt2) => print "PRIM\n"
-		| (TC_FN _, _) => print "FN\n"
-		| (TC_FIX _, _) => print "FIX\n"
-		| (TC_VAR _, _) => print "VAR\n"
-		| (TC_NVAR _, _) => print "NVAR\n"
-		| (TC_APP _, _) => print "APP\n"
-		| (TC_SEQ _, _) => print "SEQ\n"
-		| (TC_PROJ _, _) => print "PROJ\n"
-		| (TC_SUM _, _) => print "SUM\n"
-		| (TC_TUPLE _, _) => print "TUPLE\n"
-		| (TC_ARROW _, _) => print "ARROW\n"
-		| (TC_PARROW _, _) => print "PARROW\n"
-		| (TC_BOX _, _) => print "BOX\n"
-		| (TC_ABS _, _) => print "ABS\n"
-		| (TC_TOKEN _, _) => print "TOKEN\n"
-		| (TC_CONT _, _) => print "CONT\n"
-		| (TC_IND _, _) => print "IND\n"
-		| (TC_ENV _, _) => print "ENV\n"
-		| (TC_PRIM _, tyc2') =>
-		    (print "unmatched PRIM\n";
-		     case tyc2'
-		      of (TC_FN _) =>
-			 print "FN\n"
-		       | (TC_FIX _) => print "FIX\n"
-		       | (TC_VAR _) => print "VAR\n"
-		       | (TC_NVAR _) => print "NVAR\n"
-		       | (TC_APP _) => print "APP\n"
-		       | (TC_SEQ _) => print "SEQ\n"
-		       | (TC_PROJ _) => print "PROJ\n"
-		       | (TC_SUM _) => print "SUM\n"
-		       | (TC_TUPLE _) => print "TUPLE\n"
-		       | (TC_ARROW _) => print "ARROW\n"
-		       | (TC_PARROW _) => print "PARROW\n"
-		       | (TC_BOX _) => print "BOX\n"
-		       | (TC_ABS _) => print "ABS\n"
-		       | (TC_TOKEN _) => print "TOKEN\n"
-		       | (TC_CONT _) => print "CONT\n"
-		       | (TC_IND _) => print "IND\n"
-		       | (TC_ENV _) => print "ENV\n"
-		       | (TC_PRIM _) => print "PRIM\n")
-			 )); x = y)
-    else (x = y) *)
 
 (** utility functions for updating tycs and ltys *)
 fun tyc_upd (tgt as ref(i : int, old : tycI, AX_NO), nt) =
@@ -707,7 +658,7 @@ fun tksSubkind (ks1, ks2) =
 
 and tkSubkind (k1, k2) =
     tk_eq (k1, k2) orelse              (* reflexive *)
-    case (tk_outX k1, tk_outX k2) of
+    case (tk_out k1, tk_out k2) of
         (TK_BOX, TK_MONO) => true (* ground kinds (base case) *)
       (* this next case is WRONG, but necessary until the
        * infrastructure is there to give proper boxed kinds to
@@ -725,36 +676,36 @@ and tkSubkind (k1, k2) =
  * There must be a better factoring of the dependencies
  * These functions are in either ltydefs or ltybasic *)
 (** tkind constructors *)
-val tkc_mono   : tkind = tk_injX (TK_MONO)
-val tkc_box    : tkind = tk_injX (TK_BOX)
-val tkc_seq    : tkind list -> tkind = tk_injX o TK_SEQ
-val tkc_fun    : tkind list * tkind -> tkind = tk_injX o TK_FUN
+val tkc_mono   : tkind = tk_inj (TK_MONO)
+val tkc_box    : tkind = tk_inj (TK_BOX)
+val tkc_seq    : tkind list -> tkind = tk_inj o TK_SEQ
+val tkc_fun    : tkind list * tkind -> tkind = tk_inj o TK_FUN
 
 (** tkind deconstructors *)
 val tkd_mono   : tkind -> unit = fn _ => ()
 val tkd_box    : tkind -> unit = fn _ => ()
 val tkd_seq    : tkind -> tkind list = fn tk =>
-      (case tk_outX tk of TK_SEQ x => x
+      (case tk_out tk of TK_SEQ x => x
                        | _ => bug "unexpected tkind in tkd_seq")
 val tkd_fun    : tkind -> tkind list * tkind = fn tk =>
-      (case tk_outX tk of TK_FUN x => x
+      (case tk_out tk of TK_FUN x => x
                        | _ => bug "unexpected tkind in tkd_fun")
 
 (** tkind predicates *)
 val tkp_mono   : tkind -> bool = fn tk => tk_eq(tk, tkc_mono)
 val tkp_box    : tkind -> bool = fn tk => tk_eq(tk, tkc_box)
 val tkp_seq    : tkind -> bool = fn tk =>
-      (case tk_outX tk of TK_SEQ _ => true | _ => false)
+      (case tk_out tk of TK_SEQ _ => true | _ => false)
 val tkp_fun    : tkind -> bool = fn tk =>
-      (case tk_outX tk of TK_FUN _ => true | _ => false)
+      (case tk_out tk of TK_FUN _ => true | _ => false)
 
 (** tkind one-arm switches *)
 fun tkw_mono (tk, f, g) = if tk_eq(tk, tkc_mono) then f () else g tk
 fun tkw_box (tk, f, g) = if tk_eq(tk, tkc_box) then f () else g tk
 fun tkw_seq (tk, f, g) =
-      (case tk_outX tk of TK_SEQ x => f x | _ => g tk)
+      (case tk_out tk of TK_SEQ x => f x | _ => g tk)
 fun tkw_fun (tk, f, g) =
-      (case tk_outX tk of TK_FUN x => f x | _ => g tk)
+      (case tk_out tk of TK_FUN x => f x | _ => g tk)
 
 (** utility functions for constructing tkinds *)
 fun tkc_arg n =

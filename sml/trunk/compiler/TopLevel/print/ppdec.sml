@@ -7,8 +7,7 @@
 signature PPDEC =
 sig
   val ppDec : Environment.environment -> PrettyPrint.stream
-                -> (Absyn.dec * Access.lvar list) -> unit
-  val debugging : bool ref
+                -> (Absyn.dec * LambdaVar.lvar list) -> unit
 end (* signature PPDEC *)
 
 structure PPDec : PPDEC =
@@ -16,23 +15,29 @@ struct
 
 local
   structure S = Symbol
+  structure SP = SymPath
   structure IP = InvPath
+  structure LV = LambdaVar
+  structure A = Access
+  structure V = Variable
+  structure AS = Absyn
+  structure T = Types
   structure M = Modules
-  structure V = VarCon
   structure PP = PrettyPrint
   structure PU = PPUtil
-  open Types VarCon Modules Bindings Fixity Absyn
-       PrettyPrint PPUtil PPType PPObj Access
+  structure PT = PPType
+  structure PO = PPObj
+
+  (* debugging *)
+  val debugging = Control.pddebugging
+  fun say msg = (Control.Print.say msg; Control.Print.flush ())
+  fun saynl msg = (Control.Print.say msg; Control.Print.say "\n"; Control.Print.flush ())
+  fun saysnl msgs = saynl (concat msgs)
+  fun dbsaynl msg = if !debugging then saynl msg else ()
+  fun dbsaysnl msgs = if !debugging then saysnl msgs else ()
+
+  fun bug msg = ErrorMsg.impossible ("PPDec: "^msg)
 in
-
-(* debugging *)
-val say = Control.Print.say
-val debugging = ref false
-fun debugmsg (msg: string) =
-    if !debugging then (say msg; say "\n") else ()
-
-fun bug msg = ErrorMsg.impossible("PPDec: "^msg)
-
 
 type object = Unsafe.Object.object
 
@@ -53,40 +58,42 @@ fun C f x y = f y x;
 
 fun xtract (v, pos) = Unsafe.Object.nth (v, pos)
 
-exception OVERLOAD
-
-fun ppDec ({static,dynamic,...}: Environment.environment)
+fun ppDec ({static,dynamic}: Environment.environment)
           (ppstrm: PP.stream) (dec: Absyn.dec, exportLvars) =
    let val dec = (* pruneDec *) dec
 
-       fun isExport (x : Access.lvar, []) = false
-         | isExport (x, a::r) = if x = a then true else isExport(x, r)
+       fun isExport (x : LV.lvar) =
+	   List.exists (fn y => LV.same(y,x)) exportLvars
 
-        val pps = PP.string ppstrm
-	fun sp () = PP.space ppstrm 1
-        fun nbSp () = PP.nbSpace ppstrm 1
-	(* trueValType: get the type of the bound variable from static,
-	   since the stamps in the absyn haven't been converted by the pickler *)
-       fun trueValType path =
+       val pps = PP.string ppstrm
+       fun sp () = PP.space ppstrm 1
+       fun nbSp () = PP.nbSpace ppstrm 1
+
+	(* trueValType : SP.path * T.ty -> T.ty
+	 *  trueValType: get the type of the bound variable from static environment,
+	 *  since the stamps in the absyn haven't been converted by the pickler,
+	 *  defaulting to ty is the binding of sym (where path = [sym]) is not
+         *  a VALvar, otherwise returns the type of the bound VALvar. *)
+       fun trueValType (path: SP.path, defaultTy: T.ty) =
 	    let val err = fn _ => fn _ => fn _ => (bug "trueValType: unbound")
 	     in case path
-		  of SymPath.SPATH[id] =>
-		      (case Lookup.lookValSym(static,id,err)
-			 of V.VAL(V.VALvar{typ,...}) => !typ
-			  | V.VAL(V.OVLDvar{name,...}) =>
-			     (print ("#trueValType: OVLDvar"^Symbol.name name^"\n");
-			      raise OVERLOAD)
-			  | V.VAL(V.ERRORvar) =>
+		  of SymPath.SPATH [sym] =>
+		      (case Lookup.lookValSym (static, sym, err)
+			 of AS.VAL(V.VALvar{typ,...}) => !typ
+			  | AS.VAL(V.OVLDvar{name,...}) =>
+			     (saysnl ["### trueValType: OVLDvar: "^Symbol.name name];
+			      defaultTy)
+			  | AS.VAL(V.ERRORvar) =>
 			     bug "trueValType: ERRORvar\n"
-			  | V.CON(DATACON{name,typ,...}) =>
-			     bug ("trueValType: DATACON"^Symbol.name name^"\n"))
+			  | AS.CON(T.DATACON{name,typ,...}) =>
+			     bug ("trueValType: DATACON " ^ Symbol.name name))
 		   | _ => bug "trueValType: not singleton path"
 	    end
 
        fun trueTycon (path: IP.path) =
 	    let val err = fn _ => fn _ => fn _ => (bug "trueTycon: unbound ")
 	     in case Lookup.lookTyc(static,ConvertPaths.invertIPath(path),err)
-		  of DEFtyc x => SOME x
+		  of T.DEFtyc x => SOME x
 		   | _ => NONE
 	    end
 
@@ -95,171 +102,188 @@ fun ppDec ({static,dynamic,...}: Environment.environment)
                 of #"$":: #","::_ => true
                  | _ => false
 
-        fun ppVar (VALvar{path, access, typ=(t0 as ref ty), prim, ...}) =
-              if isLazyBogus path then ()
-	      else (
-	        openHVBox ppstrm (PP.Rel 0);
-	          openHOVBox ppstrm (PP.Rel 2);
+       (* ppVar: V.variable -> unit *)
+       fun ppVar (V.VALvar{path, access, typ=ref ty, prim, ...}) =
+             if isLazyBogus path then () else
+	       (dbsaysnl [">>> ppVar", SP.toString path];
+		PP.openHVBox ppstrm (PP.Rel 0);
+	          PP.openHOVBox ppstrm (PP.Rel 2);
 	            PP.openHBox ppstrm;
-	              pps "val"; sp (); pps (SymPath.toString path); sp(); pps "=";
+	              PP.string ppstrm "val"; sp ();
+		      PP.string ppstrm (SymPath.toString path); sp();
+		      pps "=";
 		    PP.closeBox ppstrm;
 		    sp ();
-		    case access
-		     of LVAR lv => (case StaticEnv.look (static, SymPath.last path)
-			   of VALbind(VALvar{access=PATH (EXTERN pid, pos), ...}) =>
-				if isExport(lv, exportLvars)
-				  then let
-				    val SOME objv = DynamicEnv.look dynamic pid
-				    val obj = xtract (objv, pos)
-				    in
-				      ppObj static ppstrm (obj, ty, !printDepth);
-				      sp (); pps ":"; nbSp();
-				      ppType static ppstrm (
-					trueValType path handle OVERLOAD => ty)
-				    end
-				  else (
-				    PP.string ppstrm "<hidden>";
-				    sp (); pps ":"; sp();
-				    ppType static ppstrm ty)
-			    | _ => PP.string ppstrm "<hidden>"
-			  (* end case *))
-		      | _ => ErrorMsg.impossible "ppDec.ppVar"
-		    (* end case *);
-	          closeBox ppstrm;
+		    (case access
+		       of A.LVAR lv =>  (* access is expected to be an LVAR *)
+			    (case StaticEnv.look (static, SymPath.last path)
+			      of Bindings.VALbind(V.VALvar{access = A.PATH (A.EXTERN pid, pos),
+							   ...}) =>
+				  if isExport lv  (* is it "exported"? *)
+				  then (case DynamicEnv.look dynamic pid
+					 of SOME objv =>
+					     let val obj = xtract (objv, pos)
+					     in PO.ppObj static ppstrm (obj, ty, !printDepth);
+						sp (); pps ":"; nbSp();
+						PT.ppType static ppstrm (trueValType (path,ty))
+					     end
+					  | NONE => bug "ppVar: objv")
+				   else (PP.string ppstrm "<hidden>";
+					 sp (); pps ":"; sp();
+					 PT.ppType static ppstrm ty)
+				| _ => PP.string ppstrm "<hidden>"
+			     (* end case *))
+		        | _ => bug "ppVar"
+		        (* end case *));
+	          PP.closeBox ppstrm;
 	          PP.newline ppstrm;
-	        closeBox ppstrm)
+	        PP.closeBox ppstrm)
           | ppVar _ = ()
 
-       fun ppVb (VB{pat,...}) =
+       fun ppVb (AS.VB{pat,...}) =
 	 let fun ppBind(pat) =
 	           case pat
-		    of VARpat v => ppVar v
-		     | RECORDpat{fields,...} => app (ppBind o #2) fields
-		     | VECTORpat(pats,_) => app ppBind pats
-		     | APPpat(_,_,pat) => ppBind pat
-		     | CONSTRAINTpat(pat,_) => ppBind pat
-		     | LAYEREDpat(pat1,pat2) => (ppBind pat1; ppBind pat2)
-                     | ORpat(p1, _) => ppBind p1
+		    of AS.VARpat v => ppVar v
+		     | AS.RECORDpat{fields,...} => app (ppBind o #2) fields
+		     | AS.VECTORpat(pats,_) => app ppBind pats
+		     | AS.APPpat(_,_,pat) => ppBind pat
+		     | AS.CONSTRAINTpat(pat,_) => ppBind pat
+		     | AS.LAYEREDpat(pat1,pat2) => (ppBind pat1; ppBind pat2)
+                     | AS.ORpat(p1, _) => ppBind p1
 		     | _ => ()
 	  in ppBind pat
 	 end
 
-       and ppRvb (RVB{var, ...}) = ppVar var
+       and ppRvb (AS.RVB{var, ...}) = ppVar var
 
-       and ppTb (DEFtyc dt) =
-	   let val {path,tyfun=TYFUN{arity,body},...} =
+       and ppTb (T.DEFtyc dt) =
+	   let val {path, tyfun = T.TYFUN {arity,body},...} =
 		   getOpt (trueTycon (#path dt), dt)
 	   in
-	       openHVBox ppstrm (PP.Rel 0);
-	       openHOVBox ppstrm (PP.Rel 2);
+	       PP.openHVBox ppstrm (PP.Rel 0);
+	       PP.openHOVBox ppstrm (PP.Rel 2);
 	       PP.string ppstrm "type";
-	       ppFormals ppstrm arity;
-	       break ppstrm {nsp=1,offset=0};
-	       ppSym ppstrm (InvPath.last path);
+	       PT.ppFormals ppstrm arity;
+	       PP.break ppstrm {nsp=1,offset=0};
+	       PU.ppSym ppstrm (InvPath.last path);
 	       PP.string ppstrm " =";
-	       break ppstrm {nsp=1,offset=0};
-	       ppType static ppstrm body;
-	       closeBox ppstrm;
+	       PP.break ppstrm {nsp=1,offset=0};
+	       PT.ppType static ppstrm body;
+	       PP.closeBox ppstrm;
 	       PP.newline ppstrm;
-	       closeBox ppstrm
+	       PP.closeBox ppstrm
 	   end
-	 | ppTb _ = bug "ppTb:DEFtyc"
+	 | ppTb _ = bug "ppTb:nonDEFtyc"
 
-	and ppAbsTyc (GENtyc { path, arity, eq, ... }) =
-	    (case !eq of
-		 ABS =>
-		 (openHVBox ppstrm (PP.Rel 0);
-		  openHOVBox ppstrm (PP.Rel 2);
-		  PP.string ppstrm "type";
-		  ppFormals ppstrm arity;
-		  break ppstrm {nsp=1,offset=0};
-		  ppSym ppstrm (InvPath.last path);
-		  closeBox ppstrm;
-		  PP.newline ppstrm;
-		  closeBox ppstrm)
+	and ppAbsTyc (T.GENtyc { path, arity, eq, ... }) =
+	    (case !eq
+	       of T.ABS =>
+		    (PP.openHVBox ppstrm (PP.Rel 0);
+		     PP.openHOVBox ppstrm (PP.Rel 2);
+		     PP.string ppstrm "type";
+		     PT.ppFormals ppstrm arity;
+		     PP.break ppstrm {nsp=1,offset=0};
+		     PU.ppSym ppstrm (InvPath.last path);
+		     PP.closeBox ppstrm;
+		     PP.newline ppstrm;
+		     PP.closeBox ppstrm)
 	       | _ =>
-		 (openHVBox ppstrm (PP.Rel 0);
-	          openHOVBox ppstrm (PP.Rel 2);
-	          PP.string ppstrm "type";
-	          ppFormals ppstrm arity;
-	          break ppstrm {nsp=1,offset=0};
-	          ppSym ppstrm (InvPath.last path);
-	          closeBox ppstrm;
-		  PP.newline ppstrm;
-	          closeBox ppstrm))
-          | ppAbsTyc _ = bug "unexpected case in ppAbsTyc"
+		    (PP.openHVBox ppstrm (PP.Rel 0);
+		     PP.openHOVBox ppstrm (PP.Rel 2);
+		     PP.string ppstrm "type";
+		     PT.ppFormals ppstrm arity;
+		     PP.break ppstrm {nsp=1,offset=0};
+		     PU.ppSym ppstrm (InvPath.last path);
+		     PP.closeBox ppstrm;
+		     PP.newline ppstrm;
+		     PP.closeBox ppstrm))
+          | ppAbsTyc _ = bug "ppAbsTyc:tycKind"
 
-	and ppDataTyc (GENtyc { path, arity,
-				kind = DATATYPE{index, freetycs,
-						family={members, ...},...},
+	and ppDataTyc (T.GENtyc{path, arity,
+				kind = T.DATATYPE{index, freetycs,
+						  family={members, ...},...},
 				... }) =
 	    let fun ppDcons nil = ()
 		  | ppDcons (first::rest) =
 		    let fun ppDcon ({name,domain,rep}) =
-			    (ppSym ppstrm name;
+			    (PU.ppSym ppstrm name;
 			     case domain
 			      of SOME dom =>
 			         (PP.string ppstrm " of ";
-				  ppDconDomain (members,freetycs)
+				  PT.ppDconDomain (members,freetycs)
 					       static ppstrm dom)
 			       | NONE => ())
 		    in
 			PP.string ppstrm "= "; ppDcon first;
-			app (fn d => (break ppstrm {nsp=1,offset=0};
+			app (fn d => (PP.break ppstrm {nsp=1,offset=0};
 				      PP.string ppstrm "| "; ppDcon d))
 			    rest
 		    end
 		val {tycname,dcons,...} = Vector.sub(members,index)
 	    in
-		openHVBox ppstrm (PP.Rel 0);
-		openHVBox ppstrm (PP.Rel 0);
+		PP.openHVBox ppstrm (PP.Rel 0);
+		PP.openHVBox ppstrm (PP.Rel 0);
 		PP.string ppstrm "datatype";
-		ppFormals ppstrm arity;
+		PT.ppFormals ppstrm arity;
 		PP.string ppstrm " ";
-		ppSym ppstrm (InvPath.last path);
-		break ppstrm {nsp=1,offset=2};
-		openHVBox ppstrm (PP.Rel 0);
+		PU.ppSym ppstrm (InvPath.last path);
+		PP.break ppstrm {nsp=1,offset=2};
+		PP.openHVBox ppstrm (PP.Rel 0);
 		ppDcons dcons;
-		closeBox ppstrm;
-		closeBox ppstrm;
+		PP.closeBox ppstrm;
+		PP.closeBox ppstrm;
 		PP.newline ppstrm;
-		closeBox ppstrm
+		PP.closeBox ppstrm
 	    end
 	  | ppDataTyc _ = bug "unexpected case in ppDataTyc"
 
-	and ppEb(EBgen{exn=DATACON{name,...},etype,...}) =
-	      (openHVBox ppstrm (PP.Rel 0);
-	       openHOVBox ppstrm (PP.Rel 2);
+	and ppEb(AS.EBgen{exn=T.DATACON{name,...},etype,...}) =
+	      (PP.openHVBox ppstrm (PP.Rel 0);
+	       PP.openHOVBox ppstrm (PP.Rel 2);
 	       PP.string ppstrm "exception ";
-	       ppSym ppstrm name;
+	       PU.ppSym ppstrm name;
 	       case etype
 		 of NONE => ()
 		  | SOME ty' =>
 		           (PP.string ppstrm " of";
-			    break ppstrm {nsp=1,offset=0};
-			    ppType static ppstrm ty');
-	       closeBox ppstrm;
+			    PP.break ppstrm {nsp=1,offset=0};
+			    PT.ppType static ppstrm ty');
+	       PP.closeBox ppstrm;
  	       PP.newline ppstrm;
-	       closeBox ppstrm)
+	       PP.closeBox ppstrm)
 
-	  | ppEb (EBdef{exn=DATACON{name,...}, edef=DATACON{name=dname,...}}) =
-	      (openHVBox ppstrm (PP.Rel 0);
-	       openHOVBox ppstrm (PP.Rel 2);
+	  | ppEb (AS.EBdef{exn=T.DATACON{name,...}, edef=T.DATACON{name=dname,...}}) =
+	      (PP.openHVBox ppstrm (PP.Rel 0);
+	       PP.openHOVBox ppstrm (PP.Rel 2);
 	       PP.string ppstrm "exception ";
-	       ppSym ppstrm name;
+	       PU.ppSym ppstrm name;
 	       PP.string ppstrm " =";
-	       break ppstrm {nsp=1,offset=0};
-	       ppSym ppstrm dname;
-	       closeBox ppstrm;
+	       PP.break ppstrm {nsp=1,offset=0};
+	       PU.ppSym ppstrm dname;
+	       PP.closeBox ppstrm;
  	       PP.newline ppstrm;
-	       closeBox ppstrm)
+	       PP.closeBox ppstrm)
 
-	and ppStrb (STRB{name, str, ...}) = (
-	      PP.openHVBox ppstrm (PP.Abs 0);
+	and ppStrb (AS.STRB{name, str, ...}) = 
+	    (PP.openHVBox ppstrm (PP.Rel 0);  (* 110_96_64 version *)
+	      PP.openHVBox ppstrm (PP.Rel 0);
+	       PP.string ppstrm "structure ";
+	       PU.ppSym ppstrm name;
+	       PP.string ppstrm " :";
+	       PP.break ppstrm {nsp=1,offset=2};
+	       (case str
+		 of M.STR{sign=M.SIG{name=SOME name',...},...} =>
+		    PU.ppSym ppstrm name'
+		 | _ => PPModules.ppStructure ppstrm (str,static,!signatures));
+	      PP.closeBox ppstrm;
+	      PP.newline ppstrm;
+	     PP.closeBox ppstrm)
+(* trunk (2021.0) version
+	     (PP.openHVBox ppstrm (PP.Abs 0);
 		PP.openHBox ppstrm;
 		  PP.string ppstrm "structure";
 		  PP.space ppstrm 1;
-		  ppSym ppstrm name;
+		  PU.ppSym ppstrm name;
 		  PP.space ppstrm 1;
 		  PP.string ppstrm ":";
 		  PP.space ppstrm 1;
@@ -267,31 +291,34 @@ fun ppDec ({static,dynamic,...}: Environment.environment)
 		PPModules.ppStructure ppstrm (str,static,!signatures);
 	        PP.newline ppstrm;
 	      PP.closeBox ppstrm)
-
-	and ppFctb (FCTB{name, fct, ...}) =
-	    (openHVBox ppstrm (PP.Rel 0);
+*)
+	and ppFctb (AS.FCTB{name, fct, ...}) =
+	    (PP.openHVBox ppstrm (PP.Abs 0);
 	      pps "functor ";
-	      ppSym ppstrm name;
+	      PU.ppSym ppstrm name;
 	      case fct of
 		  M.FCT { sign, ... } =>
 		    PPModules.ppFunsig ppstrm (sign, static, !signatures)
 		| _ => pps " : <sig>";  (* blume: cannot (?) happen *)
 	      PP.newline ppstrm;
-	    closeBox ppstrm)
+	    PP.closeBox ppstrm)
 
         and ppSigb sign =
 	    let val name = case sign
                             of M.SIG { name, ... } => getOpt (name, anonSym)
                              | _ => anonSym
-
-             in (openHVBox ppstrm (PP.Rel 0);
-		  openHVBox ppstrm (PP.Rel 0);
-   	           pps "signature "; ppSym ppstrm name; pps " =";
-	           break ppstrm {nsp=1,offset=2};
+             in (PP.openHVBox ppstrm (PP.Abs 0);
+		   PP.openHVBox ppstrm (PP.Abs 0);
+   	             PP.openHBox ppstrm;
+		       PP.string ppstrm "signature"; PP.space ppstrm 1;
+		       PU.ppSym ppstrm name; PP.space ppstrm 1;
+		       PP.string ppstrm "="; PP.space ppstrm 1;
+		     PP.closeBox ppstrm;
+(*	           PP.break ppstrm {nsp=1,offset=2}; *)
 	           PPModules.ppSignature ppstrm (sign,static,!signatures);
-	          closeBox ppstrm;
+	          PP.closeBox ppstrm;
 	         PP.newline ppstrm;
-	         closeBox ppstrm)
+	         PP.closeBox ppstrm)
             end
 
         and ppFsigb fsig =
@@ -299,80 +326,84 @@ fun ppDec ({static,dynamic,...}: Environment.environment)
                             of M.FSIG{kind=SOME s, ...} => s
                              | _ => anonFsym
 
-	     in (openHVBox ppstrm (PP.Rel 0);
-	         pps "funsig "; ppSym ppstrm name;
+	     in (PP.openHVBox ppstrm (PP.Abs 0);
+	         pps "funsig "; PU.ppSym ppstrm name;
 	         PPModules.ppFunsig ppstrm (fsig,static,!signatures);
 	         PP.newline ppstrm;
-	         closeBox ppstrm)
+	         PP.closeBox ppstrm)
             end
 
 	and ppFixity{fixity,ops} =
-	    (openHVBox ppstrm (PP.Rel 0);
-	     openHVBox ppstrm (PP.Rel 0);
+	    (PP.openHVBox ppstrm (PP.Rel 0);
+	     PP.openHVBox ppstrm (PP.Rel 0);
 	     PP.string ppstrm (Fixity.fixityToString fixity);
-	     PU.ppSequence ppstrm {sep=C break {nsp=1,offset=0},
+	     PU.ppSequence ppstrm {sep=C PP.break {nsp=1,offset=0},
 			                  pr=PU.ppSym,
-			                  style=INCONSISTENT}
+			                  style=PU.INCONSISTENT}
 	                          ops;
-	     closeBox ppstrm;
+	     PP.closeBox ppstrm;
 	     PP.newline ppstrm;
-	     closeBox ppstrm)
+	     PP.closeBox ppstrm)
 
 	and ppOpen(pathStrs) =
 	    if !printOpens
-	    then (openHVBox ppstrm (PP.Rel 0);
+	    then (PP.openHVBox ppstrm (PP.Rel 0);
 		   app (fn (path,str) =>
 			 PPModules.ppOpen ppstrm (path,str,static,!signatures))
 		       pathStrs;
-		  closeBox ppstrm)
-	    else (openHVBox ppstrm (PP.Rel 0);
-		  openHVBox ppstrm (PP.Rel 0);
+		  PP.closeBox ppstrm)
+	    else (PP.openHVBox ppstrm (PP.Rel 0);
+		  PP.openHVBox ppstrm (PP.Rel 0);
 		  PP.string ppstrm "open ";
-		  ppSequence ppstrm {sep=C break {nsp=1,offset=0},
-			     pr=(fn ppstrm => fn (path,_)
-				    => (PP.string ppstrm (SymPath.toString path))),
-			     style=INCONSISTENT}
-			     pathStrs;
-		  closeBox ppstrm;
+		  PU.ppSequence ppstrm
+		     {sep=C PP.break {nsp=1,offset=0},
+		      pr=(fn ppstrm => fn (path,_) =>
+			   PP.string ppstrm (SymPath.toString path)),
+		      style=PU.INCONSISTENT}
+		     pathStrs;
+		  PP.closeBox ppstrm;
 		  PP.newline ppstrm;
-		  closeBox ppstrm)
+		  PP.closeBox ppstrm)
+
+	and ppVARSEL (var1, var2, index) = ppVar var1
 
 	and ppDec0 dec =
-	    case (resetPPType(); dec)
-	      of VALdec vbs => app ppVb vbs
-	       | VALRECdec rvbs => app ppRvb rvbs
-	       | DOdec _ => ()
-	       | TYPEdec tbs => app ppTb tbs
-	       | DATATYPEdec{datatycs,withtycs} =>
+	    (PT.resetPPType();
+	     case dec
+	      of AS.VALdec vbs => app ppVb vbs
+	       | AS.VALRECdec rvbs => app ppRvb rvbs
+	       | AS.DOdec _ => ()
+	       | AS.TYPEdec tbs => app ppTb tbs
+	       | AS.DATATYPEdec{datatycs,withtycs} =>
 		   (app ppDataTyc datatycs;
 		    app ppTb withtycs)
-	       | ABSTYPEdec{abstycs,withtycs,body} =>
+	       | AS.ABSTYPEdec{abstycs,withtycs,body} =>
 		   (app ppAbsTyc abstycs;
 		    app ppTb withtycs;
 		    ppDec0 body)
-	       | EXCEPTIONdec ebs => app ppEb ebs
-	       | STRdec strbs => app ppStrb strbs
-	       | FCTdec fctbs => app ppFctb fctbs
-	       | SIGdec sigbs => app ppSigb sigbs
-	       | FSIGdec fsigbs => app ppFsigb fsigbs
-	       | LOCALdec(decIn,decOut) => ppDec0 decOut
-	       | SEQdec decs =>
+	       | AS.EXCEPTIONdec ebs => app ppEb ebs
+	       | AS.STRdec strbs => app ppStrb strbs
+	       | AS.FCTdec fctbs => app ppFctb fctbs
+	       | AS.SIGdec sigbs => app ppSigb sigbs
+	       | AS.FSIGdec fsigbs => app ppFsigb fsigbs
+	       | AS.LOCALdec(decIn,decOut) => ppDec0 decOut
+	       | AS.SEQdec decs =>
 		  (case decs
-		     of OPENdec pathStrs :: rest =>
+		     of AS.OPENdec pathStrs :: rest =>
 			 ppOpen pathStrs
                       | _ => app ppDec0 decs)
-	       | FIXdec fixd => ppFixity fixd
-	       | OVLDdec _ =>
+	       | AS.FIXdec fixd => ppFixity fixd
+	       | AS.OVLDdec _ =>
                    (PP.string ppstrm "overload"; PP.newline ppstrm)
-	       | OPENdec pathStrs => ppOpen pathStrs
-	       | MARKdec(dec,_) => ppDec0 dec
+	       | AS.OPENdec pathStrs => ppOpen pathStrs
+	       | AS.MARKdec(dec,_) => ppDec0 dec
+	       | AS.VARSELdec(v1,v2,i) => ppVARSEL (v1,v2,i))
 
-     in openHVBox ppstrm (PP.Rel 0);
+     in PP.openHVBox ppstrm (PP.Rel 0);
 	ppDec0 dec;
-	closeBox ppstrm;
-	flushStream ppstrm
-    end
+	PP.closeBox ppstrm;
+	PP.flushStream ppstrm
+    end (* end ppDec *)
 
-end (* local *)
+end (* top local *)
 end (* structure PPDec *)
-

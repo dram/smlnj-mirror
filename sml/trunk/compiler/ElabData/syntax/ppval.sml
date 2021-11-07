@@ -10,13 +10,13 @@ signature PPVAL =
 sig
   val ppAccess: PrettyPrint.stream -> Access.access -> unit
   val ppRep: PrettyPrint.stream -> Access.conrep -> unit
-  val ppDcon: PrettyPrint.stream -> VarCon.datacon -> unit
-  val ppVar: PrettyPrint.stream -> VarCon.var -> unit
+  val ppDcon: PrettyPrint.stream -> Types.datacon -> unit
+  val ppVar: PrettyPrint.stream -> Variable.var -> unit
   val ppDebugDcon : PrettyPrint.stream
-		    -> StaticEnv.staticEnv -> VarCon.datacon -> unit
+		    -> StaticEnv.staticEnv -> Types.datacon -> unit
   val ppDebugVar: (PrimopId.prim_id -> string) ->
 		  PrettyPrint.stream
-		  -> StaticEnv.staticEnv -> VarCon.var -> unit
+		  -> StaticEnv.staticEnv -> Variable.var -> unit
 end (* signature PPVAL *)
 
 structure PPVal : PPVAL =
@@ -28,7 +28,8 @@ local
   structure TU = TypesUtil
   structure LU = Lookup
   structure A = Access
-  open PrettyPrint PPUtil VarCon Types
+  structure LV = LambdaVar
+  open PrettyPrint PPUtil Variable Types
 
 in
 
@@ -41,7 +42,7 @@ val ppType = PPType.ppType
 val ppTycon = PPType.ppTycon
 val ppTyfun = PPType.ppTyfun
 
-fun ppAccess ppstrm a = pps ppstrm (" ["^(A.prAcc a)^"]")
+fun ppAccess ppstrm a = pps ppstrm ("["^(A.prAcc a)^"]")
 
 fun ppInfo ii2string ppstrm a = pps ppstrm (" ["^(ii2string a)^"]")
 
@@ -58,7 +59,7 @@ fun ppDcon ppstrm =
     end
 
 fun ppDebugDcon ppstrm env (DATACON{name,rep,const,typ,sign,lazyp}) =
-    let val {openHVBox, openHOVBox,closeBox,pps,break,...} = en_pp ppstrm
+    let val {openHVBox, openHOVBox, closeBox, pps, break,...} = en_pp ppstrm
 	val ppSym = ppSym ppstrm
      in openHVBox 3;
         pps "DATACON";
@@ -92,12 +93,12 @@ fun ppConBinding ppstrm =
 	  | ppCon (con,env) =
 	      let exception Hidden
 		  val visibleDconTyc =
-		      let val tyc = TU.dconTyc con
+		      let val tyc = TU.dataconTyc con
 		       in
 			  (TypesUtil.equalTycon
 			      (LU.lookTyc
 			         (env,SymPath.SPATH
-				       [InvPath.last(TypesUtil.tycPath tyc)],
+				       [InvPath.last(valOf(TypesUtil.tycPath tyc))],
 				  fn _ => raise Hidden),
 			       tyc)
 			     handle Hidden => false)
@@ -114,7 +115,11 @@ fun ppConBinding ppstrm =
 
 fun ppVar ppstrm (VALvar {access,path,...}) =
       (pps ppstrm (SymPath.toString path);
-       if !internals then ppAccess ppstrm access else ())
+       if !internals
+       then (case access
+	       of A.LVAR lvar => pps ppstrm ("." ^ LV.toString lvar)
+	        | _ => ppAccess ppstrm access)
+       else ())
   | ppVar ppstrm (OVLDvar {name,...}) = ppSym ppstrm (name)
   | ppVar ppstrm (ERRORvar) = PP.string ppstrm "<errorvar>"
 

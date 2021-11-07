@@ -86,19 +86,47 @@ struct
 end (* structure InvPath *)
 
 
+signature CONVERTPATHS =
+sig
+  val invertSPath : SymPath.path -> InvPath.path
+  val invertIPath : InvPath.path -> SymPath.path
+
+  val stripPath : InvPath.path -> SymPath.path
+
+  (* needed in PPTypes, PPModules to filter out administrative structure names,
+   *  i.e. "resultStr", "returnStr" *)
+  val findPath : InvPath.path * ('a -> bool) * (SymPath.path -> 'a option)
+                 -> Symbol.symbol list * bool
+end
+
 structure ConvertPaths : CONVERTPATHS =
 struct
 
-  type spath = SymPath.path
-  type ipath = InvPath.path
+local
+  structure S = Symbol
+  structure SP = SymPath
+  structure IP = InvPath
 
-  fun invertSPath(SymPath.SPATH p : SymPath.path) : InvPath.path =
-      InvPath.IPATH(rev p)
-  fun invertIPath(InvPath.IPATH p : InvPath.path) : SymPath.path =
-      SymPath.SPATH(rev p)
+  val debugging = ElabDataControl.tpdebugging
+
+  fun saynl msg = (Control_Print.say msg; Control_Print.say "\n"; Control_Print.flush ())
+  fun saysnl msgs = saynl (concat msgs)
+  fun dbsaynl msg = if !debugging then saynl msg else ()
+  fun dbsaysnl msgs = if !debugging then saysnl msgs else ()
+
+in
+
+  fun invertSPath(SP.SPATH p : SP.path) : IP.path =
+      IP.IPATH(rev p)
+  fun invertIPath(IP.IPATH p : IP.path) : SP.path =
+      SP.SPATH(rev p)
 		   
-  (* findPath: convert inverse symbolic path names to a printable string in the
+  (* findPath: IP.path * ('a -> bool) * (SP.path -> 'a option)
+               -> Symbol.symbol list * bool
+    convert inverse symbolic path names to a printable string in the
     context of an environment.
+
+    'a is instantiated to T.tycon in PPType and M.structure in PPModule.
 
     Its arguments are the inverse symbolic path, a check predicate on static
     semantic values, and a lookup function mapping paths to their bindings
@@ -121,24 +149,37 @@ struct
 	   If none of these work, it returns ?.A.B.t
 
     Note: the symbolic path is passed in reverse order because that is
-    the way all symbolic path names are stored within static semantic objects.
+    how all symbolic paths are stored within static semantic objects.
    *)
 
-  fun findPath (InvPath.IPATH p: InvPath.path, check, look): (Symbol.symbol list * bool) =
-      let fun try(name::untried,tried) =
-	      (if (Symbol.eq(name,SpecialSymbols.resultId)) orelse
-		  (Symbol.eq(name,SpecialSymbols.returnId)) 
-		 then try(untried,tried)
-		 else let val elemOp = look(SymPath.SPATH(name :: tried))
-		       in case elemOp
-			    of NONE => try(untried,name::tried)
-			     | SOME elem =>
-			       if check elem
-			       then (name::tried,true)
-			       else try(untried,name::tried)
-		      end)
-	    | try([],tried) = (tried, false)
+  fun stripPath (IP.IPATH p) : SP.path =
+      let fun good (sym: S.symbol) =
+	      let val name = S.name sym
+	       in not (name = "<resultStr>") andalso not (name = "<returnStr>")
+	      end
+       in SP.SPATH (rev (List.filter good p))
+      end
+
+  fun findPath (IP.IPATH p: IP.path, check, look): (S.symbol list * bool) =
+      let val _ = dbsaysnl ["### findPath: ", IP.toString (IP.IPATH p)]
+	  fun try (nextSym::untried, tried) =
+	        let val nextName = S.name nextSym
+		 in if nextName = "<resultStr>" orelse nextName = "<returnStr>"
+		    then (dbsaysnl ["### dropping special path element ", nextName];
+			  try (untried, tried)) (* drop special sym *)
+		    else let val nextPath = nextSym :: tried
+			     val elemOp = look (SymPath.SPATH nextPath)
+			 in case elemOp
+			     of NONE => try(untried, nextPath)
+			      | SOME elem =>
+				if check elem
+				then (nextPath, true)
+				else try(untried, nextPath)
+			 end
+		end
+	    | try([],tried) = (tried, false)  (* path not bound -- by look *)
        in try(p,[])
       end
 
+end (* top local *)
 end (* structure ConvertPaths *)

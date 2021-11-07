@@ -14,7 +14,7 @@ local structure EM = ErrorMsg
       structure PP = PrettyPrint
       structure PU = PPUtil
 
-      open Ast Fixity (* Tuples VarCon Types PrettyPrint PPUtil PPType PPVal *)
+      open Ast Fixity
 in
 
 val internals = ParserControl.astInternals
@@ -72,7 +72,7 @@ fun ppPat sourceOp ppstrm =
 	  | ppPat' (IntPat(src, _),_) = pps src
 	  | ppPat' (WordPat(src, _),_) = pps src
 	  | ppPat' (StringPat s, _) = PU.ppString ppstrm s
-	  | ppPat' (CharPat s,_) = (pps "#"; PU.ppString ppstrm s)
+	  | ppPat' (CharPat c,_) = (pps "#"; PU.ppString ppstrm (Char.toString c))
 	  | ppPat' (LayeredPat {varPat,expPat},d) =
 	      (openHVBox 0;
 	       ppPat'(varPat,d); pps " as "; ppPat'(expPat,d-1);
@@ -241,7 +241,7 @@ and ppExp sourceOp ppstrm =
 	| ppExp' (WordExp(src, _),_,_) = pps src
 	| ppExp' (RealExp(src, _),_,_) = pps src
 	| ppExp' (StringExp s,_,_) = PU.ppString ppstrm s
-	| ppExp' (CharExp s,_,_) = (pps "#"; PU.ppString ppstrm s)
+	| ppExp' (CharExp c,_,_) = (pps "#"; PU.ppString ppstrm (Char.toString c))
 	| ppExp'(r as RecordExp fields,_,d) =
 	   (PU.ppClosedSequence ppstrm
 	      {front=(C PP.string "{"),

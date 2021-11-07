@@ -21,7 +21,7 @@ structure Env : ENV = struct
 
 (* debugging *)
 val say = Control_Print.say
-val debugging = ref false
+val debugging = ElabDataControl.envdebugging
 fun debugmsg (msg: string) =
       if !debugging then (say msg; say "\n") else ()
 
@@ -114,13 +114,13 @@ datatype 'b env
 val empty = EMPTY
 
 fun look (env,sym as Symbol.SYMBOL(is as (i,s))) = 
-  let fun f EMPTY = (debugmsg("$Env.look "^s); raise Unbound)
-        | f (BIND(i',s',b,n)) =
-            if i = i' andalso s = s' then b else f n
-        | f (TABLE(t,n)) = (IntStrMapV.map t is handle Unbound => f n)
-        | f (SPECIAL(g,_,n)) = (g sym handle Unbound => f n)
-   in f env
-  end
+    let fun f EMPTY = (debugmsg("$Env.look "^s); raise Unbound)
+	  | f (BIND(i',s',b,n)) =
+	      if i = i' andalso s = s' then b else f n
+	  | f (TABLE(t,n)) = (IntStrMapV.map t is handle Unbound => f n)
+	  | f (SPECIAL(g,_,n)) = (g sym handle Unbound => f n)
+     in f env
+    end
 
 fun bind (Symbol.SYMBOL(i,s),binding,env) = BIND (i,s,binding,env)
 

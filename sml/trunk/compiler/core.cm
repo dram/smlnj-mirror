@@ -84,7 +84,7 @@ Group
         structure Stamps
         structure Bindings
         structure TypesUtil
-        structure VarCon
+        structure Variable
         structure ModuleUtil
 	structure PrimopId
         structure BasicTypes
@@ -121,7 +121,7 @@ Group
 	signature STAMPS
 	signature BINDINGS
 	signature TYPESUTIL
-	signature VARCON
+	signature VARIABLE
 	signature MODULEUTIL
 	signature BASICTYPES
 	signature PPTYPE
@@ -192,24 +192,27 @@ FLINT/flint/chkflint.sml
 FLINT/flint/flint.sig
 FLINT/flint/flint.sml
 FLINT/flint/flintutil.sml
+FLINT/flint/printflint.sig
+FLINT/flint/printflint.sml
 FLINT/flint/ppflint.sig
 FLINT/flint/ppflint.sml
 FLINT/flint/tvarcvt.sml
-FLINT/kernel/primtyc.sig
-FLINT/kernel/primtyc.sml
-FLINT/kernel/ltybasic.sig
-FLINT/kernel/ltybasic.sml
-FLINT/kernel/ltydef.sig
-FLINT/kernel/ltydef.sml
-FLINT/kernel/ltydict.sml
-FLINT/kernel/ltyextern.sig
-FLINT/kernel/ltyextern.sml
-FLINT/kernel/ltykernel.sig
-FLINT/kernel/ltykernel.sml
 FLINT/kernel/lty.sig
 FLINT/kernel/lty.sml
+FLINT/kernel/ltykernel.sig
+FLINT/kernel/ltykernel.sml
+FLINT/kernel/ltydef.sig
+FLINT/kernel/ltydef.sml
+FLINT/kernel/funrecmeta.sig
+FLINT/kernel/funrecmeta.sml
+FLINT/kernel/ltybasic.sig
+FLINT/kernel/ltybasic.sml
+FLINT/kernel/ltyextern.sig
+FLINT/kernel/ltyextern.sml
+FLINT/kernel/ltydict.sml
+FLINT/kernel/primtyc.sig
+FLINT/kernel/primtyc.sml
 FLINT/kernel/ltykindchk.sml
-
 FLINT/kernel/pplty.sml
 
 FLINT/main/flint-opt.sml
@@ -230,7 +233,6 @@ FLINT/plambda/pflatten.sig
 FLINT/plambda/pflatten.sml
 FLINT/plambda/plambda.sig
 FLINT/plambda/plambda.sml
-FLINT/plambda/plambdatype.sml
 FLINT/plambda/pplexp.sml
 FLINT/plambda/reorder.sml
 FLINT/reps/coerce.sml
@@ -241,9 +243,6 @@ FLINT/reps/typeoper.sml
 FLINT/reps/wrapping.sml
 FLINT/trans/module-plists.sml
 FLINT/trans/transtkind.sml
-FLINT/trans/matchcomp.sml
-FLINT/trans/mccommon.sml
-FLINT/trans/mcprint.sml
 FLINT/trans/pequal.sml
 FLINT/trans/transutil.sml
 FLINT/trans/translate.sml

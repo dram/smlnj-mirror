@@ -4,9 +4,8 @@
  * All rights reserved.
  *)
 
-signature ACCESS = sig
-
-    type lvar = LambdaVar.lvar
+signature ACCESS =
+sig
 
   (* How to find the dynamic value corresponding to a variable.
    * -- LVAR is just a lambda-bound variable --- a "local" varialbe used to
@@ -23,7 +22,7 @@ signature ACCESS = sig
    *    bootstrap procedure.
    *)
     datatype access
-      = LVAR of lvar
+      = LVAR of LambdaVar.lvar
       | EXTERN of PersStamps.persstamp
       | PATH of access * int
       | NO_ACCESS
@@ -65,16 +64,16 @@ signature ACCESS = sig
   (** fetching a component out of a structure access *)
     val selAcc  : access * int -> access
   (** duplicating an access variable *)
-    val dupAcc  : lvar * (Symbol.symbol option -> lvar) -> access
+    val dupAcc  : LambdaVar.lvar * (Symbol.symbol option -> LambdaVar.lvar) -> access
 
-    val namedAcc : Symbol.symbol * (Symbol.symbol option -> lvar)
+    val namedAcc : Symbol.symbol * (Symbol.symbol option -> LambdaVar.lvar)
 		     -> access
 
-    val newAcc  : (Symbol.symbol option -> lvar) -> access
+    val newAcc  : (Symbol.symbol option -> LambdaVar.lvar) -> access
 
     val extAcc  : PersStamps.persstamp -> access
     val nullAcc : access
 
-    val accLvar : access -> lvar option
+    val accLvar : access -> LambdaVar.lvar option
 
-  end (* signature ACCESS *)
+end (* signature ACCESS *)

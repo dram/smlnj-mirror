@@ -61,23 +61,19 @@ fun tkAssertIsMono (k,msg) =
 
 (* select the ith element (0 based) from a kind sequence *)
 fun tkSel (tk, i) = 
-  (case (tk_outX tk)
+  (case (tk_out tk)
     of (TK_SEQ ks) => 
        (List.nth(ks, i)
         handle Subscript => raise KindChk "Invalid TC_SEQ index")
      | _ => raise KindChk "Projecting out of sequence")
 
-(* tks_eqv: not used, and not exported -- was used in superceded version 
- * of tkApp that used it instead of tksSubkind
-fun tks_eqv (ks1, ks2) = tk_eq(tkc_seq ks1, tkc_seq ks2)
- *)
 
 (* tkApp: tkind * tkind list
  * check the application of a type function of
  * kind `tk' to a list of arguments of kinds `tks'
  *)
 fun tkApp (tk, tks) = 
-  (case (tk_outX tk)
+  (case (tk_out tk)
     of TK_FUN(a, b) =>
          if tksSubkind(tks, a) then b
          else raise KindChk "Param/Arg Tyc Kind mismatch"
@@ -101,56 +97,7 @@ fun tkApp (tk, tks) =
                         val compare = tc_cmp
 		      end) *)
                        
-(*
-(* strip any unused type variables out of a kenv, given a list of
- * [encoded] free type variables.  the result is a "parallel list" of
- * the kinds of those free type variables in the environment.
- * This is meant to use the same representation of a kind environment
- * as in ltybasic.
- * --CALeague
- *)
-fun tkLookupFreeVars (kenv, tyc) : tkind list option =
-    (* invariant for g: kenv starts with the d(th) frame of the original
-     * kenv passed to tkLookupFreeVars *)
-    let fun g (kenv, d, []) = []
-	  | g (kenv, d, ftv::ftvs) =
-	    let val (d', k') = tvDecode ftv
-		val kenv' = List.drop (kenv, d'-d)
-		            handle Subscript =>
-                              (print "### tkLookupFreeVars:1\n";
-                               raise tkUnbound)
-                (* kenv' should start with the d'(th) frame *)
-		val k = case kenv'
-                          of nil => (print "### tkLookupFreeVars:2\n";
-                                     raise tkUnbound)
-                           | ks :: _ =>  (* ks is d'(th) frame *)
-                             (List.nth (ks, k')
-		              handle Subscript =>
-                                     (print "### tkLookupFreeVars:3\n";
-                                      with_pp
-                                        (fn ppstrm =>
-                                            (PP.string ppstrm "tyc: ";
-                                             PP.newline ppstrm;
-                                             PPLty.ppTyc 20 ppstrm tyc;
-                                             PP.newline ppstrm;
-                                             PP.string ppstrm "length ks: ";
-                                             PP.string ppstrm
-                                               (Int.toString(length ks));
-                                             PP.newline ppstrm;
-                                             PP.string ppstrm
-                                               ("k': "^Int.toString k');
-                                             PP.newline ppstrm));
-                                      raise tkUnbound))
-	    in
-		k :: g (kenv', d', ftvs)
-	    end
-        fun h ftvs = g (kenv, 1, ftvs)
-    in Option.map h (tc_vs tyc)
-       (* assumes that tc_vs returns free variable codes sorted in
-        * ascending numerical order, which means lexicographical order
-        * on the decoded pairs *)
-    end
-*)
+(* lookupFreeVars eliminated *)
 
 structure Memo :> sig
   type dict 
@@ -164,40 +111,13 @@ struct
                             val compare = tc_cmp
                           end)
 
-(*    type dict = (tkind * tkind) list TcDict.map ref  *)
     type dict = tkind TcDict.map ref
     val newDict : unit -> dict = ref o (fn () => TcDict.empty)
 
     fun recallOrCompute (dict, kenv, tyc, doit) =
         (* only cashe kinds of closed tycs, to avoid possibility
          * of free tvs that are not bound in kenv *)
-        case tc_vs tyc  (* tkLookupFreeVars (kenv, tyc) *)
-(*
-          of SOME ks_fvs =>
-             let
-                (* encode those as a kind sequence *)
-                val k_fvs = tkc_seq ks_fvs
-                (* query the dictionary *)
-                val kci = case TcDict.find(!dict, tyc) of
-                    SOME kci => kci
-                  | NONE => []
-                (* look for an equivalent environment *)
-                fun sameEnv (k_fvs',_) = tk_eq(k_fvs, k_fvs')
-            in
-                case List.find sameEnv kci of
-                    SOME (_,k) => k     (* HIT! *)
-                  | NONE => let
-                        (* not in the list.  we will compute
-                         * the answer and cache it
-                         *)
-                        val k = doit()
-                        val kci' = (k_fvs, k) :: kci
-                    in
-                        dict := TcDict.insert(!dict, tyc, kci');
-                        k
-                    end
-            end
-*)
+        case tc_vs tyc
           of SOME [] =>  (* tyc is closed *)
              (case TcDict.find(!dict, tyc)
                of SOME tk => tk
@@ -227,7 +147,7 @@ let val dict = Memo.newDict()
                  handle tkUnbound =>
                   (with_pp (fn s =>
                      (PU.pps s "KindChk: unbound tv: ";
-                      PPLty.ppTyc (!pd) s (tc_injX tycI);
+                      PPLty.ppTyc (!pd) s (tc_inj tycI);
                       PP.newline s;
                       PU.pps s "kenv: ";
                       PP.openHOVBox s (PP.Rel 0);
@@ -258,7 +178,7 @@ let val dict = Memo.newDict()
                         case ts
                           of [] => k 
                            | _ => tkApp(k, map g ts)
-                 in case (tk_outX nk)
+                 in case (tk_out nk)
                      of TK_FUN(argk, resk) => 
                         let val argk' =
                                 case argk
@@ -276,21 +196,18 @@ let val dict = Memo.newDict()
                         end
                       | _ => raise KindChk "FIX with bad generator"
                 end
-              | TC_ABS tc =>
-                (tkAssertIsMono(g tc, "TC_ABS");
-                 tkc_mono)
               | TC_BOX tc =>
                 (tkAssertIsMono (g tc, "TC_BOX");
                  tkc_mono)
-              | TC_TUPLE (_,tcs) =>
+              | TC_TUPLE tcs =>
                 (List.app (fn tc => (tkAssertIsMono(g tc, "TC_TUPLE"))) tcs;
                  tkc_mono)
               | TC_ARROW (_, tcs1, tcs2) =>
                 (List.app (fn tc => (tkAssertIsMono(g tc, "TC_ARROW domain"))) tcs1;
                  List.app (fn tc => (tkAssertIsMono(g tc, "TC_ARROW range"))) tcs2;
                  tkc_mono)
-              | TC_TOKEN(_, tc) =>
-                (tkAssertIsMono (g tc, "TC_TOKEN");
+              | TC_WRAP tc =>
+                (tkAssertIsMono (g tc, "TC_WRAP");
                  tkc_mono)
               | TC_PARROW _ => bug "unexpected TC_PARROW in tcKindChk"
            (* | TC_ENV _ => bug "unexpected TC_ENV in tcKindChk" *)
@@ -331,7 +248,7 @@ let val dict = Memo.newDict()
               | TC_CONT _ => bug "unexpected TC_CONT in tcKindChk"
 
         fun mk () =
-	    mkI (tc_outX t)
+	    mkI (tc_out t)
     in
         Memo.recallOrCompute (dict, kenv, t, mk)
         handle tkUnbound => raise KindChk "tkUnbound"
@@ -414,7 +331,7 @@ let val (tcKindChk, _, teKindChk) = tcteKindCheckGen()
                    ltyChk' bodyKenv body
                 end))
     and ltyChk' kenv lty =
-         ltyIChk kenv (lt_outX lty)
+         ltyIChk kenv (lt_out lty)
          handle x => 
            (with_pp (fn ppstrm => (PPLty.ppLty (!pd) ppstrm lty;
                                    PP.newline ppstrm));

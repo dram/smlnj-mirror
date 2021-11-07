@@ -28,7 +28,7 @@ signature COMPILE0 =
 	  } -> {
 	    absyn: Absyn.dec,
 	    newstatenv: StaticEnv.staticEnv,
-	    exportLvars: Access.lvar list,
+	    exportLvars: LambdaVar.lvar list,
 	    exportPid: pid option,
 	    staticPid: hash,
 	    pickle: pickle
@@ -47,7 +47,7 @@ signature COMPILE0 =
 	    newstatenv: StaticEnv.staticEnv,
 	    absyn: Absyn.dec (* for pretty printing only *),
 	    exportPid: pid option,
-	    exportLvars: Access.lvar list,
+	    exportLvars: LambdaVar.lvar list,
 	    staticPid: hash,
 	    pickle: pickle,
 	    imports: ImportTree.import list

@@ -16,7 +16,7 @@ signature SMLINFO = sig
     type ast = Ast.dec
     type region = SourceMap.region
     type source = Source.inputSource
-    type splitrequest = Control.LambdaSplitting.localsetting
+    type splitrequest = int option option  (* was Control.LambdaSplitting.localsetting *)
 
     type attribs =
 	{ split: splitrequest,
@@ -112,7 +112,7 @@ structure SmlInfo :> SMLINFO = struct
     type source = Source.inputSource
     type ast = Ast.dec
     type region = SourceMap.region
-    type splitrequest = Control.LambdaSplitting.localsetting
+    type splitrequest = int option option (* = obsolete Control.LambdaSplitting.localsetting *)
 
     type complainer = EM.complainer
 

@@ -7,7 +7,7 @@
  *)
 
 signature ELAB_CONTROL =
-  sig
+sig
 
     val etdebugging : bool ref
 	(* ElabType *)
@@ -30,6 +30,7 @@ signature ELAB_CONTROL =
     val instantiateSigs : bool ref
 	(* ElabMod, Control_MC *)
     val etopdebugging : bool ref
+	(* ElabTop *)
 
     val markabsyn : bool ref
 	(* ElabCore, ElabTop, ElabUtil, Control_MC *)
@@ -61,4 +62,4 @@ signature ELAB_CONTROL =
   (* show culprits in type error messages (default false) *)
     val showTypeErrorCulprits : bool ref
 
-  end (* signature ELAB_CONTROL *)
+end (* signature ELAB_CONTROL *)

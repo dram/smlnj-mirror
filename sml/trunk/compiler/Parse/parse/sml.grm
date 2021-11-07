@@ -315,7 +315,7 @@ app_exp	: aexp	        ([{item=markexp(aexp,aexpleft,aexpright),
 	| WORD			(WordExp WORD)
 	| REAL			(RealExp REAL)
 	| STRING		(StringExp STRING)
-	| CHAR 		        (CharExp CHAR)
+	| CHAR 		        (CharExp (String.sub (CHAR,0)))
 	| HASH selector		(markexp(SelectorExp selector,
 						   HASHleft, selectorright))
 	| LBRACE elabels RBRACE	(markexp(RecordExp elabels,
@@ -382,7 +382,7 @@ apat'	: OP id			(VarPat [varSymbol id])
 	| int			(IntPat int)
 	| WORD			(WordPat WORD)
 	| STRING		(StringPat STRING)
-        | CHAR 			(CharPat CHAR)
+        | CHAR 			(CharPat (String.sub(CHAR,0)))
 	| WILD			(WildPat)
 	| LBRACKET RBRACKET	(ListPat nil)
 	| LBRACKET pat_list

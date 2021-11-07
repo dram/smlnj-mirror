@@ -12,6 +12,7 @@ datatype tkindI
   | TK_SEQ of tkind list                      (* sequence of tycons *)
   | TK_FUN of tkind list * tkind              (* tycon function *)
 
+(* enc_tvar: encoded type variables = deBruijn indexes * bind-arity indexes *)
 type enc_tvar
 val tvEncode : int * int -> enc_tvar
 val tvDecode : enc_tvar -> int * int
@@ -70,20 +71,9 @@ datatype teBinder
 
 val teToBinders : tycEnv -> teBinder list
 
-(* token: a hook to add new tyc *)
-type token                                    
-type token_info  
-  = {name      : string, 
-     abbrev    : string,
-     reduce_one: token * tyc -> tyc,
-     is_whnm   : tyc -> bool,
-     is_known  : token * tyc -> bool}
-
-datatype fflag                                (* calling conventions *)
-  = FF_VAR of bool * bool                     (* is it fixed ? *)
+datatype fflag                                (* function "calling conventions" *)
+  = FF_VAR of bool * bool                     (* arg/result representations known? *)
   | FF_FIXED                                  (* used after rep. analysis *)
-
-datatype rflag = RF_TMP                       (* tuple kind: a template *)
 
 datatype tycI
   = TC_VAR of DebIndex.index * int            (* tyc variable *)
@@ -101,19 +91,19 @@ datatype tycI
                         params : tyc list},
                index: int}
 
-  | TC_TUPLE of rflag * tyc list              (* std record tyc *)
+  | TC_TUPLE of tyc list              (* std record tyc *)
   | TC_ARROW of fflag * tyc list * tyc list   (* std function tyc *)
   | TC_PARROW of tyc * tyc                    (* special fun tyc, not used *)
 
   | TC_BOX of tyc                             (* boxed tyc *)
-  | TC_ABS of tyc                             (* abstract tyc *)
-  | TC_TOKEN of token * tyc                   (* extensible token tyc *)
+  | TC_WRAP of tyc                            (* wrapped tyc *)
   | TC_CONT of tyc list                       (* std continuation tyc *)
   | TC_IND of tyc * tycI                      (* indirect tyc thunk *)
   | TC_ENV of tyc * int * int * tycEnv        (* tyc closure *)
 
-(* definition of lty *)
+(* definition of lty (hashed) and ltyI (internal, raw) *)
 type lty
+
 datatype ltyI          
   = LT_TYC of tyc                             (* monomorphic type *)  
   | LT_STR of lty list                        (* structure type *)
@@ -124,19 +114,23 @@ datatype ltyI
   | LT_IND of lty * ltyI                      (* indirect type thunk *)
   | LT_ENV of lty * int * int * tycEnv        (* type closure *)
 
-(** injections and projections on tkind, tyc, and lty *)
-val tk_injX   : tkindI -> tkind 
-val tc_injX   : tycI -> tyc
-val lt_injX   : ltyI -> lty
+(* unknown and wrap_is_whnm *)
+val unknown : tyc -> bool
+val wrap_is_whnm : tyc -> bool
 
-val tk_outX   : tkind -> tkindI
-val tc_outX   : tyc -> tycI
-val lt_outX   : lty -> ltyI
+(** injections and projections on tkind, tyc, and lty *)
+val tk_inj : tkindI -> tkind 
+val tc_inj : tycI -> tyc
+val lt_inj : ltyI -> lty
+
+val tk_out : tkind -> tkindI
+val tc_out : tyc -> tycI
+val lt_out : lty -> ltyI
 
 (** key comparison for tkind, tyc, and lty; used in pickling *)
-val tk_cmp   : tkind * tkind -> order
-val tc_cmp   : tyc * tyc -> order
-val lt_cmp   : lty * lty -> order
+val tk_cmp : tkind * tkind -> order
+val tc_cmp : tyc * tyc -> order
+val lt_cmp : lty * lty -> order
 
 (** get the hash key of each lty, used by reps/coerce.sml; a hack! *)
 val lt_key   : lty -> int
@@ -155,18 +149,6 @@ exception tkUnbound
 val initTkEnv        : tkindEnv
 val tkLookup         : tkindEnv * int * int -> tkind
 val tkInsert         : tkindEnv * tkind list -> tkindEnv
-
-(* token functions *)
-val register_token : token_info -> token
-val token_name    : token -> string
-val token_abbrev  : token -> string
-val token_whnm    : token -> tyc -> bool
-val token_reduce  : token * tyc -> tyc
-val token_isKnown : token * tyc -> bool
-val token_isvalid : token -> bool
-val token_eq      : token * token -> bool
-val token_int     : token -> int
-val token_key     : int -> token
 
 (* simple equality operations *)
 val tk_eq : tkind * tkind -> bool

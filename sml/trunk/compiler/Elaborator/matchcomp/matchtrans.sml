@@ -18,7 +18,7 @@ local
   structure S = Symbol
   structure SP = SymPath
   structure A = Access
-  structure V = VarCon
+  structure V = Variable
   structure AS = Absyn
   structure AU = AbsynUtil
   structure EU = ElabUtil
@@ -157,13 +157,13 @@ and transDec (region: SourceMap.region) (dec: AS.dec): AS.dec =
 	 * -- Looks like we can get away with never dealing with an internal mvar in the match.
 	 * -- We need the type of the pat, which is available as the typ field of VB.
 	 * -- Do we need an absyn equivalent to mkPE, say transPolyExp? We don't have an equivalent
-	 *      to TFN in absyn -- yet [... deal with this in type system rewrite].
+	 *      to TFN in absyn -- yet! [... deal with this in type system rewrite].
          * -- following revmc translate.sml for treatment of VB: alpha-convert pattern, bind match
 	 *    to produce value of the tuple of pattern variables *)
 	and transVB region (VB{pat, exp = defExp, typ, boundtvs, tyvars}) =
 	    (* match compile [(pat, defExp)] if pat is nontrivial (not a var);
 	     * -- check what the match compiler does with (single) irrefutable patterns
-	     *    DONE -- it does the right thing. *)
+	     *    DONE -- claim it does the right thing (explain?). *)
 	    (if !debugging
 	     then (say "transVB:pat = "; ppPat pat; ppExp (defExp, "transVB:exp = "))
 	     else ();
@@ -198,7 +198,7 @@ and transDec (region: SourceMap.region) (dec: AS.dec): AS.dec =
 			       end
 			  else DOdec (transExp region defExp)
 			| [newpvar] =>     (* single pattern variable *)
-			  let val pvarTy = V.varType newpvar
+			  let val pvarTy = TU.dePolyVar newpvar (* was V.varType newpvar *)
 			      val (matchExp, rootVar) =
 				  MC.bindCompile ([(newpat, EU.varToExp newpvar)],
 						  typ, pvarTy, errorFn, region, env)
@@ -206,7 +206,7 @@ and transDec (region: SourceMap.region) (dec: AS.dec): AS.dec =
 				       simpleVALdec(hd oldpvars, matchExp, boundtvs))
 			  end
 			| _ =>  (* "multiple" pattern variables (1 or more) *)
-			  let val pvarsTy = BT.tupleTy (map V.varType oldpvars)  (* same as type of newpvars tuple *)
+			  let val pvarsTy = BT.tupleTy (map TU.dePolyVar oldpvars)  (* was map V.varType oldpvars *)
 			      val newPvarTuple = EU.TUPLEexp(map EU.varToExp newpvars)
 			      val bindRules = [(newpat, newPvarTuple)]  (* single rule match, with new pvars *)
 			      val (matchExp, rootVar) =

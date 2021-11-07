@@ -47,15 +47,12 @@ fun debugPrint (debugging: bool ref)
     if (!debugging)
     then with_default_pp
 	  (fn ppstrm =>
-	    (openHVBox ppstrm (PP.Rel 0);
+	    (openHVBox ppstrm (PP.Abs 2);
 	     PP.string ppstrm msg;
-	     newline ppstrm;
-	     PP.nbSpace ppstrm 2;
-	     openHVBox ppstrm (PP.Rel 0);
+	     PP.nbSpace ppstrm 1;
 	     printfn ppstrm arg;
 	     closeBox ppstrm;
 	     newline ppstrm;
-	     closeBox ppstrm;
 	     PP.flushStream ppstrm))
     else ()
 

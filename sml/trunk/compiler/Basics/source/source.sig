@@ -1,5 +1,5 @@
 (* source.sig
- * COPYRIGHT (c) 1996 Bell Laboratories.
+ * COPYRIGHT (c) 2021 The Fellowship of SML/NJ
  *)
 
 signature SOURCE =
@@ -27,7 +27,11 @@ signature SOURCE =
 
     val regionContent : inputSource * SourceMap.region ->
 			(string * SourceMap.region * int) option
-  end
+
+    val sourceName : inputSource -> string
+    (* returns contents of fileOpened field *)
+
+end (* signature SOURCE *)
 
 (*
 The fileOpened field contains the name of the file that was opened to

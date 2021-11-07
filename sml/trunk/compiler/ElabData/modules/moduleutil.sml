@@ -1,6 +1,6 @@
 (* moduleutil.sml
  *
- * COPYRIGHT (c) 2017 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2021 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *)
 
@@ -16,7 +16,8 @@ local structure S   = Symbol
       structure A   = Access
       structure T   = Types
       structure TU  = TypesUtil
-      structure V   = VarCon
+      structure V   = Variable
+      structure AS  = Absyn
       structure B   = Bindings
       structure EE  = EntityEnv
       structure ST  = Stamps
@@ -238,11 +239,11 @@ fun mkTyc (sym, sp, SIG {elements,...}, sInfo) =
   | mkTyc _ = T.ERRORtyc
 
 fun mkVal (sym, sp, sign as SIG {elements,...},
-	  sInfo as STRINFO({entities,...}, dacc, dinfo)) : V.value =
+	  sInfo as STRINFO({entities,...}, dacc, dinfo)) : Absyn.value =
     (debugmsg ">>mkVal";
     (case getSpec(elements, sym) of
 	 VALspec{spec,slot} =>
-         V.VAL(V.VALvar{access = A.selAcc(dacc,slot),
+         AS.VAL(V.VALvar{access = A.selAcc(dacc,slot),
 			prim = POI.selValPrimFromStrPrim (dinfo, slot),
 			path = sp,
 			typ = ref(transType entities spec),
@@ -255,12 +256,12 @@ fun mkVal (sym, sp, sign as SIG {elements,...},
                    | _ => rep
 
          in
-	     V.CON(T.DATACON{rep=newrep, name=name,
+	     AS.CON(T.DATACON{rep=newrep, name=name,
                              typ=transType entities typ,
                              const=const, sign=sign, lazyp=lazyp})
          end
        | _ => bug "mkVal: wrong spec"))
-  | mkVal _ = V.VAL(V.ERRORvar)
+  | mkVal _ = AS.VAL(V.ERRORvar)
 
 fun mkStrBase (sym, sign, sInfo) =
   let val _ = debugmsg ">>mkStrBase"
@@ -311,7 +312,7 @@ fun getPath makeIt (str, SP.SPATH spath, fullsp) =
 
 val getTycPath : M.Structure * SP.path * SP.path -> T.tycon =
       getPath mkTyc
-val getValPath : M.Structure * SP.path * SP.path -> V.value =
+val getValPath : M.Structure * SP.path * SP.path -> Absyn.value =
       getPath mkVal
 val getStrPath : M.Structure * SP.path * SP.path -> M.Structure =
       (debugmsg ">>getStrPath"; getPath mkStr)
@@ -369,22 +370,20 @@ fun fctId2(sign, rlzn : fctEntity) = MI.fctId2 (sign, rlzn)
  * otherwise, this DEFtyc must be a rigid tycon.
  *)
 fun relativizeTyc epContext : T.tycon -> T.tycon * bool =
-    let fun stamped tyc = let
-	    val tyc_id = MI.tycId' tyc
-	in
-	    (* debugmsg ("mapTyc: "^ModuleId.idToString tyc_id); *)
-	    case EPC.lookTycPath(epContext,tyc_id)
-	     of NONE => (debugmsg "tyc not mapped 1"; (tyc,false))
-	      | SOME entPath =>
-		let val tyc' = T.PATHtyc{arity=TU.tyconArity tyc,
-					 entPath=entPath,
-					 path=TU.tycPath tyc}
-		in
-		    debugmsg("tyc mapped: "^
-			     Symbol.name(TypesUtil.tycName tyc'));
-		    (tyc',true)
-		end
-	end
+    let fun stamped tyc =
+	    let val tyc_id = MI.tycId' tyc
+	    in (* debugmsg ("mapTyc: "^ModuleId.idToString tyc_id); *)
+		case EPC.lookTycPath(epContext,tyc_id)
+		 of NONE => (debugmsg "tyc not mapped 1"; (tyc,false))
+		  | SOME entPath =>
+		    let val tyc' = T.PATHtyc{arity=TU.tyconArity tyc,
+					     entPath=entPath,
+					     path=getOpt(TU.tycPath tyc, InvPath.empty)}
+		     in debugmsg("tyc mapped: "^
+				 Symbol.name(TypesUtil.tycName tyc'));
+			(tyc',true)
+		    end
+	    end
 
 	fun mapTyc (tyc as (T.GENtyc _ | T.DEFtyc _)) = stamped tyc
 	  | mapTyc(tyc as T.PATHtyc _) =
@@ -396,7 +395,8 @@ fun relativizeTyc epContext : T.tycon -> T.tycon * bool =
 	fun mapTyc' tyc =
 	    (debugmsg("mapTyc': "^(Symbol.name(TypesUtil.tycName tyc)));
 	     mapTyc tyc)
-    in mapTyc'
+
+     in mapTyc'
     end
 
 fun relativizeType epContext ty : T.ty * bool =
@@ -432,8 +432,8 @@ fun getBinding (sym, str as STR st) =
 	     case S.nameSpace sym
 	      of S.VALspace =>
 		 (case mkVal (sym, SP.SPATH[sym], sign, sinfo)
-                   of V.VAL v => B.VALbind v
-		    | V.CON d => B.CONbind d)
+                   of AS.VAL v => B.VALbind v
+		    | AS.CON d => B.CONbind d)
 	       | S.TYCspace =>
 		 B.TYCbind (mkTyc (sym, SP.SPATH[sym], sign, sinfo))
 	       | S.STRspace => B.STRbind (mkStrBase (sym, sign, sinfo))
@@ -465,8 +465,7 @@ fun openStructure (env: SE.staticEnv, str) =
    in SE.atop(nenv,env)
   end
 
-(** strPrimElemInBinds
-
+(* strPrimElemInBinds
     Get a strPrimElem list with all the primIds found in a list of bindings
     (including those in nested structures)
 
@@ -474,8 +473,7 @@ fun openStructure (env: SE.staticEnv, str) =
     SigMatch
  *)
 fun strPrimElemInBinds (bindings) =
-    let
-	fun strPrims bind =
+    let fun strPrims bind =
 	   (case bind
 	     of B.STRbind (M.STR { prim, ... }) => POI.StrE prim
 	      | B.STRbind (M.ERRORstr) => POI.PrimE POI.NonPrim
@@ -506,27 +504,26 @@ fun strPrimElemInBinds (bindings) =
 
 (* extract all signature names from a structure --
  *  doesn't look into functor components *)
-fun getSignatureNames s = let
-    fun fromSig sign = let
-	fun sigNames(SIG {name,elements,...}, names) =
-	    foldl (fn ((_,STRspec{sign,...}),ns) =>
-		      sigNames(sign, ns)
-		    | (_,ns) => ns)
-		  (case name of SOME n => n::names | NONE => names)
-		  elements
-	  | sigNames(ERRORsig,names) = names
-	fun removeDups (x::(rest as y::_),z) =
-	    if S.eq(x,y) then removeDups(rest,z) else removeDups(rest,x::z)
-	  | removeDups (x::nil,z) = x::z
-	  | removeDups (nil,z) = z
-    in removeDups(ListMergeSort.sort S.symbolGt(sigNames(sign,nil)), nil)
+fun getSignatureNames s =
+    let fun fromSig sign =
+	    let fun sigNames(SIG {name,elements,...}, names) =
+		    foldl (fn ((_,STRspec{sign,...}),ns) =>
+			      sigNames(sign, ns)
+			    | (_,ns) => ns)
+			  (case name of SOME n => n::names | NONE => names)
+			  elements
+		  | sigNames(ERRORsig,names) = names
+		fun removeDups (x::(rest as y::_),z) =
+		    if S.eq(x,y) then removeDups(rest,z) else removeDups(rest,x::z)
+		  | removeDups (x::nil,z) = x::z
+		  | removeDups (nil,z) = z
+	    in removeDups(ListMergeSort.sort S.symbolGt(sigNames(sign,nil)), nil)
+	    end
+    in case s
+	 of STR { sign, ... } => fromSig sign
+	  | STRSIG { sign, ... } => fromSig sign
+	  | ERRORstr => nil
     end
-in
-    case s of
-	STR { sign, ... } => fromSig sign
-      | STRSIG { sign, ... } => fromSig sign
-      | ERRORstr => nil
-end
+
 end (* local *)
 end (* structure ModuleUtil *)
-

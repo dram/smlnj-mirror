@@ -1146,7 +1146,20 @@ let val region0 = region
 	elabWhere(sigexp,env,epContext,mkStamp,error,region)
     val sign =
       case sigexp
-	of VarSig name' => LU.lookSig(env,name',error region)
+	of VarSig name' => 
+	     let val SIG{stamp,name,closed,fctflag,elements,properties,typsharing,strsharing,stub}
+			 = LU.lookSig(env,name',error region)
+	     in SIG{stamp = stamp,
+		    name = (case nameOp of NONE => name 
+					|  SOME _ => nameOp),  (* update the name field *)
+		    closed = closed,
+		    fctflag = fctflag,
+		    elements = elements,
+		    properties = properties,
+		    typsharing = typsharing,
+		    strsharing = strsharing,
+		    stub = stub}
+	     end
 
 	 | BaseSig specs =>
 	     let val _ = debugmsg "--elabSig >> BaseSig"
@@ -1161,7 +1174,7 @@ let val region0 = region
 			      closed = case nameOp
 					of SOME _ => true
 					 | NONE => false,
-			      fctflag=fflag,
+			      fctflag=fflag,  (* FLINT *)
 			      elements = elements,
 			      properties = PropList.newHolder (),
 			      typsharing = tycShare,

@@ -418,7 +418,7 @@ fun getElemDefs (strDef,mkStamp,depth): (S.symbol * constraint) list =
 			SOME(sym,TDEFINE(NOTINST(
 					   PATHtyc{arity=TU.tyconArity tyc,
 						   entPath=entPath@[entVar],
-						   path=TU.tycPath tyc}),
+						   path=valOf(TU.tycPath tyc)}),
 					 depth)))
 		     | (sym,TYCspec{entVar,info=InfTycSpec{name,arity}}) =>
 		       (debugmsg (">>getElemDefs.V: TYCspec(Inf) " ^ Symbol.name sym

@@ -12,98 +12,122 @@ end
 structure LContract : LCONTRACT =
 struct
 
-local structure DI = DebIndex
-      structure DA = Access
-      structure LT = LtyExtern
-      structure FU = FlintUtil
-      structure PO = Primop
-      structure M  = LambdaVar.Tbl
-      open FLINT
+local
+  structure DI = DebIndex
+  structure DA = Access
+  structure LV = LambdaVar
+  structure M  = LambdaVar.Tbl
+  structure LT = Lty
+  structure FR = FunRecMeta
+  structure LK = LtyKernel
+  structure LD = LtyDef
+  structure LB = LtyBasic
+  structure LE = LtyExtern
+  structure PL = PLambda
+  structure F  = FLINT
+  structure FU = FlintUtil
+  structure PO = Primop
+  open FLINT
+
+fun bug msg = ErrorMsg.impossible ("LContract: "^msg)
+
+val say = Control_Print.say
+fun newline () = say "\n"
+fun saynl msg = (say msg; newline())
+fun says strings = say (concat strings)
+fun saysnl strings = saynl (concat strings)
+
+val debugging = FLINT_Control.lcdebugging
+fun dbsay msg =
+    if !debugging
+    then (say msg; newline())
+    else ()
+fun dbsays msgs = dbsay (concat msgs)
+fun bug s = ErrorMsg.impossible ("LContract: "^s)
+
 in
 
-fun bug s = ErrorMsg.impossible ("LContract: "^s)
-val say = Control_Print.say
-val ident = fn x => x
-
 fun isDiffs (vs, us) =
-  let fun h (VAR x) = List.all (fn y => (y<>x)) vs
-        | h _ = true
-   in List.all h us
-  end
+    let fun h (VAR x) = List.all (fn y => (y<>x)) vs
+	  | h _ = true
+     in List.all h us
+    end
 
 fun isEqs (vs, us) =
-  let fun h (v::r, (VAR x)::z) = if v = x then h(r, z) else false
-        | h ([], []) = true
-        | h _ = false
-   in h(vs, us)
-  end
+    let fun h (v::r, (VAR x)::z) = if v = x then h(r, z) else false
+	  | h ([], []) = true
+	  | h _ = false
+     in h(vs, us)
+    end
 
 datatype info
   = SimpVal of value
   | ListExp of value list
-  | FunExp of lvar list * lexp
-  | ConExp of dcon * tyc list * value
+  | FunExp of LV.lvar list * lexp
+  | ConExp of PL.dataconstr * LT.tyc list * value
   | StdExp
 
 exception LContPass1
+
+(* pass1 : F.fundec -> (LV.lvar -> bool) * (unit -> unit) *)
 fun pass1 fdec =
-  let val zz : (DI.depth option) M.hash_table = M.mkTable(32, LContPass1)
-      val add = M.insert zz
-      val get = M.lookup zz
-      fun rmv i = ignore (M.remove zz i) handle _ => ()
-      fun enter(x, d) = add(x, SOME d)
-      fun kill x = ((get x; rmv x) handle _ => ())
-      fun mark nd x =
-        (let val s = get x
-             val _ = rmv x
-          in case s
-              of NONE => ()
-               | SOME _ => add(x, NONE)  (* depth no longer matters *)
-(*
-               | SOME d => if (d=nd) then add(x, NONE)
-                           else ()
-*)
-         end) handle _ => ()
+    let val tbl : (DI.depth option) M.hash_table = M.mkTable(32, LContPass1)
+	val add = M.insert tbl
+	val get = M.lookup tbl
+	fun rmv i = ignore (M.remove tbl i) handle LContPass1 => ()
+	fun enter (x, d) = add (x, SOME d)
+	fun kill (x: LV.lvar) = ((get x; rmv x) handle LContPass1 => ())
+	fun mark (x: LV.lvar) =
+	    let val s = get x
+	        val _ = rmv x
+	     in case s
+		  of NONE => ()
+		   | SOME _ => add(x, NONE)  (* depth no longer matters *)
+	    end
+	    handle LContPass1 => ()
 
-      fun cand x = (get x; true) handle _ => false
+        (* candidate : LV.lvar -> bool *)
+	fun candidate x = (get x; true) handle LContPass1 => false
 
-      fun lpfd d ({isrec=SOME _,...}, v, vts, e) = lple d e
-        | lpfd d (_, v, vts, e) = (enter(v, d); lple d e)
+        (* lpfd : DI.depth -> F.fundec -> unit *)
+	fun lpfd d (({isrec=SOME _,...}, _, _, e) : F.fundec) = lple d e
+	  | lpfd d (_, v, _, e) = (enter(v, d); lple d e)
 
-      and lple d e =
-        let fun psv (VAR x) = kill x
-              | psv _ = ()
+        (* lple : DI.depth -> F.lexp -> unit *)
+	and lple d e =
+	    let fun psv (VAR x) = kill x
+		  | psv _ = ()
 
-            and pst (tfk, v, vks, e) = lple (DI.next d) e
+		and pse (RET vs) = app psv vs
+		  | pse (LET(vs, e1, e2)) = (pse e1; pse e2)
+		  | pse (FIX(fdecs, e)) = (app (lpfd d) fdecs; pse e)
+		  | pse (APP(VAR x, vs)) = (mark x; app psv vs)
+		  | pse (APP(v, vs)) = (psv v; app psv vs)
+		  | pse (TFN((_, _, _, e1): F.tfundec, e2)) = (lple (DI.next d) e1; pse e2)
+		  | pse (TAPP(v, _)) = psv v
+		  | pse (RECORD(_,vs,_,e)) = (app psv vs; pse e)
+		  | pse (SELECT(u,_,_,e)) = (psv u; pse e)
+		  | pse (CON(_,_,u,_,e)) = (psv u; pse e)
+		  | pse (SWITCH(u, _, ces, oe)) =
+		      (psv u; app (fn (_,x) => pse x) ces;
+		       case oe of NONE => () | SOME x => pse x)
+		  | pse (RAISE _) = ()
+		  | pse (HANDLE(e,v)) = (pse e; psv v)
+		  | pse (BRANCH(_, vs, e1, e2)) = (app psv vs; pse e1; pse e2)
+		  | pse (PRIMOP(_, vs, _, e)) = (app psv vs; pse e)
 
-            and pse (RET vs) = app psv vs
-              | pse (LET(vs, e1, e2)) = (pse e1; pse e2)
-              | pse (FIX(fdecs, e)) = (app (lpfd d) fdecs; pse e)
-              | pse (APP(VAR x, vs)) = (mark d x; app psv vs)
-              | pse (APP(v, vs)) = (psv v; app psv vs)
-              | pse (TFN(tfdec, e)) = (pst tfdec; pse e)
-              | pse (TAPP(v, _)) = psv v
-              | pse (RECORD(_,vs,_,e)) = (app psv vs; pse e)
-              | pse (SELECT(u,_,_,e)) = (psv u; pse e)
-              | pse (CON(_,_,u,_,e)) = (psv u; pse e)
-              | pse (SWITCH(u, _, ces, oe)) =
-                  (psv u; app (fn (_,x) => pse x) ces;
-                   case oe of NONE => () | SOME x => pse x)
-              | pse (RAISE _) = ()
-              | pse (HANDLE(e,v)) = (pse e; psv v)
-              | pse (BRANCH(_, vs, e1, e2)) = (app psv vs; pse e1; pse e2)
-              | pse (PRIMOP(_, vs, _, e)) = (app psv vs; pse e)
+	     in pse e
+	    end
 
-         in pse e
-        end
-
-   in lpfd DI.top fdec; (cand, fn () => M.clear zz)
-  end (* pass1 *)
+     in lpfd DI.top fdec;
+        (candidate, fn () => M.clear tbl)
+    end (* pass1 *)
 
 (************************************************************************
  *                      THE MAIN FUNCTION                               *
  ************************************************************************)
-fun lcontract (fdec, init) =
+(* lcontract0 : F.fundec * bool -> F.fundec *)
+fun lcontract0 (fdec, init) =
 let
 
 (* In pass1, we calculate the list of functions that are the candidates
@@ -115,33 +139,47 @@ let
  * constraint in the future.
  *)
 val (isCand, cleanUp) =
- if init then (fn _ => false, fn () => ()) else pass1 fdec
+    if init then (fn _ => false, fn () => ()) else pass1 fdec
 
 exception LContract
-val m : (int ref * info) M.hash_table = M.mkTable(32, LContract)
+val tbl : (int ref * info) M.hash_table = M.mkTable(32, LContract)
 
-val enter = M.insert m
-val get = M.lookup m
-fun kill i = ignore (M.remove m i) handle _ => ()
+val enter = M.insert tbl
+val get = M.lookup tbl
 
-fun chkIn (v, info) = enter(v, (ref 0, info))
+(* kill : LV.lvar -> unit *)
+fun kill lvar =
+    ignore (M.remove tbl lvar)
+    handle LContract => ()
+
+fun chkIn (lvar, info) =
+    enter(lvar, (ref 0, info))
 
 (** check if a variable is dead *)
-fun dead v = (case get v of (ref 0, _) => true
-                          | _ => false) handle _ => false
+fun dead lvar =
+    (case get lvar
+       of (ref 0, _) => true
+        | _ => false)
+    handle LContract => false
 
-fun once v = (case get v of (ref 1, _) => true | _ => false) handle _ => false
+(** check if all variables in a list are dead *)
+fun alldead lvars = List.all dead lvars
 
-(** check if all variables are dead *)
-fun alldead [] = true
-  | alldead (v::r) = if dead v then alldead r else false
+(* check if a variable has one use *)
+fun once lvar =
+    (case get lvar
+       of (ref 1, _) => true
+        | _ => false)
+    handle LContract => false
+
 
 (** renaming a value *)
-fun rename (u as (VAR v)) =
+fun rename (lexp as (VAR v)) =
       ((case get v
          of (_, SimpVal sv) => rename sv
-          | (x, _) => (x := (!x) + 1; u)) handle _ => u)
-  | rename u = u
+          | (x, _) => (x := (!x) + 1; lexp))
+       handle LContract => lexp)
+  | rename lexp = lexp
 
 (** selecting a field from a potentially known record *)
 fun selInfo (VAR v, i)  =
@@ -149,10 +187,11 @@ fun selInfo (VAR v, i)  =
          of (_, SimpVal u) => selInfo (u, i)
           | (_, ListExp vs) =>
               let val nv = List.nth(vs, i)
-                           handle _ => bug "unexpected List.Nth in selInfo"
+                           handle Subscript => bug "unexpected List.nth in selInfo"
                in SOME nv
               end
-          | _ => NONE) handle _ => NONE)
+          | _ => NONE)
+       handle LContract => NONE)
   | selInfo _ = NONE
 
 (** applying a switch to a data constructor *)
@@ -160,20 +199,22 @@ fun swiInfo (VAR v, ces, oe) =
       ((case get v
          of (_, SimpVal u) => swiInfo(u, ces, oe)
           | (_, ConExp (dc as (_,rep,_), ts, u)) =>
-               let fun h ((DATAcon(dc as (_,nrep,_),ts,x),e)::r) =
+               let fun h ((PL.DATAcon(dc as (_,nrep,_),ts,x),e)::r) =
                          if rep=nrep then SOME(LET([x], RET [u], e)) else h r
                      | h (_::r) = bug "unexpected case in swiInfo"
                      | h [] = oe
                 in h ces
                end
-          | _ => NONE) handle _ => NONE)
+          | _ => NONE)
+       handle LContract => NONE)
   | swiInfo _ = NONE
 
 (** contracting a function application *)
 fun appInfo (VAR v) =
       ((case get v
          of (ref 0, FunExp (vs, e)) => SOME (vs, e)
-          | _ => NONE) handle _ => NONE)
+          | _ => NONE)
+       handle LContract => NONE)
   | appInfo _ = NONE
 
 
@@ -181,32 +222,33 @@ fun appInfo (VAR v) =
 local
 
 fun isBoolLty lt =
-  (case LT.ltd_arrow lt
+  (case LD.ltd_arrow lt
     of (_, [at], [rt]) =>
-         (LT.lt_eqv(at, LT.ltc_unit)) andalso (LT.lt_eqv(rt, LT.ltc_bool))
+         (LK.lt_eqv(at, LB.ltc_unit)) andalso (LK.lt_eqv(rt, LB.ltc_bool))
      | _ => false)
 
-fun isBool true (RECORD(RK_TUPLE _, [], x,
+fun isBool true (RECORD(RK_TUPLE, [], x,
                   CON((_,DA.CONSTANT 1,lt), [], VAR x', v, RET [VAR v']))) =
       (x = x') andalso (v = v') andalso (isBoolLty lt)
-  | isBool false (RECORD(RK_TUPLE _, [], x,
+  | isBool false (RECORD(RK_TUPLE, [], x,
                   CON((_,DA.CONSTANT 0,lt), [], VAR x', v, RET [VAR v']))) =
       (x = x') andalso (v = v') andalso (isBoolLty lt)
   | isBool _ _ = false
 
 (* functions that do the branch optimizations *)
-fun boolDcon((DATAcon((_,DA.CONSTANT 1,lt1),[],v1), e1),
-             (DATAcon((_,DA.CONSTANT 0,lt2),[],v2), e2)) =
+fun boolDcon((PL.DATAcon((_,DA.CONSTANT 1,lt1),[],v1), e1),
+             (PL.DATAcon((_,DA.CONSTANT 0,lt2),[],v2), e2)) =
       if (isBoolLty lt1) andalso (isBoolLty lt2) then
         SOME(RECORD(FU.rk_tuple,[],v1,e1), RECORD(FU.rk_tuple,[],v2,e2))
       else NONE
-  | boolDcon(ce1 as (DATAcon((_,DA.CONSTANT 0,_),[],_), _),
-             ce2 as (DATAcon((_,DA.CONSTANT 1,_),[],_), _)) =
+  | boolDcon(ce1 as (PL.DATAcon((_,DA.CONSTANT 0,_),[],_), _),
+             ce2 as (PL.DATAcon((_,DA.CONSTANT 1,_),[],_), _)) =
       boolDcon (ce2, ce1)
   | boolDcon _ = NONE
 
+(* ssplit : F.lexp -> (F.lexp -> F.Lexp) * F.lexp *) 
 fun ssplit (LET(vs,e1,e2)) = (fn x => LET(vs,x,e2), e1)
-  | ssplit e = (ident, e)
+  | ssplit e = ((fn x => x), e)
 
 in
 
@@ -226,24 +268,29 @@ fun branchopt([v], e1 as (BRANCH(p, us, e11, e12)), e2) =
 
 end (* branchopt local *)
 
-
 (** the main transformation function *)
 
+     (* lpacc : DA.access -> DA.access *)
+     (* expects an LVAR and returns an LVAR *)
      fun lpacc (DA.LVAR v) =
-           (case lpsv (VAR v) of VAR w => DA.LVAR w
-                               | _ => bug "unexpected in lpacc")
-       | lpacc _ = bug "unexpected path in lpacc"
+         (case lpsv (VAR v)
+	    of VAR w => DA.LVAR w
+             | _ => bug "unexpected in lpacc")
+       | lpacc da = (print "LContract.lpacc: "; print (DA.prAcc da);
+		     print "\n";
+		     bug "unexpected path in lpacc")
 
      and lpdc (s, DA.EXN acc, t) = (s, DA.EXN(lpacc acc), t)
        | lpdc (s, rep, t) = (s, rep, t)
 
-     and lpcon (DATAcon (dc, ts, v)) = DATAcon(lpdc dc, ts, v)
+     and lpcon (PL.DATAcon (dc, ts, v)) = PL.DATAcon(lpdc dc, ts, v)
        | lpcon c = c
 
      and lpdt {default=v, table=ws} =
            let fun h x =
-                 case rename (VAR x) of VAR nv => nv
-                                      | _ => bug "unexpected acse in lpdt"
+                   case rename (VAR x)
+		     of VAR nv => nv
+                      | _ => bug "unexpected acse in lpdt"
             in (SOME {default=h v, table=map (fn (ts,w) => (ts,h w)) ws})
            end
 
@@ -252,10 +299,10 @@ end (* branchopt local *)
      and lpfd ({isrec, known, inline, cconv}, v, vts, e) =
 	 (* The function body might have changed so we need to reset
 	  * the inlining hint *)
-	 ({isrec=isrec, known=known, inline=IH_SAFE, cconv=cconv},
+	 ({isrec=isrec, known=known, inline=FR.IH_SAFE, cconv=cconv},
 	  v, vts, #1(loop e))
 
-     and lplet (hdr: lexp -> lexp, pure, v: lvar, info: info, e) =
+     and lplet (hdr: lexp -> lexp, pure, v: LV.lvar, info: info, e) =
        let val _ = chkIn(v, info)
            val (ne, b) = loop e
         in if pure then (if dead v then (ne, b) else (hdr ne, b))
@@ -304,7 +351,7 @@ end (* branchopt local *)
               end
 
           | FIX(fdecs, e) =>
-              let fun g ({isrec=SOME _, ...} :fkind, v, _, _) =
+              let fun g ({isrec=SOME _, ...}: FR.fkind, v, _, _) =
                          chkIn(v, StdExp)
                     | g ((_, v, vts, xe) : fundec) =
                          chkIn(v, if isCand v then FunExp(map #1 vts, xe)
@@ -314,6 +361,7 @@ end (* branchopt local *)
                in if alldead (map #2 fdecs) then (ne, b)
                   else (FIX(map lpfd fdecs, ne), b)
               end
+
           | APP(u, us) =>
               (case appInfo u
                 of SOME(vs, e) =>
@@ -326,11 +374,13 @@ end (* branchopt local *)
               lplet ((fn z => TFN((tfk, v, tvks,
                               #1(loop xe)), z)),
                      true, v, StdExp, e)
+
           | TAPP(u, ts) => (TAPP(lpsv u, ts), true)
 
           | CON(c, ts, u, v, e) =>   (* this could be made more finegrain *)
               lplet ((fn z => CON(lpdc c, ts, lpsv u, v, z)),
                      true, v, ConExp(c,ts,u), e)
+
           | SWITCH (v, cs, ces, oe) =>
               (case swiInfo(v, ces, oe)
                 of SOME ne => loop ne
@@ -382,12 +432,14 @@ end (* branchopt local *)
 
 val d = DI.top
 val (fk, f, vts, e) = fdec
-in (fk, f, vts, #1 (loop e))
-   before (M.clear m; cleanUp())
-end (* function lcontract *)
 
+in (fk, f, vts, #1 (loop e))
+   before (M.clear tbl; cleanUp())
+end (* function lcontract0 *)
+
+(* lcontract : F.fundec -> F.fundec *)
 (** run the lambda contraction twice *)
-val lcontract = fn fdec => lcontract(lcontract(fdec, true), false)
+val lcontract = fn fdec => lcontract0 (lcontract0 (fdec, true), false)
 
 end (* toplevel local *)
 end (* structure LContract *)

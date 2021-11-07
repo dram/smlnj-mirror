@@ -14,7 +14,7 @@ sig
 	* ErrorMsg.errorFn               (* error function *)
 	* SourceMap.region               (* match region *)
         * StaticEnv.staticEnv            (* static environment (for printing in error messages) *)
-	-> Absyn.exp * VarCon.var        (* var option or var ??? *)
+	-> Absyn.exp * Variable.var      (* var option or var ??? *)
 
   val matchCompile :
 	(Absyn.pat * Absyn.exp) list     (* stripped (RULE) rules *)
@@ -23,7 +23,7 @@ sig
 	* ErrorMsg.errorFn               (* error function *)
 	* SourceMap.region               (* match region *)
         * StaticEnv.staticEnv            (* static environment (for printing) *)
-	-> Absyn.exp * VarCon.var        (* var option or var ??? *)
+	-> Absyn.exp * Variable.var        (* var option or var ??? *)
 
   val handlerCompile :
 	(Absyn.pat * Absyn.exp) list
@@ -31,7 +31,7 @@ sig
 	* ErrorMsg.errorFn               (* error function *)
 	* SourceMap.region               (* match region *)
         * StaticEnv.staticEnv
-	-> Absyn.exp * VarCon.var
+	-> Absyn.exp * Variable.var
 
 end (* signature MATCH_COMP *)
 
@@ -42,7 +42,7 @@ struct
 local
   structure T  = Types
   structure BT = BasicTypes
-  structure V  = VarCon
+  structure V  = Variable
   structure AS = Absyn
   structure AU = AbsynUtil
   structure EU = ElabUtil
@@ -208,7 +208,7 @@ end (* fun matchComp *)
 
 (* bindCompile: Entry point for compiling matches induced by val declarations
  *  (e.g., val x::xs = list).
- *  The match consists of a single rule that corresponds to the let binding itself.
+ *  The match consists of a _single_ rule that corresponds to the let binding itself.
  *  If the control flag MCC.bindNonExhaustiveWarn
  *  is set then a nonexhaustive binding warning is printed. If the control
  *  flag MCC.bindNoVariableWarn is set, and pattern contains no variables or

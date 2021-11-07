@@ -13,18 +13,22 @@ structure IntConst : sig
 	ival : IntInf.int,	(* the value *)
 	ty : 'ty		(* the "type" of the value *)
       }
+    (* In the front end, the ty component is a primitive type (ty' = Types.ty),
+     * while in FLINT, the ty component is a size (ty' = int). *)
 
     val toString : 'ty t -> string
 
     val fmt : ('ty -> string) -> 'ty t -> string
 
-  (* do two constants have equal values? *)
+    (* do two constants have equal values, ignoring ty component. *)
     val same : 'ty t * 'ty t -> bool
 
-  (* compare the values of two constants *)
+    (* compare two constants, ignoring ty component. *)
     val compare : 'ty t * 'ty t -> order
 
-  end = struct
+end =
+
+struct
 
     type 'ty t = {ival : IntInf.int, ty : 'ty}
 
@@ -34,6 +38,6 @@ structure IntConst : sig
 
     fun same (a : 'ty t, b : 'ty t) = (#ival a = #ival b)
 
-    fun compare (a : 'ty t, b : 'ty t) = IntInf.compare(#ival a, #ival b)
+    fun compare (a : 'ty t, b : 'ty t) = IntInf.compare (#ival a, #ival b)
 
-  end
+end  (* structure IntConst *)

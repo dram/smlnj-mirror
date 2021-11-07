@@ -31,7 +31,7 @@ local structure EM = ErrorMsg
       structure EP = EntPath
       structure S = Symbol
       structure SE = StaticEnv
-      open Modules Types VarCon
+      open Modules Types Variable
 in
 
 fun bug msg = EM.impossible ("Include: " ^ msg)

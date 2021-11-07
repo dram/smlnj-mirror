@@ -10,25 +10,24 @@
 
 structure CoreAccess : sig
 
-    val getVar : StaticEnv.staticEnv -> string list -> VarCon.var
+    val getVar : StaticEnv.staticEnv -> string list -> Variable.var
 
-    val getCon : StaticEnv.staticEnv -> string list -> VarCon.datacon
+    val getCon : StaticEnv.staticEnv -> string list -> Types.datacon
 
-    val getVar' : (unit -> VarCon.var) ->
-		  StaticEnv.staticEnv -> string list -> VarCon.var
+    val getVar' : (unit -> Variable.var) ->
+		  StaticEnv.staticEnv -> string list -> Variable.var
 
-    val getCon' : (unit -> VarCon.datacon) ->
-		  StaticEnv.staticEnv -> string list -> VarCon.datacon
+    val getCon' : (unit -> Types.datacon) ->
+		  StaticEnv.staticEnv -> string list -> Types.datacon
 
   (* like getCon, but returns a bogus exn instead of failing *)
-    val getExn : StaticEnv.staticEnv -> string list -> VarCon.datacon
+    val getExn : StaticEnv.staticEnv -> string list -> Types.datacon
 
 end = struct
 
     fun impossible m = ErrorMsg.impossible ("CoreAccess: " ^ m)
     fun impossibleWithId (m, xs) = ErrorMsg.impossible(concat[
-	    "CoreAccess: ", m, " '", String.concatWith "." xs, "'"
-	  ])
+	    "CoreAccess: ", m, " '", String.concatWith "." xs, "'"])
 
     exception NoCore
 
@@ -43,21 +42,22 @@ end = struct
     fun getCore env xs = Lookup.lookVal (env, path xs, dummyErr)
 
     fun getVar' err env xs = (case getCore env xs
-	   of VarCon.VAL r => r
+	   of Absyn.VAL r => r
 	    | _ => impossibleWithId("getVar'", xs)
 	  (* end case *))
 	    handle NoCore => err ()
 
     fun getVar env xs = getVar' (fn () => impossibleWithId("getVar", xs)) env xs
 
-    fun getCon' err env xs = (case getCore env xs
-	   of VarCon.CON c => c
+    fun getCon' err env xs =
+	(case getCore env xs
+	   of Absyn.CON c => c
 	    | _ => err ()
-	  (* end case *))
-	    handle NoCore => err ()
+	 (* end case *))
+	handle NoCore => err ()
 
     fun getCon env xs = getCon' (fn () => impossibleWithId("getCon'", xs)) env xs
 
-    fun getExn env xs = getCon' (fn () => VarCon.bogusEXN) env xs
+    fun getExn env xs = getCon' (fn () => AbsynUtil.bogusEXN) env xs
 
   end

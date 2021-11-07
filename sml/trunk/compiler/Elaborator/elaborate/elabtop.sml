@@ -5,17 +5,17 @@
  *)
 
 signature ELABTOP =
-  sig
+sig
 
     val elabTop : Ast.dec * StaticEnv.staticEnv * ElabUtil.compInfo
 	  -> Absyn.dec * StaticEnv.staticEnv
 
     val debugging : bool ref
 
-  end (* signature ELABTOP *)
+end (* signature ELABTOP *)
 
 structure ElabTop : ELABTOP =
-  struct
+struct
 
     structure PP = PrettyPrint
     structure PU = PPUtil
@@ -23,9 +23,9 @@ structure ElabTop : ELABTOP =
     structure SP = SymPath
     structure IP = InvPath
     structure DA = Access
-    structure A = Absyn
+    structure AS = Absyn
     structure T = Types
-    structure V = VarCon
+    structure V = Variable
     structure M = Modules
     structure MU = ModuleUtil
     structure B = Bindings
@@ -43,6 +43,9 @@ structure ElabTop : ELABTOP =
     fun debugmsg (msg: string) =
           if !debugging then (say msg; say "\n") else ()
     val debugPrint = (fn x => ElabDebug.debugPrint debugging x)
+
+    fun ppAbsynDec ppstrm (dec,env) =
+	PPAbsyn.ppDec (env, NONE) ppstrm (dec, !Control_Print.printDepth)
 
   (* localStrName: used in makeOpenDec to build redeclaration of components *)
     val localStrName = S.strSymbol "<a funny structure>"
@@ -62,7 +65,7 @@ structure ElabTop : ELABTOP =
 		  let val v = MU.getValPath(str, SP.SPATH[name],
 					    SP.SPATH(spath@[name]))
 		   in case v
-		       of V.VAL(V.VALvar _) =>
+		       of AS.VAL(V.VALvar _) =>
 			    ValDec([Vb{pat=VarPat[name],
 				       exp=VarExp([localStrName,name]),
 				       lazyp=false}],
@@ -75,7 +78,7 @@ structure ElabTop : ELABTOP =
 			     type error. Possible fix would be to narrow down
 			     the static environment. *)
 
-			| V.CON(T.DATACON{rep=DA.EXN _, ...}) =>
+			| AS.CON(T.DATACON{rep=DA.EXN _, ...}) =>
 			    ExceptionDec [EbDef{exn=name,
 						edef=([localStrName,name])}] :: dl
 
@@ -104,32 +107,36 @@ structure ElabTop : ELABTOP =
    * are merged, there should be no special treatment for OPEN declarations,
    * and elabTop probably can be dramatically simplied. (ZHONG)
    *)
-    fun elabTop(dec, env, compInfo as {error,...}: EU.compInfo) = let
-	  val _ = debugmsg ">>elabTop";
+    (* elabTop : Ast.dec * SE.staticEnv * EU.compInfo
+	         -> AS.dec * SE.staticEnv *)
+    fun elabTop(dec, env, compInfo as {error,...}: EU.compInfo) =
+	let val _ = debugmsg ">>elabTop";
 
+	  val _ = EU.initializeMatchBind env
+                (* initialize the definitions of the Match and Bind exceptions *)
+
+	 (* elab : Ast.dec * SE.staticEnv * bool * region -> AS.dec * SE.staticEnv *)
 	  fun elab(SeqDec decs, env0, top, region) =
-		let fun h(dec, (abdecls, env)) =
-		      let val (abdecl, env') = elab(dec, SE.atop(env,env0), top, region)
+		let fun elabOne (dec, (abdecls, env)) =
+		      let val (abdecl, env') = elab (dec, SE.atop(env,env0), top, region)
 		       in (abdecl::abdecls, SE.atop(env', env))
 		      end
-
-		    val (abdecls,env') = foldl h ([], SE.empty) decs
-
-		 in (A.SEQdec(rev abdecls),env')
+		    val (abdecls,env') = foldl elabOne ([], SE.empty) decs
+		 in (AS.SEQdec(rev abdecls), env')
 		end
 
 	    | elab(LocalDec(decl_in, decl_out), env0, top, region) =
 		let val top_in = EU.hasModules decl_in orelse EU.hasModules decl_out
-		    val (adec_in, env1) = elab(decl_in, env0, top_in, region)
+		    val (adec_in, env1) = elab (decl_in, env0, top_in, region)
 		    val (adec_out, env2) =
-		      elab(decl_out, SE.atop(env1, env0), top, region)
-		 in (A.LOCALdec(adec_in, adec_out), env2)
+		        elab(decl_out, SE.atop(env1, env0), top, region)
+		 in (AS.LOCALdec(adec_in, adec_out), env2)
 		end
 
 	    | elab(MarkDec(dec,region'), env, top, region) =
-		let val (d,env)= elab(dec,env,top,region')
-		 in (if !ElabControl.markabsyn then A.MARKdec(d,region')
-		     else d, env)
+		let val (dec', env') = elab (dec,env,top,region')
+		in (if !ElabControl.markabsyn then AS.MARKdec (dec', region') else dec',
+		    env')
 		end
 
 	    | elab(OpenDec paths, env, top, region) =
@@ -190,7 +197,7 @@ structure ElabTop : ELABTOP =
 
 		    val strs' = ListPair.zip(map SP.SPATH paths,strs)
 
-		 in (A.SEQdec [A.OPENdec strs', ds], nenv)
+		 in (AS.SEQdec [AS.OPENdec strs', ds], nenv)
 		end
 
 	    | elab(dec, env, top, region) =
@@ -204,13 +211,11 @@ structure ElabTop : ELABTOP =
 		end
 
 	  val (dec, env) = elab(dec,env,true,SourceMap.nullRegion)
-	  fun ppAbsynDec ppstrm d =
-		PPAbsyn.ppDec (env, NONE) ppstrm (d, !Control_Print.printDepth)
-	  in
-	    debugmsg "<<elabTop";
-	    ElabDebug.debugPrint ElabControl.printAbsyn ("ABSYN::", ppAbsynDec, dec);
-	    CheckUnused.check error dec;
-	    (dec, env)
-	  end
+    in
+        debugmsg "<<elabTop";
+	ElabDebug.debugPrint ElabControl.printAbsyn ("ABSYN::", ppAbsynDec, (dec,env));
+	CheckUnused.check error dec;
+	(dec, env)
+    end (* fun elabTop *)
 
-  end (* functor ElabTopFn *)
+end (* structure ElabTop *)

@@ -8,10 +8,10 @@ signature COERCE = sig
   val wpNew    : wpEnv * DebIndex.depth -> wpEnv
   val wpBuild  : wpEnv * FLINT.lexp -> FLINT.lexp
 
-  val unwrapOp : wpEnv * LtyDef.lty list * LtyDef.lty list * DebIndex.depth
+  val unwrapOp : wpEnv * Lty.lty list * Lty.lty list * DebIndex.depth
                    -> (FLINT.value list -> FLINT.lexp) option
 
-  val wrapOp   : wpEnv * LtyDef.lty list * LtyDef.lty list * DebIndex.depth
+  val wrapOp   : wpEnv * Lty.lty list * Lty.lty list * DebIndex.depth
                    -> (FLINT.value list -> FLINT.lexp) option
 
 end (* signature COERCE *)
@@ -19,12 +19,18 @@ end (* signature COERCE *)
 structure Coerce : COERCE = 
 struct
 
-local structure DI = DebIndex
-      structure LT = LtyExtern
-      structure LV = LambdaVar
-      structure PF = PFlatten
-      structure FU = FlintUtil
-      open Lty LtyKernel FLINT
+local
+  structure DI = DebIndex
+  structure LV = LambdaVar
+  structure PF = PFlatten
+  structure FU = FlintUtil
+  structure LT = Lty
+  structure FR = FunRecMeta
+  structure LK = LtyKernel
+  structure LD = LtyDef
+  structure LB = LtyBasic
+  structure LE = LtyExtern
+  open Lty LtyKernel FLINT
 in
 
 (****************************************************************************
@@ -36,9 +42,9 @@ fun say (s : string) = Control.Print.say s
 
 fun mkv _ = LV.mkLvar ()
 val ident = fn le => le
-val fkfun = {isrec=NONE, known=false, inline=IH_ALWAYS, cconv=CC_FUN LT.ffc_fixed}
-val fkfct = {isrec=NONE, known=false, inline=IH_SAFE, cconv=CC_FCT}
-val tfk = {inline=IH_ALWAYS}
+val fkfun = {isrec=NONE, known=false, inline=FR.IH_ALWAYS, cconv=FR.CC_FUN LD.ffc_fixed}
+val fkfct = {isrec=NONE, known=false, inline=FR.IH_SAFE, cconv=FR.CC_FCT}
+val tfk = {inline=FR.IH_ALWAYS}
 fun fromto(i,j) = if i < j then (i::fromto(i+1,j)) else []
 
 fun opList (NONE :: r) = opList r
@@ -158,10 +164,10 @@ val doWrap =
     (fn (w, fdec) => (fn u => FIX([fdec], APP(VAR w, [u]))))
 
 fun getWTC(wflag, nx, ox, doit) = 
-  if tc_eqv(nx, ox) then NONE
+  if LK.tc_eqv(nx, ox) then NONE
   else (if sflag then 
-          (let val mark = if wflag then LT.ltc_int else LT.ltc_real (* hack *)
-               val key = LT.ltc_str [LT.ltc_tyc nx, LT.ltc_tyc ox, mark]
+          (let val mark = if wflag then LB.ltc_int else LB.ltc_real (* hack *)
+               val key = LD.ltc_str [LD.ltc_tyc nx, LD.ltc_tyc ox, mark]
             in case wcLook(wenv, key)
                 of SOME x => x
                  | NONE => (let val res = doit (tc_out nx, tc_out ox)
@@ -173,8 +179,8 @@ fun getWTC(wflag, nx, ox, doit) =
 fun getWLT(wflag, nx, ox, doit) = 
   if lt_eqv(nx, ox) then NONE
   else (if sflag then  (*** we could always force the sharing here ***)
-          (let val mark = if wflag then LT.ltc_int else LT.ltc_real (* hack *)
-               val key = LT.ltc_str [nx, ox, mark]
+          (let val mark = if wflag then LB.ltc_int else LB.ltc_real (* hack *)
+               val key = LD.ltc_str [nx, ox, mark]
             in case wcLook(wenv, key)
                 of SOME x => x
                  | NONE => (let val res = doit (lt_out nx, lt_out ox)
@@ -185,10 +191,10 @@ fun getWLT(wflag, nx, ox, doit) =
 
 fun tcLoop wflag (nx, ox) = 
   getWTC(wflag, nx, ox, 
-   (fn (TC_TOKEN (_, nz), _) => (* sanity check: tcc_wrap(ox) = nx *)
-          if LT.tcp_wrap nx then
+   (fn (TC_WRAP nz, _) => (* sanity check: tcc_wrap(ox) = nx *)
+          if LD.tcp_wrap nx then
               let val (ax, act) = if wflag then (ox, WRAP) else (nx, UNWRAP)
-               in if LT.tcp_prim ox then SOME (fn u => act(ox, u, RETv))
+               in if LD.tcp_prim ox then SOME (fn u => act(ox, u, RETv))
                   else let val wp = tcLoop wflag (nz, ox)
                            val f = mkv() and v = mkv()
                            val (tx, kont, u, hdr) = 
@@ -201,13 +207,13 @@ fun tcLoop wflag (nx, ox) =
                                            fn e => LET([z], hh(VAR v), e))
                                       end
                                     else (nz, hh, VAR v, ident))
-                           val fdec = (fkfun, f, [(v, LT.ltc_tyc ax)], 
+                           val fdec = (fkfun, f, [(v, LD.ltc_tyc ax)], 
                                        hdr(act(tx, u, kont)))
                         in SOME(doWrap(f, fdec))
                        end
               end
-          else bug "unexpected TC_TOKEN in tcLoop"
-     | (TC_TUPLE (nrf, nxs), TC_TUPLE (orf, oxs)) => 
+          else bug "unexpected TC_WRAP in tcLoop"
+     | (TC_TUPLE nxs, TC_TUPLE oxs) => 
           let val wps = ListPair.map (tcLoop wflag) (nxs, oxs)
            in if opList wps then 
                 let val f = mkv() and v = mkv()
@@ -220,12 +226,12 @@ fun tcLoop wflag (nx, ox) =
                                    fn le => SELECT(u, i, x, h le))
                               end) ([], ident) nl
 
-                    val (ax, rf) = 
-                      if wflag then (LT.ltc_tyc ox, nrf) 
-                      else (LT.ltc_tyc nx, orf)
+                    val ax = 
+                      if wflag then LD.ltc_tyc ox
+                      else LD.ltc_tyc nx
                     fun cont nvs = 
                       let val z = mkv()
-                       in RECORD(RK_TUPLE rf, nvs, z, RET[VAR z])
+                       in RECORD(FR.RK_TUPLE, nvs, z, RET[VAR z])
                       end
                     val body = hdr(appWraps(wps, nvs, cont))
                     val fdec = (fkfun, f, [(v, ax)], body)
@@ -244,10 +250,10 @@ fun tcLoop wflag (nx, ox) =
                  | _ => 
                     let val wf = mkv() and f = mkv() and rf = mkv()
                         val (ax, rxs1, rxs2) = 
-                          if wflag then (LT.ltc_tyc ox, nxs1, oxs2) 
-                          else (LT.ltc_tyc nx, oxs1, nxs2)
+                          if wflag then (LD.ltc_tyc ox, nxs1, oxs2) 
+                          else (LD.ltc_tyc nx, oxs1, nxs2)
 
-                        val params = map (fn t => (mkv(), LT.ltc_tyc t)) rxs1
+                        val params = map (fn t => (mkv(), LD.ltc_tyc t)) rxs1
                         val avs = map (fn (x, _) => VAR x) params
                         val rvs = map mkv rxs2
                         val rbody = 
@@ -266,9 +272,9 @@ fun tcLoop wflag (nx, ox) =
                     end)
           end
      | (_, _) => 
-          if LT.tc_eqv(nx, ox) then NONE
-          else (say " Type nx is : \n"; say (LT.tc_print nx);
-                say "\n Type ox is : \n"; say (LT.tc_print ox); say "\n";
+          if LK.tc_eqv(nx, ox) then NONE
+          else (say " Type nx is : \n"; say (LB.tc_print nx);
+                say "\n Type ox is : \n"; say (LB.tc_print ox); say "\n";
                 bug "unexpected other tycs in tcLoop")))
 
 fun ltLoop wflag (nx, ox) = 
@@ -288,7 +294,7 @@ fun ltLoop wflag (nx, ox) =
                               end) ([], ident) nl
                     fun cont nvs = 
                       let val z = mkv()
-                       in RECORD(RK_STRUCT, nvs, z, RET[VAR z])
+                       in RECORD(FR.RK_STRUCT, nvs, z, RET[VAR z])
                       end
                     val body = hdr(appWraps(wps, nvs, cont))
                     val ax = if wflag then ox else nx
@@ -331,7 +337,7 @@ fun ltLoop wflag (nx, ox) =
                         val (ax, aks, rxs)  = 
                           if wflag then (ox, nks, ozs) else (nx, oks, nzs)
                         val nl = fromto(0, length nks) 
-                        val ts = map (fn i => LT.tcc_var(DI.innermost, i)) nl
+                        val ts = map (fn i => LD.tcc_var(DI.innermost, i)) nl
                         val avs = map mkv rxs
                         val rbody = 
                           LET(avs, TAPP(VAR f, ts), hdr (map VAR avs))
@@ -343,8 +349,8 @@ fun ltLoop wflag (nx, ox) =
                     end)
           end
      | _ => 
-          (say " Type nx is : \n"; say (LT.lt_print nx);
-           say "\n Type ox is : \n"; say (LT.lt_print ox); say "\n";
+          (say " Type nx is : \n"; say (LB.lt_print nx);
+           say "\n Type ox is : \n"; say (LB.lt_print ox); say "\n";
            bug "unexpected other ltys in ltLoop")))
 
 val wps = ListPair.map (ltLoop wflag) (nts, ots)

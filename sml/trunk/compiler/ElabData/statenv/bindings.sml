@@ -9,12 +9,12 @@ structure Bindings : BINDINGS =
 
     structure S  = Symbol
     structure T  = Types
-    structure V  = VarCon
+    structure V  = Variable
     structure M =  Modules
 
     datatype binding
       = VALbind of V.var
-      | CONbind of V.datacon
+      | CONbind of T.datacon
       | TYCbind of T.tycon
       | SIGbind of M.Signature
       | STRbind of M.Structure

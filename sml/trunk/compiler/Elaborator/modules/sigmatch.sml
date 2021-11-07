@@ -96,9 +96,9 @@ local structure A  = Absyn
       structure ST = Stamps
       structure T  = Types
       structure TU = TypesUtil
-      structure V  = VarCon
+      structure V  = Variable
 
-      open Types Modules VarCon ElabDebug
+      open Types Modules Variable ElabDebug
 
 in
 
@@ -752,7 +752,7 @@ let
                    case spec
                      of TYCspec _ => bindings
                       | CONspec {slot=NONE, ...} => bindings
-                      | _ => B.CONbind VarCon.bogusEXN :: bindings
+                      | _ => B.CONbind Variable.bogusEXN :: bindings
                  -- assume this is no longer relevant, since inlInfo is gone (DBM) *)
               in case kindOp
                    of SOME kind =>
@@ -968,7 +968,7 @@ let
                                               val vb =
                                                 A.VB {pat=A.VARpat specvar,
                                                       exp=A.VARexp(ref actvar, ptvs),
-                                                      boundtvs=btvs, tyvars=ref []}
+                                                      typ=spectyp, boundtvs=btvs, tyvars=ref []}
                                            in ((A.VALdec [vb])::decs, specvar)
                                           end
 
@@ -1004,7 +1004,8 @@ let
                                           val vb =
                                               A.VB {pat=A.VARpat specvar,
                                                     exp=A.CONexp(con, paramtvs),
-                                                    boundtvs=boundtvs, tyvars=ref []}
+                                                    typ=spectyp, boundtvs=boundtvs,
+						    tyvars=ref []}
                                       in ((A.VALdec [vb])::decs,
                                           (B.VALbind specvar)::bindings)
                                       end

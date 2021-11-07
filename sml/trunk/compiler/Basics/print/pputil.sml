@@ -49,6 +49,13 @@ struct
        back ppstream;
        PP.closeBox ppstream)
 
+  fun ppBracketedSequence (front: string, back: string, ppElem) ppstrm elems =
+      (PP.openHBox ppstrm;
+       PP.string ppstrm front;
+       ppSequence0 ppstrm ((fn ps => PP.string ps ","), ppElem, elems);
+       PP.string ppstrm back;
+       PP.closeBox ppstrm)
+
   fun ppSym ppstream (s:S.symbol) = PP.string ppstream (S.name s)
 
   fun ppString ppstream = PP.string ppstream o PrintUtil.formatString

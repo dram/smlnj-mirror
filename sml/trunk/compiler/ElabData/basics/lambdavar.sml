@@ -21,6 +21,10 @@ structure LambdaVar :> LAMBDA_VAR =
     fun newLvar r () = (inc r; !r)
     val varcount = ref 0
 
+    val mkLvar = newLvar varcount
+    fun nextLvar () = !varcount
+    fun diff (lv1, lv2) = lv2 - lv1
+
     exception NoLvarName
 
     val lvarNames : string Tbl.hash_table = Tbl.mkTable(64, NoLvarName)
@@ -31,7 +35,8 @@ structure LambdaVar :> LAMBDA_VAR =
 
     val lvarIsNamed = Tbl.inDomain lvarNames
 
-    fun prLvar (lvar:lvar) = Int.toString lvar
+    fun toString (lvar:lvar) = Int.toString lvar
+    val prLvar = toString (* temporary, for backward compatibility *)
 
     fun sameName (v, w) = if !saveLvarNames
 	  then (case findName w
@@ -42,8 +47,6 @@ structure LambdaVar :> LAMBDA_VAR =
 		  (* end case *))
 	    (* end case *))
 	  else ()
-
-    val mkLvar = newLvar varcount
 
     fun clear () = (varcount := 0; Tbl.clear lvarNames)
 

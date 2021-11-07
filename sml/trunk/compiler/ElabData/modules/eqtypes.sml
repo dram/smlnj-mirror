@@ -162,7 +162,7 @@ let val tycons = ref StampMap.empty
                   end
 	      | eqty (MARKty(tyc, region)) = eqty tyc
 	      | eqty _ = ()
-	    fun eqdcon{domain=SOME ty',name,rep} = eqty ty'
+	    fun eqdcon({domain=SOME ty',...}: dconDesc) = eqty ty'
 	      | eqdcon _ = ()
 	 in app eqdcon dcons;
 	    case (!depend,!dependsInd)
@@ -378,8 +378,8 @@ let val names = map TU.tycName datatycs
 					   ^ Symbol.name tycname ^ " "
 					   ^ Int.toString i)
 			  val domains =
-			      map (fn {domain=SOME ty,name,rep} => ty
-				    | {domain=NONE,name,rep} => unitTy)
+			      map (fn ({domain=SOME ty,...}: dconDesc) => ty
+				    | {domain=NONE,...} => unitTy)
 				  dcons
 			  val eqp = eqtylist(domains)
 			  in

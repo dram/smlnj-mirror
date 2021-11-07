@@ -13,7 +13,7 @@ signature OVERLOAD =
    *	resolve -- resolve the overloadings in the environment
    *)
     val new : unit -> {
-	    pushv : VarCon.var ref * SourceMap.region * ErrorMsg.complainer -> Types.ty,
+	    pushv : Variable.var ref * SourceMap.region * ErrorMsg.complainer -> Types.ty,
 	    pushl : IntInf.int * string * Types.ty * ErrorMsg.complainer -> Types.ty,
 	    resolve : StaticEnv.staticEnv -> unit
 	  }
@@ -34,7 +34,7 @@ structure Overload : OVERLOAD =
     structure PP = PrettyPrint
     structure PU = PPUtil
     structure Ty = Types
-    structure VC = VarCon
+    structure V = Variable
     structure OLV = OverloadVar
 			
     fun bug msg = ErrorMsg.impossible("Overload: "^msg)
@@ -52,11 +52,11 @@ structure Overload : OVERLOAD =
   (* overloaded functions *)
     fun new () =
 	let (* the overloaded variable and literal stacks *)
-	  val overloadedvars = ref (nil: (VC.var ref * Ty.tyvar * ErrorMsg.complainer) list)
+	  val overloadedvars = ref (nil: (V.var ref * Ty.tyvar * ErrorMsg.complainer) list)
 	  val overloadedlits = ref (nil: num_info list)
 				   
 	  (* push an overloaded variable onto the var list *)
-	  fun pushvar (varref as ref(VC.OVLDvar{name,variants}), region, err) =
+	  fun pushvar (varref as ref(V.OVLDvar{name,variants}), region, err) =
 	      let val tyvar = ref(Ty.OVLDV{eq=false,sources=[(name,region)]})
 		  val scheme = OLV.symToScheme name
 		  val schemeInst = TU.applyTyfun(scheme,[Ty.VARty tyvar])
@@ -84,7 +84,7 @@ structure Overload : OVERLOAD =
 	     * operators like +, -, and * ). These orderings are established by the
 	     * order they appear in the overload declaration.
 	     *)
-	    let fun resolveOVLDvar(varref as ref(VC.OVLDvar{name,variants}), context, err) =
+	    let fun resolveOVLDvar(varref as ref(V.OVLDvar{name,variants}), context, err) =
 		    let val contextTy = TU.headReduceType(Ty.VARty context)
 			val defaultTy = OLV.defaultTy name
 			val (defaultVar :: _) = variants

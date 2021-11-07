@@ -9,7 +9,7 @@ struct
 
 local
   structure DA = Access
-  structure V = VarCon
+  structure V = Variable
   structure AS = Absyn
   structure AU = AbsynUtil
   structure TU = TypesUtil

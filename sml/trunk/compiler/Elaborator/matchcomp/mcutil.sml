@@ -7,7 +7,7 @@ local
   structure AS = Absyn
   structure LV = LambdaVar
   structure TU = TypesUtil
-  structure V = VarCon
+  structure V = Variable
   structure P = Paths
   structure MC = MCCommon
   open MCCommon

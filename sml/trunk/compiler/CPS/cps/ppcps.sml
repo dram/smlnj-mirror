@@ -13,7 +13,7 @@ signature PPCPS =
 
     val rkToString : CPS.record_kind -> string
 
-    val printcps : (CPS.function * LtyDef.lty LambdaVar.Tbl.hash_table) -> unit
+    val printcps : (CPS.function * Lty.lty LambdaVar.Tbl.hash_table) -> unit
     val printcps0: CPS.function -> unit
     val prcps : CPS.cexp -> unit
 
@@ -34,9 +34,11 @@ signature PPCPS =
 structure PPCps : PPCPS =
   struct
 
-    open CPS
     structure LV = LambdaVar
     structure U = CPSUtil
+    (* uses Lty and LtyBasic *)
+
+    open CPS
 
     val say = Control.Print.say
 
@@ -264,7 +266,7 @@ structure PPCps : PPCPS =
 
     fun printcps ((fk,f,vl,cl,e),m) = let
 	  fun ptv(v,t) = (say(LV.lvarName v); say " type ===>>>";
-			  say(LtyExtern.lt_print t); say "\n")
+			  say(LtyBasic.lt_print t); say "\n")
 	  val _ = if (!Control.CG.debugRep)
 		  then (say "************************************************\n";
 			LV.Tbl.appi ptv m;
@@ -291,7 +293,7 @@ structure PPCps : PPCPS =
 	  end
 
     exception NULLTABLE
-    val nulltable : LtyDef.lty LV.Tbl.hash_table =
+    val nulltable : Lty.lty LV.Tbl.hash_table =
 	  LV.Tbl.mkTable(8, NULLTABLE)
 
     fun printcps0 f = printcps(f,nulltable)

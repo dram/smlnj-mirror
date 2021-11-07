@@ -10,7 +10,7 @@ struct
 local structure A = Access
       structure S  = Symbol
       structure M  = Modules
-      structure V = VarCon
+      structure V = Variable
       structure T = Types
       structure MU = ModuleUtil
       structure B  = Bindings

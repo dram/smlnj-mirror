@@ -16,6 +16,7 @@ structure CheckUnused : sig
 
   end = struct
 
+    structure V = Variable
     structure A = Absyn
 
   (* debugging *)
@@ -30,20 +31,20 @@ structure CheckUnused : sig
     structure VSet : sig
 	type set
 	val empty : set
-	val add : set * VarCon.var -> set
-	val member : set * VarCon.var -> bool
-	val delete : set * VarCon.var -> set
+	val add : set * V.var -> set
+	val member : set * V.var -> bool
+	val delete : set * V.var -> set
 	val toList : set -> LambdaVar.lvar list
       end = struct
 	type set = LambdaVar.Set.set
 	val empty = LambdaVar.Set.empty
-	fun add (set, VarCon.VALvar{access=Access.LVAR lv, ...}) =
+	fun add (set, V.VALvar{access=Access.LVAR lv, ...}) =
 	      LambdaVar.Set.add (set, lv)
 	  | add (set, _) = set
-	fun member (set, VarCon.VALvar{access=Access.LVAR lv, ...}) =
+	fun member (set, V.VALvar{access=Access.LVAR lv, ...}) =
 	      LambdaVar.Set.member (set, lv)
 	  | member (set, _) = false (* QUESTION: should this case be a compiler error? *)
-	fun delete (set, VarCon.VALvar{access=Access.LVAR lv, ...}) =
+	fun delete (set, V.VALvar{access=Access.LVAR lv, ...}) =
 	      LambdaVar.Set.delete (set, lv)
 	  | delete (set, _) = set
 	val toList = LambdaVar.Set.toList
@@ -55,7 +56,7 @@ structure CheckUnused : sig
 	  ])
 
     fun check err = let
-	  fun warning (region, VarCon.VALvar{path, access, ...}) =
+	  fun warning (region, V.VALvar{path, access, ...}) =
 		err region ErrorMsg.WARN (concat [
 		    "variable ", Symbol.name (SymPath.first path),
 		    " is defined but not used"
@@ -74,16 +75,17 @@ structure CheckUnused : sig
 		  | A.RECORDexp flds => List.foldl
 		      (fn ((_, e), used) => chkExp(region, e, used))
 			used flds
-		  | A.SELECTexp(_, e) => chkExp(region, e, used)
+		  | A.RSELECTexp(var,index) => used
+		  | A.VSELECTexp(exp,_,index) => used
 		  | A.VECTORexp(es, _) => List.foldl
 		      (fn (e, used) => chkExp(region, e, used))
 			used es
 		  | A.APPexp(e1, e2) =>
 		      chkExp(region, e2, chkExp(region, e1, used))
-		  | A.HANDLEexp(e, (rules, _)) =>
+		  | A.HANDLEexp(e, (rules, _, _)) =>
 		      List.foldl (chkRule region) (chkExp(region, e, used)) rules
 		  | A.RAISEexp(e, _) => chkExp(region, e, used)
-		  | A.CASEexp(e, rules, _) =>
+		  | A.CASEexp(e, (rules,_,_)) =>
 		      List.foldl (chkRule region) (chkExp(region, e, used)) rules
 		  | A.IFexp{test, thenCase, elseCase} =>
 		      chkExp(region, elseCase,
@@ -95,7 +97,7 @@ structure CheckUnused : sig
 		      chkExp(region, e2, chkExp(region, e1, used))
 		  | A.WHILEexp{test, expr} =>
 		      chkExp(region, expr, chkExp(region, test, used))
-		  | A.FNexp(rules, _) => List.foldl (chkRule region) used rules
+		  | A.FNexp(rules, _, _) => List.foldl (chkRule region) used rules
 		  | A.LETexp(d, e) =>
 		      chkDec (region, false, d, chkExp(region, e, used))
 		  | A.SEQexp es => List.foldl
@@ -103,6 +105,8 @@ structure CheckUnused : sig
 			used es
 		  | A.CONSTRAINTexp(e, _) => chkExp(region, e, used)
 		  | A.MARKexp(e, region) => chkExp(region, e, used)
+		  | A.SWITCHexp _ => used
+		  | A.VSWITCHexp _ => used
 		(* end case *))
 	  and chkRule region (A.RULE(p, e), used) =
 		chkPat false (region, p, chkExp (region, e, used))

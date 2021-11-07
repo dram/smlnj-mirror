@@ -1,6 +1,6 @@
 (* edcontrol.sig
  *
- * (C) 2001 Lucent Technologies, Bell Labs
+ * (C) 2021 The Fellowship of SML/NJ
  *)
 
 signature ELABDATA_CONTROL =
@@ -8,17 +8,29 @@ sig
 
   val saveLvarNames : bool ref
 
+  val envdebugging : bool ref
+      (* Env debugging *)
+
   val eedebugging : bool ref
-      (* EntityEnv *)
+      (* EntityEnv debugging *)
 
   val mudebugging : bool ref
-      (* ModuleUtil *)
+      (* ModuleUtil debugging *)
 
   val tudebugging : bool ref
-      (* TypesUtil *)
+      (* TypesUtil debugging *)
+
+  val tpdebugging : bool ref
+      (* PPType debugging *)
 
   val typesInternals : bool ref
       (* show types internal reps *)
+
+  val typeUnalias : bool ref
+      (* "unalias" types in PPType *)
+
+  val mpdebugging : bool ref
+      (* PPMod debugging *)
 
   val modulesInternals : bool ref
       (* show modules internal reps *)

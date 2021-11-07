@@ -45,7 +45,7 @@ val getFctPath : Modules.Structure * SymPath.path * SymPath.path
 val getTycPath : Modules.Structure * SymPath.path * SymPath.path
                  -> Types.tycon
 val getValPath : Modules.Structure * SymPath.path * SymPath.path
-                 -> VarCon.value
+                 -> Absyn.value
 
 val checkPathSig : Modules.Signature * SymPath.path
 		   -> Symbol.symbol option
@@ -81,6 +81,3 @@ val getSignatureNames : Modules.Structure -> Symbol.symbol list
 val debugging : bool ref
 
 end (* signature MODULEUTIL *)
-
-
-

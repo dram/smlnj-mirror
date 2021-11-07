@@ -7,138 +7,162 @@
 signature WRAPPING =
 sig
   val wrapping : FLINT.prog -> FLINT.prog
-
 end (* signature WRAPPING *)
 
 structure Wrapping : WRAPPING =
 struct
 
-local structure CO = Coerce
-      structure LT = LtyExtern
-      structure DI = DebIndex
-      structure PO = Primop
-      structure DA = Access
-      open FLINT
+local
+  structure CO = Coerce
+  structure DI = DebIndex
+  structure PO = Primop
+  structure LV = LambdaVar 
+  structure DA = Access
+  structure LT = Lty
+  structure FR = FunRecMeta
+  structure LK = LtyKernel
+  structure LD = LtyDef
+  structure LB = LtyBasic
+  structure LE = LtyExtern
+  structure PL = PLambda
+  structure F = FLINT
+  structure PF = PrintFlint
+  open FLINT
 in
 
-fun bug s = ErrorMsg.impossible ("Wrapping: " ^ s)
+val debugging = FLINT_Control.wrdebugging
 val say = Control_Print.say
-fun mkv _ = LambdaVar.mkLvar()
-val fkfun = {isrec=NONE,known=false,inline=IH_ALWAYS, cconv=CC_FUN LT.ffc_fixed}
-val ident = fn le => le
-fun option f NONE = NONE
-  | option f (SOME x) = SOME (f x)
+fun dbsay msg = if !debugging then say msg else ()
+fun bug msg = ErrorMsg.impossible ("Wrapping: " ^ msg)
 
+(* identity *)
+val ident = fn x => x
+
+(* mkLvars : int -> LV.lvar list) *)
+fun mkLvars n = List.tabulate (n, fn i => LV.mkLvar ())
+			      
 (****************************************************************************
  *                   MISC UTILITY FUNCTIONS                                 *
  ****************************************************************************)
-local val lt_upd =
-        let val x = LT.ltc_array (LT.ltc_tv 0)
-         in LT.ltc_poly([LT.tkc_mono],
-              [LT.ltc_arrow(LT.ffc_rrflint, [x, LT.ltc_int, LT.ltc_tv 0],
-                                            [LT.ltc_unit])])
+local (* utility functions *)
+    val lt_upd =
+        let val x = LB.ltc_array (LB.ltc_tv 0)
+         in LD.ltc_poly([LT.tkc_mono],
+              [LD.ltc_arrow(LB.ffc_rrflint, [x, LB.ltc_int, LB.ltc_tv 0],
+                                            [LB.ltc_unit])])
         end
-      val lt_sub =
-        let val x = LT.ltc_array (LT.ltc_tv 0)
-         in LT.ltc_poly([LT.tkc_mono],
-              [LT.ltc_arrow(LT.ffc_rrflint, [x, LT.ltc_int], [LT.ltc_tv 0])])
+
+    val lt_sub =
+        let val x = LB.ltc_array (LB.ltc_tv 0)
+         in LD.ltc_poly([LT.tkc_mono],
+              [LD.ltc_arrow(LB.ffc_rrflint, [x, LB.ltc_int], [LB.ltc_tv 0])])
         end
 in
 
-fun isArraySub t = LT.lt_eqv(t, lt_sub)
-fun isArrayUpd t = LT.lt_eqv(t, lt_upd)
+fun isArraySub lty = LK.lt_eqv(lty, lt_sub)
+fun isArrayUpd lty = LK.lt_eqv(lty, lt_upd)
+
 val f64sub = PO.NUMSUBSCRIPT(PO.FLOAT 64)
 val f64upd = PO.NUMUPDATE(PO.FLOAT 64)
 
-(* Function classPrim : primop -> primop * bool * bool takes a primop
- * and classifies its kind. It returns a new primop, a flag indicates
- * if this primop has been specialized.
+(* classPrim : primop -> primop * bool
+ * takes a primop and classifies its kind. It returns a new primop,
+ * and a flag that indicates if this primop has been specialized; this
+ * flag will be true only for NUMSUBSCRIPT and NUMUPDATE primops.
  * [2019-06-25] removed run-time type specialization
  *)
 fun classPrim (px as (d, p, lt, ts)) =
-  (case (p, ts)
-    of ((PO.NUMSUBSCRIPT _ | PO.NUMUPDATE _), _) =>   (* overloaded primops *)
-         ((d, p, LT.lt_pinst(lt, ts), []), true)
-     | (PO.ASSIGN, [tc]) =>			      (* special *)
-	if (LT.tc_upd_prim tc = PO.UNBOXEDUPDATE)
-	  then ((d, PO.UNBOXEDASSIGN, lt, ts), false) (* avoid store-list allocation *)
-	  else ((d, p, lt, ts), false)
-     | (PO.UPDATE, [tc]) => ((d, LT.tc_upd_prim tc, lt, ts), false)
-     | _ => (px, false))
+    (case (p, ts)
+       of ((PO.NUMSUBSCRIPT _ | PO.NUMUPDATE _), _) =>   (* overloaded primops, instantiate types *)
+	    ((d, p, LE.lt_pinst(lt, ts), []), true)
+	| (PO.ASSIGN, [tc]) =>			         (* special *)
+	   if (LE.tc_upd_prim tc = PO.UNBOXEDUPDATE)
+	     then ((d, PO.UNBOXEDASSIGN, lt, ts), false) (* avoid store-list allocation *)
+	     else ((d, p, lt, ts), false)
+	| (PO.UPDATE, [tc]) => ((d, LE.tc_upd_prim tc, lt, ts), false)
+	| _ => (px, false))
 
 val argbase = fn vs => (vs, ident)
 val resbase = fn v => (v, ident)
 
-end (* utility functions *)
+end (* local -- utility functions *)
 
 (****************************************************************************
  * The "wrapping" function does the following several things:               *
  *                                                                          *
  *   (1) representation coercions are inserted at TAPP, BRANCH, PRIMOP,     *
- *       CON, SWITCH, and RECORD(RK_VECTOR _, _). Where CON and SWITCH      *
- *       only wrap/unwrap the arguments of a datatype constuctor while      *
- *       RK_VECTOR just wraps the vector elements only.                     *
+ *       CON, SWITCH, and RECORD(FR.RK_VECTOR _, _). For CON and SWITCH        *
+ *       these wrap/unwrap the arguments of a datatype constuctor while     *
+ *       for FR.RK_VECTOR it wraps the vector elements only.                   *
  *   (2) all primops in PRIM are given type-specific meanings;              *
  *   (3) all conreps in CON and SWITCH are given type-specific meanings ??  *
  *                                                                          *
  ****************************************************************************)
-fun wrapping fdec =
-let (* In pass1, we calculate the old type of each variables in the FLINT
-     * expression. We do this for the sake of having simpler wrapping code.
-     *)
-    val {getLty=getlty, cleanUp, ...} = Recover.recover (fdec, false)
+(* wrapping : F.prog -> F.prog *)
+fun wrapping (fdec: F.prog) =
+let (* In pass1, we calculate the "old"(?) type of each variable in the FLINT
+     * expression. We do this for the sake of having simpler wrapping code. *)
 
-    (** generate a set of new wrappers *)
-    val (tcWrap, ltWrap, tcf, ltf, cleanup2) = LT.twrap_gen true
+    val getlty = Recover.recover (fdec, false)
+
+    (** generate a set of new wrappers using LE.typeWrapGen *)
+      (* tycWrap : tyc -> tyc;
+       * ltyWrap : lty -> lty;
+       * tycUnwrap : tyc -> tyc;
+       * ltyUnwrap : lty -> lty *)
+    val (tycWrap, ltyWrap, tycUnwrap, ltyUnwrap) = LE.typeWrapGen ()
 
     fun fixDconTy lt =
-      if LT.ltp_ppoly lt then
-        let val (ks, t) = LT.ltd_ppoly lt
-         in LT.ltc_ppoly(ks, ltWrap t)
-        end
-      else ltWrap lt
+        if LD.ltp_ppoly lt
+        then let val (ks, t) = LD.ltd_ppoly lt
+              in LD.ltc_ppoly(ks, ltyWrap t)
+             end
+	else ltyWrap lt
 
     (* transform : CO.wpEnv * DI.depth -> (lexp -> lexp) *)
     fun transform (wenv, d) =
-      let
-          fun lpfd ({isrec,known,inline,cconv}, v, vts, e) =
-	      let val nisrec = case isrec of SOME(ts,l) => SOME(map ltf ts, l)
-					   | NONE => NONE
-		  val ncconv = case cconv of CC_FUN fixed => CC_FUN LT.ffc_fixed
-					   | CC_FCT => cconv
+      let (* lpfd : fkind * v? * vts? * F.lexp -> fkind * v? * ? * lexp *)
+	  fun lpfd ({isrec,known,inline,cconv}, v, vts, e) =
+	      let val nisrec = case isrec
+				 of SOME(ts,l) => SOME(map ltyUnwrap ts, l)
+				  | NONE => NONE
+		  val ncconv = case cconv
+				 of FR.CC_FUN fixed => FR.CC_FUN LD.ffc_fixed
+				  | FR.CC_FCT => cconv
 	      in ({isrec=nisrec, known=known,
 		   cconv=ncconv, inline=inline},
 		  v,
-		  map (fn (x,t) => (x, ltf t)) vts,
+		  map (fn (x,t) => (x, ltyUnwrap t)) vts,
 		  loop e)
 	      end
 
-          (* lpdc : dcon * tyc list * value * bool ->
-                       (dcon * tyc list * (lexp -> lexp) * value)  *)
+          (* lpdc : dcon * tyc list * value * bool
+                    -> dcon * tyc list * (lexp -> lexp) * value  *)
           and lpdc (dc as (name,rep,lt), ts, u, wflag) =
             let (*** fixing the potential mismatch in the type *)
                 val ndc = (name, rep, fixDconTy lt)
 
-                val aty = case LT.ltd_arrow (LT.lt_pinst(lt, ts))
+                val aty = case LD.ltd_arrow (LE.lt_pinst(lt, ts))
                            of (_, [x], _) => x
                             | _ => bug "unexpected case in lpdc"
-                val (naty, oaty) = (ltWrap aty, ltf aty)
+                val (naty, oaty) = (ltyWrap aty, ltyUnwrap aty)
 
                 val hdr = if wflag then CO.wrapOp(wenv,[naty],[oaty],d)
                           else CO.unwrapOp(wenv,[naty],[oaty],d)
 
 
-                val nts = map tcWrap ts
+                val nts = map tycWrap ts
              in case hdr
                  of NONE => (ndc, nts, ident, u)
                   | SOME hhh =>
-                      let val z = mkv()
+                      let val z = LV.mkLvar()
                           val nu = VAR z
                        in if wflag then  (* CON *)
                             (ndc, nts, fn xe => LET([z], hhh([u]), xe), nu)
                           else           (* DECON *)
-                            let val x = case u of VAR q => q
-                                          | _ => bug "unexpected case in lpdc"
+                            let val x = case u
+					    of VAR q => q
+                                             | _ => bug "unexpected case in lpdc"
                              in (ndc, nts,
                                  fn xe => LET([x], hhh([nu]), xe), nu)
                             end
@@ -146,10 +170,10 @@ let (* In pass1, we calculate the old type of each variables in the FLINT
             end (* function lpdc *)
 
           (* lpsw : con * lexp -> con * lexp *)
-          and lpsw (DATAcon(dc, ts, v), e) =
+          and lpsw (PL.DATAcon(dc, ts, v), e) =
                 let val (ndc, nts, hdr, u) = lpdc(dc, ts, VAR v, false)
                  in (case u
-                      of VAR nv => (DATAcon(ndc, nts, nv), hdr(loop e))
+                      of VAR nv => (PL.DATAcon(ndc, nts, nv), hdr(loop e))
                        | _ => bug "unexpected case in lpsw")
                 end
             | lpsw (c, e) = (c, loop e)
@@ -160,24 +184,24 @@ let (* In pass1, we calculate the old type of each variables in the FLINT
            *                    (lvar -> lvar * (lexp -> lexp)))
            *)
           and lprim (dict, p, lt, []) =
-                ((dict, p, ltf lt, []), argbase, resbase)
+                ((dict, p, ltyUnwrap lt, []), argbase, resbase)
             | lprim px =
                 let val ((dict, np, lt, ts), issp) = classPrim px
-                    val nlt = ltf lt
-                    val wts = map tcWrap ts
+                    val nlt = ltyUnwrap lt
+                    val wts = map tycWrap ts
                  in if issp (* primop has been specialized *)
                     then ((dict, np, nlt, wts), argbase, resbase)
                     else (* still a polymorphic primop *)
-                     (let val nt = LT.lt_pinst(nlt, wts)
-                          val (_, nta, ntr) = LT.ltd_arrow nt
-                          val ot = ltf(LT.lt_pinst(lt, ts))
-                          val (_, ota, otr) = LT.ltd_arrow ot
+                     (let val nt = LE.lt_pinst(nlt, wts)
+                          val (_, nta, ntr) = LD.ltd_arrow nt
+                          val ot = ltyUnwrap(LE.lt_pinst(lt, ts))
+                          val (_, ota, otr) = LD.ltd_arrow ot
                           val arghdr =
                             (case CO.wrapOp(wenv, nta, ota, d)
                               of NONE => argbase
                                | SOME hhh =>
                                    (fn vs =>
-                                     let val nvs = map mkv vs
+                                     let val nvs = mkLvars (length vs)
                                       in (map VAR nvs,
                                           fn le => LET(nvs, hhh(vs), le))
                                      end))
@@ -186,7 +210,7 @@ let (* In pass1, we calculate the old type of each variables in the FLINT
                               of NONE => resbase
                                | SOME hhh =>
                                    (fn v =>
-                                     let val nv = mkv()
+                                     let val nv = LV.mkLvar ()
                                       in (nv,
                                           fn le => LET([v], hhh([VAR nv]), le))
                                      end))
@@ -206,42 +230,81 @@ let (* In pass1, we calculate the old type of each variables in the FLINT
                        val ne1 = transform (nwenv, DI.next d) e1
                     in TFN((tfk, v, tvks, CO.wpBuild(nwenv, ne1)), loop e2)
                    end
+
                | TAPP (v, ts) =>
-                   let val olt = getlty v
-                       val nts = map tcWrap ts
-                       val nlts = LT.lt_inst(ltf olt, nts)
-                       val olts = map ltf (LT.lt_inst(olt, ts))
+                   let val _ = if !debugging
+			     then (say ">>> Wrapping.transform.loop#TAPP: v = ";
+				   PF.printValue v; say "\n")
+			     else ()
+		       val _ = if !debugging
+				then (say "ty: "; PF.printTycList ts; say "\n")
+				else ()
+		       val olt: LT.lty = getlty v
+		       val _ = if !debugging
+			       then (say "olt: "; PF.printLty olt; say "\n")
+			       else ()
+                       val nts : LT.tyc list = map tycWrap ts
+		       val _ = if !debugging
+			       then (say "nts: "; PF.printTycList nts; say "\n")
+			       else ()
+                       val nlts: LT.lty list = LE.lt_inst(ltyUnwrap olt, nts)
+		       val _ = if !debugging
+			       then (say "nlts: "; PF.printLtyList nlts; say "\n")
+			       else ()
+                       val olts: LT.lty list = map ltyUnwrap (LE.lt_inst(olt, ts))
+		       val _ = if !debugging
+			       then (say "olts: "; PF.printLtyList olts; say "\n")
+			       else ()
                        val hdr = CO.unwrapOp (wenv, nlts, olts, d)
                     in case hdr
-                        of NONE => TAPP(v, nts)
+                        of NONE =>
+			     let val _ = dbsay "loop#TAPP: hdr = NONE\n";
+				 val result = TAPP(v, nts)
+			     in if !debugging
+				then (say "result:\n"; PF.printLexp result;
+				      say "<<<Wrapping.transform.loop#TAPP\n")
+				else ();
+				result
+			     end
                          | SOME hhh =>
-                             let val nvs = map mkv nlts
-                              in LET(nvs, TAPP(v, nts), hhh(map VAR nvs))
+                             let val _ = dbsay "loop#tapp: hdr = SOME\n"
+			         val nvs = mkLvars (length nlts)
+				 val result = LET(nvs, TAPP(v, nts), hhh(map VAR nvs))
+                              in if !debugging
+				 then (say "result:\n"; PF.printLexp result;
+				       say "<<<Wrapping.transform.loop#TAPP\n")
+				 else ();
+				 result
                              end
                    end
+
                | CON (dc, ts, u, v, e) =>
                    let val (ndc, nts, hdr, nu) = lpdc(dc, ts, u, true)
                     in hdr (CON(ndc, nts, nu, v, loop e))
                    end
-               | SWITCH (v, csig, cases, opp) =>
-                   SWITCH(v, csig, map lpsw cases, option loop opp)
 
-               | RECORD(RK_VECTOR t, vs, v, e) =>
-                   let val (otc, ntc) = (tcf t, tcWrap t)
-                       val ot = LT.ltc_tyc otc
-                       val nt = LT.ltc_tyc ntc
+               | SWITCH (v, csig, cases, opp) =>
+                   SWITCH(v, csig, map lpsw cases, Option.map loop opp)
+
+               | RECORD(FR.RK_VECTOR t, vs, v, e) =>
+                   let val (otc, ntc) = (tycUnwrap t, tycWrap t)
+                       val ot = LD.ltc_tyc otc
+                       val nt = LD.ltc_tyc ntc
                     in (case CO.wrapOp(wenv, [nt], [ot], d)
-                         of NONE => RECORD(RK_VECTOR ntc, vs, v, loop e)
+                         of NONE => RECORD(FR.RK_VECTOR ntc, vs, v, loop e)
                           | SOME hhh =>
-                              let val f = mkv() and x = mkv()
+                              let val f = LV.mkLvar () and x = LV.mkLvar ()
+				  val fkfun = {isrec = NONE, known = false,
+					       inline = FR.IH_ALWAYS,
+					       cconv = FR.CC_FUN LD.ffc_fixed}
                                   fun mh xe =
                                     FIX([(fkfun,f,[(x,ot)],hhh([VAR x]))], xe)
 
                                   fun pass([], nvs, h) =
-                                        h(RECORD(RK_VECTOR ntc,
+                                        h(RECORD(FR.RK_VECTOR ntc,
                                                 rev nvs, v, loop e))
                                     | pass(u::r, nvs, h) =
-                                        let val z = mkv()
+                                        let val z = LV.mkLvar ()
                                             fun h0 xe =
                                               LET([z], APP(VAR f, [u]), xe)
                                          in pass(r, (VAR z)::nvs, h o h0)
@@ -252,7 +315,7 @@ let (* In pass1, we calculate the old type of each variables in the FLINT
                | RECORD (rk, vs, v, e) => RECORD(rk, vs, v, loop e)
                | SELECT (u, i, v, e) => SELECT(u, i, v, loop e)
 
-               | RAISE (u, lts) => RAISE(u, map ltf lts)
+               | RAISE (u, lts) => RAISE(u, map ltyUnwrap lts)
                | HANDLE (e, v) => HANDLE (loop e, v)
 
                (* resolving the polymorphic equality in a special way *)
@@ -279,10 +342,10 @@ let (* In pass1, we calculate the old type of each variables in the FLINT
       end (* function transform *)
 
     val (fk, f, vts, e) = fdec
-    val nvts = map (fn (v, t) => (v, ltf t)) vts
+    val nvts = map (fn (v, t) => (v, ltyUnwrap t)) vts
     val wenv = CO.initWpEnv()
     val ne = transform (wenv, DI.top) e
- in (fk, f, nvts, CO.wpBuild(wenv, ne)) before (cleanup2(); cleanUp())
+ in (fk, f, nvts, CO.wpBuild(wenv, ne))
 end (* function wrapping *)
 
 end (* toplevel local *)

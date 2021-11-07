@@ -38,7 +38,7 @@ Library
 	signature STAMPS
 	signature BINDINGS
 	signature TYPESUTIL
-	signature VARCON
+	signature VARIABLE
 	signature MODULEUTIL
 	signature BASICTYPES
 	signature PPTYPE
@@ -84,7 +84,7 @@ Library
         structure Stamps
         structure Bindings
         structure TypesUtil
-        structure VarCon
+        structure Variable
         structure ModuleUtil
         structure PrimopId
         structure BasicTypes

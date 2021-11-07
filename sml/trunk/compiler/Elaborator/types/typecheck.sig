@@ -1,3 +1,4 @@
+(* typecheck.sig *)
 
 signature TYPECHECK = 
 sig

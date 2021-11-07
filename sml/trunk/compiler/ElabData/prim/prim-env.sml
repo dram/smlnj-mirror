@@ -26,7 +26,7 @@ structure PrimEnv : PRIM_ENV =
     structure MU = ModuleUtil
 
     structure ST = Stamps
-    structure V = VarCon
+    structure V = Variable
 
     structure A = Access
 

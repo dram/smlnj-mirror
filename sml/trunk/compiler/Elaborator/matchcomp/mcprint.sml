@@ -13,7 +13,7 @@ local
    structure PP = PrettyPrint
    structure PU = PPUtil
    structure LV = LambdaVar
-   structure V = VarCon
+   structure V = Variable
    structure AS = Absyn
    structure AU = AbsynUtil
    structure P = Paths

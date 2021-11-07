@@ -7,6 +7,7 @@
  *
  * March 2000, Matthias Blume
  *)
+
 signature PICKMOD = sig
 
     (* There are three possible reasons to run the pickler.  Each form
@@ -46,7 +47,7 @@ signature PICKMOD = sig
     type map
     val emptyMap : map
 
-    val envPickler : (Access.lvar -> unit) ->
+    val envPickler : (LambdaVar.lvar -> unit) ->
 		     context ->
 		     (map, StaticEnv.staticEnv) PickleUtil.pickler
 
@@ -54,7 +55,7 @@ signature PICKMOD = sig
 		    StaticEnv.staticEnv ->
 		    { hash: PersStamps.persstamp,
 		      pickle: Word8Vector.vector,
-		      exportLvars: Access.lvar list,
+		      exportLvars: LambdaVar.lvar list,
 		      hasExports: bool }
 
     val pickle2hash: Word8Vector.vector -> PersStamps.persstamp
@@ -62,7 +63,7 @@ signature PICKMOD = sig
     val dontPickle :
 	{ env: StaticEnv.staticEnv, count: int } ->
         { newenv: StaticEnv.staticEnv, hash: PersStamps.persstamp,
-	  exportLvars: Access.lvar list, hasExports: bool }
+	  exportLvars: LambdaVar.lvar list, hasExports: bool }
 end
 
 local
@@ -86,7 +87,7 @@ in
     structure IP = InvPath
     structure MI = ModuleId
     structure POI = PrimopId
-    structure V = VarCon
+    structure V = Variable
     structure ED = EntPath.EvDict
     structure PS = PersStamps
     structure P = Primop
@@ -1084,4 +1085,3 @@ in
     end
   end
 end
-

@@ -6,38 +6,38 @@
 
 signature FLINTUTIL =
 sig
-  val rk_tuple : FLINT.rkind
+  val rk_tuple : FunRecMeta.rkind
 
-  val mketag : FLINT.tyc -> FLINT.primop
-  val wrap   : FLINT.tyc -> FLINT.primop
-  val unwrap : FLINT.tyc -> FLINT.primop
+  val mketag : Lty.tyc -> FLINT.primop
+  val wrap   : Lty.tyc -> FLINT.primop
+  val unwrap : Lty.tyc -> FLINT.primop
 
-  val WRAP   : FLINT.tyc * FLINT.value list
-                         * FLINT.lvar * FLINT.lexp -> FLINT.lexp
-  val UNWRAP : FLINT.tyc * FLINT.value list
-                         * FLINT.lvar * FLINT.lexp -> FLINT.lexp
+  val WRAP   : Lty.tyc * FLINT.value list
+                         * LambdaVar.lvar * FLINT.lexp -> FLINT.lexp
+  val UNWRAP : Lty.tyc * FLINT.value list
+                         * LambdaVar.lvar * FLINT.lexp -> FLINT.lexp
 
-  val getEtagTyc   : FLINT.primop -> FLINT.tyc
-  val getWrapTyc   : FLINT.primop -> FLINT.tyc
-  val getUnWrapTyc : FLINT.primop -> FLINT.tyc
+  val getEtagTyc   : FLINT.primop -> Lty.tyc
+  val getWrapTyc   : FLINT.primop -> Lty.tyc
+  val getUnWrapTyc : FLINT.primop -> Lty.tyc
 
   (* copy a lexp with alpha renaming.
    * free variables remain unchanged except for the renaming specified
    * in the first (types) and second (values) argument *)
-  val copy : (FLINT.tvar * FLINT.tyc) list ->
-             FLINT.lvar LambdaVar.Map.map ->
+  val copy : (Lty.tvar * Lty.tyc) list ->
+             LambdaVar.lvar LambdaVar.Map.map ->
              FLINT.lexp -> FLINT.lexp
   val copyfdec : FLINT.fundec -> FLINT.fundec
 
   val freevars : FLINT.lexp -> LambdaVar.Set.set
 
-  val dcon_eq : FLINT.dcon * FLINT.dcon -> bool
+  val dcon_eq : PLambda.dataconstr * PLambda.dataconstr -> bool
 
 (* are two FLINT values equal? *)
   val sameValue : FLINT.value * FLINT.value -> bool
 
 (* is a value a specific variable? *)
-  val valueIsVar : FLINT.lvar -> FLINT.value -> bool
+  val valueIsVar : LambdaVar.lvar -> FLINT.value -> bool
 
 end (* signature FLINTUTIL *)
 
@@ -45,33 +45,41 @@ end (* signature FLINTUTIL *)
 structure FlintUtil : FLINTUTIL =
 struct
 
-local structure EM = ErrorMsg
-      structure LT = LtyExtern
-      structure PO = Primop
-      structure DA = Access
-      structure M  = LambdaVar.Map
-      structure A  = Access
-      structure O  = Option
-      structure S  = LambdaVar.Set
-      structure F  = FLINT
-      open FLINT
+local
+  structure EM = ErrorMsg
+  structure LV = LambdaVar
+  structure LT = Lty
+  structure FR = FunRecMeta
+  structure LK = LtyKernel
+  structure LD = LtyDef
+  structure LB = LtyBasic
+  structure LE = LtyExtern
+  structure PO = Primop
+  structure DA = Access
+  structure M  = LambdaVar.Map
+  structure A  = Access
+  structure O  = Option
+  structure S  = LambdaVar.Set
+  structure PL = PLambda
+  structure F  = FLINT
+  open FLINT
 in
 
 fun bug msg = EM.impossible("FlintUtil: "^msg)
 
-val rk_tuple : rkind = RK_TUPLE (LT.rfc_tmp)
+val rk_tuple : FR.rkind = FR.RK_TUPLE
 
 (* a set of useful primops used by FLINT *)
-val tv0 = LT.ltc_tv 0
-val btv0 = LT.ltc_tyc(LT.tcc_box (LT.tcc_tv 0))
+val tv0 = LB.ltc_tv 0
+val btv0 = LD.ltc_tyc (LD.tcc_box (LB.tcc_tv 0))
 val etag_lty =
-  LT.ltc_ppoly ([LT.tkc_mono],
-                 LT.ltc_arrow(LT.ffc_rrflint, [LT.ltc_string],
-                                              [LT.ltc_etag tv0]))
+  LD.ltc_ppoly ([LT.tkc_mono],
+                 LD.ltc_arrow(LB.ffc_rrflint, [LB.ltc_string],
+                                              [LB.ltc_etag tv0]))
 fun wrap_lty tc =
-  LT.ltc_tyc(LT.tcc_arrow(LT.ffc_fixed, [tc], [LT.tcc_wrap tc]))
+  LD.ltc_tyc(LK.tcc_arrow(LD.ffc_fixed, [tc], [LD.tcc_wrap tc]))
 fun unwrap_lty tc =
-  LT.ltc_tyc(LT.tcc_arrow(LT.ffc_fixed, [LT.tcc_wrap tc], [tc]))
+  LD.ltc_tyc(LK.tcc_arrow(LD.ffc_fixed, [LD.tcc_wrap tc], [tc]))
 
 fun mketag tc = (NONE, PO.MKETAG, etag_lty, [tc])
 fun wrap tc = (NONE, PO.WRAP, wrap_lty tc, [])
@@ -83,26 +91,28 @@ fun UNWRAP(tc, vs, v, e) = PRIMOP(unwrap tc, vs, v, e)
 (* the corresponding utility functions to recover the tyc *)
 fun getEtagTyc (_, _, lt, [tc]) = tc
   | getEtagTyc (_, _, lt, []) =
-      let val nt = LT.ltd_tyc (#2(LT.ltd_parrow lt))
-		   handle LT.DeconExn => bug "getEtagTyc"
-       in if LT.tcp_app nt then
-            (case #2 (LT.tcd_app nt)
+      let val nt = LD.ltd_tyc (#2(LD.ltd_parrow lt))
+		   handle LD.DeconExn => bug "getEtagTyc"
+       in if LD.tcp_app nt then
+            (case #2 (LD.tcd_app nt)
               of [x] => x
                | _ => bug "unexpected case 1 in getEtagTyc")
-          else LT.tcc_void
+          else LB.tcc_void
       end
   | getEtagTyc _ = bug "unexpected case 2 in getEtagTyc"
 
-fun getWrapTyc (_, _, lt, []) = (LT.ltd_tyc(#1(LT.ltd_parrow lt))
-				handle LT.DeconExn => bug "getWrapTyc")
-  | getWrapTyc _ = bug "unexpected case in getWrapTyc"
+fun getWrapTyc (_, _, lt, []) =
+    (LD.ltd_tyc(#1(LD.ltd_parrow lt))
+     handle LD.DeconExn => bug "getWrapTyc: bad lt")
+  | getWrapTyc _ = bug "getWrapTyc: non-null tycs"
 
-fun getUnWrapTyc (_, _, lt, []) = (LT.ltd_tyc(#2(LT.ltd_parrow lt))
-				  handle LT.DeconExn => bug "getUnWrapTyc")
-  | getUnWrapTyc _ = bug "unexpected case in getUnWrapTyc"
+fun getUnWrapTyc (_, _, lt, []) =
+    (LD.ltd_tyc(#2(LD.ltd_parrow lt))
+     handle LD.DeconExn => bug "getUnWrapTyc: bad lt")
+  | getUnWrapTyc _ = bug "getUnWrapTyc: non-null tycs component"
 
-fun dcon_eq ((s1,c1,t1):FLINT.dcon,(s2,c2,t2)) =
-    Symbol.eq (s1,s2) andalso (c1 = c2) andalso LtyBasic.lt_eqv(t1, t2)
+fun dcon_eq ((s1,c1,t1):PLambda.dataconstr, (s2,c2,t2)) =
+    Symbol.eq (s1,s2) andalso (c1 = c2) andalso LK.lt_eqv(t1, t2)
 
 val cplv = LambdaVar.dupLvar
 (*
@@ -112,8 +122,8 @@ val cplv = LambdaVar.dupLvar
  *)
 fun copy ta alpha le = let
 
-    val tc_subst = LT.tc_nvar_subst_gen()
-    val lt_subst = LT.lt_nvar_subst_gen()
+    val tc_subst = LE.tc_nvar_subst_gen()
+    val lt_subst = LE.lt_nvar_subst_gen()
 
     val tmap_sort = ListMergeSort.sort (fn ((v1,_),(v2,_)) => LambdaVar.>(v1, v2))
     fun substvar alpha lv = case M.find(alpha,lv) of SOME(lv) => lv | NOE => lv
@@ -143,7 +153,7 @@ fun copy ta alpha le = let
 	 known=known, inline=inline, cconv=cconv}
       | cfk _ fk = fk
 
-    fun crk ta (RK_VECTOR tyc) = RK_VECTOR(tc_subst ta tyc)
+    fun crk ta (FR.RK_VECTOR tyc) = FR.RK_VECTOR(tc_subst ta tyc)
       | crk _ rk = rk
 
     fun copy' ta alpha le = let
@@ -177,7 +187,7 @@ fun copy ta alpha le = let
        let val (nlv,nalpha) = newv(lv,alpha)
 	   val (nargs,ialpha) = newvs(map #1 args, nalpha)
 	   val ita = tmap_sort ((ListPair.map
-				     (fn ((t,k),nt) => (t, LT.tcc_nvar nt))
+				     (fn ((t,k),nt) => (t, LD.tcc_nvar nt))
 				     (args, nargs)) @ ta)
        in TFN((tfk,nlv,
 	       ListPair.zip(nargs, map #2 args),
@@ -186,9 +196,9 @@ fun copy ta alpha le = let
        end
      | TAPP (f,tycs) => TAPP(substval f, map (tc_subst ta) tycs)
      | SWITCH (v,ac,arms,def) =>
-       let fun carm (DATAcon(dc,tycs,lv),le) =
+       let fun carm (PL.DATAcon(dc,tycs,lv),le) =
 	       let val (nlv,nalpha) = newv(lv, alpha)
-	       in (DATAcon(cdcon dc, map (tc_subst ta) tycs, nlv),
+	       in (PL.DATAcon(cdcon dc, map (tc_subst ta) tycs, nlv),
 		   copy nalpha le)
 	       end
 	     | carm (con,le) = (con, copy alpha le)
@@ -222,8 +232,8 @@ fun copyfdec fdec =
      of F.FIX([nfdec], F.RET[]) => nfdec
       | _ => bug "copyfdec"
 
-fun freevars lexp = let
-    val loop = freevars
+fun freevars lexp =
+let val loop = freevars
 
     fun S_rmv(x, s) = S.delete(s, x) handle NotFound => s
 
@@ -257,7 +267,7 @@ in case lexp
 	       let val fvle = loop le
 	       in S.union(fv,
 			  case dc
-			   of F.DATAcon(dc,_,lv) => fdcon(S_rmv(lv, fvle),dc)
+			   of PL.DATAcon(dc,_,lv) => fdcon(S_rmv(lv, fvle),dc)
 			    | _ => fvle)
 	       end
 	   val fvs = case def of NONE => singleton v
@@ -273,18 +283,21 @@ in case lexp
      | F.PRIMOP (po,vs,lv,le) => fpo(addvs(S_rmv(lv, loop le), vs),po)
 end
 
-(* are two FLINT values equal? *)
-  fun sameValue (v1, v2) = (case (v1, v2)
-	 of (VAR x, VAR y) => (x = y)
-	  | (INT n1, INT n2) => (#ty n1 = #ty n2) andalso (#ival n1 = #ival n2)
-	  | (WORD w1, WORD w2) => (#ty w1 = #ty w2) andalso (#ival w1 = #ival w2)
-	  | (REAL r1, REAL r2) => RealLit.same(#rval r1, #rval r2)
-	  | (STRING s1, STRING s2) => (s1 = s2)
-	  | _ => false
-	(* end case *))
+(* sameValue : F.value * F.value -> bool
+ *  are two FLINT values equal? *)
+fun sameValue (v1, v2) =
+    (case (v1, v2)
+       of (VAR x, VAR y) => LV.same(x, y)
+	| (INT n1, INT n2) => (#ty n1 = #ty n2) andalso (#ival n1 = #ival n2)
+	| (WORD w1, WORD w2) => (#ty w1 = #ty w2) andalso (#ival w1 = #ival w2)
+	| (REAL r1, REAL r2) => RealLit.same(#rval r1, #rval r2)
+	| (STRING s1, STRING s2) => (s1 = s2)
+	| _ => false
+      (* end case *))
 
-(* is a value a specific variable? *)
-  fun valueIsVar x (VAR y) = (x = y)
+(* valueIsVar : LV.lvar -> F.value -> bool
+ *  is a value a specific variable? *)
+  fun valueIsVar (x: LV.lvar) (VAR y: F.value) = LV.same(x, y)
     | valueIsVar _ _ = false
 
 end (* top-level local *)

@@ -15,27 +15,44 @@ signature SPECIALIZE =
 structure Specialize : SPECIALIZE =
 struct
 
-local structure LD = LtyDef
-      structure LT = LtyExtern
-      structure LK = LtyKernel
-      structure DI = DebIndex
-      structure PT = PrimTyc
-      structure PF = PFlatten
-      structure LVMap = LambdaVar.Map
-      open FLINT
+local
+  structure DI = DebIndex
+  structure LT = Lty
+  structure FR = FunRecMeta
+  structure LK = LtyKernel
+  structure LD = LtyDef
+  structure LB = LtyBasic
+  structure LE = LtyExtern
+  structure LV = LambdaVar
+  structure PT = PrimTyc
+  structure PF = PFlatten
+  structure LVMap = LambdaVar.Map
+  structure PP = PrettyPrint
+  structure PL = PLambda
+  open FLINT
 in
 
-val say = Control_Print.say
+val debugging = FLINT_Control.spdebugging
 fun bug s = ErrorMsg.impossible ("SpecializeNvar: " ^ s)
-fun mkv _ = LambdaVar.mkLvar()
+
+val say = Control_Print.say
+fun pp_fflag (fflag : LT.fflag) =
+    PP.with_default_pp (fn ppstrm => PPLty.ppFflag ppstrm fflag)
+fun pp_lvar (lvar : LambdaVar.lvar) =
+    PP.with_default_pp (fn ppstrm => PP.string ppstrm
+			  ("f = "^(LambdaVar.prLvar lvar)))
+fun pp_lty (lty : LT.lty) =
+    PP.with_default_pp (fn ppstrm => PPLty.ppLty 20 ppstrm lty)
+
+fun mkv _ = LV.mkLvar()
 val ident = fn le : FLINT.lexp => le
 
 val tk_tbx = LT.tkc_box (* the special boxed tkind *)
 val tk_tmn = LT.tkc_mono
-val tk_eqv = LT.tk_eqv
+val tk_eqv = LK.tk_eqv
+val tc_eqv = LK.tc_eqv
 
 (* checking the equivalence of two tyc sequences *)
-val tc_eqv = LT.tc_eqv
 fun tcs_eqv (xs, ys) =
   let fun teq(a::r, b::s) = if tc_eqv(a, b) then teq(r, s) else false
         | teq([],[]) = true
@@ -55,39 +72,76 @@ fun mk_click () =
  *                  UTILITY FUNCTIONS FOR KIND AND TYPE BOUNDS              *
  ****************************************************************************)
 
+(****************************************************************************
+ *                  TYPES FOR INFO ENVIRONMENTS                             *
+ ****************************************************************************)
+
 (*
  * Bnd is a lattice on the type hierarchy, used to infer minimum type bounds;
  * Right now, we only deal with first-order kinds. All higher-order kinds
  * will be assigned KTOP.
  *)
+
 datatype bnd
   = KBOX
   | KTOP
-  | TBND of tyc
+  | TBND of LT.tyc
 
 type bnds = bnd list
 
-(** THE FOLLOWING FUNCTION IS NOT FULLY DEFINED *)
+(*
+ * We maintain a table mapping each lvar to its definition depth,
+ * its type, and a list of its uses, indexed by its specific type
+ * instances.
+ *)
+
+exception ITABLE
+exception DTABLE
+
+datatype dinfo
+  = ESCAPE
+  | NOCSTR
+  | CSTR of bnds
+
+type depth = DI.depth
+type info = (LT.tyc list * LV.lvar list) list
+type itable = info LambdaVar.Tbl.hash_table   (* lvar --> (tyc list * lvar list) list *)
+type dtable = (depth * dinfo) LambdaVar.Tbl.hash_table
+type kenv = (itable * (LT.tvar * LT.tkind) list) list
+
+datatype infoEnv = IENV of kenv * dtable
+
+(* kBnd: kenv -> LE.tyc -> bnd *)
+(* THE FOLLOWING FUNCTION IS NOT FULLY DEFINED! (how?)
+ * kBnd will only return KBOX or KTOP, never TBND. *)
 fun kBnd kenv tc =
-    if LT.tcp_var tc then
-	let val (i,j) = LT.tcd_var tc
-	    val (_,ks) = List.nth(kenv, i-1)
-				 handle _ => bug "unexpected case A in kBnd"
-	    val (_,k) = List.nth(ks, j)
-				handle _ => bug "unexpected case B in kBnd"
+    if LD.tcp_var tc then
+	let val (i,j) = LD.tcd_var tc
+	    val (_,ks) =
+		List.nth(kenv, i-1)
+		handle Subscript =>
+		       bug ("kBnd: db tyvar depth: " ^ Int.toString (i-1))
+	    val (_,k) =
+		List.nth(ks, j)
+		handle Subscript =>
+		       bug ("kBnd: db tyvar index: " ^ Int.toString j)
 	in if tk_eqv(tk_tbx, k) then KBOX else KTOP
 	end
-    else if LT.tcp_nvar tc then KTOP	(* FIXME: check the kenv for KBOX *)
-    else if LT.tcp_prim tc then
-	let val p = LT.tcd_prim tc
+    else if LD.tcp_nvar tc then KTOP	(* FIXME: check the kenv for KBOX ??? *)
+    else if LD.tcp_prim tc then
+	let val p = LD.tcd_prim tc
 	in if PT.unboxed p then KTOP else KBOX
 	end
     else KBOX
 
+(* kmBnd : kenv -> (LE.tyc * bnd) -> bnd *)
+(* kmBnd will only return KTOP of KBOX, never TBND *)
 fun kmBnd kenv (tc, KTOP) = KTOP
   | kmBnd kenv (tc, KBOX) = kBnd kenv tc
   | kmBnd kenv (tc, TBND _) = bug "unexpected cases in kmBnd"
 
+(* tBnd: kenv -> LE.tyc -> bnd *)
+(* tBnd only returns TBND *)
 fun tBnd kenv tc = TBND tc
 
 fun tmBnd kenv (tc, KTOP) = KTOP
@@ -102,10 +156,10 @@ datatype spkind
 
 datatype spinfo
   = NOSP
-  | NARROW of (tvar * tkind) list
-  | PARTSP of {ntvks: (tvar * tkind) list, nts: tyc list,
+  | NARROW of (LT.tvar * LT.tkind) list
+  | PARTSP of {ntvks: (LT.tvar * LT.tkind) list, nts: LT.tyc list,
                masks: bool list}
-  | FULLSP of tyc list * lvar list
+  | FULLSP of LT.tyc list * LV.lvar list
 
 (*
  * Given a list of default kinds, and a list of bnd information, a depth,
@@ -120,8 +174,8 @@ fun bndGen(oks, bnds, d, info) =
       val spk = g(bnds, [], true)
 
       val adj = case spk of FULL => (fn tc => tc)
-                          | _ => (fn tc => LT.tc_adj(tc, d, DI.next d)
-				           handle LT.TCENV => bug "bndGen")
+                          | _ => (fn tc => LB.tc_adj(tc, d, DI.next d)
+				           handle LK.TCENV => bug "bndGen")
         (* if not full-specializations, we push depth one-level down *)
 
       (** pass 2 **)
@@ -141,12 +195,12 @@ fun bndGen(oks, bnds, d, info) =
         | h(ok::oks, (TBND tc)::bs, i, ks, ts, b) =
              h(oks, bs, i, ks, (adj tc)::ts, false)
         | h((ok as (tv,_))::oks, KTOP::bs, i, ks, ts, b) =
-             h(oks, bs, i+1, ok::ks, (LT.tcc_nvar tv)::ts, b)
+             h(oks, bs, i+1, ok::ks, (LD.tcc_nvar tv)::ts, b)
         | h((tv,ok)::oks, KBOX::bs, i, ks, ts, b) =
              let (* val nk = if tk_eqv(tk_tbx, ok) then ok else tk_tbx *)
                  val (nk, b) =
                    if tk_eqv(tk_tmn, ok) then (tk_tbx, false) else (ok, b)
-              in h(oks, bs, i+1, (tv,nk)::ks, (LT.tcc_nvar tv)::ts, b)
+              in h(oks, bs, i+1, (tv,nk)::ks, (LD.tcc_nvar tv)::ts, b)
              end
         | h _ = bug "unexpected cases 2 in bndGen"
 
@@ -154,29 +208,6 @@ fun bndGen(oks, bnds, d, info) =
    in h(oks, bnds, 0, [], [], true)
   end
 
-
-(****************************************************************************
- *                  UTILITY FUNCTIONS FOR INFO ENVIRONMENTS                 *
- ****************************************************************************)
-
-(*
- * We maintain a table mapping each lvar to its definition depth,
- * its type, and a list of its uses, indexed by its specific type
- * instances.
- *)
-exception ITABLE
-exception DTABLE
-
-datatype dinfo
-  = ESCAPE
-  | NOCSTR
-  | CSTR of bnds
-
-type depth = DI.depth
-type info = (tyc list * lvar list) list
-type itable = info LambdaVar.Tbl.hash_table   (* lvar -> (tyc list * lvar) *)
-type dtable = (depth * dinfo) LambdaVar.Tbl.hash_table
-datatype infoEnv = IENV of (itable * (tvar * tkind) list) list * dtable
 
 (****************************************************************************
  *              UTILITY FUNCTIONS FOR TYPE SPECIALIZATIONS                  *
@@ -258,12 +289,12 @@ fun lookItable (IENV (itabs,dtab), d, v, ts, getlty, nv_depth) =
       val (itab,_) = ((List.nth(itabs, d-nd)) handle _ =>
                       bug "unexpected itables in lookItable")
 
-      val nts = map (fn t => (LT.tc_adj(t, d, nd) handle LT.TCENV => bug "lookItable")) ts
+      val nts = map (fn t => (LB.tc_adj(t, d, nd) handle LK.TCENV => bug "lookItable")) ts
       val xi = getOpt (LambdaVar.Tbl.find itab v, [])
 
       fun h ((ots,xs)::r) = if tcs_eqv(ots, nts) then (map VAR xs) else h r
         | h [] = let val oldt = getlty (VAR v)     (*** old type is ok ***)
-                     val bb = LT.lt_inst(oldt, ts)
+                     val bb = LE.lt_inst(oldt, ts)
                      val nvs =  map mkv  bb
                      val _ = LambdaVar.Tbl.insert itab (v, (nts, nvs)::xi)
                   in map VAR nvs
@@ -349,7 +380,7 @@ fun chkOutNorm (IENV([], _), v, oks, d) =
  ****************************************************************************)
 
 (***** the substitution intmapf: named variable -> tyc *********)
-type smap = (tvar * tyc) list
+type smap = (LT.tvar * LT.tyc) list
 val initsmap = []
 
 fun mergesmaps (s1:smap as h1::t1, s2:smap as h2::t2) = (
@@ -386,9 +417,6 @@ fun looknmap nmap nvar =
      (*  bug "unexpected case in looknmap") *)
 (***** end of the substitution intmapf hack *********************)
 
-fun phase x = Stats.doPhase (Stats.makePhase x)
-val recover = (* phase "Compiler 053 recover" *) Recover.recover
-
 fun specialize fdec =
 let
 
@@ -399,7 +427,7 @@ val (click, num_click) = mk_click ()
  * that the main pass traverse the code in different order.
  * There must be a simpler way, but I didn't find one yet (ZHONG).
  *)
-val {getLty=getlty, cleanUp, ...} = recover(fdec, false)
+val getlty = Recover.recover (fdec, false)
 
 (* transform: infoEnv * DI.depth * lty cvt * tyc cvt
               * smap * bool -> (lexp -> lexp)
@@ -410,8 +438,8 @@ val {getLty=getlty, cleanUp, ...} = recover(fdec, false)
  * The 6th argument is a flag that indicates whether we need to
  * flatten the return results of the current function.
  *)
-val tc_nvar_subst = LT.tc_nvar_subst_gen()
-val lt_nvar_subst = LT.lt_nvar_subst_gen()
+val tc_nvar_subst = LE.tc_nvar_subst_gen()
+val lt_nvar_subst = LE.lt_nvar_subst_gen()
 
 fun transform (ienv, d, nmap, smap, did_flat) =
   let val tcf = tc_nvar_subst smap
@@ -452,22 +480,29 @@ fun transform (ienv, d, nmap, smap, did_flat) =
         end
 
       (* lpcon : con * lexp -> con * lexp *)
-      and lpcon (DATAcon (dc, ts, v), e) =
-            (DATAcon (lpdc dc, map tcf ts, v), lplet(v, e, fn x => x))
+      and lpcon (PL.DATAcon (dc, ts, v), e) =
+            (PL.DATAcon (lpdc dc, map tcf ts, v), lplet(v, e, fn x => x))
         | lpcon (c, e) = (c, loop e)
 
       (* lpfd : fundec -> fundec *** requires REWORK *** *)
-      and lpfd (fk as {cconv=CC_FCT, ...}, f, vts, be) =
+      and lpfd (fk as {cconv=FR.CC_FCT, ...}, f, vts, be) =
            (fk, f, map (fn (v,t) => (v, ltf t)) vts,
                    lplets (map #1 vts, be, fn e => e))
-        | lpfd (fk as {cconv=CC_FUN fflag,isrec,known,inline}, f, vts, be) =
+        | lpfd (fk as {cconv=FR.CC_FUN fflag,isrec,known,inline}, f, vts, be) =
            let (** first get the original arg and res types of f *)
-               val (fflag', atys, rtys) = LT.ltd_arrow (getlty (VAR f))
-		   handle LT.DeconExn => bug "lpfd"
+	       val f_lty = getlty (VAR f)
+               val (fflag_f, atys, rtys) = LD.ltd_arrow f_lty
+		   handle LD.DeconExn => bug "lpfd"
                (** just a sanity check; should turn it off later **)
+               val _ =
+		   if !debugging
+		   then (pp_lvar f; print "fflag = "; pp_fflag fflag;
+			 print "fflag(f) = "; pp_fflag fflag_f;
+	                 print "lpfd: f_lty = "; pp_lty f_lty)
+		   else ()
                val (b1,b2) =
-                 if LT.ff_eqv (fflag, fflag') then LT.ffd_fspec fflag
-                 else bug "unexpected code in lpfd"
+                 (* if LE.ff_eqv (fflag, fflag_f) then *) LB.ffd_fspec fflag
+                 (* else bug "unexpected code in lpfd" *)
 
                (** get the newly specialized types **)
                val (natys, nrtys) = (map ltf atys, map ltf rtys)
@@ -487,9 +522,9 @@ fun transform (ienv, d, nmap, smap, did_flat) =
 
                (** fix the isrec information *)
                val nisrec = case isrec of NONE => NONE
-                                        | SOME _ => SOME(body_ltys, LK_UNKNOWN)
-               val nfixed = LT.ffc_fspec(fflag, (arg_raw, body_raw))
-               val nfk = {isrec=nisrec, cconv=CC_FUN nfixed,
+                                        | SOME _ => SOME(body_ltys, FR.LK_UNKNOWN)
+               val nfixed = LB.ffc_fspec(fflag, (arg_raw, body_raw))
+               val nfk = {isrec=nisrec, cconv=FR.CC_FUN nfixed,
 			  known=known, inline=inline}
 
             in (nfk, f, ListPair.zip(arg_lvs, arg_ltys), nnbe)
@@ -540,12 +575,12 @@ fun transform (ienv, d, nmap, smap, did_flat) =
            | FIX(fdecs, e) => FIX(map lpfd fdecs, loop e)
            | APP(v, vs) =>
                let val vty = getlty v
-                in if LT.ltp_fct vty then APP(lpvar v, lpvars vs)
+                in if LD.ltp_fct vty then APP(lpvar v, lpvars vs)
                    else
                      let (** first get the original arg and res types of v *)
-                         val (fflag, atys, rtys) = LT.ltd_arrow vty
-			     handle LT.DeconExn => bug "loop"
-                         val (b1, b2) = LT.ffd_fspec fflag
+                         val (fflag, atys, rtys) = LD.ltd_arrow vty
+			     handle LD.DeconExn => bug "loop"
+                         val (b1, b2) = LB.ffd_fspec fflag
 
                          (** get the newly specialized types **)
                          val (natys, nrtys) = (map ltf atys, map ltf rtys)
@@ -600,7 +635,7 @@ fun transform (ienv, d, nmap, smap, did_flat) =
                let val nts = map tcf ts
                    val vs = lookItable(ienv, d, v, nts, getlty, nv_depth)
                 in if did_flat then
-                     let val vts = LT.lt_inst(ltf (getlty u), nts)
+                     let val vts = LE.lt_inst(ltf (getlty u), nts)
                          val ((_,_,ndid_flat),flatten) =
                             PF.v_flatten(vts, false)
                       in if ndid_flat then
@@ -618,8 +653,8 @@ fun transform (ienv, d, nmap, smap, did_flat) =
            | CON (dc, ts, u, v, e) =>
                lplet (v, e, fn ne => CON(lpdc dc, map tcf ts, lpvar u, v, ne))
 
-           | RECORD (rk as RK_VECTOR t, vs, v, e) =>
-               lplet (v, e, fn ne => RECORD(RK_VECTOR (tcf t),
+           | RECORD (rk as FR.RK_VECTOR t, vs, v, e) =>
+               lplet (v, e, fn ne => RECORD(FR.RK_VECTOR (tcf t),
                                             lpvars vs, v, ne))
            | RECORD(rk, vs, v, e) =>
                lplet (v, e, fn ne => RECORD(rk, lpvars vs, v, ne))
@@ -648,16 +683,16 @@ fun transform (ienv, d, nmap, smap, did_flat) =
 
 in
 (case fdec
-  of (fk as {cconv=CC_FCT, ...}, f, vts, e) =>
+  of (fk as {cconv=FR.CC_FCT, ...}, f, vts, e) =>
       let val ienv = initInfoEnv()
           val d = DI.top
           val _ = app (fn (x,_) => entDtable(ienv, x, (d, ESCAPE))) vts
           val ne = transform (ienv, d, initnmap, initsmap, false) e
           val hdr = chkOutEscs (ienv, map #1 vts)
-          val nfdec = (fk, f, vts, hdr ne) before (cleanUp())
-       in if (num_click()) > 0 then (*  LContract.lcontract *) nfdec
+          val nfdec = (fk, f, vts, hdr ne)
+       in (* if (num_click()) > 0 then (*  LContract.lcontract *) nfdec
           (* if we did specialize, we run a round of lcontract on the result *)
-          else nfdec
+          else *) nfdec
       end
    | _ => bug "non functor program in specialize")
 end (* function specialize *)

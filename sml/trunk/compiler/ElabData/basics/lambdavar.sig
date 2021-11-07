@@ -9,13 +9,11 @@ signature LAMBDA_VAR =
 
     eqtype lvar
 
-  (* if true, we remember the names of lambda vars *)
-    val saveLvarNames : bool ref
-
   (* returns true if there is a name assigned to the lvar *)
     val lvarIsNamed : lvar -> bool
 
-    val prLvar: lvar-> string
+    val toString: lvar-> string
+    val prLvar : lvar -> string  (* obsolete alias of toString *)
 
   (* `sameName (lv1, lv2)` sets the name of the first variable to the
    * second's name, if defined.  If `lv2` does not have a name, then
@@ -26,6 +24,8 @@ signature LAMBDA_VAR =
 
   (* create a fresh, unamed, lvar *)
     val mkLvar : unit -> lvar
+    val nextLvar : unit -> lvar
+    val diff : lvar * lvar -> int
 
     val dupLvar : lvar -> lvar
     val namedLvar : Symbol.symbol -> lvar

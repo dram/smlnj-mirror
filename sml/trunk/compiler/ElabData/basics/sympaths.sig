@@ -29,16 +29,3 @@ sig
   val equal : path * path -> bool
   val toString : path -> string
 end
-
-signature CONVERTPATHS =
-sig
-  type spath
-  type ipath
-
-  val invertSPath : spath -> ipath
-  val invertIPath : ipath -> spath
-
-  (* needed in PPTypes, PPModules *)
-  val findPath : ipath * ('a -> bool) * (spath -> 'a option)
-                 -> (Symbol.symbol list * bool)
-end

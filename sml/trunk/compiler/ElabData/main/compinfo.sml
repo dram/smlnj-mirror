@@ -14,29 +14,28 @@ structure CompInfo =
    *)
     type 'absyn compInfo = {
 	mkStamp: unit -> Stamps.stamp,
-	mkLvar: Symbol.symbol option -> Access.lvar,
+	mkLvar: Symbol.symbol option -> LambdaVar.lvar,
 	anyErrors: bool ref,
 	error: ErrorMsg.errorFn,
 	errorMatch: SourceMap.region -> string,
-	transform: 'absyn -> 'absyn,
+	transform: 'absyn -> 'absyn, (* normally the identity *)
 	sourceName : string
       }
 
-    fun mkCompInfo { source, transform : 'a -> 'a, mkStampGenerator } : 'a compInfo = let
-          val { error, errorMatch, anyErrors } = ErrorMsg.errors source
-          val _ = LambdaVar.clear () (* reset base lambda var to 0 *)
-          val gen = mkStampGenerator ()
-          fun mkLvar NONE = LambdaVar.mkLvar ()
-            | mkLvar (SOME sym) = LambdaVar.namedLvar sym
-	  in {
-	    mkStamp = fn () => Stamps.fresh gen,
-	    mkLvar = mkLvar,
-	    anyErrors = anyErrors,
-	    error = error,
-	    errorMatch = errorMatch,
-	    transform = transform,
-	    sourceName = #fileOpened source
-	  } end
+    fun mkCompInfo { source, transform : 'a -> 'a, mkStampGenerator } : 'a compInfo =
+	let val { error, errorMatch, anyErrors } = ErrorMsg.errors source
+	    val _ = LambdaVar.clear () (* reset base lambda var to 0 *)
+	    val gen = mkStampGenerator ()
+	    fun mkLvar NONE = LambdaVar.mkLvar ()
+	      | mkLvar (SOME sym) = LambdaVar.namedLvar sym
+	 in {mkStamp = fn () => Stamps.fresh gen,
+	     mkLvar = mkLvar,
+	     anyErrors = anyErrors,
+	     error = error,
+	     errorMatch = errorMatch,
+	     transform = transform,
+	     sourceName = #fileOpened source}
+	end
 
     fun anyErrors (ci : 'a compInfo) = ! (#anyErrors ci)
 

@@ -5,7 +5,7 @@
  *)
 
 signature PPUTIL =
-  sig
+sig
 
   (* CONSISTENT corresponds to HOV and INCONSISTENT corresponds to HV *)
     datatype break_style = CONSISTENT | INCONSISTENT
@@ -29,6 +29,10 @@ signature PPUTIL =
 	    pr:PrettyPrint.stream->'a->unit,
 	    style:break_style
 	  } -> 'a list -> unit
+
+    val ppBracketedSequence : (string * string * (PrettyPrint.stream -> 'a -> unit))
+		    -> PrettyPrint.stream -> 'a list -> unit
+
     val ppSym : PrettyPrint.stream -> Symbol.symbol -> unit
     val ppString : PrettyPrint.stream -> string -> unit
 
@@ -77,4 +81,4 @@ signature PPUTIL =
 		  (PrettyPrint.stream -> 'a -> unit) * 'a array
 		  -> unit
 
-  end (* signature PPUTIL *)
+end (* signature PPUTIL *)

@@ -8,7 +8,7 @@ signature OVERLOADVAR =
 sig
     val symToScheme : Symbol.symbol -> Types.tyfun
     val defaultTy : Symbol.symbol -> Types.ty
-    val resolveVar : Symbol.symbol * Types.ty * VarCon.var list -> VarCon.var option
+    val resolveVar : Symbol.symbol * Types.ty * Variable.var list -> Variable.var option
 end
     
 structure OverloadVar : OVERLOADVAR =
@@ -19,6 +19,7 @@ local
     structure T = Types
     structure BT = BasicTypes
     structure TU = TypesUtil
+    structure V = Variable
     structure OLC = OverloadClasses
 in
 
@@ -93,8 +94,8 @@ fun defaultTy (s: S.symbol) : T.ty =
      of ty :: _ => ty
       | nil => bug "defaultTy"
 
-fun resolveVar (name: S.symbol, indicator: T.ty, variants) : VarCon.var option =
-    let fun getVariant (indicator: T.ty, class, variants) : VarCon.var option =
+fun resolveVar (name: S.symbol, indicator: T.ty, variants) : V.var option =
+    let fun getVariant (indicator: T.ty, class, variants) : V.var option =
             (* ASSERT: length class = length variants *)
 	    let fun get (ty1::restTy, v1::restVariants) =
 		    if TU.equalType(indicator, ty1) then SOME v1
