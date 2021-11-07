@@ -32,11 +32,11 @@ sig
   val internals : bool ref
       (* (general) show internal reps *)
 
-  val setInternals : unit -> unit
-      (* set all internals controls to true *)
+  val setInternals : unit -> bool * bool * bool * bool * bool
+      (* set all internals controls to true, returning "former" values *)
 				 
-  val resetInternals : unit -> unit
-      (* set all internals controls to false *)
+  val resetInternals : bool * bool * bool * bool * bool -> unit
+      (* set all internals controls to "former" values *)
 
   val boxedconstconreps : bool ref
       (* constructor representation (used in ConRep) *)

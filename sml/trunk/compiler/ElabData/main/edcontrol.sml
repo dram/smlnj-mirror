@@ -51,18 +51,22 @@ struct
     val internals = new ("general-internals", "show internal reps", false)
 
     fun setInternals () =
-	(varconInternals := true;
-	 absynInternals := true;
-	 typesInternals := true;
-	 modulesInternals := true;
-	 internals := true)
+	let val oldInternals = (!varconInternals, !absynInternals, !typesInternals,
+				!modulesInternals, !internals)
+	 in varconInternals := true;
+	    absynInternals := true;
+	    typesInternals := true;
+	    modulesInternals := true;
+	    internals := true;
+	    oldInternals
+	end
 
-    fun resetInternals () =
-	(varconInternals := false;
-	 absynInternals := false;
-	 typesInternals := false;
-	 modulesInternals := false;
-	 internals := false)
+    fun resetInternals (oldvar, oldabsyn, oldtypes, oldmodules, oldinternals) =
+	(varconInternals := oldvar;
+	 absynInternals := oldabsyn;
+	 typesInternals := oldtypes;
+	 modulesInternals := oldmodules;
+	 internals := oldinternals)
 
     val boxedconstconreps = new ("boxedconstreps", "boxed const constructors", false)
         (* ConRep *)

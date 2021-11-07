@@ -77,9 +77,10 @@ fun checkEnv (env: SE.staticEnv, sym: S.symbol) =
       (SE.look(env,sym); "YES") handle SE.Unbound => "NO"
 
 fun withInternals (f: unit -> 'a) =
-    (ElabDataControl.setInternals ();
-     (f() before ElabDataControl.resetInternals ())
-     handle exn => (ElabDataControl.resetInternals (); raise exn))
+    let val savedInternals = ElabDataControl.setInternals ()
+     in (f() before ElabDataControl.resetInternals savedInternals)
+        handle exn => (ElabDataControl.resetInternals savedInternals; raise exn)
+    end
 
 end (* local *)
 end (* structure ElabDebug *)

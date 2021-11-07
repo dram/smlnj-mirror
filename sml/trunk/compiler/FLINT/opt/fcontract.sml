@@ -534,10 +534,13 @@ structure FContract :> FCONTRACT =
 			    val (f, body, args, fk as {inline,cconv,known,isrec}, actuals) = application
 			    val fi = C.get f
 			    in if C.dead fi then (m,fs)
+(* ommitted to avoid bug 294: deleting the definition of a variable that still has uses. iusenb was not
+ * being properly maintained, so the condition gave incorrect results in some cases (see bug 294).
 			       else if C.iusenb fi = C.usenb fi then
 				   (* we need to be careful that undertake not be called
 				    * recursively *)
 				   (C.use false fi; undertake m f; (m,fs))
+*)
 			       else
 				   let (*val _ = say (concat["Entering ", C.LVarString f, "\n"]) *)
 				       val saved_ic = inline_count()
