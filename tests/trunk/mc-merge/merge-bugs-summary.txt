@@ -57,11 +57,13 @@ the wording of error messages.
     "Fatal error -- blasting out of 1600108 bytes not supported yet!
     Increase allocation arena size."
 
-* bug1306.sml: value restriction in play? -- same in trunk and 110.96. FIX after merge.
-  ("val (x,y) = (nil,nil)" generalizes, but not "val (5,y) = (5,nil)")
+[* bug1306.sml: value restriction applies to refutable pattern -- same in trunk and 110.96.
+  Not a bug -- expected behavior.
+  (E.g. "val (x,y) = (nil,nil)" generalizes (irrefutable), but
+   "val (5,y) = (5,nil)" does not because the pattern is refutable.) ]
 
-[* bug1340.1.sml: missing Word31 structure -- same in trunk. OK?
-  (have Word63 instead?)
+[* bug1340.1.sml: missing Word31 structure -- same in trunk. OK
+  (we have Word63 instead)
   bug1375.2.sml ]
 
 * bug1469.1.sml: CG printing differs -- benign?
