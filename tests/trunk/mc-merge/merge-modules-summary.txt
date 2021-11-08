@@ -1,0 +1,15 @@
+Regression test summary for modules:
+dotest.sh modules -sml -diff ~/sml/Dev/merge/bin/sml
+
+After modifying prettyprinting in ElabData/modules/ppmod.smlm and
+TopLevel/printing/ppdec.sml, 95 of 347 tests still fail, mostly
+because of minor difference in printing of signatures
+(i.e. differences in line breaks).  The differences have been
+examined and there are only a couple test cases (tests/21.sml and
+tests/22.sml) where type path printing (int vs ?.t) should be
+corrected.  Other differences should be eliminated by resetting
+the reference outputs after deciding on the desired style for
+signature and functor signature printing.
+
+Results for open bug tests 229, 277, 284, 295(?) are unchanged, except for
+printing.  So these bugs still need to be fixed.

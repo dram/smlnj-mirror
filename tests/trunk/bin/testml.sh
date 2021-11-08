@@ -246,7 +246,7 @@ esac
 
 function compareOutput
 {
-	$DIFF -b $TMPFILE ${outPath}/${srcFile%%.sml}.out >/dev/null
+	$DIFF -w -B $TMPFILE ${outPath}/${srcFile%%.sml}.out >/dev/null
 	if [[ $? -eq 0 ]]
 	then
 		fgrep "$file" $OPENBUGSLIST >/dev/null

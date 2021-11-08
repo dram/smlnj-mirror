@@ -1,0 +1,11 @@
+val it = () : unit
+datatype t = A
+20.2.sml:7.5-7.11 Error: operator and operand don't agree [literal]
+  operator domain: t * t
+  operand:         t * int
+  in expression:
+    f (A,5)
+20.2.sml:6.20 Error: overloaded variable not defined at type
+  symbol: +
+  type: t
+

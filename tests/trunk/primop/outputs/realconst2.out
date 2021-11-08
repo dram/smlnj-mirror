@@ -1,0 +1,34 @@
+val it = () : unit
+signature Y = sig
+  type array
+  type elem
+  val array : int * elem -> array
+end
+functor F(A: sig
+  type array
+  type elem
+  val array : int * elem -> array
+end) :
+sig
+  type array
+  val array : int * A.elem -> A.array
+end
+structure DFA : sig
+  type array = array
+  val array : int * A.elem -> A.array
+end
+signature PRIMREAL =
+  sig
+  val significant : int
+  val minexp : int
+  val maxexp : int
+  val transreal : int * (int * int -> int) * int -> string
+end
+functor RealConst(P: sig
+  val significant : int
+  val minexp : int
+  val maxexp : int
+  val transreal : int * (int * int -> int) * int -> string
+end) :
+sig end
+

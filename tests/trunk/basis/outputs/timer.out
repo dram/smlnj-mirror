@@ -1,14 +1,14 @@
 val it = () : unit
 
 Each line below should show roughly the same User and System times:
-User: 0.019  System: 0.000  Real: 0.019
-User: 0.019  System: 0.000  Real: 0.019
-User: 0.019  System: 0.000  Real: 0.019
-User: 0.019  System: 0.000  Real: 0.019
-User: 0.019  System: 0.000  Real: 0.019
-User: 0.019  System: 0.000  Real: 0.019
-User: 0.019  System: 0.000  Real: 0.019
-User: 0.019  System: 0.000  Real: 0.019
+User: 0.002  System: 0.000  Real: 0.002
+User: 0.002  System: 0.000  Real: 0.002
+User: 0.002  System: 0.000  Real: 0.002
+User: 0.002  System: 0.000  Real: 0.002
+User: 0.002  System: 0.000  Real: 0.002
+User: 0.002  System: 0.000  Real: 0.002
+User: 0.002  System: 0.000  Real: 0.002
+User: 0.002  System: 0.000  Real: 0.002
 val test1 = "OK" : string
 val test2 = "OK" : string
 val test3 = "OK" : string

@@ -1,0 +1,3 @@
+val it = () : unit
+sigmatch2.sml:22.1-25.4 Error: unmatched structure specification: M
+

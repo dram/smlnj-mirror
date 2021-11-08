@@ -1,0 +1,3 @@
+val it = () : unit
+po-prop1.sml:1.1-1.23 Error: unbound variable or constructor: internals in path Control.Elab.internals
+

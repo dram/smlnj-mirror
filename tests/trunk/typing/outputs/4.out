@@ -1,9 +1,9 @@
 val it = () : unit
 val left = fn : 'a * 'b -> 'a
 val right = fn : 'a * 'b -> 'b
-4.sml:10.5-10.30 Error: operator and operand do not agree [overload conflict]
+4.sml:10.5-10.30 Error: operator and operand do not agree [overload - bad instantiation]
   operator domain: string -> string
-  operand:         [+ ty] -> [+ ty]
+  operand:         'Z[INT] -> 'Z[INT]
   in expression:
     (right later) (fn x => x + 2)
 

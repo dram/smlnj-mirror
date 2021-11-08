@@ -1,0 +1,43 @@
+val it = () : unit
+val it = () : unit
+>>matchStr
+>>matchIt
+>>matchElems
+spectype[0]
+  int array -> int
+acttyp[0]
+  'a array -> int
+spectype[1]
+  int array -> int
+acttyp[1]
+  'a array -> int
+###SM: 
+length
+
+
+spectype
+  int array -> int
+acttyp
+  'a array -> int
+ptvs
+  (int)
+btvs
+  ()
+
+
+--matchIt: elements matched successfully
+--matchIt: sharing checked
+<<matchIt
+<<matchStr
+>>>packStr
+packStr - instantiate done
+>>packElems
+packStr - packStr1 done
+<<<packStr
+>>matchStr
+>>matchIt
+>>matchElems
+--matchElems STRspec: M1, FSTAMP(3)
+sigmatch1.sml:18.1-21.4 Error: unmatched structure specification: M1
+<<matchStr
+

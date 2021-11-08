@@ -1,0 +1,74 @@
+Regression test summary for bugs (2021.11.07):
+dotest.sh bugs -sml -diff ~/sml/Dev/merge/bin/sml
+
+200 of 892 tests fail
+
+Almost all failures are minor differences in printing (i.e. different
+line breaks) for module signatures and different printing of
+unresolved overloading scheme type variables, e.g.
+"'Z[INT]" versus "[int ty]" for an unresolved overloaded int. Other
+failures are listed below. Also there are a few minor differences in
+the wording of error messages.
+
+-------------------
+* bug0068.1.sml  "spurious"(?) signature spec error message after type
+     error in structure body -- not in trunk -- FIX!
+  bug0068.2.sml  -- identical to bug0068.1.sml
+
+* bug0260.sml: no overflow exn.  32/64-bit dependent.  benign
+  bug1012.sml
+  bug1018.sml
+  bug1088.1.sml
+  bug1088.2.sml
+
+* bug0279.sml: overflow occurs after more iterations -- 32/64-bit dependent. benign
+
+* bug0327.sml: literal not too large -- 32/64-bit dependent. benign
+   bug0836.1.sml
+   bug0836.2.sml
+   bug0874.sml
+   bug1088.2.sml
+  
+[* bug0423.sml: incorrect printing of signature name: (same as trunk)
+    "VECTOR_2015?" instead of "VECTOR" -- "identity" signature decls
+    do not reset name (e.g. signature STRING = STRING_2015 in
+    Basis/Implementation/string.sig).  -- should be fixed now]
+
+* bug0607.sml: flawed type error message
+   (since bool * bool not a possible argument type for overloaded "+" operator)
+
+* bug0615.sml: results differ in order; probably benign?
+
+[* bug0788.sml: rebinding nil and :: is no longer allowed; so new error
+  messages are printed. OK. ]
+
+* bug0828.sml: printing datatype elements for an open declaration
+  (e.g. "open Bool"). minor, same in trunk. FIX after merge (if then)
+
+* bug1219.sml: unexpected exception (bug?) in SML/NJ: Representation [Representation]
+    -- also fails in 110_96_64 and trunk; FIX after merge
+    (proper fix would involve conreps.sml, typeoper.sml, reify.sml, etc.)
+
+* bug1227.sml: floating point results differ
+    -- CHECK  (which is right?)
+  bug1449.1.sml
+
+* bug1248.2.sml: (blastWrite)
+    "Fatal error -- blasting out of 1600108 bytes not supported yet!
+    Increase allocation arena size."
+
+* bug1306.sml: value restriction in play? -- same in trunk and 110.96. FIX after merge.
+  ("val (x,y) = (nil,nil)" generalizes, but not "val (5,y) = (5,nil)")
+
+[* bug1340.1.sml: missing Word31 structure -- same in trunk. OK?
+  (have Word63 instead?)
+  bug1375.2.sml ]
+
+* bug1469.1.sml: CG printing differs -- benign?
+
+* bug1526.s.sml: printing char literals (e.g. extracted from "\"");
+    same in trunk.  Fix after merge.
+
+[* bug1608.1.sml: Math.sin Math.pi ==> 0.0; trunk prints 0.0 -- OK ]
+
+

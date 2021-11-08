@@ -1,0 +1,18 @@
+val it = () : unit
+signature S = sig
+  type ar
+  type elem
+  val cons : int * elem -> ar
+end
+functor F(X: sig
+  type ar
+  type elem
+  val cons : int * elem -> ar
+end) : sig end
+signature R = sig
+  type 'a ar
+  val cons : int * 'a -> 'a ar
+end
+structure N : R
+structure M : sig end
+

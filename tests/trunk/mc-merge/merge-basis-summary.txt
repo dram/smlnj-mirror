@@ -1,0 +1,103 @@
+Results for basis regression tests: ~/sml/Dev/merge/bin/sml
+
+date.sml
+
+    $merge and $trunk are two hours "early" compared with output/date.out
+
+int.sml
+int32.sml
+int64.sml
+
+    prettyprint diffs, move new out files to outputs
+
+real-64bit.sml
+
+    < val test7c = ["WRONG","WRONG"] : string list
+    ---
+    > val test7c = ["OK","OK"] : string list
+
+    + prettyprint diffs, updated outputs/real-64bit.out 
+
+
+time.sml
+
+    prettyprint diffs, updated outputs/time.out 
+
+timer.sml
+
+    < User: 0.002  System: 0.000  Real: 0.002
+    ---
+    > User: 0.019  System: 0.000  Real: 0.019
+
+    uniformly different timings (system dependent?)
+    updated outputs/timer.out
+
+
+word.sml
+
+    uncaught exception Overflow [overflow]
+    raised at: <file stdIn>
+
+    Overflow suppresses further output, true failure
+
+
+word32.sml
+
+    < val test9f = "WRONG" : string
+    ---
+    > val test9f = "OK" : string
+    22c22
+    < val test10d = "WRONG" : string
+    ---
+    > val test10d = "OK" : string
+    26c26
+    < val test11d = "WRONG" : string
+    ---
+    > val test11d = "OK" : string
+    30c30
+    < val test11h = "WRONG" : string
+    ---
+    > val test11h = "OK" : string
+    37c37
+    < val test12f = "WRONG" : string
+    ---
+    > val test12f = "OK" : string
+
+    + prettyprint diffs, updated outputs/word32.out formatting
+
+word8.sml
+
+    prettyprint diffs, updated outputs/word8.out
+
+
+--------------------------------------------------------------------------------
+LOG file:
+testml.sh>  Testing array.sml 	   ...  pass
+testml.sh>  Testing auxil.sml 	   ...  pass
+testml.sh>  Testing bytechar.sml 	   ...  pass
+testml.sh>  Testing cmdline.sml 	   ...  pass
+testml.sh>  Testing date.sml 	   ...  **** fail
+testml.sh>  Testing filesys.sml 	   ...  pass
+testml.sh>  Testing general.sml 	   ...  pass
+testml.sh>  Testing int.sml 	   ...  **** fail
+testml.sh>  Testing int32.sml 	   ...  **** fail
+testml.sh>  Testing int64.sml 	   ...  **** fail
+testml.sh>  Testing list.sml 	   ...  pass
+testml.sh>  Testing listpair.sml 	   ...  pass
+testml.sh>  Testing math.sml 	   ...  pass
+testml.sh>  Testing real-64bit.sml 	   ...  **** fail
+testml.sh>  Testing real-intinf-cvt.sml 	   ...  pass
+testml.sh>  Testing string.sml 	   ...  pass
+testml.sh>  Testing stringcvt.sml 	   ...  pass
+testml.sh>  Testing substring.sml 	   ...  pass
+testml.sh>  Testing textio.sml 	   ...  pass
+testml.sh>  Testing time.sml 	   ...  **** fail
+testml.sh>  Testing timer.sml 	   ...  **** fail
+testml.sh>  Testing unixpath.sml 	   ...  pass
+testml.sh>  Testing vector.sml 	   ...  pass
+testml.sh>  Testing word.sml 	   ...  **** fail
+testml.sh>  Testing word32.sml 	   ...  **** fail
+testml.sh>  Testing word64.sml 	   ...  pass
+testml.sh>  Testing word8.sml 	   ...  **** fail
+testml.sh>  Testing word8array.sml 	   ...  pass
+testml.sh>  Testing word8vector.sml 	   ...  pass

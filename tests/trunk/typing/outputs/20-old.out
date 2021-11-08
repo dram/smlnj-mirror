@@ -1,0 +1,7 @@
+val it = () : unit
+20.sml:8.5-8.13 Error: operator and operand do not agree [overload conflict]
+  operator domain: [+ ty] * [+ ty]
+  operand:         'Z list * [int ty]
+  in expression:
+    f (nil,5)
+

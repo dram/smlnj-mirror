@@ -5,7 +5,6 @@ r012b-fl.sml:15.5-15.34 Error: expression and handler do not agree [overload - b
   handler range:          bool
   in expression:
     1
-  handle
+  handle 
       exc_test => true
-  | exn => raise exn
 

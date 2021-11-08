@@ -141,8 +141,8 @@ function changedFiles
  	     echo " "
 	  else
 	    echo ---------------------------diff--------------------------
-	    echo diff $BADDIR/${f%.sml}.out  $TESTDIR/outputs/${f%.sml}.out
-	    diff $BADDIR/${f%.sml}.out  $TESTDIR/outputs/${f%.sml}.out
+	    echo diff -w -B $BADDIR/${f%.sml}.out  $TESTDIR/outputs/${f%.sml}.out
+	    diff -w -B $BADDIR/${f%.sml}.out  $TESTDIR/outputs/${f%.sml}.out
 	  fi
     done
 }

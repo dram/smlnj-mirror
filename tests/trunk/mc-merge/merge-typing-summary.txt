@@ -1,0 +1,46 @@
+Regression test results:
+dotest.sh typing -sml ~/sml/Dev/merge/bin/sml
+
+18.sml
+   $merge and $trunk and 110.99.1 all loop on this test
+
+4.sml
+5.sml
+9.sml
+20.sml
+20.1.sml
+20.2.sml
+21.sml
+23.sml
+   error messages involving overloading changed, but new messages
+   are at least as good as the old ones.
+   adjusted outputs
+   
+--------------------------------------------------------------------------------
+LOG.amd64-darwin (with test/18.sml omitted, after adjusting outputs)
+testml.sh>  Testing 1.sml 	   ...  pass
+testml.sh>  Testing 10.sml 	   ...  pass
+testml.sh>  Testing 11.sml 	   ...  pass
+testml.sh>  Testing 12.sml 	   ...  pass
+testml.sh>  Testing 13.sml 	   ...  pass
+testml.sh>  Testing 14.sml 	   ...  pass
+testml.sh>  Testing 15.sml 	   ...  pass
+testml.sh>  Testing 16.sml 	   ...  pass
+testml.sh>  Testing 17.sml 	   ...  pass
+testml.sh>  Testing 19.sml 	   ...  pass
+testml.sh>  Testing 2.sml 	   ...  pass
+testml.sh>  Testing 20.1.sml 	   ...  pass
+testml.sh>  Testing 20.2.sml 	   ...  pass
+testml.sh>  Testing 20.sml 	   ...  pass
+testml.sh>  Testing 21.sml 	   ...  pass
+testml.sh>  Testing 22.sml 	   ...  pass
+testml.sh>  Testing 23.sml 	   ...  pass
+testml.sh>  Testing 24.sml 	   ...  pass
+testml.sh>  Testing 25.sml 	   ...  pass
+testml.sh>  Testing 3.sml 	   ...  pass
+testml.sh>  Testing 4.sml 	   ...  pass
+testml.sh>  Testing 5.sml 	   ...  pass
+testml.sh>  Testing 6.sml 	   ...  pass
+testml.sh>  Testing 7.sml 	   ...  pass
+testml.sh>  Testing 8.sml 	   ...  pass
+testml.sh>  Testing 9.sml 	   ...  pass

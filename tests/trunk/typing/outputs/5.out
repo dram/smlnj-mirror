@@ -1,6 +1,6 @@
 val it = () : unit
-5.sml:11.5-11.10 Error: operator is not a function [overload conflict]
-  operator: [int ty]
+5.sml:11.5-11.10 Error: operator is not a function [overload - bad instantiation]
+  operator: 'Z[INT]
   in expression:
     (g ()) ()
 

@@ -1,0 +1,198 @@
+Regression test results:
+dotest.sh coresml -sml ~/sml/Dev/merge/bin/sml
+
+d001a-ac.sml
+
+    known bug (match on "=" exceptions)  [bug number?]
+    same bug in trunk
+
+r034c-ac.sml
+
+    value-restriction issue, probable bug  [defer to type checker revision]
+    same in $trunk
+
+s001c-fl.sml
+
+    output printing difference in a secondary error message.
+    record fields (with erroneous identical labels) permuted
+    Not a regression, but might consider "fixing" (to get the older
+    output) anyway if this recurs in a more serious context.
+
+t018.sml
+
+    < val test40a = "WRONG" : string
+    ---
+    > val test40a = "OK" : string
+
+    < val test42 = ["WRONG","OK","OK","OK","OK"] : string list
+    ---
+    > val test42 = ["OK","OK","OK","OK","OK"] : string list
+
+    These two failures are essentially the same test, and the "bug" is
+    the same as for d001a-ac.sml above (matching identity
+    declared exn constructors). A fix for d001a-ac.sml should also
+    fix this regression.
+    Same bug in trunk.
+
+
+--------------------------------------------------------------------------------
+coresml/LOG.amd64-darwin; $merge/bin/sml
+
+testml.sh>  Testing d001a-ac.sml 	   ...  openbug (unchanged)
+testml.sh>  Testing d002a-ac.sml 	   ...  pass
+testml.sh>  Testing d003a-ac.sml 	   ...  pass
+testml.sh>  Testing d004a-ac.sml 	   ...  pass
+testml.sh>  Testing d005a-ac.sml 	   ...  pass
+testml.sh>  Testing d005b-fl.sml 	   ...  pass
+testml.sh>  Testing d005c-fl.sml 	   ...  pass
+testml.sh>  Testing d006a-ac.sml 	   ...  pass
+testml.sh>  Testing d006b-fl.sml 	   ...  pass
+testml.sh>  Testing d006c-fl.sml 	   ...  pass
+testml.sh>  Testing d006d-fl.sml 	   ...  pass
+testml.sh>  Testing d006e-fl.sml 	   ...  pass
+testml.sh>  Testing m001a-ac.sml 	   ...  pass
+testml.sh>  Testing m001b-fl.sml 	   ...  pass
+testml.sh>  Testing m002a-ac.sml 	   ...  pass
+testml.sh>  Testing m002b-fl.sml 	   ...  pass
+testml.sh>  Testing m003a-fl.sml 	   ...  pass
+testml.sh>  Testing m003b-fl.sml 	   ...  pass
+testml.sh>  Testing m003c-fl.sml 	   ...  pass
+testml.sh>  Testing r002a-fl.sml 	   ...  pass
+testml.sh>  Testing r003a-fl.sml 	   ...  pass
+testml.sh>  Testing r005a-ac.sml 	   ...  pass
+testml.sh>  Testing r005b-fl.sml 	   ...  pass
+testml.sh>  Testing r005c-fl.sml 	   ...  pass
+testml.sh>  Testing r006a-ac.sml 	   ...  pass
+testml.sh>  Testing r006b-fl.sml 	   ...  pass
+testml.sh>  Testing r006c-fl.sml 	   ...  pass
+testml.sh>  Testing r007a-ac.sml 	   ...  pass
+testml.sh>  Testing r008a-ac.sml 	   ...  pass
+testml.sh>  Testing r010a-ac.sml 	   ...  pass
+testml.sh>  Testing r010b-fl.sml 	   ...  pass
+testml.sh>  Testing r011a-ac.sml 	   ...  pass
+testml.sh>  Testing r011b-fl.sml 	   ...  pass
+testml.sh>  Testing r011c-fl.sml 	   ...  pass
+testml.sh>  Testing r011d-fl.sml 	   ...  pass
+testml.sh>  Testing r011e-fl.sml 	   ...  pass
+testml.sh>  Testing r012a-ac.sml 	   ...  pass
+testml.sh>  Testing r012b-fl.sml 	   ...  pass
+testml.sh>  Testing r012c-fl.sml 	   ...  pass
+testml.sh>  Testing r013a-ac.sml 	   ...  pass
+testml.sh>  Testing r013b-fl.sml 	   ...  pass
+testml.sh>  Testing r014a-ac.sml 	   ...  pass
+testml.sh>  Testing r015a-ac.sml 	   ...  pass
+testml.sh>  Testing r015b-fl.sml 	   ...  pass
+testml.sh>  Testing r015c-fl.sml 	   ...  pass
+testml.sh>  Testing r016a-ac.sml 	   ...  pass
+testml.sh>  Testing r016b-ac.sml 	   ...  pass
+testml.sh>  Testing r017a-ac.sml 	   ...  pass
+testml.sh>  Testing r017b-fl.sml 	   ...  pass
+testml.sh>  Testing r017c-ac.sml 	   ...  pass
+testml.sh>  Testing r017d-ac.sml 	   ...  pass
+testml.sh>  Testing r017e-fl.sml 	   ...  pass
+testml.sh>  Testing r017f-fl.sml 	   ...  pass
+testml.sh>  Testing r017g-ac.sml 	   ...  pass
+testml.sh>  Testing r017h-fl.sml 	   ...  pass
+testml.sh>  Testing r017i-fl.sml 	   ...  pass
+testml.sh>  Testing r017j-fl.sml 	   ...  pass
+testml.sh>  Testing r017k-fl.sml 	   ...  pass
+testml.sh>  Testing r018a-ac.sml 	   ...  pass
+testml.sh>  Testing r019a-ac.sml 	   ...  pass
+testml.sh>  Testing r019b-ac.sml 	   ...  pass
+testml.sh>  Testing r019c-fl.sml 	   ...  pass
+testml.sh>  Testing r019d-ac.sml 	   ...  pass
+testml.sh>  Testing r020a-ac.sml 	   ...  pass
+testml.sh>  Testing r020b-fl.sml 	   ...  pass
+testml.sh>  Testing r020c-fl.sml 	   ...  pass
+testml.sh>  Testing r020d-ac.sml 	   ...  pass
+testml.sh>  Testing r021a-ac.sml 	   ...  pass
+testml.sh>  Testing r021b-fl.sml 	   ...  pass
+testml.sh>  Testing r022a-ac.sml 	   ...  pass
+testml.sh>  Testing r022b-ac.sml 	   ...  pass
+testml.sh>  Testing r022c-fl.sml 	   ...  pass
+testml.sh>  Testing r024a-ac.sml 	   ...  pass
+testml.sh>  Testing r025a-ac.sml 	   ...  pass
+testml.sh>  Testing r025b-fl.sml 	   ...  pass
+testml.sh>  Testing r026a-fl.sml 	   ...  pass
+testml.sh>  Testing r026b-fl.sml 	   ...  pass
+testml.sh>  Testing r027a-ac.sml 	   ...  pass
+testml.sh>  Testing r027b-ac.sml 	   ...  pass
+testml.sh>  Testing r027c-fl.sml 	   ...  pass
+testml.sh>  Testing r027d-fl.sml 	   ...  pass
+testml.sh>  Testing r028a-ac.sml 	   ...  pass
+testml.sh>  Testing r028b-ac.sml 	   ...  pass
+testml.sh>  Testing r028c-ac.sml 	   ...  pass
+testml.sh>  Testing r028d-fl.sml 	   ...  pass
+testml.sh>  Testing r029a-ac.sml 	   ...  pass
+testml.sh>  Testing r029b-ac.sml 	   ...  pass
+testml.sh>  Testing r029c-fl.sml 	   ...  pass
+testml.sh>  Testing r029d-fl.sml 	   ...  pass
+testml.sh>  Testing r029e-ac.sml 	   ...  pass
+testml.sh>  Testing r030a-ac.sml 	   ...  pass
+testml.sh>  Testing r031a-ac.sml 	   ...  pass
+testml.sh>  Testing r031b-fl.sml 	   ...  pass
+testml.sh>  Testing r031c-fl.sml 	   ...  pass
+testml.sh>  Testing r032a-ac.sml 	   ...  pass
+testml.sh>  Testing r034a-ac.sml 	   ...  pass
+testml.sh>  Testing r034b-ac.sml 	   ...  pass
+testml.sh>  Testing r034c-ac.sml 	   ...  **** possible bug fix
+testml.sh>  Testing r035a-ac.sml 	   ...  pass
+testml.sh>  Testing r036a-ac.sml 	   ...  pass
+testml.sh>  Testing r038a-ac.sml 	   ...  pass
+testml.sh>  Testing r039a-ac.sml 	   ...  pass
+testml.sh>  Testing r041a-ac.sml 	   ...  pass
+testml.sh>  Testing r043a-ac.sml 	   ...  pass
+testml.sh>  Testing r043b-fl.sml 	   ...  pass
+testml.sh>  Testing r044a-ac.sml 	   ...  pass
+testml.sh>  Testing r044b-fl.sml 	   ...  pass
+testml.sh>  Testing r045a-ac.sml 	   ...  pass
+testml.sh>  Testing r045b-fl.sml 	   ...  pass
+testml.sh>  Testing r046a-ac.sml 	   ...  pass
+testml.sh>  Testing r046b-fl.sml 	   ...  pass
+testml.sh>  Testing r048a-ac.sml 	   ...  pass
+testml.sh>  Testing r049a-ac.sml 	   ...  pass
+testml.sh>  Testing r049b-fl.sml 	   ...  pass
+testml.sh>  Testing r050a-ac.sml 	   ...  pass
+testml.sh>  Testing r050b-fl.sml 	   ...  pass
+testml.sh>  Testing r052a-ac.sml 	   ...  pass
+testml.sh>  Testing r100a-fl.sml 	   ...  pass
+testml.sh>  Testing s001a-fl.sml 	   ...  pass
+testml.sh>  Testing s001b-fl.sml 	   ...  pass
+testml.sh>  Testing s001c-fl.sml 	   ...  pass
+testml.sh>  Testing s001d-fl.sml 	   ...  pass
+testml.sh>  Testing s002a-fl.sml 	   ...  pass
+testml.sh>  Testing s002b-fl.sml 	   ...  pass
+testml.sh>  Testing s002c-fl.sml 	   ...  pass
+testml.sh>  Testing s002d-fl.sml 	   ...  pass
+testml.sh>  Testing s002e-fl.sml 	   ...  pass
+testml.sh>  Testing s002f-fl.sml 	   ...  pass
+testml.sh>  Testing s002g-fl.sml 	   ...  pass
+testml.sh>  Testing s003a-fl.sml 	   ...  pass
+testml.sh>  Testing s003b-fl.sml 	   ...  pass
+testml.sh>  Testing s003c-fl.sml 	   ...  pass
+testml.sh>  Testing s003d-fl.sml 	   ...  pass
+testml.sh>  Testing s003e-fl.sml 	   ...  pass
+testml.sh>  Testing s004a-ac.sml 	   ...  pass
+testml.sh>  Testing s004b-fl.sml 	   ...  pass
+testml.sh>  Testing s004c-fl.sml 	   ...  pass
+testml.sh>  Testing s004d-fl.sml 	   ...  pass
+testml.sh>  Testing s004e-fl.sml 	   ...  pass
+testml.sh>  Testing t001.sml 	   ...  pass
+testml.sh>  Testing t002.sml 	   ...  pass
+testml.sh>  Testing t003.sml 	   ...  pass
+testml.sh>  Testing t004.sml 	   ...  pass
+testml.sh>  Testing t005.sml 	   ...  pass
+testml.sh>  Testing t006.sml 	   ...  pass
+testml.sh>  Testing t007.sml 	   ...  pass
+testml.sh>  Testing t008.sml 	   ...  pass
+testml.sh>  Testing t009.sml 	   ...  pass
+testml.sh>  Testing t010.sml 	   ...  pass
+testml.sh>  Testing t011.sml 	   ...  pass
+testml.sh>  Testing t012.sml 	   ...  pass
+testml.sh>  Testing t013-64bit.sml 	   ...  pass
+testml.sh>  Testing t014.sml 	   ...  pass
+testml.sh>  Testing t015.sml 	   ...  pass
+testml.sh>  Testing t016.sml 	   ...  pass
+testml.sh>  Testing t017-64bit.sml 	   ...  pass
+testml.sh>  Testing t018.sml 	   ...  **** possible bug fix
+testml.sh>  Testing t019.sml 	   ...  pass

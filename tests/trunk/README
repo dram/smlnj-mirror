@@ -11,8 +11,8 @@ There are 5 active test suites, found in the directories:
   modules     modules
   bugs	      bug tests
   basis	      Basis tests (based on tests from Peter Sestoft) [Note: filesys]
-
-(the sixth directory, "printing", is not currently active).
+  printing    miscellaneous printing tests
+ [primop      primop tests? not finished]
 
 Each test suite directory contains two subdirectories
 
@@ -43,7 +43,7 @@ sharing the file system containing this directory.
 
 For a particular architecture and operating system, arch-os,
 bin/testml.sh produces a file <testdir>/LOG.arch-os and
-a directory <testdir>/bad.arch-os.  process.sh <testdir> then
+a directory <testdir>/bad.arch-os. process.sh <testdir> then
 produces a file <testdir>/RESULTS.arch-os.
 
 Before running a regression test suite, any old copies of these files
@@ -110,7 +110,7 @@ are only run when the SML wordsize matches the size specified by
 the suffix.
 
 [output variants] There are actually three versions of the outputs directory
-for each test suite.  These are named with the SML/NJ versions that they
+for each test suite. These are named with the SML/NJ versions that they
 match as follows:
 
   outputs.pre-110.5             -- for versions before 110.5

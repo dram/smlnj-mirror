@@ -4,5 +4,5 @@ s001c-fl.sml:14.5-14.31 Error: pattern and expression in val dec do not agree [t
   pattern:    {name:'Z, name:'Y}
   expression:    {name:string, used:bool}
   in declaration:
-    {name=u,name=n} = x
+    {name=n,name=u} = x
 

@@ -1,0 +1,38 @@
+Regression test results:
+dotest.sh printing -sml ~/sml/Dev/merge/bin/sml
+
+3.sml
+11.sml
+   indentation style for printing structure signatures has changed:
+
+   old:
+
+   structure S :
+     sig
+       <specs>
+     end
+
+   new:
+
+   structure S : sig
+     <specs>
+   end
+
+   I.e. dbm-style printing has been replaced by jhr-style
+
+   Resolution: updated outputs 3.out and 11.out accordingly.
+   (same as trunk)
+
+--------------------------------------------------------------------------------
+LOG.amd64-darwin
+testml.sh>  Testing 1.sml 	   ...  pass
+testml.sh>  Testing 10.sml 	   ...  pass
+testml.sh>  Testing 11.sml 	   ...  pass
+testml.sh>  Testing 2.sml 	   ...  pass
+testml.sh>  Testing 3.sml 	   ...  pass
+testml.sh>  Testing 4.sml 	   ...  pass
+testml.sh>  Testing 5.sml 	   ...  pass
+testml.sh>  Testing 6.sml 	   ...  pass
+testml.sh>  Testing 7.sml 	   ...  pass
+testml.sh>  Testing 8.sml 	   ...  pass
+testml.sh>  Testing 9.sml 	   ...  pass

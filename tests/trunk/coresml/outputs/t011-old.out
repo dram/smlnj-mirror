@@ -1,0 +1,29 @@
+val it = () : unit
+exception Io of {cause:exn, function:string, name:string}
+val it = "OK" : string
+val it = "OK" : string
+val it = [{cause=Fail(-),function="OK",name="OK"}] :
+  {cause:exn, function:string, name:string} list
+val it =
+  ({cause=Fail(-),function="OK",name="OK"},
+   {cause=Fail(-),function="OK",name="OK"}) :
+  {cause:exn, function:string, name:string}
+   * {cause:exn, function:string, name:string}
+val it =
+  {aaa={cause=Fail(-),function="OK",name="OK"},
+   bbb={cause=Fail(-),function="OK",name="OK"}} :
+  {aaa:{cause:exn, function:string, name:string},
+    bbb:{cause:exn, function:string, name:string}}
+val pr = fn : TextIO.vector -> TextIO.vector
+val x7 = fn :
+  'a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> 'a * 'b * 'c * 'd * 'e * 'f * 'g
+246val it = ("1","2","3","4","5","6","7") :
+  string * TextIO.vector * string * TextIO.vector * string * TextIO.vector
+   * string
+datatype ('a,'b) AB = CONSab of {a:'a, b:'b} | NILab
+abval it = CONSab {a="a",b="b"} : (TextIO.vector,TextIO.vector) AB
+baval it = CONSab {a="a",b="b"} : (TextIO.vector,TextIO.vector) AB
+val f = fn : 'a -> 'a
+val f = fn : int -> int
+val it = "OK" : string
+
