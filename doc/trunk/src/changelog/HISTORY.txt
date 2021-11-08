@@ -99,28 +99,47 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Version 2021.1; 2021/??/??
 
 //--------------------------------------------------------------------
-[2021/10/16]::
+[2021/11/07]::
 +
-Merged in a massive set of changes that include:
+Committed a massive set of changes from "merge/base" working directory
+that contained manually merged changes from "newmc" into a fresh
+checkout of the trunk. Base version of the trunk was r7349, which was
+"tagged" to produce $smlnj/sml/tags/pre-merge. The merged trunk
+version is r7352.
+--
++
+The changes include:
 +
 -- 
 * A completely rewritten match compiler that transforms absyn to
-absyn, found in Elaborator/matchcomp. Old match compiler files in
+absyn. The old match compiler files in
 FLINT/trans have been deleted. The new match compiler is documented
 in dev-notes/match-compiler/match-compiler.txt (and successor documents).
+The match compiler code is in the new directory
+base/compiler/Elaborator/matchcomp. FLINT/trans/translate.sml and
+related files were also extensively revised to work with the new
+match compiler.
 * PLAMBDA/FLINT types modules in FLINT/kernel have been revised so
 that the signatures of the main modules (Lty, LtyKernel, LtyDef,
 LtyBasic, LtyExtern) are all disjoint. Function and record metadata
-stuctures that were in FLINT/flint/flint.sml (module FLINT) have been
-moved to kernel/funrecmeta.{sig,sml}. This involved minor edits to
-virtually all files in FLINT and a few in CPS. See dev-notes/FLINT
-for further documentation.
+stuctures that were in the FLINT structure (FLINT/flint/flint.sml)
+have been moved to kernel/funrecmeta.{sig,sml}. This involved minor
+edits to virtually all files in FLINT and a few in CPS.
+See dev-notes/FLINT for further documentation.
 * Bug 294 has been fixed by deleting a few lines of code in
 FLINT/opt/fcontract.sml. Files opt/collect.sml and opt/fcontract.sml
 have been "clarified" to make them somewhat easier to maintain/debug.
 * The VarCon: VARCON structure defined in ElabData/syntax/varcon.s??
 has been renamed Variable: VARIABLE (ElabData/syntax/variable.s??),
-since it no longer contains functionality relating to constructors.
+since it no longer contains functionality relating to data constructors.
+* The regression tests ($smlnj/tests) were run and a few true
+regressions were fixed, including a type error
+(bugs/tests/bug0573.sml). Many regression failures remain that are
+due to differences in the pretty printers, reworded error messages,
+and new printing conventions for overload scheme type variables.
+Some reference test outputs were updated, but at some point all new
+outputs should be generated. But first, signature printing should
+be redesigned and reimplemented.
 --
 +
 owner:cs.uchicago.edu/~dbm [David MacQueen]
