@@ -101,6 +101,22 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //--------------------------------------------------------------------
 [2021/11/07]::
 +
+Committed changes to fix bug 281.  Revision r7357.
+--
+* Modified Absyn.value datatype by adding an error constructor
+ERRORid.
+* Revised ElabData/staticenv/lookup.sml to simplify and improve some
+functions (lookVal -> lookIdPath, lookValSym -> lookIdSym) and added
+a function lookIdSymOp that returns an option.
+* Revised pat_id and deleted makeAPPpat in ElabUtil.
+* Revised elabPat in ElabCore.
+--
++
+owner:cs.uchicago.edu/~dbm [David MacQueen]
+
+//--------------------------------------------------------------------
+[2021/11/07]::
++
 Committed a massive set of changes from "merge/base" working directory
 that contained manually merged changes from "newmc" into a fresh
 checkout of the trunk. Base version of the trunk was r7349, which was
