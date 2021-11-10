@@ -75,20 +75,21 @@ fun ppDec ({static,dynamic}: Environment.environment)
 	 *  defaulting to ty is the binding of sym (where path = [sym]) is not
          *  a VALvar, otherwise returns the type of the bound VALvar. *)
        fun trueValType (path: SP.path, defaultTy: T.ty) =
-	    let val err = fn _ => fn _ => fn _ => (bug "trueValType: unbound")
-	     in case path
-		  of SymPath.SPATH [sym] =>
-		      (case Lookup.lookValSym (static, sym, err)
-			 of AS.VAL(V.VALvar{typ,...}) => !typ
-			  | AS.VAL(V.OVLDvar{name,...}) =>
-			     (saysnl ["### trueValType: OVLDvar: "^Symbol.name name];
-			      defaultTy)
-			  | AS.VAL(V.ERRORvar) =>
-			     bug "trueValType: ERRORvar\n"
-			  | AS.CON(T.DATACON{name,typ,...}) =>
-			     bug ("trueValType: DATACON " ^ Symbol.name name))
-		   | _ => bug "trueValType: not singleton path"
-	    end
+	   (case path
+	      of SymPath.SPATH [sym] =>
+		   (case Lookup.lookIdSymOp (static, sym)
+		      of SOME (AS.VAR v) =>
+			   (case v
+			      of V.VALvar{typ,...} => !typ
+			       | V.OVLDvar{name,...} =>
+				   (saysnl ["### trueValType: OVLDvar: "^Symbol.name name];
+				    defaultTy)
+			       | (V.ERRORvar) => bug "trueValType: ERRORvar\n")
+		       | SOME (AS.CON (T.DATACON{name,typ,...})) =>
+			   bug ("trueValType: DATACON " ^ Symbol.name name)
+		       | SOME (AS.ERRORid) => bug ("trueValType[ERRORid]: " ^ Symbol.name sym)
+		       | NONE => bug ("trueValType[unbound]: " ^ Symbol.name sym))
+	       | _ => bug "trueValType: not singleton path")
 
        fun trueTycon (path: IP.path) =
 	    let val err = fn _ => fn _ => fn _ => (bug "trueTycon: unbound ")

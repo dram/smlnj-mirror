@@ -459,8 +459,33 @@ fun ppExp (context as (env,source_opt)) ppstrm =
 			   ppExp'(exp,false,d); pps ">")
 		     else ppExp'(exp,atom,d)
 	         | NONE => ppExp'(exp,atom,d))
-	  | ppExp' (SWITCHexp _, _, _) = PP.string ppstrm "ppExp'[SWITCHexp]"
-	  | ppExp' (VSWITCHexp _, _, _) = PP.string ppstrm "ppExp'[VSWITCHexp]"
+	  | ppExp' (SWITCHexp (exp,srules,defaultOp), _, d) =
+	      (PP.openVBox ppstrm (PP.Abs 2);
+	       PP.string ppstrm "(SWITCH "; ppExp'(exp,true,d-1); PP.cut ppstrm;
+	       PU.ppvlist ppstrm ("of ", "   | ",
+		 (fn ppstrm => fn srule => ppSRule context ppstrm (srule, d-1)),
+                 srules);
+	       (case defaultOp
+		  of NONE => ()
+		   | SOME default =>
+		     (PP.openHBox ppstrm;
+		      PP.string ppstrm "   | _ => ";
+		      ppExp' (default, true, d-1);
+		      PP.closeBox ppstrm));
+	       rparen();
+	       closeBox ())
+	  | ppExp' (VSWITCHexp (exp,_,srules,default), _, d) =
+	      (PP.openVBox ppstrm (PP.Abs 2);
+	       PP.string ppstrm "(VSWITCH "; ppExp'(exp,true,d-1); PP.cut ppstrm;
+	       PU.ppvlist ppstrm ("of ", "   | ",
+		 (fn ppstrm => fn srule => ppSRule context ppstrm (srule, d-1)),
+                 srules);
+	       (PP.openHBox ppstrm;
+		  PP.string ppstrm "   | _ => ";
+		  ppExp' (default, true, d-1);
+		PP.closeBox ppstrm);
+	       rparen();
+	       PP.closeBox ppstrm)
           (* end ppExp' *)
 
 	and ppAppExp (_,_,_,0) = PP.string ppstrm "<exp>"

@@ -123,6 +123,9 @@ struct
    * a proper region, and does not have a location in the file. In particular, it
    * should not be viewed as an empty region at the beginning of the input. *)
 
+  fun isNullRegion ((_,0): region) = true
+    | isNullRegion _ = false
+
   (* newSourceMap: create a new sourcemap, given initial file name.
    * called only one place, in Source.newSource.  Initial position at the
    * start of the first line is 1, initial line number is 1. *)

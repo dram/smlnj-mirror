@@ -78,6 +78,7 @@ sig
   type sourcemap (* = opaque mutable *)
 
   val nullRegion : region              (* left and right identity of span *)
+  val isNullRegion : region -> bool
 
   (* creating and modifying sourcemaps *)
   val newSourceMap : string -> sourcemap

@@ -243,7 +243,7 @@ fun mkVal (sym, sp, sign as SIG {elements,...},
     (debugmsg ">>mkVal";
     (case getSpec(elements, sym) of
 	 VALspec{spec,slot} =>
-         AS.VAL(V.VALvar{access = A.selAcc(dacc,slot),
+         AS.VAR(V.VALvar{access = A.selAcc(dacc,slot),
 			prim = POI.selValPrimFromStrPrim (dinfo, slot),
 			path = sp,
 			typ = ref(transType entities spec),
@@ -261,7 +261,7 @@ fun mkVal (sym, sp, sign as SIG {elements,...},
                              const=const, sign=sign, lazyp=lazyp})
          end
        | _ => bug "mkVal: wrong spec"))
-  | mkVal _ = AS.VAL(V.ERRORvar)
+  | mkVal _ = AS.VAR(V.ERRORvar)
 
 fun mkStrBase (sym, sign, sInfo) =
   let val _ = debugmsg ">>mkStrBase"
@@ -432,7 +432,7 @@ fun getBinding (sym, str as STR st) =
 	     case S.nameSpace sym
 	      of S.VALspace =>
 		 (case mkVal (sym, SP.SPATH[sym], sign, sinfo)
-                   of AS.VAL v => B.VALbind v
+                   of AS.VAR v => B.VALbind v
 		    | AS.CON d => B.CONbind d)
 	       | S.TYCspace =>
 		 B.TYCbind (mkTyc (sym, SP.SPATH[sym], sign, sinfo))

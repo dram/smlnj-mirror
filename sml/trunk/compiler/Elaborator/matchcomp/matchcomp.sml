@@ -63,8 +63,6 @@ local
   val printProtoAndor = MCC.printProtoAndor
   val printAndor = MCC.printAndor
   val printDectree = MCC.printDecisionTree
-  val printMatchAbsyn = MCC.printMatchAbsyn
-  val printMatch = MCC.printMatch
 		       
   fun bug s = EM.impossible ("MatchComp: " ^ s)
   fun say msg = (Control_Print.say msg; Control_Print.flush ())
@@ -95,7 +93,7 @@ in
 val choiceTotalThreshold = 10
 
 fun reportStats (nodeCount: int, {rulesUsed, failures, choiceTotal, choiceDist}: DT.decTreeStats) =
-    if !stats andalso choiceTotal > choiceTotalThreshold
+    if !MCC.mcstats andalso choiceTotal > choiceTotalThreshold
     then (say "decTree Stats: \n";
 	  says ["  nodeCount =   ", Int.toString nodeCount];
 	  says ["  choiceTotal = ", Int.toString choiceTotal];
@@ -113,7 +111,7 @@ fun reportStats (nodeCount: int, {rulesUsed, failures, choiceTotal, choiceDist}:
 (* matchComp : AS.rule list * T.ty * T.ty * T.datacon option
                 -> AS.exp * V.var * ruleno list * bool * bool *)
 fun matchComp (rules, lhsTy: T.ty, rhsTy: T.ty, failExnOp: T.datacon option, region) =
-let fun timeIt x = TimeIt.timeIt (!stats) x
+let fun timeIt x = TimeIt.timeIt (!MCC.mcstats) x
     val location = "nolocation"
         (* might be derived from region argument, but need current Source.inputSource or
          * errorMatch function from the ErrorMsg.errors record (found in compInfo now)  *)
@@ -169,7 +167,7 @@ let fun timeIt x = TimeIt.timeIt (!stats) x
     val fullExp: AS.exp = foldl (fn (fbinder, body) => fbinder body) coreExp
 			      rhsFunBinders
 
-    val _ = if !printMatchAbsyn then ppExp (fullExp, "** matchComp: match absyn = ")
+    val _ = if !MCC.printMatchAbsyn then ppExp (fullExp, "** matchComp: match absyn = ")
 	    else ()
 
     val _ = ST.finalLvar := LV.nextLvar ()

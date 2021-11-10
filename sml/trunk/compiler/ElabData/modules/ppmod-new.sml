@@ -611,42 +611,35 @@ and ppTycBind ppstrm (tyc,env) =
     let val {openHVBox,openHOVBox,openVBox,closeBox,pps,ppi,break,newline} =
 	    en_pp ppstrm
         fun visibleDcons(tyc,dcons) =
-	    let fun checkCON(AS.CON c) = c
-		  | checkCON _ = raise SE.Unbound
-		fun find ((actual as {name,rep,domain}) :: rest) =
-		     (let val found =
-			      checkCON(LU.lookValSym
-					(env,name,
-					 fn _ => raise SE.Unbound))
-		       in (* test whether the datatypes of actual and
-			     found constructor agree *)
-			  case TU.dataconTyc found
-			    of tyc1 as T.GENtyc _ =>
-			       (* the expected form in structures *)
-				  if TU.eqTycon(tyc,tyc1)
-				  then found :: find rest
-				  else find rest
-			     | T.PATHtyc _ =>
-			       (* the expected form in signatures;
-				  we won't check visibility [dbm] *)
-			       found :: find rest
-			     | d_found =>
-			       (* something's weird *)
-				 let val old_internals = !internals
-				  in internals := true;
-				     openHVBox 0;
-				      pps "ppTycBind failure: ";
-				      PP.cut ppstrm;
-				      ppTycon env ppstrm tyc;
-				      PP.cut ppstrm;
-				      ppTycon env ppstrm d_found;
-				      PP.cut ppstrm;
-				     closeBox();
-				     internals := old_internals;
-				     find rest
-				 end
-		      end
-		      handle SE.Unbound => find rest)
+	    let fun find ((actual as {name,rep,domain}) :: rest) =
+		     (case LU.lookIdSymOp (env, name)
+		        of SOME(AS.CON dcon) =>
+		           (* test whether the datatypes of actual and found constructor agree *)
+			    (case TU.dataconTyc dcon
+			       of tyc1 as T.GENtyc _ =>
+				  (* the expected form in structures *)
+				     if TU.eqTycon(tyc,tyc1)
+				     then dcon :: find rest
+				     else find rest
+				| T.PATHtyc _ => dcon :: find rest
+				  (* the expected form in signatures;
+				     we won't check visibility [dbm] *)
+				| tycon =>
+				  (* something's weird *)
+				    let val old_internals = !internals
+				     in internals := true;
+					openHVBox 0;
+					 pps "ppTycBind failure: ";
+					 newline();
+					 ppTycon env ppstrm tyc;
+					 newline();
+					 ppTycon env ppstrm tycon;
+					 newline();
+					closeBox();
+					internals := old_internals;
+					find rest
+				    end)
+			| NONE => find rest)
 		  | find [] = []
 	     in find dcons
 	    end

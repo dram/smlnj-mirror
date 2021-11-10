@@ -51,8 +51,9 @@ sig
 (*
   val getCoreExn : (StaticEnv.staticEnv * string) -> Types.datacon
   val getCoreVar : (StaticEnv.staticEnv * string) -> Variable.var
-*)
+
   val makeAPPpat : ErrorMsg.complainer -> Absyn.pat * Absyn.pat -> Absyn.pat
+*)
 
   val clean_pat : ErrorMsg.complainer -> Absyn.pat -> Absyn.pat
   val makeLAYEREDpat : Absyn.pat * Absyn.pat * ErrorMsg.complainer -> Absyn.pat
@@ -69,7 +70,7 @@ sig
 
   val pat_id :
        SymPath.path * StaticEnv.staticEnv * ErrorMsg.complainer * compInfo
-       -> Absyn.pat
+       -> Absyn.pat option
 
   val sortRecord :
        (Symbol.symbol * 'a) list * ErrorMsg.complainer

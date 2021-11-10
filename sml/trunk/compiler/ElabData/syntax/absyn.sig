@@ -10,8 +10,9 @@ signature ABSYN =
     type region = Ast.region  (* = int * int *)
 
     datatype value
-      = VAL of Variable.var
+      = VAR of Variable.var
       | CON of Types.datacon
+      | ERRORid
 
     datatype numberedLabel = LABEL of {name: Symbol.symbol, number: int}
 

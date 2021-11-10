@@ -39,13 +39,15 @@ end = struct
 
     fun path xs = SymPath.SPATH (CoreSym.coreSym :: mkpath xs)
 
-    fun getCore env xs = Lookup.lookVal (env, path xs, dummyErr)
+    (* getCore : StaticEnv.staticEnv -> Symbol.symbol list -> Absyn.value *)
+    fun getCore env xs = Lookup.lookIdPath (env, path xs, dummyErr)
 
-    fun getVar' err env xs = (case getCore env xs
-	   of Absyn.VAL r => r
+    fun getVar' err env xs =
+	(case getCore env xs
+	   of Absyn.VAR r => r
 	    | _ => impossibleWithId("getVar'", xs)
 	  (* end case *))
-	    handle NoCore => err ()
+	handle NoCore => err ()
 
     fun getVar env xs = getVar' (fn () => impossibleWithId("getVar", xs)) env xs
 

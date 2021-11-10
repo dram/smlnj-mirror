@@ -16,9 +16,13 @@ structure Absyn : ABSYN =
 
     type region = Ast.region  (* = int * int *)
 
-    datatype value
-      = VAL of V.var
+    (* "value" -- "denotation" of a core language "value" identifier,
+     *  which denotes either a variable or data constructor;
+     *  better names would be "atomicSym" or "atomId" or "valueId" or "coreId" *)
+    datatype value 
+      = VAR of V.var
       | CON of T.datacon
+      | ERRORid
 
     datatype numberedLabel = LABEL of {name: S.symbol, number: int}
 

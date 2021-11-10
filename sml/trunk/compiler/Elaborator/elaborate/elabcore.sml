@@ -45,6 +45,7 @@ local structure EM = ErrorMsg
       structure ED = ElabDebug
       structure TS = TyvarSet
       structure ET = ElabType
+      structure SM = SourceMap
       structure S = Symbol
       structure A = Access
       structure Tbl = SymbolHashTable
@@ -123,14 +124,14 @@ datatype clauseKind = STRICT | LZouter | LZinner
  *  Perhaps PrimEnv should just export these VALvars. *)
 val dummyComplainer = (fn _ => fn _ => fn _ => ())
 val assignVar =
-    case LU.lookVal(PrimEnv.primEnv,SP.SPATH[S.strSymbol "Inline",S.varSymbol ":="],
+    case LU.lookIdPath(PrimEnv.primEnv,SP.SPATH[S.strSymbol "Inline",S.varSymbol ":="],
 		    dummyComplainer)
-      of AS.VAL v => v
+      of AS.VAR v => v
        | _ => bug "lazy 1"
 val bangVar =
-    case LU.lookVal(PrimEnv.primEnv,SP.SPATH[S.strSymbol "Inline",S.varSymbol "!"],
+    case LU.lookIdPath(PrimEnv.primEnv,SP.SPATH[S.strSymbol "Inline",S.varSymbol "!"],
 		    dummyComplainer)
-      of AS.VAL v => v
+      of AS.VAR v => v
        | _ => bug "lazy 2"
 val assignExp = VARexp(ref assignVar,NONE)
 val bangExp = VARexp(ref bangVar,NONE)
@@ -313,7 +314,9 @@ let
       of WildPat => (WILDpat, TS.empty)
        | VarPat path =>
 	   (EU.clean_pat (error region)
-              (EU.pat_id (SP.SPATH path, env, error region, compInfo)),
+              (case EU.pat_id (SP.SPATH path, env, error region, compInfo)
+		 of NONE => AS.NOpat (* nonsingular path not bound to constructor *)
+		  | SOME pat => pat),
 	    TS.empty)
        | IntPat(src, s) =>
 	  (NUMpat(src, {ty = mkIntLiteralTy(s,region), ival = s}), TS.empty)
@@ -425,18 +428,38 @@ let
 	    in (foldOr(pat, pats), tyv)
 	   end
        | AppPat {constr, argument} =>
-	   let fun getVar (MarkPat(p,region),region') = getVar(p,region)
-		 | getVar (VarPat path, region') =
-		      let val dcb = EU.pat_id (SP.SPATH path, env, error region', compInfo)
-			  val (p,tv) = elabPat(argument, env, region)
-		       in (EU.makeAPPpat (error region) (dcb,p),tv)
-		      end
-		 | getVar (_, region') =
-		   (error region' EM.COMPLAIN
-			 "non-constructor applied to argument in pattern"
-			 EM.nullErrorBody;
-		    (WILDpat,TS.empty))
-	    in getVar(constr,region)
+	   let fun getPath (MarkPat(pat,region'), _) = getPath (pat, SOME region')
+		 | getPath (VarPat path, regionOp) = (path, regionOp)
+	       val (path, regionOp) = getPath (constr, NONE)
+	       val region = getOpt (regionOp, SM.nullRegion)
+	    in case LU.lookIdPath (env, SP.SPATH path, error region)
+		 of AS.CON dcon => 
+		      (case dcon
+			 of T.DATACON{const=false, lazyp, ...} =>
+			      let val (argpat,tyvars) = elabPat(argument, env, region)
+				  val pat0 = APPpat(dcon, [], argpat)
+				  val pat1 =
+				      if lazyp (* LAZY *)
+				      then APPpat(BT.dollarDcon, [], pat0)
+				      else pat0
+			       in case regionOp
+				    of NONE => (pat1, tyvars)
+				     | SOME region => (MARKpat(pat1, region), tyvars)
+			      end
+			  | _ => (* constant datacon applied *)
+			      (error region EM.COMPLAIN
+				   ("constant constructor applied in pattern:"
+				    ^ SP.toString (SP.SPATH path))
+				   EM.nullErrorBody;
+			       (AS.WILDpat, TS.empty)))  (* should be NOpat? *)
+		  | AS.VAR _ => (* constructor path bound to variable *)
+		      (error region EM.COMPLAIN
+			   ("undefined constructor applied in pattern:"
+			    ^ SP.toString (SP.SPATH path))
+			   EM.nullErrorBody;
+			   (WILDpat, TS.empty))  (* should be NOpat? *)
+		  | AS.ERRORid => (AS.WILDpat, TS.empty)
+		      (* lookIdPath will have complained about the unbound path *)
 	   end
        | ConstraintPat {pattern=pat,constraint=ty} =>
 	   let val (p1,tv1) = elabPat(pat, env, region)
@@ -479,8 +502,8 @@ let
 		: (Absyn.exp * TS.tyvarset * tyvUpdate) =
 	(case exp
 	  of VarExp path =>
-	       ((case LU.lookVal(env,SP.SPATH path,error region)
-		  of AS.VAL v => VARexp(ref v,[])
+	       ((case LU.lookIdPath (env,SP.SPATH path,error region)
+		  of AS.VAR v => VARexp(ref v,[])
 		   | AS.CON (d as T.DATACON{lazyp,const,...}) =>
 		      if lazyp then  (* LAZY *)
 		        if const then delayExp(CONexp(d,[]))
@@ -491,7 +514,8 @@ let
 							VARexp(ref(var),[]))))],
 				       T.UNDEFty, T.UNDEFty)
 			     end
-		      else CONexp(d, [])),
+		      else CONexp(d, [])
+		   | AS.ERRORid => VARexp(ref V.ERRORvar, [])), (* represents error exp *)
 		TS.empty, no_updt)
 (* TODO: propagate the source string to Absyn for error reporting *)
 	   | IntExp(src, s) =>

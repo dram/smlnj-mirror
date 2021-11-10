@@ -1441,7 +1441,8 @@ and mkExp (exp, d) =
              let val scrutineeLexp = mkExp0 scrutinee (* was V.varToLvar scrutinee *)
 		 val SRULE(con, _, _) :: _ = srules  (* get con of first rule *)
 		 val consig = AU.conToSign con
-		 val trules as ((con1, lexp1) :: _) = map transSRULE (rev srules)  (* why rev ??? *)
+		 val trules as ((con1, lexp1) :: _) = map transSRULE srules
+		     (* was "rev srules", why? Possible source of bug 290. *)
 		 val defaultOp' = Option.map mkExp0 defaultOp
              in case con1
 		 of DATAcon((_, DA.REF, lt), ts, lvar) =>

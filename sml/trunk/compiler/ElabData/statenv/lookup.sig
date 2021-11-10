@@ -28,11 +28,13 @@ sig
 
   (* lookValSym and lookSym return value or constructor bindings (Absyn.value) *)
 
-  val lookValSym : StaticEnv.staticEnv * Symbol.symbol * ErrorMsg.complainer
-		   -> Absyn.value
+  val lookIdSym  : StaticEnv.staticEnv * Symbol.symbol * ErrorMsg.complainer
+		    -> Absyn.value
 
-  val lookVal : StaticEnv.staticEnv * SymPath.path * ErrorMsg.complainer
-                -> Absyn.value
+  val lookIdSymOp: StaticEnv.staticEnv * Symbol.symbol-> Absyn.value option
+
+  val lookIdPath : StaticEnv.staticEnv * SymPath.path * ErrorMsg.complainer
+                    -> Absyn.value
 
   val lookExn : StaticEnv.staticEnv * SymPath.path * ErrorMsg.complainer
                 -> Types.datacon

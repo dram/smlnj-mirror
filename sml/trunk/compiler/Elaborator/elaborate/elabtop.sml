@@ -65,7 +65,7 @@ struct
 		  let val v = MU.getValPath(str, SP.SPATH[name],
 					    SP.SPATH(spath@[name]))
 		   in case v
-		       of AS.VAL(V.VALvar _) =>
+		       of AS.VAR (V.VALvar _) =>
 			    ValDec([Vb{pat=VarPat[name],
 				       exp=VarExp([localStrName,name]),
 				       lazyp=false}],
@@ -78,7 +78,7 @@ struct
 			     type error. Possible fix would be to narrow down
 			     the static environment. *)
 
-			| AS.CON(T.DATACON{rep=DA.EXN _, ...}) =>
+			| AS.CON (T.DATACON{rep=DA.EXN _, ...}) =>
 			    ExceptionDec [EbDef{exn=name,
 						edef=([localStrName,name])}] :: dl
 

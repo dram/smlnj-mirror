@@ -238,26 +238,24 @@ fun FUNdec (fundecs, compInfo as {mkLvar=mkv, ...}: compInfo) =
      in VALRECdec (map funToValRec fundecs) (* no function name static environment needed *)
     end
 
-(* transform a VarPat into either a variable or a constructor. If we are given
-   a long path (length path > 1) then it has to be a constructor. *)
-
+(* pat_id : SP.path * StaticEnv.staticEnv * errorfn * compInfo) -> AS.pat option
+ *  A VarPat translates to either a variable pattern or a constructor pattern.
+ *  If we are given path of length > 1, then it has to be a constructor pattern;
+ *  if the spath is not bound to a data constructor in env, then returns NONE. *)
 fun pat_id (spath, env, err, compInfo as {mkLvar=mkv, ...}: compInfo) =
     case spath
-      of SymPath.SPATH[id] =>
-	   ((case LU.lookValSym (env,id,fn _ => raise SE.Unbound)
-	       of AS.CON c => CONpat(c,[])
-	        | _ => VARpat(mkVALvar(id,mkv)))
-	    handle SE.Unbound => VARpat(mkVALvar(id,mkv)))
-       | _ =>
-	   CONpat((case LU.lookVal (env,spath,err)
-		     of AS.VAL c =>
-			(err COMPLAIN
-			  ("variable found where constructor is required: "^
-			   SymPath.toString spath)
-			  nullErrorBody;
-			 (AU.bogusCON,[]))
-		      | AS.CON c => (c,[]))
-		   handle SE.Unbound => bug "unbound untrapped")
+      of SymPath.SPATH[id] => (* single symbol path always produces SOME AS.value *)
+	   (case LU.lookIdSymOp (env,id)
+	      of SOME(AS.CON c) => SOME (CONpat(c,[]))
+	       | _ => SOME (VARpat(mkVALvar(id,mkv)))) (* may be bound in an outer scope; OK *)
+       | _ =>  (* spath is not a single symbol (cannot be empty), should be bound to
+		* a data constructor *)
+	   (case LU.lookIdPath (env, spath, err)
+	      of AS.CON dcon => SOME (CONpat (dcon,[]))  (* producing a constant datacon pattern *)
+	       | _ => (err COMPLAIN
+			 ("undefined constructor path in pattern: " ^ SymPath.toString spath)
+			 nullErrorBody;
+		       NONE))
 
 fun makeRECORDpat(l,flex,err) =
     RECORDpat{fields=sortRecord(l,err), flex=flex, typ=ref UNDEFty}
@@ -289,6 +287,7 @@ fun patToString WILDpat = "_"
   | patToString (MARKpat _) = "<marked pattern>"
   | patToString _ = "<illegal pattern>"
 
+(* obsolete
 fun makeAPPpat err (CONpat(d as DATACON{const=false,lazyp,...},tvs),p) =
       let val p1 = APPpat(d, tvs, p)
        in if lazyp (* LAZY *)
@@ -308,6 +307,7 @@ fun makeAPPpat err (CONpat(d as DATACON{const=false,lazyp,...},tvs),p) =
 			     patToString rator])
          nullErrorBody;
        WILDpat)
+*)
 
 fun makeLAYEREDpat ((x as VARpat _), y, _) = LAYEREDpat(x,y)
   | makeLAYEREDpat ((x as MARKpat(VARpat _, reg)), y, _) = LAYEREDpat(x,y)

@@ -73,11 +73,11 @@ let val err = fn _ => fn _ => fn _ => (bug "trueValType: unbound")
 in case path
 of SymPath.SPATH[id] =>
 (case Lookup.lookValSym(static,id,err)
-of AS.VAL(V.VALvar{typ,...}) => !typ
-| AS.VAL(V.OVLDvar{name,...}) =>
+   of AS.VAR(V.VALvar{typ,...}) => !typ
+    | AS.VAR(V.OVLDvar{name,...}) =>
 (print ("#trueValType: OVLDvar"^Symbol.name name^"\n");
 raise OVERLOAD)
-| AS.VAL(V.ERRORvar) =>
+| AS.VAR(V.ERRORvar) =>
 bug "trueValType: ERRORvar\n"
 | AS.CON(DATACON{name,typ,...}) =>
 bug ("trueValType: DATACON"^Symbol.name name^"\n"))
