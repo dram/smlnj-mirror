@@ -1,0 +1,155 @@
+Summary of bugs/openbugs status (pre-2021.1):
+
+bug0027.sml: open (extra error messages)
+  Incorrect code: clausal curried function defn with clauses having
+  different numbers of curried arguments.
+  Spurious secondary error messages.
+
+bug0071.sml: unresloved (possible error message?)
+  Incorrect code: calling use within an expression. Not supported.
+  Could this generate an error message?
+
+bug0588.sml: unresolved (improve error message?)
+
+    (fn {...} => ()) 3;
+
+  1. unresolvable flex record pattern "{...}"
+  2. unresolvable overloaded literal "3"
+  Error message relates only to 2. Could be better.
+
+bug0636.sml: fixed
+
+    val v = #[1,2,3];
+    val #[a,b,c] = v;
+    a;
+
+  Now produces a warning that the 2nd binding is not exhaustive.
+
+bug1250.sml: fixed
+  Bind exception.
+  Two new warnings (1) value restriction on "f", (2) nonexhaustive binding.
+
+bug1300.sml: open ("?." path printed)
+
+    datatype t = T of Int32.int;
+
+  REPL output prints as "T of ?.int32
+  "?." path problem
+
+bug1319.sml: fixed?
+
+    Real.toManExp (7.9 * 2e307);
+
+  Now prints:
+
+    val it = {exp=0,man=1.58E308} : {exp:int, man:real}
+
+bug1324.sml: open (include blending, eqtype)
+
+    signature K =
+    sig
+      type s
+      include sig eqtype t end where type t = s
+    end;
+
+  signature include blending. eqtype property of t is lost
+
+bug1328.2.sml: fixed
+
+    datatype t = it;
+
+  Reserved variable "it" no longer allowed as a data constructor.
+
+bug1329.sml: open  (modules, signatures, "where type")
+
+    signature S = sig
+      datatype 'a t = A of 'a
+    end where type 'a t = int;
+  
+  Bogus "where type" (applying to non-flexible type component?) accepted,
+  producing bogus result printout:
+
+    signature S = sig datatype t = datatype int end
+
+bug1351: open?  (abstype containing datatype identity decl)
+
+   abstype A = B with datatype A = datatype A end;
+
+ Is this, should this be, legal? If so, how should result be printed?
+ Probably not like it is now:
+
+    type A
+    datatype A = B
+
+bug1366.1.sml: open (unclear error message)
+
+  Not clear what the error message should be, but it should be
+  clearer.
+
+bug1370.sml: fixed
+
+  Int.precision now returns SOME 63.
+
+bug1388.1.sml: needs revision
+
+  Int31 no longer exists.  Need to replace with Int63?
+
+bug1390.1.sml: open?
+
+  What is the correct syntax?
+  (syntax error is different)
+
+    bugs/tests/bug1390.1.sml:10.1-10.4 Error: syntax error: replacing  AND with  SIGNATURE
+
+bugs/tests/bug1399.1.sml: open ("?.int32")
+
+bugs/tests/bug1400.1.sml: fixed
+bugs/tests/bug1401.1.sml: fixed?
+  Not clear what expected output is.
+
+bugs/tests/bug1413.1.sml: ?
+  Output matches outputs/bug1413.1.out, but not clear what expected output is.
+
+bugs/tests/bug1419.1.sml: open (signature printing)
+  Printing of signature S1 is incorrect (name capture of "s" by inner spec for "s") 
+
+bugs/tests/bug1433.2.sml: open (signature printing)
+  Priting of signature S looses eqtype spec for type u, or possible
+  failure of eq property "back-propagation" to t?
+  Unclear what the correct result (printing) should be. Need to check Defn.
+
+bugs/tests/bug1434.1.sml: open (incorrect secondary error message)
+  The second error message is incorrect and should not occur ("::" should be defined
+  as a constructor).
+
+bugs/tests/bug1443.1.sml: fixed?
+  What are correct results for 2nd and 3rd calls of toManExp? (!= bug1443.1.out)
+
+bugs/tests/bug1447.1.sml: fixed?
+  output agrees with bug1447.1.out
+  
+bugs/tests/bug1451.1.sml: open? (Math.sin)
+  output disagrees with bug1451.1.out
+
+bugs/tests/bug1452.1.sml: fixed? (Math.sinh)
+  output agrees with bug1452.1.out
+
+bugs/tests/bug1472.1.sml: open ("=" on non-equality type)
+  declarator is not an equality type
+
+bugs/tests/bug1486.1.sml: fixed? (Math.pow)
+  output agrees with bug1486.1.out
+  
+bugs/tests/bug1494.1.sml: fixed? (printing datatype defined by identity decl)
+  output agrees with bug1494.1.out
+
+bugs/tests/bug1501.1.sml: doesn't exist
+
+bugs/tests/bug1541.1.sml: open (spurious secondary type warning)
+  spurious "type vars not generalized" warning message after main type error
+
+bugs/tests/bug1573.1.sml: fixed?
+  output agrees with bug1573.1.out
+
+bugs/tests/bug1587.1.sml: fixed?
+  output agrees with bug1587.1.out
