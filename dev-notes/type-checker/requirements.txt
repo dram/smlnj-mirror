@@ -1,20 +1,22 @@
 Requirements for Type Checker rewrite.
 
-* New (sML) record operations
+* sML - new record operations (sML = successor ML)
 
-* Exploit new computational resources (do more work)
-
-* Survey related literature
-  - HMX (Remy, TIPL 2)
+* Exploit new computational resources
+  - allow the type checker to work harder, for the sake of better user feedback
 
 * Fix all known type checker bugs
 
 * Revamp error mechanisms
-  - type error infrastructure
-  - type error ordering
-  - identifying clashes in "large" types
-  - when printing two types, make sure that equal type are represented with the same
-    names
+  - type error management infrastructure
+    -- type error ordering
+  - clashes in "large" or "complex" types
+    -- identifying/locating the point of clash
+    -- highlighting the clashing info when printing types in error messages
+  - when printing two types, make sure that equal types are represented with the same
+    name (or expression)
+  - when printing two types, make sure that nonequal types are represented with distinct
+    names (or expressions)
   - add control flag to adjust amount of feedback detail
   - add control to limit number of error messages (i.e., >25 is "too many errors")
 
@@ -24,7 +26,34 @@ Requirements for Type Checker rewrite.
 
 * making implicit (user-) type variable bindings explicit in absyn
 
-* type error catalog
+* catalog of type errors (classes of type errors)
+  -- including explanation of notations in type error messages (glossary)
 
-* explanation of notations in type error messages
+* Provide support for using Microsoft LSP (Language Server Protocol)
+  - communicate typing information to "external" tools (emacs, IDE)
 
+* Survey related literature
+  - HM typing models and algorithms
+  - HMX (Remy, TIPL 2)
+  - type error message literature
+  
+* simplify the rules for implicitly bound expression type variables
+  (so called user tyvars) [this should simplify the implementation too]
+
+* sML: require all expression type variables to be declared (explicitly bound)
+  thus eliminating the need for "inference" of user type variable bindings
+
+--------------------------------------------------------------------------------
+Prototyping
+
+First-principles-based experiment in implementing type checking for
+two mini-languages:
+
+  SFL -- simply typed functional programming language
+    (no type variables, no polymorphism)
+
+  PFL -- polymorphically typed functional programming language 
+    (type variables (both in types and expressions) and prenex
+    polymorphism)
+
+See prototc directory [to be added to dev-notes/type-checker]

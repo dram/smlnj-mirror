@@ -5,9 +5,19 @@
 :source-highlighter: pygments
 :VERSION: 110.98
 
+This document is a collection of notes organized in chronological
+order based on when ideas occurred to the author(s). The numbering
+therefore has no logical significance. Related ideas can appear
+scattered through a number of different notes.
+
+Organization and logical coherence are left to a future document
+(that would use more sophisticated formatting, citations, etc.)
+
+--------------------------------------------------------------------------------
+
 [0] Agenda: (also, see requirements.txt)
 
-Reunderstand and redesign type SML/NJ type checker.
+Overall Goal: To reunderstand and redesign type SML/NJ type checker.
 
 * pre- and post-type-checking version of abstract syntax
   i.e. proper "typed abstract syntax" produced by type checker
@@ -24,9 +34,13 @@ Reunderstand and redesign type SML/NJ type checker.
 * use "modern" BASIS and SML/NJ libraries (such as Atom, sets, maps,
 hash-tables, etc.)
 
+* think about infrastructure (interfaces, hooks) for supporing LSP
+  (Language Server Protocol - Microsoft technology)
 
+--------------------------------------------------------------------------------
 [1] The question of implicit binding of "free type variables" in
 expressions.
+--------------------------------------------------------------------------------
 
 See Sec 4.6 is Defn of SML 97.
 
@@ -42,31 +56,29 @@ An example:
 
     (* implicit type variable binding *)
     fun f1 (x) =
-    let
-     fun h (z) = 
-	 let fun g () = z :: (nil : 'a list)
-	 in z :: x :: nil
-	    end
-    in h
-    end;
+	let fun h (z) = 
+		let fun g () = z :: (nil : 'a list)
+		 in z :: x :: nil
+		end
+	 in h
+	end;
 
     (* explicit type variable binding *)
     fun f1 (x) =
-    let
-     fun h (z) = 
-	 let fun 'a g () = z :: (nil : 'a list)
-	 in z :: x :: nil
-	    end
-    in h
-    end;
+	let fun h (z) = 
+		let fun 'a g () = z :: (nil : 'a list)
+		 in z :: x :: nil
+		end
+	 in h
+	end;
 
 [end code]
 
 --------------------------------------------------------------------------------
-[1] etyvars (appearing free in type definitions)
+[2] etyvars (appearing free in type definitions)
 -------------------------------------------------------------------------------- 
 Terminology: a type variable appearing free in an _expression_ (i.e.
-appearing ina type constraint or declared type parameter of a val or
+appearing in a type constraint or declared type parameter of a val or
 fun decl, but not a formal parameter in a type declaration) is called
 an "explicit type variable" in the Defn (S 4.6). Another name would be
 an "expression type variable".  In either case, the abbreviation
@@ -103,7 +115,7 @@ programming that should not be encouraged.
 
 
 --------------------------------------------------------------------------------
-[2] tycon equality and strictness for DEFtycs
+[3] tycon equality and strictness for DEFtycs
 --------------------------------------------------------------------------------
 
 Can two "different" (resulting from different declarations)
@@ -136,7 +148,7 @@ agree (eqTycon) with a basic (atomic) tycon. (but they _can_ unify!)
 
 
 --------------------------------------------------------------------------------
-[3] deftycs and "equality strictness"
+[4] deftycs and "equality strictness"
 --------------------------------------------------------------------------------
 For a deftyc (DEFtyc _), which arguments need to be equality types for
 the CONty(deftyc, args) to be an equality type?
@@ -150,7 +162,7 @@ signature would therefore be (true, false).
 
 
 --------------------------------------------------------------------------------
-[4] false positive occurrence checks with non-strict deftycs
+[5] false positive occurrence checks with non-strict deftycs
 --------------------------------------------------------------------------------
 Sometimes deeper (or full) normalization may be required to detect and
 eliminate irrelevant variable occurrences causing false occurrence
@@ -162,7 +174,7 @@ E.g.
 
 
 --------------------------------------------------------------------------------
-[5] Issues relating to unification and overloading (functions and literals)
+[6] Issues relating to unification and overloading (functions and literals)
 --------------------------------------------------------------------------------
 
 Instantiating an OVLDV tyvar (associated with an overloaded function)
@@ -172,4 +184,192 @@ also possibly unifyTyvars.]
 
 Resolving literal overloading before resolving function overloading
 (or vice versa?).
+
+
+--------------------------------------------------------------------------------
+[7] Accurate printing of type (tycon) paths
+--------------------------------------------------------------------------------
+
+This is about printing the correct path for tycons at top-level and in
+error messages. We want to avoid leading "?.".
+
+* Idea: have a table of "print names" of basic (built-in) tycons.
+  So default int type would always print as "int", not "?.int", etc.
+  
+--------------------------------------------------------------------------------
+[8] Presentation of expressions and types in error messages
+--------------------------------------------------------------------------------
+Expressions: Prettyprinting ast or absyn vs source region excerpts
+Types: prettyprinting
+
+Goal is to be as faithful as possible to what the code looked like in
+the source file. (or at least "approved style" of code presentation)
+
+* indentation
+* comments
+
+Related issues were addressed (long ago) in language "structure
+editors".
+
+What is "state of the art" in modern IDE's like Xcode and Visual
+Studio, etc.
+
+Main focus is presentation as ascii text (in a terminal or emacs buffer)
+
+Consider whether it might be possible to borrow any mechanism from emacs SML-mode?
+
+
+--------------------------------------------------------------------------------
+[9] Accurate printing of type (tycon) paths
+--------------------------------------------------------------------------------
+
+Generally, printing of type names/paths is determined relative to a
+current static environment.
+
+Each type constructor contains its own internal version of its "full
+name" (a symbolic path, or qualified identifier, a "sympath").
+
+It is possible that the "name" of a type is not in scope (i.e. is not
+bound in the current environment).
+
+Defn: sympath is a/the valid name of a tycon:
+
+    valid(tycon,spath,senv)
+
+iff lookup(spath,senv) is defined and is equal to tycon.
+
+In the case where the internal "name" (sympath) is bound in the environment
+(i.e. the head symbol is bound, and if it is a structure, the tail of
+the path is a valid type name relative to that structure), we print
+the shortest _suffix_ of the path that is valid for the tycon.
+
+<further detail for this case>
+
+If the internal "name" (sympath) of a tycon is not "valid for the tycon"
+in the current environment, i.e.
+
+   (1) the head symbol is not bound, or
+   (2) it is bound to a different tycon, or
+   (3) it is bound to a structure, but
+       (3.0) the tail of the sympath is nil
+       (3.1) the tail of the sympath is not defined for that structure, or
+       (3.2) the tail is defined for the structure, but its denotation
+             is a module or a different tycon
+   
+there are a couple of options:
+
+(1) print the sympath name of tycon as is, or left-truncated to the
+last symbol (i.e. take the tycon's word for its "birth" name, even
+though the birth name is not defined in the current environment. A
+variant would be to truncate the name to the last two symbols, e.g.
+A.t if the tycon name is X.Y.A.t.
+
+(2) print the internal sympath name, but marked as "not currently
+valid", meaning that not (valid(tycon,name(tycon),current_env)). One
+way of so marking the sympath is to preceded it with "?." (i.e. add
+"?" on the front of the sympath.
+
+(3) For special cases (e.g. pervasive tycons, like int), lookup the
+"print name" for the tycon in a global table. For example, Int.int
+prints as "int", Int32.int prints as "int32", etc.  Alternatively,
+the internal name stored in the tycon could be blessed as "absolute",
+regardless of the current environment.
+
+* When printing a type, it is important that different tycons
+  appearing in the type should have different print names.  E.g.
+  avoid "t * t" where the two occurrences of "t" represent different
+  tycons.  (There is a particular danger of this when using the tycon
+  naming style where all types are named "t"!)
+
+  
+--------------------------------------------------------------------------------
+[10] experimental, prototype type checkers
+--------------------------------------------------------------------------------
+Writing type checkers for simply-typed FP (SFP) and
+polymorphically-typed FP (PFP).  (see prototc directory)
+
+See protopc directory for details and code.
+
+
+--------------------------------------------------------------------------------
+[10] recoverable types
+--------------------------------------------------------------------------------
+
+For an IDE or LSP communication of type invormation for arbitrary
+variables (say, local to a function), what would need to be done.
+
+If I recall correctly, Tolmach's debugger instrumentation had some
+capability to reconstruct types of internal variables.
+
+It is not as simple as simply retrieving a type stored in the variable
+structure in the abstract syntax.  If one wants to determine the type
+in a "dynamic" context (e.g. stack of current function calls), you need
+to reconstruct polymorphic instantiations.
+
+For our (potential) purposes (static properties, not debugging), we don't need to
+deal with "dynamic" information, but there is still the problem of
+determining the type of an applied occurrence of a polymorphic
+variable in context. The type checker currently determines the polymorphic
+instantiation at each static applied occurrence, and stores that information
+in the VARexp absyn structure.  Consider possible alternative
+approaches.
+
+Consider how to make this information accessible, say via Microsoft
+LSP, or some home-grown, lightweight mechanism within the SML/NJ system.
+
+[This is below the level of "granularity" that CM deals with in its
+dependency analysis, which is done at the module level.]
+
+
+--------------------------------------------------------------------------------
+[10] terminology: "constructor" vs "type", "monotype" vs "polytype", etc.
+--------------------------------------------------------------------------------
+The CMU school (and maybe TaPL? in places), stratifies types into two
+layers. The first/lower level types are called "constructors", and the
+second/higher level types are called types.
+
+Depending on the particular type system being represented, there is
+sometimes an overlap between the "contructs" at the two levels.  For
+instance, there may be an arrow operator at both levels.
+
+This stratification roughly corresponds to monotypes and polytypes,
+particularly the case of SML with prenex polymorphism, where one
+cannot have a function type with polymorphic domain and/or range.
+
+The "constructor" terminology conflicts with well established SML
+(SML/NJ) usage of the term "type constructor" (tycon) for a type
+function that is used to build structured (non-atomic) type terms. At
+the base are nullary tycons like int, real, string, bool, and then
+there are non-nullary constructors introduced by datatype
+declarations, "type abbreviations" (another bad choice of name), and
+tycon exported/imported through (opaque) signatures (or the obsolete
+abstype). The point is that tycons represent concrete or abstract
+_1st-order_ functions for building types. Some tycons (defined tycons,
+type functions) are reducible, and it is therefore sometimes necessary
+to talk about reduced (normalized) or head-reduced type terms. All
+type terms have a normal form because there is not unmediated
+recursion in the definition of type functions.
+
+The main distiction embodied in these layers is between "ordinary"
+types that are simple expressions (in a 1st-order, non-recursive
+functional language), and polymorphic types that involve universal
+(and possibly also existential) quantification over type variables.
+
+I would like to avoid using the "contructor" terminology for basic
+types.  Where possible, "monotype" would be more suitable (or perhaps
+"simple" types).
+
+In SML, polymorphic abstraction interacts weakly with issues like
+normalization of monotypes (i.e. the body of a polymorphic type).
+All tycons appearing in the basic types map from basic types to
+basic types -- they do not apply to polytypes.  Polymorphic
+instantiation is a separate (and orthogonal) process from type
+normalization.  For purposes of preserving the "original" form of
+types written by the programmer, normalization is done in a "lazy"
+fashion.  Polymorphic instantiation is _required_ at every applied
+occurrence of a polymorphic (i.e. let-bound) variable.
+
+
+
+
 
