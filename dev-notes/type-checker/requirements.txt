@@ -4,6 +4,7 @@ Requirements for Type Checker rewrite.
 
 * Exploit new computational resources
   - allow the type checker to work harder, for the sake of better user feedback
+    or perhaps to simplify the algorithms or representations
 
 * Fix all known type checker bugs
 

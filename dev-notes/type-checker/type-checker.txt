@@ -75,7 +75,7 @@ An example:
 [end code]
 
 --------------------------------------------------------------------------------
-[2] etyvars (appearing free in type definitions)
+[2] etyvars (type variables appearing free in type definitions)
 -------------------------------------------------------------------------------- 
 Terminology: a type variable appearing free in an _expression_ (i.e.
 appearing in a type constraint or declared type parameter of a val or
@@ -283,16 +283,7 @@ regardless of the current environment.
 
   
 --------------------------------------------------------------------------------
-[10] experimental, prototype type checkers
---------------------------------------------------------------------------------
-Writing type checkers for simply-typed FP (SFP) and
-polymorphically-typed FP (PFP).  (see prototc directory)
-
-See protopc directory for details and code.
-
-
---------------------------------------------------------------------------------
-[10] recoverable types
+[10] "recoverable" types
 --------------------------------------------------------------------------------
 
 For an IDE or LSP communication of type invormation for arbitrary
@@ -322,7 +313,7 @@ dependency analysis, which is done at the module level.]
 
 
 --------------------------------------------------------------------------------
-[10] terminology: "constructor" vs "type", "monotype" vs "polytype", etc.
+[11] terminology: "constructor" vs "type", "monotype" vs "polytype", etc.
 --------------------------------------------------------------------------------
 The CMU school (and maybe TaPL? in places), stratifies types into two
 layers. The first/lower level types are called "constructors", and the
@@ -369,7 +360,180 @@ types written by the programmer, normalization is done in a "lazy"
 fashion.  Polymorphic instantiation is _required_ at every applied
 occurrence of a polymorphic (i.e. let-bound) variable.
 
+"tycons" are used to build basic (mono)types. There are four flavors:
+
+(1) primitive tycons:
+     nullary tycons for primitive types: e.g. int, real, string
+     n-ary tycons: "->", record tycons
+
+(2) datatype tycons:
+     predefined: bool, list
+     user-defined: datatype declarations
+
+(3) type functions (type abbreviations, defined tycons)
+     introduced by "type ..." delcarations
+     reducible by type-level beta reduction
+     non-recursive
+
+(4) abstract tycons
+     introduced by opaque signature matching (RWH "sealing")
+
+Form (3) are reducible by beta-reduction and can therefore be
+eliminated (in principle, but not necessarily in practice, as
+mentioned above).  The other three forms are "atomic" and irreducible.
 
 
+--------------------------------------------------------------------------------
+[12] experimental, prototype type checkers
+--------------------------------------------------------------------------------
+Try the experiment of writing type checkers for simply-typed FP (SFP) and
+polymorphically-typed FP (PFP).  (see prototc directory)
+
+The question is how etyvars (expression-level) tyvars are introduced
+and managed, and, during type checking, how they give rise to
+polymorphic types.
+
+We assume that we are generally working with monotypes (simple types,
+which may contain (unquantified) type variables). At one special
+point, a let-binding, the bound variable is explicitly given a
+polymorphic type ("polytype").
+
+Types
+-----
+*Monotypes* (monomorphic types) are defined as terms over type
+variables and type constants.
+
+-- [code]
+
+    type tvar = int  (* trivial representation to begin with *)
+
+    type tycon = int  (* ditto *)
+
+    (* monotypes or "type constructions" *)
+    datatype ty
+      = INTt
+      | BOOLt
+      | VARt of tvar
+      | PAIRt of ty * ty
+      | ARRt of ty * ty
+      | APPt of tycon * ty
+      | ERRORt  (* produced by the type checker *)
+
+-- [code]
+
+Terminology: a "closed monotype" is a monotype containing no type
+variables (i.e. no occurrences of the VARt constructor). An "open"
+monotype might contain type variables.  A closed monotype might also
+be called a "ground type".
+
+A *polytype* (polymorphic type) is an open monotype "preceded by" a
+universal quqntifier over some (zero or more, in some given order)
+type variables.
+
+We represent polytypes by the type:
+
+-- [code]
+
+    type pty = tvar list * ty
+
+-- [code]
+    
+and informally write them as, for example
+
+   [A, B] A -> B   ( for ([A,B], ARRt(VARt A, VARt B) )
+
+using square brackets to indicate universal quantification and using
+capital letters for type variables (a la Haskell rather than a la SML).
+
+NOTE: polytypes are a different type from monotypes, so they are
+segregated and cannot be confused.  polytypes appear in a restricted
+way in the expression abstract syntax (and in the type environment).
 
 
+Type Environments (tenv)
+------------------------
+A type-environment (tenv) maps expression variables to their types,
+which are explicitly determined at their binding point. There are two
+variants of variables/bindings:
+
+  (1) function parameter variables, with (open) monotypes
+
+  (2) let-bound variables with polytypes
+
+Let-bound variables _always_ are assigned polytypes, possibly
+degenerate (i.e. of the form ([], ty), with empty list of quantified
+type variables). Since _expressions_ are always assigned monotypes,
+this means that the type of each applied occurrence of a let-bound
+variable must be an monotype "instance" of the polytype of the variable.
+
+-- [code]
+
+    datatype tenv
+      = Fbind of var * ty * tenv  (* function parameter binding *)
+      | Lbind of var * pty * tenv  (* let binding *)
+      | EmptyTenv
+
+    datatype binding
+      = MONOb of ty
+      | POLYb of pty
+      | UNDEFb
+
+-- [code]
+
+Type environments are build using the Fbind and Lbind
+constructors. They are accessed using a function
+
+    look : var * tenv -> binding
+
+
+Typed Abstract Syntax
+---------------------
+
+Typed abstract syntax is represented using the following types
+
+-- [code]
+
+    type var = int
+
+    datatype texp
+      = VARte of var
+      | INTte of int
+      | BOOLte of bool
+      | PAIRte of texp * texp
+      | PI1te of texp
+      | PI2te of texp
+      | LETte of var * pty * texp * texp
+      | FUNte of var * ty * texp
+      | APPte of texp * texp
+      | PINSTte of var * ty list
+
+-- [code]
+
+An applied occurrence of a function-bound variable is represented by
+VARte v, and has the type assigned to it (via Fbind) in the current
+tenv. An applied occurrence of a let-bound (polymorphic) variable v
+must always occur in the form PINST(v,tys), with an explicit
+instantiation.
+
+Example:
+--------
+
+The expression written informally as
+
+   let f : [A].A->A = fn x: A => x in (f [int]) 3 *)
+
+is represented as follows:
+
+    val f: var = 0 (* a variable f *)
+    val x: var = 1 (* a variable x *)
+
+    val A: tvar = 0 (* a type variable *)
+
+    val exp1 = LETte (f, ([A], ARRt(VARt A, VARt A)),
+		      FUNte(x, VARt A, VARte x),
+		      APPte (PINSTte(f, [INTt]), INTte 3));
+
+This is type-checked by calling the PFL type checker as follows:
+
+    val f_type = PFL_Typecheck.tych PFL_Tenv.EmptyTenv exp1;
+    ==> INTt
