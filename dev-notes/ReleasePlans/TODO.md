@@ -13,9 +13,12 @@ target plus an additional "wish-list" of long-term goals.
 
   * Rewrite of pattern-match compilation to be an source to source translation of the
     `Absyn` IR.  Include direct translation of "or" patterns and support for Successor
-    ML views.
+    ML views. [DBM: new absyn-to-absyn match compiler has been merged into trunk.]
 
   * Drop 32-bit support
+
+  * Define SML/NJ style rules for pretty-printing module signatures
+    and implement these rules for 2021.1.
 
 ## High priority future work
 

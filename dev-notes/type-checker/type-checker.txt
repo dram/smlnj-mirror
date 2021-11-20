@@ -515,8 +515,8 @@ tenv. An applied occurrence of a let-bound (polymorphic) variable v
 must always occur in the form PINST(v,tys), with an explicit
 instantiation.
 
-Example:
---------
+Example (pfl/ex1.sml):
+----------------------
 
 The expression written informally as
 
@@ -535,7 +535,7 @@ is represented as follows:
 
 This is type-checked by calling the PFL type checker as follows:
 
-    val f_type = PFL_Typecheck.tych PFL_Tenv.EmptyTenv exp1;
+    val f_type = PFL_Typecheck.tych PFL_Tenv.Empty exp1;
     ==> INTt
 
 
@@ -545,18 +545,31 @@ calculus.  In such a language we would have constructors for type
 (lambda-)abstraction and type application, such as
 
     | TFUN of tvar list * texp
-    | FAPP of texp * ty list
+    | TAPP of texp * ty list
 
 but these constructs imply "first-class" polymorphism, where a
 polymorphic expression (produced by TFUN) could appear in any
 expression context, and types would have to allow polymorphic
 subterms.
 
+
 Typing rules for fun, let, var:
+-------------------------------
+
+Judgements:
+
+    tvars |- ty
+
+"ty is well-formed wrt tvars", meaning that all the free type variables
+of ty occur in tvars.
+
+    tenv, tvars |- texp : ty
+
+"texp has type ty wrt the context consisting of tenv and tvars"
 
 [FUN]
-    tvars |- ty_arg 
-    tvars |- ty_body 
+    tvars |- ty_arg
+    tvars |- ty_body
     Fbind(v,ty_arg,tenv), tvars |- body : ty_body
     ---------------------------------------------------------------
     tenv, tvars |- FUN (v, ty_arg, body) : ARRt (ty_arg, ty_body)
