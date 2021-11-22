@@ -14,15 +14,31 @@ The *binfile* format was designed by Matthias Blume and was originally
 documented in the source code (`compiler/Execution/binfile/binfile.sml`
 and `runtime/kernel/boot.c`).  It was simplified by removing the
 support for multiple code objects in SML/NJ Version 110.99.
-It has been further modified for 2021.1 to include a proper version
-number and to split the architecture and SML/NJ version info into
-separate fields.
+It has been further modified for 2021.1 to include an initial file
+identifier and more structured version information (including a
+proper version).
+
 
 == Binfile Format Description
 
 The *binfile* format is a machine-independent container format.  The
 integer fields (lengths _etc._) are 32-bit integers in big-endian
-format.  It consists of a header followed by the payload
+format.  It consists of a header followed by the payload.
+The structure of a *binfile* is as follows:
+
+[cols=">6m,>1m,<30a",options="header"]
+|====
+|       Start | Size | Description
+|           0 |    h | File header as described below.
+|           h |    l | pickle of exported lambda-expr. (`l == lambdaSzB`)
+|         l+h |    g | GUID area (`g == guid`)
+|       r+l+h |    p | padding (`p == pad`)
+|     p+r+l+h |    c | code area (`c == codeSzB`)
+|   c+p+r+l+h |    e | pickle of static environment (`e == envSzB`)
+| e+c+p+r+l+h |    - | end of file
+|====
+
+=== Old-style Header Layout
 
 The 110.99 (and earlier) header has the following layout, where the first =
 column specifies the start offset in bytes, the second column specifies
@@ -46,60 +62,47 @@ the size in bytes, and the third column describes the purpose of the field.
 | ex+i+52 |   cm | CM info (``cm == cmInfoSzB``)
 |====
 
-Starting in version 2021.1, the 16-byte magic string field was replaced by 32-bytes
-of information.  The other change is that the `lambdaSzB` field (which is always `0`)
-was removed.
+The first 16-bytes of the header contain the so-called "magic string," which
+is formed from the architecture and version number.  The basic format is
+"``<``__arch__``>-<``__version__``>``", with the architecture limited to seven
+characters and the version limited to eight (leaving one character for the "``-``").
+The string is then padded with spaces to 16 bytes.
+
+=== New Header Layout
+
+Starting in version 2021.1, the 16-byte magic string field was replaced by an 8-byte file
+kind (the string `"BinFie "`) followed by 32-bytes of version information.  The other change
+is that the `lambdaSzB` field (which is always `0`) was removed.
 
 [cols=">6m,>1m,<30a",options="header"]
 |====
 |   Start | Size | Description
-|     0   |    4 | version number (date in YYYYMMDD format using hex digits)
-|     4   |   12 | architecture as a space padded string (e.g., "AMD64       ").
-|    12   |   16 | version number a a space-padded string (e.g., "2021.1-rc1      ").
-|    32   |    4 | number of import values (`importCnt`)
-|    36   |    4 | number of exports (`exportCnt`; always 0 or 1)
-|    40   |    4 | size of import tree area in bytes (`importSzB`)
-|    44   |    4 | size of CM-specific info in bytes (`cmInfoSzB`)
-|    48   |    4 | size of GUID area in bytes (`g`)
-|    52   |    4 | size of padding in bytes (`pad`)
-|    56   |    4 | size of code area in bytes (`codeSzB`)
-|    60   |    4 | size of pickled environment in bytes (`envSzB`)
-|    64   |    i | import trees (`i == importSzB`)
-|  i+64   |   ex | export pids (`ex == 16 * exportCnt`; __i.e.__, 0 or 16)
-| ex+i+64 |   cm | CM info (``cm == cmInfoSzB``)
+|     0   |    8 | file kind (`"BinFile "`)
+|     8   |    4 | version number (date in YYYYMMDD format using hex digits)
+|    12   |   12 | architecture as a space padded string (e.g., `"AMD64       "`).
+|    24   |   16 | version number as a space-padded string (e.g., `"2021.1-rc1      "`).
+|    40   |    4 | number of import values (`importCnt`)
+|    44   |    4 | number of exports (`exportCnt`; always 0 or 1)
+|    48   |    4 | size of import tree area in bytes (`importSzB`)
+|    52   |    4 | size of CM-specific info in bytes (`cmInfoSzB`)
+|    56   |    4 | size of GUID area in bytes (`g`)
+|    60   |    4 | size of padding in bytes (`pad`)
+|    64   |    4 | size of code area in bytes (`codeSzB`)
+|    68   |    4 | size of pickled environment in bytes (`envSzB`)
+|    72   |    i | import trees (`i == importSzB`)
+|  i+72   |   ex | export pids (`ex == 16 * exportCnt`; __i.e.__, 0 or 16)
+| ex+i+72 |   cm | CM info (``cm == cmInfoSzB``)
 |====
 
-The structure of a *binfile* is as follows:
-
-[cols=">6m,>1m,<30a",options="header"]
-|====
-|       Start | Size | Description
-|           0 |    h | File header as described above (`h == 52+cm_ex+i` or `64+cm_ex+i`)
-|           h |    l | pickle of exported lambda-expr. (`l == lambdaSzB`)
-|         l+h |    g | GUID area (`g == guid`)
-|       r+l+h |    p | padding (`p == pad`)
-|     p+r+l+h |    c | code area (`c == codeSzB`)
-|   c+p+r+l+h |    e | pickle of static environment (`e == envSzB`)
-| e+c+p+r+l+h |    - | end of file
-|====
-
-=== Version information
-
-Up to (and including) version 110.99 of *SML/NJ*, the first 16-bytes of the
-header contain the so-called "magic string," which is fomed from the architecture
-and version number.  The basic format is "``<``__arch__``>-<``__version__``>``",
-with the architecture limited to seven characters and the verion limited to
-eight (leaving one character for the "``-``").  The string is then padded
-with spaces to 16 bytes.
-
-Starting with version 2021.1, the 16-byte magic string has been replaced with 32 bytes
-of version information.
+Starting with version 2021.1, the 16-byte magic string has been replaced with a
+40-byte file identifier and version information.
 --
-  * The first four bytes is a file-format version number that is formed by taking
+  * The first eight bytes is the file kind, which is the string `"BinFile "`.
+  * The next four bytes is a file-format version number that is formed by taking
     the date of the version as an eight-digit hexidecimal number (__YYYYMMDD__).
   * The next 12 bytes are a space-padded string that specified the architecture
     (as previously specified in the magic string).
-  * The next 16 bytes are a space-padded string that specified the **SML/NJ**
+  * The last 16 bytes are a space-padded string that specified the **SML/NJ**
     version number (as previously specified in the magic string).  The format of
     the version number is a sequence of two or three version numbers separated
     by periods followed by an optional suffix (__e.g.__, `"2021.1-rc1"`)
@@ -194,7 +197,7 @@ record.
 A __stable archive__ is a single-file representation of a library.
 It consists of a collection of binfiles with their associated
 dependency information stored as a single file (see `base/cm/stable/stabilize.sml`).
-The format of a stable archive is
+The legacy format of a stable archive is
 
 [cols=">6m,>1m,<30a",options="header"]
 |====
@@ -202,6 +205,19 @@ The format of a stable archive is
 |     0   |   16 | library stamp
 |    16   |    4 | size of the pickled dependency graph in bytes (`dg`)
 |    20   |   dg | the pickled dependency graph
+|====
+
+As of 2021.1+, the first 8 bytes of a stable archive is the file kind,
+which is the eight-character string `"StabArch"`).  The new file format is
+as follows:
+
+[cols=">6m,>1m,<30a",options="header"]
+|====
+|   Start | Size | Description
+|     0   |    8 | file kind (`"StabArch"`)
+|     8   |   16 | library stamp
+|    24   |    4 | size of the pickled dependency graph in bytes (`dg`)
+|    28   |   dg | the pickled dependency graph
 |====
 
 **INCOMPLETE**
