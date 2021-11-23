@@ -101,6 +101,13 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //--------------------------------------------------------------------
 [2021/11/23]::
 +
+Remove last traces of the lambda splitting support from CM.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2021/11/23]::
++
 Changed the `Binfile` structure (and `BINFILE` signature) to support both
 the old binfile format and a new format (both formats are documented in
 the `dev-notes/binfile.adoc` file).  We are stiull using the old format,
