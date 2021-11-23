@@ -36,7 +36,7 @@ structure SMLNJVersion : sig
 	    system = "Standard ML of New Jersey",
 	    version_id = [%V],
 	    suffix = "%S",
-	    buildDate = Date.toString (Date.fromTimeLocal (Time.now ())),
+	    buildDate = buildDate,
 	    releaseDate = if releaseDate = "" then buildDate else releaseDate
           }
 

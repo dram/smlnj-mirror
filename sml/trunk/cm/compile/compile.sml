@@ -56,9 +56,6 @@ in
 	        where type stats = Binfile.stats =
     struct
 
-        val arch = Backend.architecture
-	val version = #version_id SMLNJVersion.version
-
 	type notifier = GP.info -> SmlInfo.info -> unit
 
 	structure BF = Binfile
@@ -83,6 +80,12 @@ in
 	type envdelta = IInfo.info
 
 	type memo = { ii: IInfo.info, ts: TStamp.t, cmdata: PidSet.set }
+
+        (* version info for binfiles *)
+        val version = BF.mkVersion {
+                arch = Backend.architecture,
+                smlnjVersion = SMLNJVersion.version'
+              }
 
 	(* persistent state! *)
 	val filtermap = ref (FilterMap.empty: pid FilterMap.map)
@@ -257,13 +260,11 @@ in
 			       cleanup = fn _ => () })
 		    fun save bfc = let
 			fun writer s = let
-			    val s = BF.write { arch = arch, version = version,
-					       nopickle = false,
-					       stream = s, contents = bfc }
-			in pstats s; s
-			end
-			fun cleanup _ =
-			    OS.FileSys.remove binname handle _ => ()
+			      val s = BF.write { stream = s, contents = bfc, nopickle = false }
+			      in
+                                pstats s; s
+			      end
+			fun cleanup _ = OS.FileSys.remove binname handle _ => ()
 		    in
 			notify gp i;
 			(SafeIO.perform { openIt =
@@ -326,24 +327,24 @@ in
 						statenv = stat,
 						compInfo = cinfo, checkErr = check,
 						guid = guid }
-				val bfc = BF.create
-					      { imports = imports,
-						exportPid = exportPid,
-						cmData = cmData,
-						senv = { pickle = senvP,
-							 pid = staticPid },
-						guid = guid,
-						csegments = csegments }
-				val memo =
-				    bfc2memo (bfc, SmlInfo.lastseen i, stat)
-			    in
-				perform_setup "post" post;
-				reset ();
-				storeBFC' (gp, i,
-					   { contents = bfc,
-					     stats = save bfc });
-				SOME memo
-			    end
+				val bfc = BF.create {
+                                        version = version,
+				        imports = imports,
+                                        exportPid = exportPid,
+                                        cmData = cmData,
+                                        senv = { pickle = senvP, pid = staticPid },
+                                        guid = guid,
+                                        csegments = csegments
+                                      }
+				val memo = bfc2memo (bfc, SmlInfo.lastseen i, stat)
+                                in
+                                  perform_setup "post" post;
+                                  reset ();
+                                  storeBFC' (gp, i,
+                                             { contents = bfc,
+                                               stats = save bfc });
+                                  SOME memo
+                                end
 			in
 			    SafeIO.perform { openIt = fn () => (),
 					     work = work,
@@ -398,9 +399,7 @@ in
 					val mm0 = StabModmap.get ()
 					val m = GenModIdMap.mkMap' (stat, mm0)
 					val { contents, stats } =
-					    BF.read { arch = arch,
-						      version = version,
-						      stream = s }
+					    BF.read { stream = s, version = version }
 				    in
 					SmlInfo.setguid (i, BF.guidOf contents);
 					(contents, ts, stats)

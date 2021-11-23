@@ -1,10 +1,13 @@
-(*
- * Reading, generating, and writing stable libraries.
+(* stabilize.sml
  *
- * (C) 1999 Lucent Technologies, Bell Laboratories
+ * COPYRIGHT (c) 2021 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *
+ * Reading, generating, and writing stable libraries.
  *
  * Author: Matthias Blume (blume@kurims.kyoto-u.ac.jp)
  *)
+
 local
     structure DG = DependencyGraph
     structure GG = GroupGraph
@@ -605,21 +608,15 @@ struct
 		fun writeBFC s (i, { code, data, env }) = let
 		    val { contents, stats } = getBFC i
 		    val { code = c, data = d, env = e } = stats
-		    val v = #version_id SMLNJVersion.version
-		in
-		    ignore (BF.write { arch = arch, version = v,
-				       nopickle = true,
-				       stream = s, contents = contents });
-		    { code = code + c, data = data + d, env = env + e }
-		end
+                    in
+                      ignore (BF.write { stream = s, contents = contents, nopickle = true });
+                      { code = code + c, data = data + d, env = env + e }
+                    end
 
-		fun sizeBFC i =
-		    BF.size { contents = #contents (getBFC i),
-			      nopickle = true }
+		fun sizeBFC i = BF.size { contents = #contents (getBFC i), nopickle = true }
 		fun pidBFC i = BF.staticPidOf (#contents (getBFC i))
 
-		val _ =
-		    Say.vsay ["[stabilizing ", SrcPath.descr grouppath, "]\n"]
+		val _ = Say.vsay ["[stabilizing ", SrcPath.descr grouppath, "]\n"]
 
 		val _ =
 		    if StringSet.isEmpty wrapped then ()
