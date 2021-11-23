@@ -96,17 +96,21 @@ struct
     fun fetch_pickle s = let
 	fun bytesIn n = let
 	    val bv = BinIO.inputN (s, n)
-	in
-	    if n = Word8Vector.length bv then bv
-	    else raise UU.Format
-	end
-
+            in
+              if n = Word8Vector.length bv then bv
+              else (
+                TextIO.output (TextIO.stdErr, concat [
+                    "## bytesIn: wanted ", Int.toString n, ", but got ",
+                    Int.toString (Word8Vector.length bv), "\n"
+                  ]);
+                raise UU.Format)
+            end
 	val libstamp = bytesIn libstamp_nbytes	(* ignored *)
 	val dg_sz = LargeWord.toIntX (PackWord32Big.subVec (bytesIn 4, 0))
 	val dg_pickle = Byte.bytesToString (bytesIn dg_sz)
-    in
-	{ size = dg_sz, pickle = dg_pickle }
-    end
+        in
+          { size = dg_sz, pickle = dg_pickle }
+        end
 
     fun mkPickleFetcher mksname () =
 	SafeIO.perform { openIt = BinIO.openIn o mksname,
@@ -241,9 +245,8 @@ struct
 	val grpSrcInfo = (errcons, anyerrors)
 	val gdescr = SrcPath.descr group
 	fun error l = EM.errorNoFile (errcons, anyerrors) SM.nullRegion
-	    EM.COMPLAIN (concat ("(stable) " :: gdescr :: ": " :: l))
-	    EM.nullErrorBody
-
+              EM.COMPLAIN (concat ("(stable) " :: gdescr :: ": " :: l))
+                EM.nullErrorBody
 	exception Format = UU.Format
 
 	val penv = #penv (#param gp)
@@ -582,9 +585,10 @@ struct
 			       closeIt = BinIO.closeIn,
 			       work = work,
 			       cleanup = fn _ => () })
-	handle Format => (error ["file is corrupted (old version?)"];
-			  NONE)
-             | IO.Io _ => NONE
+	handle (exn as Format) => (
+            error ["file is corrupted (old version?)"];
+            NONE)
+        | IO.Io _ => NONE
     end
 
     fun stabilize _ { group = GG.ERRORGROUP, ... } = NONE
@@ -630,9 +634,10 @@ struct
 
 		val required = StringSet.difference (#required grec, wrapped)
 
+(* FIXME: this description does not match what the code does!!! *)
 		(* The format of a stable archive is the following:
 		 *  - It starts with the size s of the pickled dependency
-		 *    graph. This size itself is written as four-byte string.
+		 *    graph. This size itself is written as a four-byte string.
 		 *  - The size t of the pickled environment for the entire
 		 *    library (using the pickleEnvN interface of the pickler)
 		 *    in the same format as s.

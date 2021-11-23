@@ -43,8 +43,6 @@ structure PrivateTools : PRIVATETOOLS = struct
 
     type setup = string option * string option
 
-    type splitting = int option option
-
     type controller =
 	 { save'restore: unit -> unit -> unit,
 	   set: unit -> unit }
@@ -52,7 +50,6 @@ structure PrivateTools : PRIVATETOOLS = struct
     type smlparams =
 	 { share: Sharing.request,
 	   setup: setup,
-	   split: splitting,
 	   noguid: bool,
 	   locl: bool,
 	   controllers: controller list }
@@ -322,16 +319,14 @@ structure PrivateTools : PRIVATETOOLS = struct
 	fun fail s = raise Fail ("(SML Tool) " ^ s)
 	val kw_setup = "setup"
 	val kw_with = "with"
-	val kw_lambdasplit = "lambdasplit"
 	val kw_noguid = "noguid"
 	val kw_local = "local"
 	val kw_lazy = "lazy"
 	val kw_succML = "succ-ml"
-	val UseDefault = NONE
 	val Suggest = SOME
 	val lazy_controller = flagController Control.lazysml
 	val succML_controller = flagController ParserControl.succML
-	val (srq, setup, splitting, noguid, locl, controllers) =
+	val (srq, setup, noguid, locl, controllers) =
 	    case oto of
 		NONE => let
 		  val controllers = (case language
@@ -340,14 +335,13 @@ structure PrivateTools : PRIVATETOOLS = struct
 			  | SuccessorML => [succML_controller]
 			(* end case *))
 		  in
-		    (Sharing.DONTCARE, (NONE, NONE), UseDefault, false, false, controllers)
+		    (Sharing.DONTCARE, (NONE, NONE), false, false, controllers)
 		  end
 	      | SOME to => let
 		    val { matches, restoptions } =
 			parseOptions { tool = tool,
 				       keywords = [kw_setup,
-						   kw_with,
-						   kw_lambdasplit],
+						   kw_with],
 				       options = to }
 		    fun is_shspec "shared" = true
 		      | is_shspec "private" = true
@@ -444,29 +438,16 @@ structure PrivateTools : PRIVATETOOLS = struct
 				loop (subopts, [])
 			    end
 
-		    val splitting = let
-			fun invalid () = err "invalid lambdasplit spec"
-			fun spec (s: fnspec) =
-			    case LSplitArg.arg (#name s) of
-				SOME ls => ls
-			      | NONE => invalid ()
-		    in
-			case matches kw_lambdasplit of
-			    NONE => UseDefault
-			  | SOME [] => Suggest (SOME 0)(* == "on" *)
-			  | SOME [STRING x] => spec x
-			  | _ => invalid ()
-		    end
 		    val controllers = (case language
 			   of StandardML => controllers
 			    | LazySML => lazy_controller :: controllers
 			    | SuccessorML => succML_controller :: controllers
 			  (* end case *))
 		in
-		    (srq, setup, splitting, noguid, locl, controllers)
+		    (srq, setup, noguid, locl, controllers)
 		end
 	val p = srcpath (mkpath ())
-	val sparam = { share = srq, setup = setup, split = splitting,
+	val sparam = { share = srq, setup = setup,
 		       noguid = noguid,
 		       locl = locl, controllers = controllers }
     in

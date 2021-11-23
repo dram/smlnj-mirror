@@ -217,10 +217,10 @@ structure MemberCollection :> MEMBERCOLLECTION = struct
 		end
 	      | GG.ERRORGROUP => ERRORCOLLECTION
 	fun s_coll (p, sparams) = let
-	    val { share = s, setup, split, noguid, locl, controllers } =
+	    val { share = s, setup, noguid, locl, controllers } =
 		sparams
 	    val i =
-		SmlInfo.info (split, noguid)
+		SmlInfo.info noguid
 			     gp { sourcepath = p, group = group,
 				  sh_spec = s, setup = setup,
 				  locl = locl, controllers = controllers }

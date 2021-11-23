@@ -16,11 +16,9 @@ signature SMLINFO = sig
     type ast = Ast.dec
     type region = SourceMap.region
     type source = Source.inputSource
-    type splitrequest = int option option  (* was Control.LambdaSplitting.localsetting *)
 
     type attribs =
-	{ split: splitrequest,
-	  is_rts: bool,
+	{ is_rts: bool,
 	  noguid: bool,
 	  explicit_core_sym: Symbol.symbol option,
 	  extra_compenv: StaticEnv.staticEnv option }
@@ -54,7 +52,7 @@ signature SMLINFO = sig
      * now which means that the file used to be in another group). *)
     val newGeneration : unit -> unit
 
-    val info : splitrequest * bool -> GeneralParams.info -> info_args -> info
+    val info : bool -> GeneralParams.info -> info_args -> info
 
     val info' : attribs -> GeneralParams.info -> info_args -> info
 
@@ -112,12 +110,10 @@ structure SmlInfo :> SMLINFO = struct
     type source = Source.inputSource
     type ast = Ast.dec
     type region = SourceMap.region
-    type splitrequest = int option option (* = obsolete Control.LambdaSplitting.localsetting *)
 
     type complainer = EM.complainer
 
-    type attribs = { split: splitrequest,
-		     is_rts: bool,
+    type attribs = { is_rts: bool,
 		     noguid: bool,
 		     explicit_core_sym: Symbol.symbol option,
 		     extra_compenv: StaticEnv.staticEnv option }
@@ -146,7 +142,7 @@ structure SmlInfo :> SMLINFO = struct
 		  sh_mode: Sharing.mode ref,
 		  setguid: string -> unit,
 		  guid: unit -> string }
-		      
+
     datatype info =
 	INFO of { sourcepath: SrcPath.file,
 		  mkSkelname: unit -> string,
@@ -339,8 +335,8 @@ structure SmlInfo :> SMLINFO = struct
 	       controllers = controllers }
     end
 
-    fun info (split, noguid) =
-	info' { split = split, extra_compenv = NONE,
+    fun info noguid =
+	info' { extra_compenv = NONE,
 		is_rts = false, noguid = noguid,
 		explicit_core_sym = NONE }
 

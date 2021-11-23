@@ -121,7 +121,6 @@ structure VersionTool : sig end = struct
 			smlfiles = [
 			    (targetp, { share = Sharing.DONTCARE,
 					setup = (NONE, NONE),
-					split = NONE,
 					noguid = false,
 					locl = false,
 					controllers = [] })

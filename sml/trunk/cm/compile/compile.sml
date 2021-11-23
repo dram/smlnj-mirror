@@ -249,7 +249,7 @@ in
 		fun fail () =
 		    if #keep_going (#param gp) then NONE else raise Abort
 
-		fun compile_here (stat, pids, split) = let
+		fun compile_here (stat, pids) = let
 		    fun perform_setup _ NONE = ()
 		      | perform_setup what (SOME code) =
 			(Say.vsay ["[setup (", what, "): ", code, "]\n"];
@@ -387,7 +387,7 @@ in
 			     * global map... *)
 			    fun fromfile () = let
 				val { stat } = envs ()
-				val { split, extra_compenv, ... } = SmlInfo.attribs i
+				val { extra_compenv, ... } = SmlInfo.attribs i
 				val stat =
 				    case extra_compenv of
 					NONE => stat
@@ -433,7 +433,7 @@ in
 				    Concur.noTasks ()
 				fun compile_again () =
 				    (Say.vsay ["[compiling ", descr, "]\n"];
-				     compile_here (stat, pids, split))
+				     compile_here (stat, pids))
 				fun compile_there' p =
 				    not (bottleneck ()) andalso
 				    compile_there p
