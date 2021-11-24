@@ -119,7 +119,6 @@ Group
 	signature SML_OF_NJ
 
 	signature UNSAFE_OBJECT
-	signature POLL
 	signature UNSAFE_ARRAY
 	signature UNSAFE_VECTOR
 	signature UNSAFE_MONO_ARRAY
@@ -312,8 +311,6 @@ is
 
 	Unsafe/cinterface.sig
 	Unsafe/cinterface.sml
-	Unsafe/poll.sig
-	Unsafe/poll.sml
 	Unsafe/object.sig
 	Unsafe/unsafe-array.sig
 	Unsafe/unsafe-vector.sig

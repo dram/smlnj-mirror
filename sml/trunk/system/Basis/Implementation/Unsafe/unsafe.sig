@@ -12,7 +12,6 @@ signature UNSAFE =
     structure CInterface : CINTERFACE
     structure Object : UNSAFE_OBJECT
     structure Pointer : UNSAFE_POINTER
-    structure Poll : POLL
 
     structure Vector : UNSAFE_VECTOR
     structure Array  : UNSAFE_ARRAY
