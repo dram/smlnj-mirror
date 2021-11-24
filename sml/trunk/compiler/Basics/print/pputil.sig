@@ -5,7 +5,7 @@
  *)
 
 signature PPUTIL =
-sig
+  sig
 
   (* CONSISTENT corresponds to HOV and INCONSISTENT corresponds to HV *)
     datatype break_style = CONSISTENT | INCONSISTENT
@@ -81,4 +81,4 @@ sig
 		  (PrettyPrint.stream -> 'a -> unit) * 'a array
 		  -> unit
 
-end (* signature PPUTIL *)
+  end (* signature PPUTIL *)

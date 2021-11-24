@@ -60,7 +60,7 @@ locations are guaranteed to have the same file name.  newlineCount
 returns the number of newlines that occurred in the given region.
 *)
 
-(* 
+(*
  * changed ErrorMsg to use SourceMap to get source locations; only the
  * formatting is done internally
  *
@@ -83,10 +83,10 @@ sig
   (* creating and modifying sourcemaps *)
   val newSourceMap : string -> sourcemap
   val newline : sourcemap -> charpos -> unit
-  val resynch : sourcemap -> 
+  val resynch : sourcemap ->
                 charpos * charpos * int * int * string option -> unit
 
-  (* using sourcemaps to translate charpos to sourceloc *) 
+  (* using sourcemaps to translate charpos to sourceloc *)
   val filepos     : sourcemap -> charpos -> sourceloc
   val fileregion  : sourcemap -> region  -> (sourceloc * sourceloc) list
 

@@ -19,8 +19,8 @@ structure Char : sig
     val op - = InlineT.Int.-
     val op * = InlineT.Int.*
 
-    val itoc : int -> char = InlineT.cast
-    val ctoi : char -> int = InlineT.cast
+    val itoc : int -> char = InlineT.cast (* using cast here avoids the bounds check *)
+    val ctoi : char -> int = C.ord
 
     type char = char
     type string = string

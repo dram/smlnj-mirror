@@ -5,7 +5,7 @@
  *)
 
 signature ERRORMSG =
-sig
+  sig
     datatype severity = WARN | COMPLAIN
     type complainer = severity -> string -> (PrettyPrint.stream -> unit) -> unit
     type errorFn = SourceMap.region -> complainer
@@ -31,4 +31,4 @@ sig
     val warn : string -> unit
     val impossibleWithBody : string -> (PrettyPrint.stream -> unit) -> 'a
 
-end (* signature ERRORMSG *)
+  end (* signature ERRORMSG *)

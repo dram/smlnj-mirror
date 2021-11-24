@@ -8,7 +8,7 @@ signature SOURCE =
         sourceMap: SourceMap.sourcemap,
         fileOpened: string,
         interactive: bool,
-        sourceStream: TextIO.instream, 
+        sourceStream: TextIO.instream,
         content: string option ref,
         anyErrors: bool ref,
         errConsumer: PrettyPrint.device

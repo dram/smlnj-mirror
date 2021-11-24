@@ -1,7 +1,7 @@
 (* Copyright 1989 by AT&T Bell Laboratories *)
 (* printutil.sml *)
 
-structure PrintUtil : PRINTUTIL = 
+structure PrintUtil : PRINTUTIL =
 struct
 
   (* printing functions -- print to stdOut *)
@@ -42,7 +42,7 @@ struct
 
   (* listToString : (string * string * string) -> ('a -> string) -> 'a list -> string *)
   fun listToString (front,sep,back) (toStr : 'a -> string) (l: 'a list) =
-      let fun prElems nil = [back]
+      let fun prElems [] = [back]
 	    | prElems [x] = [toStr x, back]
 	    | prElems (x::xs) = toStr x :: sep :: prElems xs
        in concat ( front :: prElems l )
@@ -50,12 +50,7 @@ struct
 
   (* interpws : string list -> string
    *  interpolate white space (" ") between the elements of a list of strings, then concat *)
-  fun interpws (strs : string list) =
-      let fun addws (nil : string list) = []
-	    | addws [s] = [s]
-	    | addws (s::ss) = s :: " " :: addws ss
-      in concat (addws strs)
-      end
+  fun interpws (strs : string list) = String.concatWith " " strs
 
 end (* structure PrintUtil *)
 
