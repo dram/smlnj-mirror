@@ -6,7 +6,5 @@
 
 structure Arm64Backend =
     BackendFn (
-      structure M = MachineCodeGenFn (
-          structure MachSpec = Arm64Spec
-          val abi_variant = NONE)
+      structure M = CodeGeneratorFn (Arm64Spec)
       val cproto_conv = "ccall")
