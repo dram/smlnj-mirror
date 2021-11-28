@@ -129,7 +129,7 @@ fun ppPat env ppstrm =
 	  | ppPat' (WILDpat,_) = pps "_"
           | ppPat' (NUMpat(src, _), _) = pps src
 	  | ppPat' (STRINGpat s,_) = PU.ppString ppstrm s
-	  | ppPat' (CHARpat c,_) = (pps "#"; PU.ppString ppstrm (Char.toString c))
+	  | ppPat' (CHARpat c,_) = pps (concat["#\"", Char.toString c, "\""])
 	  | ppPat' (LAYEREDpat (v,p),d) =
 	      (openHVBox 0;
 	       ppPat'(v,d); pps " as "; ppPat'(p,d-1);
@@ -262,7 +262,7 @@ fun ppExp (context as (env,source_opt)) ppstrm =
           | ppExp' (NUMexp(src, _), _, _) = pps src
 	  | ppExp' (REALexp(src, _),_,_) = pps src
 	  | ppExp' (STRINGexp s,_,_) = PU.ppString ppstrm s
-	  | ppExp' (CHARexp c,_,_) = (pps "#"; PU.ppString ppstrm (Char.toString c))
+	  | ppExp' (CHARexp c,_,_) = pps (concat["#\"", Char.toString c, "\""])
 	  | ppExp' (r as RECORDexp fields,_,d) =
 	      if isTUPLEexp r
 	      then PU.ppClosedSequence ppstrm

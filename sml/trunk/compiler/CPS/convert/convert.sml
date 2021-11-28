@@ -21,7 +21,6 @@ signature CONVERT =
 functor Convert (MachSpec : MACH_SPEC) : CONVERT =
   struct
 
-    structure DI = DebIndex
     structure DA = Access
     structure LT = Lty
     structure LD = LtyDef

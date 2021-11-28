@@ -7,10 +7,10 @@ struct
 
 local
   structure B = Bindings
-  structure S = Symbol 
+  structure S = Symbol
   structure E = Env
   structure M = Modules
-in 
+in
 
 type binding = B.binding
 type real_binding = binding * M.modtree option
@@ -62,20 +62,20 @@ val realfold = E.fold
 (* symbols : staticEnv -> S.symbol list *)
 val symbols = E.symbols
 
-(* foldOverElems: ((Symbol.symbol * binding) * 'a -> 'a) * 'a * staticEnv * Symbol.symbol list -> 'a 
+(* foldOverElems: ((Symbol.symbol * binding) * 'a -> 'a) * 'a * staticEnv * Symbol.symbol list -> 'a
  *  fold but only over the elements in the environment with the keys
- *  given in the key list (last parameter). This functions allows 
+ *  given in the key list (last parameter). This functions allows
  *  us to compute folds in arbitrary order over a consolidated list.
  *  In particular, this function is currently used in extractSig in
  *  elabmod to keep the inferred signature specs in the same order as
  *  the original structure decls. *)
 fun foldOverElems(f, x0, env, []) = x0
-  | foldOverElems(f, x0, env, elem::rest) = 
-      foldOverElems(f, f((elem, look(env,elem)), x0), env, rest)  
+  | foldOverElems(f, x0, env, elem::rest) =
+      foldOverElems(f, f((elem, look(env,elem)), x0), env, rest)
 
 (* sort: staticEnv -> (Symbol.symbol * binding) list
  *  sort the bindings in an environment.
- *  
+ *
  * This is used for the assignment of dynamic access slots in structure
  * elaborate, for printing, and for other purposes.
  * The bindings are sorted in the following order:

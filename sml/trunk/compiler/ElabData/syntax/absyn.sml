@@ -19,7 +19,7 @@ structure Absyn : ABSYN =
     (* "value" -- "denotation" of a core language "value" identifier,
      *  which denotes either a variable or data constructor;
      *  better names would be "atomicSym" or "atomId" or "valueId" or "coreId" *)
-    datatype value 
+    datatype value
       = VAR of V.var
       | CON of T.datacon
       | ERRORid
@@ -152,7 +152,7 @@ structure Absyn : ABSYN =
      * during type checking.
      *)
     and vb = VB of {pat: pat, exp: exp,
-		    typ: T.ty,                 (* the common type of the pat and exp *) 
+		    typ: T.ty,                 (* the common type of the pat and exp *)
 		    boundtvs: T.tyvar list,    (* "generalized" metatyvars of whole pattern *)
 		    tyvars: T.tyvar list ref}  (* used for tracking "explicit" tyvars *)
 

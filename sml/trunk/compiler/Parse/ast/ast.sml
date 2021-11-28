@@ -53,7 +53,7 @@ structure Ast : AST =
       | WordExp of literal		(* word literal *)
       | RealExp of real_lit		(* floating point coded by its string *)
       | StringExp of string		(* string *)
-      | CharExp of char		        (* char *)
+      | CharExp of string		(* char *)
       | RecordExp of (symbol * exp) list (* record *)
       | ListExp of exp list	        (*  [list,in,square,brackets] *)
       | TupleExp of exp list		(* tuple (derived form) *)
@@ -82,7 +82,7 @@ structure Ast : AST =
       | IntPat of literal			(* integer *)
       | WordPat of literal			(* word literal *)
       | StringPat of string			(* string *)
-      | CharPat of char			        (* char *)
+      | CharPat of string			(* char *)
       | RecordPat of {def:(symbol * pat) list, flexibility:bool}
 						(* record *)
       | ListPat of pat list			(* [list,in,square,brackets] *)

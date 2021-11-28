@@ -122,7 +122,7 @@ signature ABSYN =
       | MARKfct of fctexp * region
 
     and vb = VB of {pat: pat, exp: exp,
-		    typ: Types.ty,                (* the common type of the pat and exp *) 
+		    typ: Types.ty,                (* the common type of the pat and exp *)
 		    boundtvs: Types.tyvar list,   (* "generalized" metatyvars of whole pattern *)
 		    tyvars: Types.tyvar list ref} (* used for tracking "explicit" tyvars *)
 

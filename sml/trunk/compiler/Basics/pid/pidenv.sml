@@ -17,7 +17,7 @@ struct
     fun atop (e1, e2) = PersMap.unionWith #1 (e1, e2)
     fun remove (pl, e) = let
 	fun rmv (key, map) = let
-	    val (newMap, _) = PersMap.remove(map, key) 
+	    val (newMap, _) = PersMap.remove(map, key)
 	in
 	    newMap
 	end handle e => map

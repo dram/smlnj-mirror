@@ -5,7 +5,7 @@ signature PRINTUTIL =
 sig
 
 (* following functions actually print (to stdout) *)
-    
+
   val newline : unit -> unit
   val tab : int -> unit
   val nlindent : int -> unit

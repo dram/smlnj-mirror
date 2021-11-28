@@ -1,21 +1,19 @@
-(* ElabData/syntax/variable.sml
+(* variable.sml
  *
  * COPYRIGHT (c) 2021 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *)
 
 structure Variable : VARIABLE =
-struct
+  struct
 
-local
-  structure A  = Access
-  structure LV = LambdaVar
-  structure T  = Types
-  structure S  = Symbol
-  structure SP = SymPath
+    structure A  = Access
+    structure LV = LambdaVar
+    structure T  = Types
+    structure S  = Symbol
+    structure SP = SymPath
 
-  fun bug msg = ErrorMsg.impossible ("Var: "^msg)
-in
+    fun bug msg = ErrorMsg.impossible ("Variable: " ^ msg)
 
     datatype var
       = VALvar of			(* ordinary variables *)
@@ -46,7 +44,7 @@ in
 
     fun hasLvarAccess (VALvar{access = A.LVAR _, ...}) = true
       | hasLvarAccess _ = false
-			      
+
     fun varToLvar (VALvar{access = A.LVAR lv, ...}) = lv
       | varToLvar var = bug ("varToLvar: " ^ S.name(varName var))
 
@@ -84,7 +82,7 @@ in
 	       end
  	     | _ => bug "replaceLvar: VALvar{access,...}")
       | replaceLvar _ = bug "replaceLvar: not VALvar"
-			    
+
     (* eqVar : var * var -> bool *)
     (* eqVar should only be applied to local bound vars, which are VALvars
      * with LVAR accesses. Equality is based on equal lvars. *)
@@ -114,10 +112,9 @@ in
     fun isWildVar (VALvar{path,...}) = S.eq (SymPath.last path, wildSymbol)
 
     (* toString : var -> string *)
-    fun toString (VALvar{path, access, ...}) = 
+    fun toString (VALvar{path, access, ...}) =
 	  concat [S.name(SymPath.last path), "[", A.prAcc access, "]"]
       | toString (OVLDvar _) = "OVLD"
       | toString ERRORvar = "ERROR"
 
-end (* local *)
-end (* structure Variable *)
+  end (* structure Variable *)

@@ -75,8 +75,8 @@ structure CheckUnused : sig
 		  | A.RECORDexp flds => List.foldl
 		      (fn ((_, e), used) => chkExp(region, e, used))
 			used flds
-		  | A.RSELECTexp(var,index) => used
-		  | A.VSELECTexp(exp,_,index) => used
+		  | A.RSELECTexp(var, index) => raise Fail "unexpected RSELECTexp"
+		  | A.VSELECTexp(exp, _, index) => raise Fail "unexpected VSELECTexp"
 		  | A.VECTORexp(es, _) => List.foldl
 		      (fn (e, used) => chkExp(region, e, used))
 			used es
@@ -105,8 +105,8 @@ structure CheckUnused : sig
 			used es
 		  | A.CONSTRAINTexp(e, _) => chkExp(region, e, used)
 		  | A.MARKexp(e, region) => chkExp(region, e, used)
-		  | A.SWITCHexp _ => used
-		  | A.VSWITCHexp _ => used
+		  | A.SWITCHexp _ => raise Fail "unexpected SWITCHexp"
+		  | A.VSWITCHexp _ => raise Fail "unexpected VSWITCHexp"
 		(* end case *))
 	  and chkRule region (A.RULE(p, e), used) =
 		chkPat false (region, p, chkExp (region, e, used))

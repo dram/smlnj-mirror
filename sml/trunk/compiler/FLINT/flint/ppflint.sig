@@ -1,11 +1,15 @@
-(* COPYRIGHT (c) 2020 SML/NJ Fellowship *)
-(* ppflint-new.sig -- Signature of new pretty printer (PPFlint) for FLINT IR. *)
+(* ppflint.sig
+ *
+ * COPYRIGHT (c) 2021 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *
+ * Signature of new pretty printer (PPFlint) for FLINT IR.
+ *)
 
 signature PPFLINT =
-sig
+  sig
 
     (* pretty printing functions *)
-
     val ppFKind : PrettyPrint.stream -> FunRecMeta.fkind  -> unit
     val ppRKind : PrettyPrint.stream -> FunRecMeta.rkind  -> unit
     val ppCon   : PrettyPrint.stream -> PLambda.con    -> unit
@@ -25,4 +29,4 @@ sig
 
     val valueToString : FLINT.value -> string
 
-end (* signature PPFLINT *)
+  end (* signature PPFLINT *)

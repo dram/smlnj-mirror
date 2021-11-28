@@ -54,7 +54,7 @@
  * an actual function value of the required type when invoking the RAW_CCALL
  * primop.  Instead, we just pass nil.  The code generator will throw away
  * this value anyway.
- * 
+ *
  * The [conv] type for non-empty records and non-empty argument lists
  * has the additional effect of avoiding the degenerate case of
  * 1-element (ML-)records.
@@ -68,13 +68,13 @@ structure CProto : sig
     exception BadEncoding
     (* Decode the encoding described above.
      * Construct an indicator list for the _actual_ ML arguments of
-     * a raw C call and the result type of a raw C call. 
+     * a raw C call and the result type of a raw C call.
      * Each indicator specifies whether the arguments/result is
      * passed as a 32-bit integer, a 64-bit integer (currently unused),
      * a 64-bit floating point value, or an Unsafe.Object.object.
      *)
     val decode : string ->
-		 { fun_ty : Types.ty, encoding : Types.ty } -> 
+		 { fun_ty : Types.ty, encoding : Types.ty } ->
                  { c_proto    : PrimCTypes.c_proto,
                    ml_args    : Primop.ccall_type list,
                    ml_res_opt : Primop.ccall_type option,

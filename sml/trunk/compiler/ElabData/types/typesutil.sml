@@ -7,27 +7,25 @@
 structure TypesUtil : TYPESUTIL =
   struct
 
-local
-  structure EM = ErrorMsg
-  structure SS = Substring
-  structure EP = EntPath
-  structure T = Types
-  structure BT = BasicTypes
-  structure SP = SymPath
-  structure IP = InvPath
-  structure S = Symbol
-  structure ST = Stamps
-  structure A = Access
-  structure V = Variable
+    structure EM = ErrorMsg
+    structure SS = Substring
+    structure EP = EntPath
+    structure T = Types
+    structure BT = BasicTypes
+    structure SP = SymPath
+    structure IP = InvPath
+    structure S = Symbol
+    structure ST = Stamps
+    structure A = Access
+    structure V = Variable
 
-  open Types
+    open Types
 
-  val array = Array.array
-  val sub = Array.sub
-  val update = Array.update
-  infix 9 sub
+    val array = Array.array
+    val sub = Array.sub
+    val update = Array.update
+    infix 9 sub
 
-in
     val --> = BT.-->
     infix -->
 
@@ -81,7 +79,7 @@ in
    *   mkMETAty returns a type that represents a "fresh" type meta variable,
    * which will NOT appear in the "context" anywhere (e.g. in instantiating
    * the polytype of an applied occurrence of a variable. To do the same
-   * thing for a meta variable that will occur in the type of a (lambda-) 
+   * thing for a meta variable that will occur in the type of a (lambda-)
    * bound variable in the context, use mkMETAtyBounded with the appropriate
    * lambda-binding depth. *)
 
@@ -101,7 +99,7 @@ in
       (*  markGeneralizedTyvar: tyvar -> unit *)
       fun markGeneralizedTyvar tv =
 	  let val count = !generalizedTyvarCount
-	   in generalizedTyvarCount := count + 1; 
+	   in generalizedTyvarCount := count + 1;
 	      tv := LBOUND{depth = 0, index = 1000 + count, eq = false}
 	  end
 
@@ -124,7 +122,7 @@ in
 	  generalizedTyvarCount := 0
 
     end (* local *)
-    
+
   (*************** primitive operations on tycons ***************)
     fun bugTyc (s: string, tyc) = (case tyc
 	   of GENtyc { path, ... } => bug (s ^ " GENtyc " ^ S.name (IP.last path))
@@ -881,7 +879,7 @@ in
   (* mapUnZip f xs = ListPair.unzip(map f xs), with loop fusion, not tail recursive *)
     fun mapUnZip f =
         let fun muz nil = (nil,nil)
-	      | muz (x::xs) = 
+	      | muz (x::xs) =
 		let val (u,v) = f x
 		    val (us,vs) = muz xs
 		 in (u::us, v::vs)
@@ -1295,7 +1293,7 @@ in
 		       end
 		  else bug "destructDataconTy"
 	      | _ => (* dcon not polymorphic: instTy = BT.range dconty *)
-		BT.domain dconTy 
+		BT.domain dconTy
 	end
 
     (* destructRecordTy : ty -> ty list *)
@@ -1314,5 +1312,4 @@ in
     (* dePolyVar : V.var -> T.ty  -- depolymorphise type of a variable *)
     fun dePolyVar var = dePoly (V.varType var)
 
-  end (* local *)
   end (* structure TypesUtil *)

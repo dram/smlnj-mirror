@@ -200,16 +200,6 @@ structure Binfile :> BINFILE =
 	  val vbytes = 8			        (* version part; allow for xxxx.y.z *)
 	  val abytes = oldVersInfoSzb - vbytes - 1      (* arch part *)
 	  fun trim (i, s) = if (size s > i) then substring (s, 0, i) else s
-(*
-	(* use at most the first three components of version_id *)
-	  fun vers2s [] = []
-	    | vers2s [x] = [Int.toString x]
-	    | vers2s [x, y] = [Int.toString x, ".", Int.toString y]
-	    | vers2s (x :: y :: z :: _) = [
-                  Int.toString x, ".", Int.toString y, ".", Int.toString z
-                ]
-	  val v = trim (vbytes, concat (vers2s smlnjVersion))
-*)
           val v = trim (vbytes, smlnjVersion)
 	  val a = trim (abytes, arch)
 	  in
@@ -445,7 +435,6 @@ structure Binfile :> BINFILE =
 	    writePidList (s, epl);
 	    (* arena1 *)
 	    writePidList (s, envPids);
-	    (* arena2 -- UNUSED -- this used to be the pickled FLINT IR *)
 	    (* GUID area *)
 	    BinIO.output (s, Byte.stringToBytes guid);
 	    (* padding area is currently empty *)

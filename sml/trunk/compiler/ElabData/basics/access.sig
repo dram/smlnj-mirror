@@ -5,7 +5,7 @@
  *)
 
 signature ACCESS =
-sig
+  sig
 
   (* How to find the dynamic value corresponding to a variable.
    * -- LVAR is just a lambda-bound variable --- a "local" varialbe used to
@@ -76,4 +76,4 @@ sig
 
     val accLvar : access -> LambdaVar.lvar option
 
-end (* signature ACCESS *)
+  end (* signature ACCESS *)

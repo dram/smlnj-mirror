@@ -29,7 +29,7 @@ fun unboundError(unboundSym, symPathOp, errFn, errorVal) =
 	val pathMsg =
 	    case symPathOp
 	      of NONE => nil
-	       | SOME spath => 
+	       | SOME spath =>
 		   if SP.length spath > 1
 		   then [" in path ", SP.toString spath]
 		   else nil
@@ -71,7 +71,7 @@ fun lookFsig (env, sym, err) : M.fctSig =
 fun bindingToAtomId (B.VALbind v) = AS.VAR v
   | bindingToAtomId (B.CONbind c) = AS.CON c
   | bindingToAtomId _ = AS.ERRORid
-			    
+
 (*** look for a variable or a constructor bound to a symbol ***)
 fun lookIdSym (env, sym, err) : AS.value =
     bindingToAtomId (SE.look (env, sym))

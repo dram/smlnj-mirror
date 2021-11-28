@@ -40,7 +40,7 @@ struct
 	    | f (a::r) = Symbol.name a :: "." :: f r
 (* [DBM, 2020.04.25] misplaced hack for curried/noncurried functor absyn expansions
 		  if (Symbol.eq(a,resultId)) orelse
-		     (Symbol.eq(a,returnId)) 
+		     (Symbol.eq(a,returnId))
 		  then f r
 		  else Symbol.name a :: "." :: f r
 *)
@@ -102,7 +102,6 @@ end
 structure ConvertPaths : CONVERTPATHS =
 struct
 
-local
   structure S = Symbol
   structure SP = SymPath
   structure IP = InvPath
@@ -114,13 +113,11 @@ local
   fun dbsaynl msg = if !debugging then saynl msg else ()
   fun dbsaysnl msgs = if !debugging then saysnl msgs else ()
 
-in
-
   fun invertSPath(SP.SPATH p : SP.path) : IP.path =
       IP.IPATH(rev p)
   fun invertIPath(IP.IPATH p : IP.path) : SP.path =
       SP.SPATH(rev p)
-		   
+
   (* findPath: IP.path * ('a -> bool) * (SP.path -> 'a option)
                -> Symbol.symbol list * bool
     convert inverse symbolic path names to a printable string in the
@@ -136,7 +133,7 @@ in
     It looks up each suffix of the path name, going from shortest to longest
     suffix, in the current environment until it finds one whose lookup value
     satisfies the check predicate.  It then converts that suffix to a string.
-    If it doesn't find any suffix, the full path (reversed, i.e. in the 
+    If it doesn't find any suffix, the full path (reversed, i.e. in the
     normal order) and the boolean value false are returned, otherwise the
     suffix and true are returned.
 
@@ -181,5 +178,4 @@ in
        in try(p,[])
       end
 
-end (* top local *)
 end (* structure ConvertPaths *)

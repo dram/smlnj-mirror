@@ -22,20 +22,21 @@ structure CompInfo =
 	sourceName : string
       }
 
-    fun mkCompInfo { source, transform : 'a -> 'a, mkStampGenerator } : 'a compInfo =
-	let val { error, errorMatch, anyErrors } = ErrorMsg.errors source
-	    val _ = LambdaVar.clear () (* reset base lambda var to 0 *)
-	    val gen = mkStampGenerator ()
-	    fun mkLvar NONE = LambdaVar.mkLvar ()
-	      | mkLvar (SOME sym) = LambdaVar.namedLvar sym
-	 in {mkStamp = fn () => Stamps.fresh gen,
-	     mkLvar = mkLvar,
-	     anyErrors = anyErrors,
-	     error = error,
-	     errorMatch = errorMatch,
-	     transform = transform,
-	     sourceName = #fileOpened source}
-	end
+    fun mkCompInfo { source, transform : 'a -> 'a, mkStampGenerator } : 'a compInfo = let
+          val { error, errorMatch, anyErrors } = ErrorMsg.errors source
+          val _ = LambdaVar.clear () (* reset base lambda var to 0 *)
+          val gen = mkStampGenerator ()
+          fun mkLvar NONE = LambdaVar.mkLvar ()
+            | mkLvar (SOME sym) = LambdaVar.namedLvar sym
+	  in {
+	    mkStamp = fn () => Stamps.fresh gen,
+	    mkLvar = mkLvar,
+	    anyErrors = anyErrors,
+	    error = error,
+	    errorMatch = errorMatch,
+	    transform = transform,
+	    sourceName = #fileOpened source
+	  } end
 
     fun anyErrors (ci : 'a compInfo) = ! (#anyErrors ci)
 

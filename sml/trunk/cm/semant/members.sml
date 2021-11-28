@@ -347,7 +347,7 @@ structure MemberCollection :> MEMBERCOLLECTION = struct
 	       | NONE => (error ("no such subgroup: " ^ SrcPath.descr p);
 			  SS.empty))
     end
-	
+
     fun is_errorcollection ERRORCOLLECTION = true
       | is_errorcollection (COLLECTION _) = false
 end

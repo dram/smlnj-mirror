@@ -207,7 +207,7 @@ fun check phase envs lexp = let
     fun typeof le =
 	let fun typeofVar lv =
 		(case LB.ltLookup (venv,lv,d)
-		   of NONE => 
+		   of NONE =>
 		        errMsg (le, "Unbound Lvar " ^ LV.lvarName lv, LB.ltc_void)
 		    | SOME lty => lty)
 

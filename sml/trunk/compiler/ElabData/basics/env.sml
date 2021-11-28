@@ -1,12 +1,12 @@
 (* Copyright 1996 by AT&T Bell Laboratories *)
 (* env.sml *)
 
-signature INTSTRMAPV = 
-sig 
+signature INTSTRMAPV =
+sig
   type 'a intstrmap
   val new : (word * string * 'a) list -> 'a intstrmap
 
-  (* in case of duplicates, the element towards the head of the 
+  (* in case of duplicates, the element towards the head of the
    * list is discarded,and the one towards the tail is kept.
    *)
   val elems : 'a intstrmap -> int
@@ -27,8 +27,8 @@ fun debugmsg (msg: string) =
 
 exception Unbound
 
-structure IntStrMapV :> INTSTRMAPV = 
-struct 
+structure IntStrMapV :> INTSTRMAPV =
+struct
 
   structure V = Vector
   datatype 'a bucket = NIL | B of (word * string * 'a * 'a bucket)
@@ -53,7 +53,7 @@ struct
   fun map v (i,s) =
     let fun find NIL = raise Unbound
           | find (B(i',s',j,r)) = if i=i' andalso s=s' then j else find r
-      
+
      in (find (V.sub(v, index(V.length v, i))))
           handle Div => raise Unbound
     end
@@ -113,7 +113,7 @@ datatype 'b env
 
 val empty = EMPTY
 
-fun look (env,sym as Symbol.SYMBOL(is as (i,s))) = 
+fun look (env,sym as Symbol.SYMBOL(is as (i,s))) =
     let fun f EMPTY = (debugmsg("$Env.look "^s); raise Unbound)
 	  | f (BIND(i',s',b,n)) =
 	      if i = i' andalso s = s' then b else f n
@@ -127,8 +127,8 @@ fun bind (Symbol.SYMBOL(i,s),binding,env) = BIND (i,s,binding,env)
 fun special (look', getSyms) =
   let val memo_env = ref empty
       fun lookMem sym =
-            look(!memo_env, sym) 
-            handle Unbound => 
+            look(!memo_env, sym)
+            handle Unbound =>
                   let val binding = look' sym
                    in memo_env := bind(sym,binding,!memo_env);
                       binding
@@ -150,12 +150,12 @@ fun EMPTY atop e = e
   | (BIND(i,s,b,n)) atop e = BIND(i,s,b,n atop e)
   | (TABLE(t,n)) atop e = TABLE(t,n atop e)
   | (SPECIAL(g,syms,n)) atop e = SPECIAL(g, syms, n atop e)
- 
+
 fun app f =
   let fun g (BIND(i,s,b,n)) = (g n; f (Symbol.SYMBOL(i,s),b))
         | g (TABLE(t,n)) =
               (g n; IntStrMapV.app (fn (i,s,b) => f(Symbol.SYMBOL(i,s),b)) t)
-        | g (SPECIAL(looker,syms,n)) = 
+        | g (SPECIAL(looker,syms,n)) =
               (g n; List.app (fn sym=>f(sym,looker sym)) (syms()))
         | g (EMPTY) = ()
    in g
@@ -183,17 +183,17 @@ fun map func (TABLE(t,EMPTY)) =  (* optimized case *)
                   in IntStrMapV.app add t;
                      f(!r,n)
                  end
-            | f(syms,SPECIAL(look',syms',n)) = 
+            | f(syms,SPECIAL(look',syms',n)) =
                  f(List.map (fn (sym as Symbol.SYMBOL(i,s)) =>
-                                    (i,s,func(look' sym))) (syms'())@syms, 
+                                    (i,s,func(look' sym))) (syms'())@syms,
                    n)
             | f(syms,EMPTY) = syms
- 
+
        in TABLE(IntStrMapV.new(f(nil,env)), EMPTY)
       end
 
 fun fold f base e =
-  let fun g (BIND(i,s,b,n),x) = 
+  let fun g (BIND(i,s,b,n),x) =
               let val y = g(n,x)
                in f((Symbol.SYMBOL(i,s),b),y)
               end
@@ -202,7 +202,7 @@ fun fold f base e =
                in IntStrMapV.fold
                      (fn ((i,s,b),z) => f((Symbol.SYMBOL(i,s),b),z)) y t
               end
-        | g (SPECIAL(looker,syms,n),x) = 
+        | g (SPECIAL(looker,syms,n),x) =
               let val y = g(n,x)
                   val symbols = (syms())
                in List.foldr (fn (sym,z) =>f((sym,looker sym),z)) y symbols
@@ -226,7 +226,7 @@ fun shouldConsolidate env =
 (*
 fun tooDeep env =
  let fun f(depth,env) = if depth > 30 then true
-       else case env 
+       else case env
              of BIND(_,_,_,n) => f(depth+1,n)
               | TABLE(_,n) => f(depth+1,n)
               | SPECIAL(_,_,n) => f(depth+1,n)
@@ -237,8 +237,8 @@ fun tooDeep env =
 
 fun consolidateLazy (env as TABLE(_,EMPTY)) = env
   | consolidateLazy (env as EMPTY) = env
-  | consolidateLazy env = 
-      if shouldConsolidate env 
+  | consolidateLazy env =
+      if shouldConsolidate env
       then map (fn x => x) env handle NoSymbolList => env
       else env
 

@@ -323,7 +323,7 @@ let
        | WordPat(src, s) =>
 	  (NUMpat(src, {ty = mkWordLiteralTy(s,region), ival = s}), TS.empty)
        | StringPat s => (STRINGpat s, TS.empty)
-       | CharPat c => (CHARpat c, TS.empty)
+       | CharPat s => (CHARpat(String.sub(s, 0)), TS.empty)
        | RecordPat {def,flexibility} =>
 	    let val (lps,tyv) = elabPLabel region env def
 	     in (EU.makeRECORDpat (lps,flexibility,error region), tyv)
@@ -369,7 +369,7 @@ let
 			     handle FreeOrVars => (errorMsg (V.varName var); var)
 		       val _ = (* collect the vars in pat in tbl *)
 			   (* appPat : pat -> unit *)
-			   let fun appPat (VARpat var) = 
+			   let fun appPat (VARpat var) =
 				     ins (V.varName var, (var, 1))
 				 | appPat (RECORDpat{fields, ...}) =
 				     app (fn (_, p) => appPat p) fields
@@ -387,7 +387,7 @@ let
 				 | appPat pat = () (* constants, WILDpat *)
 			      in appPat pat
 			     end
-		       (* subPat : (var -> var) -> pat -> pat *) 
+		       (* subPat : (var -> var) -> pat -> pat *)
 		       fun subPat (substFn : V.var -> V.var) =
 			   let fun subPat' (VARpat var) = VARpat (substFn var)
 				 | subPat' (RECORDpat{fields, flex, typ}) =
@@ -433,7 +433,7 @@ let
 	       val (path, regionOp) = getPath (constr, NONE)
 	       val region = getOpt (regionOp, SM.nullRegion)
 	    in case LU.lookIdPath (env, SP.SPATH path, error region)
-		 of AS.CON dcon => 
+		 of AS.CON dcon =>
 		      (case dcon
 			 of T.DATACON{const=false, lazyp, ...} =>
 			      let val (argpat,tyvars) = elabPat(argument, env, region)
@@ -546,7 +546,7 @@ let
 		  (* end case *)
 		end
 	   | StringExp s => (STRINGexp s, TS.empty, no_updt)
-	   | CharExp c => (CHARexp c, TS.empty, no_updt)
+	   | CharExp s => (CHARexp(String.sub(s, 0)), TS.empty, no_updt)
 	   | RecordExp cells =>
 	       let val (les,tyv,updt) = elabELabel(cells,env,region)
 		in (EU.makeRECORDexp (les,error region),tyv,updt)
@@ -1205,7 +1205,7 @@ let
 			  end
 		     else ((v,clauses,fbregion)::lcl,SE.bind(var,B.VALbind v,env'))
 		 end (* makevar *)
-		     
+
 	    val (fundecs, funsEnv) = foldl (makevar region) ([],SE.empty) fb
 	    val env'' = SE.atop(funsEnv,env)
 

@@ -87,7 +87,7 @@ local
   val bindExnRef : T.datacon option ref = ref NONE
 in
   fun initializeMatchBind (env: SE.staticEnv) =
-      (* Define exceptions used in match compilation when a match/bind is 
+      (* Define exceptions used in match compilation when a match/bind is
        * non-exhaustive.
        * The staticEnv argument is assumed to contain the Core structure, so
        * initializeMatchBind must be called in a context having such a staticEnv
@@ -276,8 +276,8 @@ fun patToString WILDpat = "_"
   | patToString (VARpat(VALvar{path,...})) = SP.toString path
   | patToString (CONpat(DATACON{name,...},_)) = S.name name
   | patToString (NUMpat(src, _)) = src
-  | patToString (STRINGpat s) = s
-  | patToString (CHARpat c) = "#"^(Char.toString c)
+  | patToString (STRINGpat s) = concat["\"", String.toString s, "\""]
+  | patToString (CHARpat c) = concat["#\"", Char.toString c, "\""]
   | patToString (RECORDpat _) = "<record>"
   | patToString (APPpat _) = "<application>"
   | patToString (CONSTRAINTpat _) = "<constraint pattern>"

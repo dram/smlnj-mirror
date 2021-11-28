@@ -5,19 +5,17 @@
  *)
 
 structure Access : ACCESS =
-struct
+  struct
 
-local
-  structure LV = LambdaVar
-  structure EM = ErrorMsg
-  structure PS = PersStamps
-  structure S = Symbol
+    structure LV = LambdaVar
+    structure EM = ErrorMsg
+    structure PS = PersStamps
+    structure S = Symbol
 
-  fun bug msg = EM.impossible("Bugs in Access: "^msg)
+    fun bug msg = EM.impossible("Bugs in Access: "^msg)
 
-  type lvar = LV.lvar
-  type persstamp = PS.persstamp
-in
+    type lvar = LV.lvar
+    type persstamp = PS.persstamp
 
   (* How to find the dynamic value corresponding to a variable. *)
     datatype access
@@ -38,25 +36,29 @@ in
       | LISTCONS
       | LISTNIL
 
-   (* See ElabData/types/basictypes.sml for examples.
-    * FLINT/cps/switch.sml uses consig during representation analysis
-    * CLAIM: for consig CSIG(m,n), the number of datacons of the datatype is m+n? *)
+  (* See ElabData/types/basictypes.sml for examples
+   *
+   * FLINT/cps/switch.sml uses consig during representation analysis
+   * CLAIM: for consig CSIG(m,n), the number of datacons of the datatype is m+n?
+   *)
     datatype consig
-      = CSIG of int * int    (* # dcon tagged, # untagged *)
+      = CSIG of int * int               (* # dcon tagged, # untagged *)
       | CNIL
 
   (****************************************************************************
    *                    UTILITY FUNCTIONS ON ACCESS                           *
    ****************************************************************************)
 
-  (* shortened print name for pid; last 5 characters *)
-    fun prPid pid =
-	let val s = PS.toHex pid
-	in String.extract (s, size s - 5, NONE)
-	end
+  (*  shortened print name for pid *)
+    fun prPid pid =  let
+	  val s = PS.toHex pid
+	  val n = size s
+	  in
+	    String.extract (s, size s - 5, NONE)
+	  end
 
   (** printing the access *)
-    fun prAcc (LVAR i) = "lv" ^ (LV.prLvar i)
+    fun prAcc (LVAR i) = concat["LVAR(", LV.prLvar i, ")"]
       | prAcc (PATH(a,i)) = concat["PATH(", prAcc a, ",", Int.toString i, ")"]
       | prAcc (EXTERN pid) = concat["EXTERN(.", prPid pid, ")"]
       | prAcc (NO_ACCESS) = "NO_ACCESS"
@@ -95,5 +97,4 @@ in
     fun accLvar (LVAR v) = SOME v
       | accLvar _ = NONE
 
-end (* top local *)
-end (* structure Access *)
+  end (* structure Access *)

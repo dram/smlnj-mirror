@@ -16,7 +16,7 @@
 (* I moved this into the elaborator library. It may be moved
  * back to FLINT if the elaborator gets "cleaned up", i.e., if
  * it is made to be unaware of such middle-end specifics.
- * (08/2001 Blume) 
+ * (08/2001 Blume)
  * [DBM, 2021.10] After rewrite of Absyn, etc. to use "named" type
  * variables, this should no longer be needed. *)
 

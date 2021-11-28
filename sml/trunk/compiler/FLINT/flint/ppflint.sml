@@ -9,7 +9,6 @@
 structure PPFlint :> PPFLINT =
 struct
 
-local
   (** frequently used structures *)
   structure S = Symbol
   structure LV = LambdaVar
@@ -27,7 +26,6 @@ local
   structure PP = PrettyPrint
   structure PPU = PPUtil
   structure CTRL = Control.FLINT
-in
 
     (* fflagToString : F.fflag -> string *)
     fun fflagToString ff =
@@ -428,5 +426,4 @@ in
 	PP.with_pp (PP.mkDevice (!CTRL.lineWidth))
 		   (fn ppstrm => (ppFundec printDepth ppstrm prog))
 
-end (* top local *)
 end (* structure PPFlint *)

@@ -14,7 +14,7 @@ sig
   type binding = Bindings.binding
   type real_binding = binding * Modules.modtree option
 
-  exception Unbound  
+  exception Unbound
 
   val empty: staticEnv
   val look: staticEnv * Symbol.symbol -> binding
@@ -31,7 +31,7 @@ sig
   val map: (binding -> binding) -> staticEnv -> staticEnv
   val fold: ((Symbol.symbol * binding) * 'a -> 'a) -> 'a -> staticEnv -> 'a
   val realfold : ((Symbol.symbol * real_binding) * 'a -> 'a) -> 'a -> staticEnv -> 'a
-  val foldOverElems: ((Symbol.symbol * binding) * 'a -> 'a) * 'a * staticEnv * Symbol.symbol list -> 'a 
+  val foldOverElems: ((Symbol.symbol * binding) * 'a -> 'a) * 'a * staticEnv * Symbol.symbol list -> 'a
   val sort: staticEnv -> (Symbol.symbol * binding) list
 
   val symbols : staticEnv -> Symbol.symbol list

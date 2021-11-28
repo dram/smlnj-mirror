@@ -16,11 +16,11 @@ end (* signature TVARCVT *)
 (* DBM: the named type variable form (FK_NAMED) is retained throughout the optimization
  * phases, so the deBruijn-style type variables are probably not needed. If
  * the front-end, PLambda, and FlintNM were modified to work with named type
- * variables (in expressions), then these two functions and the TvarCvt structure could be 
+ * variables (in expressions), then these two functions and the TvarCvt structure could be
  * eliminated. *)
-    
+
 structure TvarCvt :> TVARCVT =
-struct
+  struct
 
     (* local abbreviations *)
     structure DI = DebIndex
@@ -42,7 +42,7 @@ struct
       with_pp (fn ppstm => (PPLty.ppLty 20 ppstm lty))
 
     val wrdebugging = FLINT_Control.wrdebugging
-		      
+
     val say = Control.Print.say
     fun dbsay msg = if !wrdebugging then say msg else ()
     fun bug msg = ErrorMsg.impossible("TvarCvt: " ^ msg)
@@ -151,7 +151,7 @@ struct
 	end
 
 (* ================================================================================ *)
-(* Conversion of named tyvars to deBruijn tyvars *)	    
+(* Conversion of named tyvars to deBruijn tyvars *)
 
     (* env: an environment used for the names2debIndex conversion *)
     type env = (int * int) LV.Map.map
@@ -302,7 +302,7 @@ struct
 		  | cvtFkind fk = fk
 
 		fun cvtParam (lvar, lty) = (lvar, ltSubst lty)
-					      
+
              in (cvtFkind fkind, lvar, map cvtParam params, cvtExp(env, depth, body))
             end (* cvtFundec *)
 
@@ -311,4 +311,4 @@ struct
      in cvtFundec (LV.Map.empty, DI.top) prog
     end (* names2debIndex *)
 
-end (* structure TvarCvt *)
+  end (* structure TvarCvt *)

@@ -328,8 +328,7 @@ structure Switch : sig
 
   (* generate switch code for the given argument and cases *)
     fun switch {rename} {cases=[], default, ...} = default
-      | switch {rename} {arg, sign, cases as (c, _)::_, default} =
-	(case c
+      | switch {rename} {arg, sign, cases as (c, _)::_, default} = (case c
 	   of PL.INTcon{ival, ty} => let
 		fun un_int (PL.INTcon{ival, ...}, act) = (ival, act)
 		  | un_int _ = bug "un_int"

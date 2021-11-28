@@ -110,23 +110,27 @@ structure Control : CONTROL =
 
       val nextpri = ref 0
 
-      fun register (cvt_fn, name, help, defaultRef) =
-	  let val p = !nextpri
-	      val ctl = Controls.control
-		          {name = name,
-			   pri = [p],
-			   obscurity = obscurity,
-			   help = help,
-			   ctl = defaultRef}
-	   in nextpri := p + 1;
-              ControlRegistry.register registry
-		 {ctl = Controls.stringControl cvt_fn ctl,
-		  envName = SOME (ControlUtil.EnvName.toUpper "CONTROL_" name)};
+      fun register (cvtFn, name, help, defaultRef) = let
+	    val p = !nextpri
+	    val ctl = Controls.control {
+		    name = name,
+		    pri = [p],
+		    obscurity = obscurity,
+		    help = help,
+		    ctl = defaultRef
+		  }
+	    in
+	      nextpri := p + 1;
+              ControlRegistry.register registry {
+		  ctl = Controls.stringControl cvtFn ctl,
+		  envName = SOME (ControlUtil.EnvName.toUpper "CONTROL_" name)
+		};
 	      defaultRef
-	  end
+	    end
 
-      (* `new (n, h, d)` defines new boolean control reference with default value `d` 
-       *  and registers it with name `n` and help message `h`. *)
+    (* `new (n, h, d)` defines new control reference with default value `d`
+     * and registers it with name `n` and help message `h`.
+     *)
       fun new (n, h, d) = register (bool_cvt, n, h, ref d)
 
     in
@@ -158,7 +162,8 @@ structure Control : CONTROL =
 		 val overloadKW = ref false
 		 val lazysml = ref false
 		 val quotation = ref false
-                 val setSuccML : bool -> unit *)
+                 val setSuccML : bool -> unit
+     *)
 
     val sourceName = register(string_cvt, "source", "source file or stream", ref "")
     val debugging = new ("debugging", "?", false)
@@ -166,7 +171,7 @@ structure Control : CONTROL =
     val pddebugging = new ("pddebugging", "PPDec debugging", false)
     val printAst = new ("printAst", "whether to print Ast representation", false)
     val printAbsyn = ElabControl.printAbsyn
-			       
+
     val interp = new ("interp", "?", false)
 
     val progressMsgs =

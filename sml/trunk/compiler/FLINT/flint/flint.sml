@@ -1,18 +1,16 @@
 (* flint.sml
  *
- * COPYRIGHT (c) 2017 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2021 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *)
 
 structure FLINT : FLINT =
-struct
+  struct
 
-local
-  structure A  = Access   (* should go away soon ??? A.conrep, A.consig used *)
-  structure LV = LambdaVar
-  structure LT = Lty
-  structure FR = FunRecMeta
-in
+    structure A  = Access   (* should go away soon ??? A.conrep, A.consig used *)
+    structure LV = LambdaVar
+    structure LT = Lty
+    structure FR = FunRecMeta
 
   (** simple values: variables or constants. *)
     datatype value
@@ -53,6 +51,4 @@ in
 
     type prog = fundec  (* was "lvar * lty * lexp" *)
 
-
-end (* top local *)
-end (* structure FLINT *)
+  end (* structure FLINT *)

@@ -1,11 +1,11 @@
-(* ElabData/syntax/variable.sig
+(* variable.sig
  *
  * COPYRIGHT (c) 2017 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *)
 
 signature VARIABLE =
-sig
+  sig
 
     datatype var
       = VALvar of	                (* ordinary variables *)
@@ -40,4 +40,4 @@ sig
 
     val toString : var -> string
 
-end (* signature VARIABLE *)
+  end (* signature VARCON *)

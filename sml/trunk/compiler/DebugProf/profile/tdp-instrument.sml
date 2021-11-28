@@ -236,7 +236,7 @@ structure TDPInstrument :> TDP_INSTRUMENT = struct
 	  | i_exp _ loc (A.RAISEexp (e, t)) =
 	      A.RAISEexp (i_exp false loc e, t)
 	  | i_exp tail loc (A.CASEexp (e, (rules, lhsTy, rhsTy))) =
-	    A.CASEexp (i_exp false loc e, (map (i_rule tail loc) rules, lhsTy, rhsTy))
+	      A.CASEexp (i_exp false loc e, (map (i_rule tail loc) rules, lhsTy, rhsTy))
 	  | i_exp tail loc (A.IFexp { test, thenCase, elseCase }) =
 	      A.IFexp { test = i_exp false loc test,
 			thenCase = i_exp tail loc thenCase,
