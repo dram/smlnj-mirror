@@ -27,7 +27,7 @@ Group
 
         functor BackendFn
 
-        functor MachineCodeGenFn
+        functor CodeGeneratorFn
 
 	structure FLINTOpt
 
