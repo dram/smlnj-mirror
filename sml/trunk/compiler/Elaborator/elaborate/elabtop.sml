@@ -5,17 +5,17 @@
  *)
 
 signature ELABTOP =
-sig
+  sig
 
     val elabTop : Ast.dec * StaticEnv.staticEnv * ElabUtil.compInfo
 	  -> Absyn.dec * StaticEnv.staticEnv
 
     val debugging : bool ref
 
-end (* signature ELABTOP *)
+  end (* signature ELABTOP *)
 
 structure ElabTop : ELABTOP =
-struct
+  struct
 
     structure PP = PrettyPrint
     structure PU = PPUtil
@@ -218,4 +218,4 @@ struct
 	(dec, env)
     end (* fun elabTop *)
 
-end (* structure ElabTop *)
+  end (* structure ElabTop *)

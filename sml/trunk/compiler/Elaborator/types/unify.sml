@@ -178,9 +178,9 @@ fun occurCheck (tyvar, ty) =
     (* scan : T.ty -> unit; raises Occur *)
     let fun scan WILDCARDty = ()
 	  | scan (MARKty(ty,_)) = scan ty
-	  | scan (VARty tyvar') = 
+	  | scan (VARty tyvar') =
 	      if TU.eqTyvar (tyvar, tyvar') then raise Occurs else ()
-	  | scan (CONty(tycon,args)) = 
+	  | scan (CONty(tycon,args)) =
 	      app scan args
 	  | scan _ = ()
 	val _ = if !debugging
@@ -188,7 +188,7 @@ fun occurCheck (tyvar, ty) =
 		else ()
     in (scan ty; dbsaynl "OC false"; false)
        handle Occurs => (dbsaynl "OC true"; true)
-    end					       
+    end
 
 fun instantiate (tyvar, ty) =
     tyvar := INSTANTIATED ty
@@ -245,7 +245,7 @@ fun adjustType (tyvar, depth, eq, ty, region1, region2) =
 	      (* A headReduceType is done here to ensure that both
 	       * depth and eq are propagated into only "relevant" tyvars of ty
 	       * (see tests/typing/tests/18.sml).
-	       * avoiding an infinite loop that could occur if we do the 
+	       * avoiding an infinite loop that could occur if we do the
                * occurrence check against a nonrelevant tyvar within an argument
 	       * of ty. To avoid the head-reduce, we would need to figure out eq
 	       * propagation by analyzing the definition of the DEFtyc. [DBM 2021.10.28]
@@ -354,9 +354,9 @@ fun unifyTy(type1, type2, reg1, reg2) =
 			      (case (tycon1, tycon2)
 				 of (DEFtyc _, DEFtyc _) =>
 				      (TU.headReduceType ty1, TU.headReduceType ty2)
-				  | (DEFtyc _, _) => 
+				  | (DEFtyc _, _) =>
 				      (TU.headReduceType ty1, ty2)
-				  | (_, DEFtyc _) => 
+				  | (_, DEFtyc _) =>
 				      (ty1, TU.headReduceType ty2)
 				  | _ => (* neither can be reduced, so give up! *)
 				      raise Unify (TYC(tycon1,tycon2,reg1,reg2)))
@@ -390,7 +390,7 @@ and unifyTyvars (var1: tyvar, var2: tyvar, reg1, reg2) =
 		 ((case i2
 		    of OVLDI sources2 =>
 		       (dbsaynl "@unifyTyvars[OVLDI/OVLDV]";
-			var1 := OVLDI (sources1 @ sources2))	
+			var1 := OVLDI (sources1 @ sources2))
 		     | OVLDW _ =>
 		       (dbsaynl "@unifyTyvars[OVLDI/OVLDW]";
 			raise Unify (OVLD_F "OVLDI/OVLDW"))
@@ -406,7 +406,7 @@ and unifyTyvars (var1: tyvar, var2: tyvar, reg1, reg2) =
 		     | UBOUND _ => raise Unify (OVLD_UB "OVLDI")
 		     | _ => bug "unifyTyvars OVLDI");
 	          instantiate (var2, MARKty(VARty var1, reg1)))
-		 
+
               | OVLDW sources1 =>
 		 ((case i2
 		    of OVLDW sources2 =>
@@ -422,7 +422,7 @@ and unifyTyvars (var1: tyvar, var2: tyvar, reg1, reg2) =
 		     | UBOUND _ => raise Unify (OVLD_UB "OVLDW")
 		     | _ => bug "unifyTyvars OVLDW");
 	          instantiate (var2, MARKty(VARty var1, reg1)))
-		 
+
 	      | OVLDV{sources,eq=eq1} =>
 		 ((case i2
 		    of OVLDV{sources=sources2,eq=eq2} =>
@@ -533,7 +533,7 @@ and instTyvar (tyvar as ref(OPEN{kind=META,depth,eq}), ty, reg1, reg2) =
        case ty
 	 of WILDCARDty => ()  (* error survival *)
 	  | MARKty(ty1, reg2') => instTyvar(tyvar, ty1, reg1, reg2')
-	  | _ => 
+	  | _ =>
 	     (case TU.headReduceType ty
 	        of (ty' as CONty(tycon,nil)) =>
 		    (* checkiing that it is  a type constant, but not checking if
@@ -542,7 +542,7 @@ and instTyvar (tyvar as ref(OPEN{kind=META,depth,eq}), ty, reg1, reg2) =
 		     (debugPPType("instTyvar[OVLD] OK: ",ty');
 		      if eq then adjustType(tyvar, T.infinity, eq, ty', reg1, reg2) else ();
 		      instantiate (tyvar, ty'))
-		 | ty' as VARty tyvar' => 
+		 | ty' as VARty tyvar' =>
 		     (case !tyvar'
 		       of OPEN _ =>
 			    (dbsaynl "### instTyvar[OVLDV/OPEN]";
@@ -569,7 +569,7 @@ and instTyvar (tyvar as ref(OPEN{kind=META,depth,eq}), ty, reg1, reg2) =
        case ty
 	 of WILDCARDty => ()  (* error survival *)
 	  | MARKty(ty1, reg2') => instTyvar(tyvar, ty1, reg1, reg2')
-	  | _ => 
+	  | _ =>
 	     (case TU.headReduceType ty
 	        of (ty' as CONty(tycon,nil)) =>
 		     (* checkiing that it is  a type constant in Int overloading class *)
@@ -587,7 +587,7 @@ and instTyvar (tyvar as ref(OPEN{kind=META,depth,eq}), ty, reg1, reg2) =
        case ty
 	 of WILDCARDty => ()  (* error survival *)
 	  | MARKty(ty1, reg2') => instTyvar(tyvar, ty1, reg1, reg2')
-	  | _ => 
+	  | _ =>
 	     (case TU.headReduceType ty
 	        of (ty' as CONty(tycon,nil)) =>  (* possible word tycon *)
 		     (* checkiing that it is  a type constant in Word overloading class *)
@@ -606,7 +606,7 @@ and instTyvar (tyvar as ref(OPEN{kind=META,depth,eq}), ty, reg1, reg2) =
 	  | MARKty(ty1, reg2') => instTyvar(tyvar, ty1, reg1, reg2')
           | _ => (* check if ty reduces to same tyvar *)
 	     (case TU.headReduceType ty
-	       of VARty tyvar' => 
+	       of VARty tyvar' =>
  		    if TU.eqTyvar (tyvar, tyvar') then ()  (* tyvar cannot be instantiated *)
 		    else (dbsaynl "instTyvar[UBOUND]: raising Unify";
 			  raise Unify (UBV (i, ty, reg1, reg2)))

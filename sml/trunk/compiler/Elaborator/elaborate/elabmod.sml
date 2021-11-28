@@ -685,7 +685,7 @@ val depth : int =
 
 val _ = dbsaynl (">>> elabStr: " ^ sname)
 val _ = showStrExpAst ("### elabStr: strexp = ", strexp, env)
-		   
+
 (* elab: Ast.strexp * staticEnv * entityEnv * region
  *        -> A.dec * M.Structure * M.strExp * EE.entityEnv
  *  subsidiary function for elaborating strexps *)

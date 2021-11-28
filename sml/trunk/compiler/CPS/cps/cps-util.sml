@@ -4,8 +4,8 @@
  * All rights reserved.
  *)
 
-structure CPSUtil :
-sig
+structure CPSUtil : sig
+
   (* flip the meaning of a branch *)
     val opp : CPS.P.branch -> CPS.P.branch
 
@@ -21,9 +21,9 @@ sig
 
     val ctyc  : Lty.tyc -> CPS.cty
     val ctype : Lty.lty -> CPS.cty
-end =
 
-struct
+end = struct
+
     structure P = CPS.P
     structure PT = PrimTyc
 

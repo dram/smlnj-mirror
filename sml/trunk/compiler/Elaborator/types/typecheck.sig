@@ -1,6 +1,10 @@
-(* typecheck.sig *)
+(* typecheck.sig
+ *
+ * COPYRIGHT (c) 2021 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *)
 
-signature TYPECHECK = 
+signature TYPECHECK =
 sig
 
   val decType : StaticEnv.staticEnv * Absyn.dec * bool

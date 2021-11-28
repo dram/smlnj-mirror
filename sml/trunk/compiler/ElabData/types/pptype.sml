@@ -156,9 +156,9 @@ fun ppkind ppstrm kind =
 (* effectivePath : IP.path * T.tycon * StaticEnv.statenv -> string *)
 fun effectivePath(path: IP.path, tyc: T.tycon, env: StaticEnv.staticEnv) : string =
     let val _ = dbsaysnl [">>> effectivePath: ", IP.toString path]
-	fun find (path: IP.path, tycon: T.tycon) = 
+	fun find (path: IP.path, tycon: T.tycon) =
             let fun check tycon' = TU.equalTycon (tycon', tycon)
-		fun look sympath = 
+		fun look sympath =
 		    SOME (Lookup.lookTyc (env, sympath, (fn _ => raise StaticEnv.Unbound)))
 		    handle StaticEnv.Unbound => NONE
 	     in ConvertPaths.findPath (path, check, look)

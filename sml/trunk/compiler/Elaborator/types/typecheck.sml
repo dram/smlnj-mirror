@@ -1,6 +1,6 @@
-(* typecheck-new.sml
+(* typecheck.sml
  *
- * COPYRIGHT (c) 2017 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2021 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *)
 
@@ -85,7 +85,7 @@ val ppDec = PPAbsyn.ppDec(env, NONE)
 fun ppType' ty = (dbsaynl ">>> ppType'";
 		  PP.with_default_pp
 		      (fn ppstrm => (ppType ppstrm ty));
-		  dbsaynl "<<< ppType'") 
+		  dbsaynl "<<< ppType'")
 
 val ppDec' =
   (fn ppstrm => fn d => PPAbsyn.ppDec (env,NONE) ppstrm (d,!printDepth))
@@ -222,7 +222,7 @@ fun generalizeTy(V.VALvar{typ,path,btvs,...}, userbound: tyvar list,
 	val topLevel = OC.toplevel occ
         val _ = dbsaynl ("lamdepth occ: " ^ Int.toString lambdaDepth)
         val _ = dbsaynl ("toplevel occ: " ^ Bool.toString topLevel)
-				
+
 	val failure = ref false
 	val mkDummy = if topLevel
 	              then TypesUtil.dummyTyGen()
@@ -360,7 +360,7 @@ fun generalizeTy(V.VALvar{typ,path,btvs,...}, userbound: tyvar list,
 		  end
 	      | _ => bug "generalizeTy -- bad arg"
         (* end fun gen *)
-			 
+
 	val _ = ppTypeDebug (">>> gen: before: ", !typ)
 	val generalizedTy = gen(!typ)
 	val _ = ppTypeDebug ("<<< gen: after: ", generalizedTy)
@@ -905,7 +905,7 @@ and decType0 (decl, occ, region) : dec =
 				   (unifyErr{ty1 = ruleTy, name1 = "this clause",
 					     ty2 = funty, name2 = "previous clauses",
 					     message = "parameter or result constraints\
-						       \ of clauses do not agree", 
+						       \ of clauses do not agree",
 					     region=region, kind=ppRVB,
 					     kindname="declaration", phrase=rvb};
 				    ())

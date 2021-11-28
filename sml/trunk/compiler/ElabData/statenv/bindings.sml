@@ -82,5 +82,5 @@ structure Bindings : BINDINGS =
 	   | M.ERRORfct => S.fctSymbol "<ERRORfct>")
       | bindingSymbol (FIXbind _) = S.fixSymbol "<FIXITY>"
         (* the name bound is not recoverable from the binding *)
-				     
+
   end (* structure Bindings *)
