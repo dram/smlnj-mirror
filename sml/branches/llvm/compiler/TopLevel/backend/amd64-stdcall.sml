@@ -10,4 +10,3 @@ structure AMD64StdCallBackend =
     BackendFn (
       structure M = CodeGeneratorFn (AMD64Spec)
       val cproto_conv = "stdcall")
-

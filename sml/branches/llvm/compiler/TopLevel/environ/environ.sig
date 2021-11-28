@@ -1,11 +1,14 @@
-(* Copyright 1989 by AT&T Bell Laboratories *)
-(* environ.sig *)
+(* environ.sig
+ *
+ * COPYRIGHT (c) 2021 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *)
 
 signature ENVIRONMENT =
 sig
 
-  type staticEnv 
-  type dynenv 
+  type staticEnv
+  type dynenv
   type symenv
   type environment
        (* = { static: staticEnv, dynamic: dynenv, symbolic: symenv } *)
