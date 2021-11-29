@@ -190,53 +190,6 @@ structure Control : CONTROL =
     val saveCPSopt : bool ref = saveit
     val saveClosure : bool ref = saveit
 
-(* obsolete
-    structure LambdaSplitting = struct
-	datatype globalsetting = Off | Default of int option
-	type localsetting = int option option
-	val UseDefault : localsetting = NONE
-	fun Suggest s : localsetting = SOME s
-	fun parse "off" = SOME Off
-	  | parse "on" = SOME (Default NONE)
-	  | parse s = Option.map (Default o SOME) (Int.fromString s)
-	fun show Off = "off"
-	  | show (Default NONE) = "on"
-	  | show (Default (SOME i)) = Int.toString i
-	local
-	    val registry = ControlRegistry.new
-			       { help = "cross-module inlining" }
-
-	    val priority = [10, 10, 0, 1]
-
-	    val _ = BasicControl.nest ("inline", registry, priority)
-
-	    val cvt = { tyName = "Control.LambdaSplitting.globalsetting",
-			fromString = parse, toString = show }
-	    val state_r = ref (Default NONE)
-	    val ctl = Controls.control
-			  { name = "split-aggressiveness",
-			    pri = [0],
-			    obscurity = 1,
-			    help = "aggressiveness of lambda-splitter",
-			    ctl = state_r }
-	    val _ = ControlRegistry.register
-			registry
-			{ ctl = Controls.stringControl cvt ctl,
-			  envName = SOME "INLINE_SPLIT_AGGRESSIVENESS" }
-	in
-   	    fun set x = Controls.set (ctl, x)
-	    fun get () =
-		case Controls.get ctl of
-		    Off => NONE
-		  | Default d => d
-	    fun get' NONE = get ()
-	      | get' (SOME a) =
-		(case Controls.get ctl of
-		     Off => NONE
-		   | Default _ => a)
-	end
-      end (* LambdaSplitting *)
-*)
     val tdp_instrument = TDPInstrument.enabled
 
     end (* local *)
