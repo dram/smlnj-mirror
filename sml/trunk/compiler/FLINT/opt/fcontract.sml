@@ -1,6 +1,6 @@
 (* fcontract.sml
  *
- * CPYRIGHT (c) 2017 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2017 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
  * Author: monnier@cs.yale.edu
@@ -9,7 +9,7 @@
 
 (* [DBM, 2021.10.7] 2021 bug fix and revisions
  * Bug 294 was the first true FLINT bug reported in many years, requiring a new
- * examination of the fcontract phase. The bug was caused by code in 
+ * examination of the fcontract phase. The bug was caused by code in
  * contract/fcexp/fcFix/fcFun that eliminated fundecs in a FIX if the function
  * variable's uses count was equal to its internal uses (iusenb) count, which
  * was assumed to indicate that it had no uses outside its own definition. The
@@ -25,16 +25,16 @@
  *   - using FLINT.fundec and FLINT.tfundec as the argument types of the Fun and TFun
  *     constructors of sval.
  * Similar clarification and streamline was applied to the Collect module.
- * 
+ *
  * The bug fix is somewhat crude, but it works and the slightly weakened optimization seems
  * to have no significant effect, but reimplimenting such an optimization (removing functions
  * that are only used by themselves internally) could be considered for some optimization
  * phase in the future.
- * 
+ *
  * Collect.collect is now called at the beginning of the contract function. It is no longer
  * treated as a separate "optimization" phase, since it is only used to set up the uses/calls
  * table for FCcontract. So its function is now absorbed into the fcontract phase.
- * 
+ *
  * Stefan's original comments have been preserved, though the revisions may have introduced
  * some inaccuracies.
  *)
@@ -263,7 +263,7 @@ struct
       | Select of LV.lvar * sval * int                          (* sval is Var? *)
       | Var    of LV.lvar * LT.lty option		        (* cop out case *)
 
-    (* bindings: a finite map from lvars to svals, 
+    (* bindings: a finite map from lvars to svals,
      *  tracking the "bindings" of lvars to svals *)
     type bindings = sval M.map
 
@@ -700,7 +700,7 @@ struct
 			      else (m, fundec::fundecs, fvars)
 			  | fcEta (fundec, (m, fundecs, fvars)) = (m, fundec::fundecs, fvars)
 			  (* end fcEta *)
-						       
+
 			(* fcexp/fcFix/wrap : F.fundec * F.fundec list -> F.fundec list
 			 *  add wrapper for various purposes *)
 			  fun wrap (fd as (fk as {isrec,inline,...},fd_lvar,args,body): F.fundec,
@@ -797,7 +797,7 @@ struct
 			    | _ => F.FIX(used_fds, fixbody)
 		      end (* fcFix *)
 
-		(* fcexp/fcApp : F.value * F.value list -> F.lexp  -- F.APP args *)  
+		(* fcexp/fcApp : F.value * F.value list -> F.lexp  -- F.APP args *)
 		fun fcApp (f as F.VAR fvar, arg_vals: F.value list) =
 		      let val arg_svals = map (val2sval m) arg_vals (* map arg values to their svals *)
 		          val f_sval = val2sval m f  (* sval for f in m *)
@@ -974,7 +974,7 @@ struct
 					F.SWITCH(nv,ac,[(PL.DATAcon(ndc,tycs,lv),nle)],NONE)
 				    else (unuseValue m nv; nle)
 				end
-			      | ([(_,le)],NONE) => 
+			      | ([(_,le)],NONE) =>
 				(* This should never happen, but we can optimize it away *)
 				(unuseValue m (sval2val sv); loop (m, le, cont))
 			      | ([],SOME le) =>

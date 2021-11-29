@@ -36,7 +36,7 @@ structure Overload : OVERLOAD =
     structure Ty = Types
     structure V = Variable
     structure OLV = OverloadVar
-			
+
     fun bug msg = ErrorMsg.impossible("Overload: "^msg)
 
     fun debugMsg (msg: string) = ED.debugMsg debugging msg
@@ -54,7 +54,7 @@ structure Overload : OVERLOAD =
 	let (* the overloaded variable and literal stacks *)
 	  val overloadedvars = ref (nil: (V.var ref * Ty.tyvar * ErrorMsg.complainer) list)
 	  val overloadedlits = ref (nil: num_info list)
-				   
+
 	  (* push an overloaded variable onto the var list *)
 	  fun pushvar (varref as ref(V.OVLDvar{name,variants}), region, err) =
 	      let val tyvar = ref(Ty.OVLDV{eq=false,sources=[(name,region)]})
@@ -98,7 +98,7 @@ structure Overload : OVERLOAD =
 			 | _ =>
 			   (case OverloadVar.resolveVar(name,contextTy,variants)
 			     of SOME var => varref := var
-			     |  NONE => 
+			     |  NONE =>
 				err EM.COMPLAIN "overloaded variable not defined at type"
 				    (fn ppstrm =>
 					(PPType.resetPPType();

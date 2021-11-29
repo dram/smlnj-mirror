@@ -165,7 +165,6 @@ structure Control : CONTROL =
                  val setSuccML : bool -> unit
      *)
 
-    val sourceName = register(string_cvt, "source", "source file or stream", ref "")
     val debugging = new ("debugging", "?", false)
     val eldebugging = new ("eldebugging", "evalloop debugging", false)
     val pddebugging = new ("pddebugging", "PPDec debugging", false)

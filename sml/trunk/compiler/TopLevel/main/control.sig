@@ -61,7 +61,6 @@ signature CONTROL =
     structure FLINT : FLINTCONTROL
     structure CG : CGCONTROL
     structure MLRISC : MLRISC_CONTROL
-    val sourceName : string ref
     val debugging : bool ref
     val eldebugging : bool ref (* EvalLoopF debugging *)
     val pddebugging : bool ref (* PPDec debugging *)

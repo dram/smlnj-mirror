@@ -16,7 +16,7 @@ local
   structure CO = Coerce
   structure DI = DebIndex
   structure PO = Primop
-  structure LV = LambdaVar 
+  structure LV = LambdaVar
   structure DA = Access
   structure LT = Lty
   structure FR = FunRecMeta
@@ -40,7 +40,7 @@ val ident = fn x => x
 
 (* mkLvars : int -> LV.lvar list) *)
 fun mkLvars n = List.tabulate (n, fn i => LV.mkLvar ())
-			      
+
 (****************************************************************************
  *                   MISC UTILITY FUNCTIONS                                 *
  ****************************************************************************)

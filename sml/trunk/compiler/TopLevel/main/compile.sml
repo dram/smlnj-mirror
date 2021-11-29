@@ -117,15 +117,16 @@ functor CompileF (
     local
       val addCode = Stats.addStat (Stats.makeStat "Code Size")
     in
-    fun codegen { flint, imports, sourceName: string } =
-	let (* optimized FLINT code *)
-	    val flint = FLINTOpt.optimize (flint, sourceName)
-	    (* from optimized FLINT code, generate the machine code.  *)
-	    val csegs = M.compile {prog = flint, source = sourceName}
-	    val codeSz = (CodeObj.size(#code csegs) + Word8Vector.length(#data csegs))
-	 in addCode codeSz;
+    fun codegen { flint, imports, sourceName } = let
+        (* optimized FLINT code *)
+          val flint = FLINTOpt.optimize (flint, sourceName)
+	(* from optimized FLINT code, generate the machine code.  *)
+	  val csegs = M.compile {prog = flint, source = sourceName}
+	  val codeSz = (CodeObj.size(#code csegs) + Word8Vector.length(#data csegs))
+	  in
+	    addCode codeSz;
 	    { csegments=csegs, imports = imports }
-	end
+	  end
     end (* local codegen *)
 
     (*
@@ -153,10 +154,11 @@ functor CompileF (
 		    compInfo=compInfo
 		  }
 		before check "translate"
-	  val {csegments, imports = imports} =
-	      codegen { flint = flint, imports = imports,
-			sourceName = #sourceName compInfo }
-	      before (check "codegen")
+	  val {csegments, imports} = codegen {
+		    flint = flint, imports = imports,
+                    sourceName = #sourceName compInfo
+		  }
+		before (check "codegen")
 	(*
 	 * interp mode was currently turned off.
 	 *

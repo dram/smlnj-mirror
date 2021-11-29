@@ -8,7 +8,7 @@
  *)
 
 signature COLLECT =
-sig
+  sig
     type info
 
     (* Collect information (type info) about variable and function uses/calls.
@@ -59,7 +59,7 @@ sig
     (* create description string for an info record *)
     val infoToString : info -> string
 
-end
+  end
 
 (* Internal vs External references:
  * I started with a version that kept track separately of internal and external
@@ -131,7 +131,7 @@ val infoTable : info T.hash_table = T.mkTable (128, InfoTable)
 
 (* infoToString : info -> string
  *  string representing an info *)
-fun infoToString ({uses, calls}: info) : string = 
+fun infoToString ({uses, calls}: info) : string =
     concat ["{", Int.toString (!uses), ",", Int.toString (!calls), "}"]
 
 (* lvarToString : LV.lvar -> string
@@ -141,7 +141,7 @@ fun lvarToString (lvar: LV.lvar) =
        of SOME info => LV.lvarName lvar ^ infoToString info
         | NONE => LV.lvarName lvar ^ "{?}")  (* unregistered lvar *)
 
-(* new : LV.lvar -> info 
+(* new : LV.lvar -> info
  *  registering a new lvar in the hash infoTable *)
 fun new lvar =
     let val info = {uses=ref 0, calls=ref 0}
@@ -222,7 +222,7 @@ fun escaping ({uses,calls}: info) = !uses > !calls
 fun called ({calls,...}: info) = !calls > 0
 
 (* usedLvar : LV.lvar -> bool *)
-fun usedLvar (lvar: LV.lvar) = used (getInfo lvar) 
+fun usedLvar (lvar: LV.lvar) = used (getInfo lvar)
 
 (* kill : LV.lvar -> unit
  *  delete the _last_ reference to a variable, i.e. delete the variable from infoTable
@@ -238,7 +238,7 @@ fun impurePO (po:F.primop) = PrimopUtil.effect (#2 po)
 
 (* analyze: F.lexp -> unit -- the main collection function *)
 val analyze: F.lexp -> unit =
-let 
+let
     (* call : LV.lvar -> unit
      *  increment uses and calls for the lvar, which is assumed to have been registered *)
     fun call (lvar: LV.lvar) = callsInc (getInfo lvar)
@@ -247,7 +247,7 @@ let
     fun use (F.VAR lvar: F.value) = usesInc (getInfo lvar)
       | use _ = ()
 
-    (* cpo : F.primop -> unit 
+    (* cpo : F.primop -> unit
      *   here, the use resembles a call, but it's safer to consider it as a use *)
     fun cpo (NONE: F.dict option, po, lty, tycs) = ()
       | cpo (SOME {default,table}, po, lty, tycs) =

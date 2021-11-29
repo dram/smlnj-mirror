@@ -17,16 +17,16 @@
  *	  subtraction, negation, and the bit-wise operations.
  *)
 
-structure TransPrim :
-  sig
+structure TransPrim : sig
+
     val trans : {
 	    coreAcc : string -> PLambda.lexp,
 	    coreExn : string list -> PLambda.lexp option,
 	    mkv : unit -> LambdaVar.lvar,
 	    mkRaise : PLambda.lexp * Lty.lty -> PLambda.lexp
 	  } -> Primop.primop * Lty.lty * Lty.tyc list -> PLambda.lexp
-  end =
-struct
+
+  end = struct
 
     structure PO = Primop
     structure PL = PLambda

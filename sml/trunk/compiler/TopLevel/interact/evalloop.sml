@@ -5,7 +5,7 @@
  *)
 
 functor EvalLoopF (Compile: TOP_COMPILE) : EVALLOOP =
-struct
+  struct
 
     structure C  = Compile
     structure EM = ErrorMsg
@@ -22,8 +22,8 @@ struct
     val debugging = Control.eldebugging
     fun say msg = (Control.Print.say msg; Control.Print.flush())
     fun newline () = say "\n"
-    fun saynl msg = (Control.Print.say msg; Control.Print.say "\n"; Control.Print.flush())
-    fun saysnl strs = (Control.Print.say (concat strs); Control.Print.say "\n"; Control.Print.flush())
+    fun saynl msg = (Control.Print.say msg; newline ())
+    fun saysnl strs = saynl (concat strs)
     fun dbsaynl msg =
 	if !debugging then saynl msg else ()
 		    (* diagnostic printing of Ast and Absyn *)
@@ -44,9 +44,6 @@ struct
 	       PP.flushStream ppstrm))
 	else ()
 
-    fun progressMsg msgs =
-	if !Control.progressMsgs then saysnl msgs else ()
-
     val compManagerHook : {
 	    manageImport : Ast.dec * EnvRef.envref -> unit,
 	    managePrint :  Symbol.symbol * EnvRef.envref -> unit,
@@ -61,48 +58,59 @@ struct
 
     exception Interrupt
     exception EndOfFile
+  (* to wrap exceptions that are raised during the execution of a top-level transaction *)
     exception ExnDuringExecution of exn
-      (* to wrap exceptions that are raised during the execution of a top-level transaction *)
 
-    fun interruptable f x =
-	let val oldcont = !U.topLevelCont
-	 in U.topLevelCont := SMLofNJ.Cont.callcc
+    fun interruptable f x = let
+	  val oldcont = !U.topLevelCont
+	  in
+	    U.topLevelCont := SMLofNJ.Cont.callcc
 		(fn k => (SMLofNJ.Cont.callcc(fn k' => (SMLofNJ.Cont.throw k k'));
 			  raise Interrupt));
 	    (f x before U.topLevelCont := oldcont)
 	      handle e => (U.topLevelCont := oldcont; raise e)
-	end
+	  end
 
   (* The baseEnv and localEnv are purposely refs so that a top-level command
    * can re-assign either one of them, and the next iteration of the loop
    * will see the new value. It's also important that the toplevelenv
    * continuation NOT see the "fetched" environment, but only the ref;
    * then, if the user "filters" the environment ref, a smaller image
-   * can be written. *)
-    fun evalLoop source =
-	let val parser = SmlFile.parseOne source
-	    val cinfo = C.mkCompInfo { source = source, transform = fn x => x }
-	    val _ = Control.sourceName := Source.sourceName source
+   * can be written.
+   *)
+    fun evalLoop source = let
+	  val parser = SmlFile.parseOne source
+	  val cinfo = C.mkCompInfo { source = source, transform = fn x => x }
 
-	    fun checkErrors (s: string) =
+	  fun checkErrors (s: string) =
 		if CompInfo.anyErrors cinfo
-		then (progressMsg ["<<< Error stop after ", s];
-		      raise EM.Error)
-		else progressMsg ["### ", s, " successful"]
+		  then (
+		    if !Control.progressMsgs
+		      then saysnl ["<<< Error stop after ", s]
+		      else ();
+		    raise EM.Error)
+		else if !Control.progressMsgs
+		  then saysnl ["### ", s, " successful"]
+		  else ()
 
-	    fun oneUnit () = (* perform one transaction  *)
-		(progressMsg ["<<< oneUnit [compiling \"", #fileOpened source, "\"]"];
-	         case parser ()
-		  of NONE => raise EndOfFile
-		   | SOME ast =>
-		     let val _ = progressMsg ["### parsing successful"]
-			 val loc = EnvRef.loc ()
-			 val base = EnvRef.base ()
-			 val _ = #manageImport (!compManagerHook) (ast, loc)
+	  fun oneUnit () = ((* perform one transaction  *)
+		if !Control.progressMsgs
+		  then saysnl ["<<< oneUnit [compiling \"", #fileOpened source, "\"]"]
+		  else ();
+		case parser ()
+		 of NONE => raise EndOfFile
+		  | SOME ast => let
+		      val _ = if !Control.progressMsgs
+			    then say "### parsing successful\n"
+			    else ()
 
-			 fun getenv () = E.layerEnv (#get loc (), #get base ())
+                      val loc = EnvRef.loc ()
+                      val base = EnvRef.base ()
+                      val _ = #manageImport (!compManagerHook) (ast, loc)
 
-			 val {static=statenv, dynamic=dynEnv} = getenv ()
+		      fun getenv () = E.layerEnv (#get loc (), #get base ())
+
+		      val {static=statenv, dynamic=dynEnv} = getenv ()
 
 		      (* conditional diagnostic code to print ast - could it be involked from parser?
 			 if so, what statenv would be used? *)
@@ -121,7 +129,9 @@ struct
 			  they hold on things unnecessarily; this must be
 			  fixed in the long run. (ZHONG)
 		       *)
-		      val _ = progressMsg ["### C.compile successful"]
+		      val _ = if !Control.progressMsgs
+			    then say "### C.compile successful\n"
+			    else ()
 		      val _ = let fun ppAbsynDec ppstrm absyn_dec =
 				      PPAbsyn.ppDec (statenv, NONE) ppstrm (absyn_dec, 1000)
 			      in debugPrint debugging ("Absyn: ", ppAbsynDec, absyn)
@@ -139,25 +149,22 @@ struct
 					    exportPid=exportPid, dynEnv=dynEnv }
 		      val _ = (PC.current := Profile.compileIndex)
 
-		      val newenv =
-			  E.mkenv { static = newstatenv, dynamic = newdynenv }
+		      val newenv = E.mkenv { static = newstatenv, dynamic = newdynenv }
+                      (* refetch local environment because execution may have changed its contents *)
 		      val newLocalEnv = E.concatEnv (newenv, #get loc ())
-			  (* refetch local environment because execution may
-			     have changed its contents *)
 
 		      (* we install the new local env first before we go about
 		       * printing, otherwise we find ourselves in trouble if
 		       * the autoloader changes the the contents of loc under
 		       * our feet... *)
-
 		      val _ = #set loc newLocalEnv
 
-		      fun look_and_load sym =
-			  let val _ = dbsaynl ("LL: " ^ S.name sym)
-			      fun look () = StaticEnv.look (E.staticPart (getenv ()), sym)
-			   in look ()
+		      fun look_and_load sy = let
+			  fun look () = StaticEnv.look (E.staticPart (getenv ()), sy)
+			  in
+			      look ()
 			      handle StaticEnv.Unbound =>
-				     (#managePrint (!compManagerHook) (sym, loc);
+				     (#managePrint (!compManagerHook) (sy, loc);
 				      look ())
 			  end
 
@@ -165,33 +172,34 @@ struct
 		       * the result of get_symbols is constant (up to list
 		       * order), so memoization (as performed by
 		       * StaticEnv.special) is ok. *)
-		      fun get_symbols () =
-			  let val se = E.staticPart (getenv ())
-			      val othersyms = #getPending (!compManagerHook) ()
+		      fun get_symbols () = let
+			  val se = E.staticPart (getenv ())
+			  val othersyms = #getPending (!compManagerHook) ()
 			  in
 			      StaticEnv.symbols se @ othersyms
 			  end
 
 		      val ste1 = StaticEnv.special (look_and_load, get_symbols)
-		      val _ = progressMsg ["### ste1 successful"]
+		      val _ = if !Control.progressMsgs then say "### ste1 successful\n" else ()
 
 		      val e0 = getenv ()
-		      val _ = progressMsg ["### e0 successful"]
+		      val _ = if !Control.progressMsgs then say "### e0 successful\n" else ()
 
 		      val e1 = E.mkenv { static = ste1, dynamic = E.dynamicPart e0 }
-		      val _ = progressMsg ["### e1 successful"]
+		      val _ = if !Control.progressMsgs then say "### e1 successful\n" else ()
 
-		     in PP.with_pp
-			  (#errConsumer source)
-			  (fn ppstrm => PPDec.ppDec e1 ppstrm (absyn, exportLvars));
-		      progressMsg ["<<< oneUnit"]
-		  end
-		  (* end case; end oneUnit *))
+		      in
+			PP.with_pp
+			    (#errConsumer source)
+			    (fn ppstrm => PPDec.ppDec e1 ppstrm (absyn, exportLvars));
+		        if !Control.progressMsgs then say "### oneUnit\n" else ()
+		      end
+		  (* end case *))
 
-	    fun loop() = (oneUnit(); loop())
-
- 	 in interruptable loop ()
-	end (* function evalLoop *)
+	  fun loop() = (oneUnit(); loop())
+	  in
+	    interruptable loop ()
+	  end (* function evalLoop *)
 
   (* return the message for an exception *)
     fun exnMsg (CompileExn.Compile s) = concat ["Compile: \"", s, "\""]
@@ -306,4 +314,4 @@ struct
 		  (* end case *))
 	  end
 
-end (* functor EvalLoopF *)
+  end (* functor EvalLoopF *)

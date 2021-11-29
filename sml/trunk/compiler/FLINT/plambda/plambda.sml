@@ -5,15 +5,13 @@
  *)
 
 structure PLambda : PLAMBDA =
-struct
+  struct
 
-local
   structure A  = Access
   structure LV = LambdaVar
   structure LT = Lty
   structure PO = Primop
   (* mentions Symbol *)
-in
 
   (* dataconstr: record containing name of the constructor, the corresponding conrep,
    * and the lambda type lty; for value-carrying (i.e. nonconstant) data constructors
@@ -75,5 +73,4 @@ in
 
     withtype dict = {default: lexp, table: (LT.tyc list * lexp) list}
 
-end (* top local *)
-end (* structure PLambda *)
+  end (* structure PLambda *)

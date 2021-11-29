@@ -1,5 +1,5 @@
-(* overloadvar.sml 
- * 
+(* overloadvar.sml
+ *
  * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *)
@@ -10,7 +10,7 @@ sig
     val defaultTy : Symbol.symbol -> Types.ty
     val resolveVar : Symbol.symbol * Types.ty * Variable.var list -> Variable.var option
 end
-    
+
 structure OverloadVar : OVERLOADVAR =
 struct
 
@@ -83,7 +83,7 @@ fun symToScheme (s: S.symbol) : T.tyfun =
     case Option.map #2 (lookup s)
      of SOME scheme => scheme
       | NONE => bug "symToScheme"
-		    
+
 fun symToClass (s: S.symbol) : OLC.class =
     case Option.map #3 (lookup s)
      of SOME class => class
@@ -106,6 +106,6 @@ fun resolveVar (name: S.symbol, indicator: T.ty, variants) : V.var option =
 	    end
     in getVariant (indicator, symToClass name, variants)
     end
-    
+
 end (* local *)
 end (* structure OverloadClasses *)

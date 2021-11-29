@@ -2,7 +2,7 @@
 (* ltykernel.sig *)
 
 signature LTYKERNEL =
-sig 
+sig
 
 exception TCENV
 exception TeUnbound

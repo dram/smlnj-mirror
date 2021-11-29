@@ -60,9 +60,9 @@ fun tkAssertIsMono (k,msg) =
     else raise KindChk ("Mono assertion failed! "^msg)
 
 (* select the ith element (0 based) from a kind sequence *)
-fun tkSel (tk, i) = 
+fun tkSel (tk, i) =
   (case (tk_out tk)
-    of (TK_SEQ ks) => 
+    of (TK_SEQ ks) =>
        (List.nth(ks, i)
         handle Subscript => raise KindChk "Invalid TC_SEQ index")
      | _ => raise KindChk "Projecting out of sequence")
@@ -72,12 +72,12 @@ fun tkSel (tk, i) =
  * check the application of a type function of
  * kind `tk' to a list of arguments of kinds `tks'
  *)
-fun tkApp (tk, tks) = 
+fun tkApp (tk, tks) =
   (case (tk_out tk)
     of TK_FUN(a, b) =>
          if tksSubkind(tks, a) then b
          else raise KindChk "Param/Arg Tyc Kind mismatch"
-     | _ => raise KindChk "Application of non-TK_FUN") 
+     | _ => raise KindChk "Application of non-TK_FUN")
 
 
 (* Kind checking **************************************************)
@@ -96,11 +96,11 @@ fun tkApp (tk, tks) =
                         type ord_key = tyc
                         val compare = tc_cmp
 		      end) *)
-                       
+
 (* lookupFreeVars eliminated *)
 
 structure Memo :> sig
-  type dict 
+  type dict
   val newDict         : unit -> dict
   val recallOrCompute : dict * tkindEnv * tyc * (unit -> tkind) -> tkind
 end =
@@ -121,7 +121,7 @@ struct
           of SOME [] =>  (* tyc is closed *)
              (case TcDict.find(!dict, tyc)
                of SOME tk => tk
-                | NONE => 
+                | NONE =>
                    let val tk = doit()
                     in dict := TcDict.insert(!dict, tyc, tk);
                        tk
@@ -137,7 +137,7 @@ fun tcteKindCheckGen() =
 let val dict = Memo.newDict()
 
     fun tcKindChk (kenv : tkindEnv) t = let
-        (* default recursive invocation *)    
+        (* default recursive invocation *)
         val g = tcKindChk kenv
         (* how to compute the kind of a tyc *)
 	fun mkI tycI =
@@ -155,7 +155,7 @@ let val dict = Memo.newDict()
                       PP.newline s;
                       PP.closeBox s));
                    raise KindChk "unbound tv"))
-              | TC_NVAR _ => 
+              | TC_NVAR _ =>
                 bug "TC_NVAR not supported yet in tcKindChk"
               | TC_PRIM pt =>
                 tkc_int (PrimTyc.pt_arity pt)
@@ -176,10 +176,10 @@ let val dict = Memo.newDict()
 		    (* Kind check freetycs *)
                     val nk =
                         case ts
-                          of [] => k 
+                          of [] => k
                            | _ => tkApp(k, map g ts)
                  in case (tk_out nk)
-                     of TK_FUN(argk, resk) => 
+                     of TK_FUN(argk, resk) =>
                         let val argk' =
                                 case argk
                                   of [x] => x
@@ -211,9 +211,9 @@ let val dict = Memo.newDict()
                  tkc_mono)
               | TC_PARROW _ => bug "unexpected TC_PARROW in tcKindChk"
            (* | TC_ENV _ => bug "unexpected TC_ENV in tcKindChk" *)
-	      | TC_ENV(body, 0, j, teEmpty) => 
-		  (tcKindChk (List.drop(kenv,j)) body 
-		   handle Subscript => 
+	      | TC_ENV(body, 0, j, teEmpty) =>
+		  (tcKindChk (List.drop(kenv,j)) body
+		   handle Subscript =>
                      (if j < 0 then print ("KindChk: negative j: "^Int.toString j^"\n")
                       else if j >= (length kenv) then
                           (print ("KindChk: drop to large: "^Int.toString j^
@@ -221,30 +221,30 @@ let val dict = Memo.newDict()
                       else ();
 		      bug "KindChk: TC_ENV: dropping frames"))
 	      | TC_ENV(body, i, j, env) =>
-		  (let val kenv' = 
+		  (let val kenv' =
 			   List.drop(kenv, j)
-			   handle Subscript => 
+			   handle Subscript =>
                                (if j < 0 then (print "j = "; print(Int.toString j);
                                                print "\n")
                                 else ();
                                 bug "[TC_ENV]: dropping too many frames")
 		       fun bindToKinds(Lamb(_,ks)) = ks
 			 | bindToKinds(Beta(_,_,ks)) = ks
-		       fun addBindToKEnv(b,ke) = 
+		       fun addBindToKEnv(b,ke) =
 			   bindToKinds b :: ke
-		       val bodyKenv = 
+		       val bodyKenv =
 			   foldr addBindToKEnv kenv' (teToBinders env)
 		   in teKindChk kenv (env,j);
 		      tcKindChk bodyKenv body
-		   end) 
+		   end)
             (*  | TC_IND _ =>  bug "unexpected TC_IND in tcKindChk" *)
 	      | TC_IND(newtyc, oldtycI) =>
 		  let val newtycknd = g newtyc
-		  in   
-		      if tk_eq(newtycknd, mkI oldtycI) 
+		  in
+		      if tk_eq(newtycknd, mkI oldtycI)
 		      then newtycknd
 		      else bug "tcKindChk[IND]: new and old kind mismatch"
-		  end 
+		  end
               | TC_CONT _ => bug "unexpected TC_CONT in tcKindChk"
 
         fun mk () =
@@ -255,17 +255,17 @@ let val dict = Memo.newDict()
     end (* function tcKindChk *)
 
     and teKindChk(kenv: tkindEnv) (env: tycEnv, j: int) : unit =
-	let 
+	let
 	    fun chkBinder(Lamb _) = ()
-	      | chkBinder(Beta(j',args,ks)) = 
-		let 
+	      | chkBinder(Beta(j',args,ks)) =
+		let
 		    val kenv' = List.drop(kenv, j-j')
 		    val argks = map (fn t => tcKindChk kenv' t) args
 		in if tksSubkind(ks, argks)
 		   then ()
 		   else bug "teKindChk: Beta binder kinds mismatch"
 		end
-		handle Subscript => 
+		handle Subscript =>
 		       bug "tcKindChk[Env]: dropping too many frames"
 	in app chkBinder (teToBinders env)
 	end (* function teKindChk *)
@@ -277,32 +277,32 @@ in
     (tcKindChk, tcKindVer, teKindChk)
 end (* function tcteKindCheckGen *)
 
-fun tcKindCheckGen() = 
+fun tcKindCheckGen() =
     #1(tcteKindCheckGen())
-      
+
 fun tcKindVerifyGen() =
     #2(tcteKindCheckGen())
- 
+
 fun teKindCheckGen() =
     #3(tcteKindCheckGen())
- 
+
 (* ltKindCheckGen : unit -> tkindEnv -> lty -> tkind *)
-fun ltKindCheckGen () = 
+fun ltKindCheckGen () =
 let val (tcKindChk, _, teKindChk) = tcteKindCheckGen()
     fun ltyIChk (kenv : tkindEnv) (ltyI : ltyI) =
-        (case ltyI 
+        (case ltyI
           of LT_TYC(tyc) => tcKindChk kenv tyc
            | LT_STR(ltys) => tkc_seq(map (ltyChk' kenv) ltys)
-           | LT_FCT(paramLtys, rngLtys) => 
+           | LT_FCT(paramLtys, rngLtys) =>
                let val paramks = map (ltyChk' kenv) paramLtys
-               in 
+               in
                    tkc_fun(paramks,
                           tkc_seq(map (ltyChk' kenv) rngLtys))
                end
-           | LT_POLY(ks, ltys) => 
+           | LT_POLY(ks, ltys) =>
                tkc_seq(map (ltyChk' (tkInsert(kenv,ks))) ltys)
                (* ??? *)
-           | LT_CONT(ltys) => 
+           | LT_CONT(ltys) =>
                tkc_seq(map (ltyChk' kenv) ltys)
            | LT_IND(newLty, oldLtyI) =>
                let val newLtyKnd = (ltyChk' kenv) newLty
@@ -311,32 +311,32 @@ let val (tcKindChk, _, teKindChk) = tcteKindCheckGen()
                   else bug "ltyChk[IND]: kind mismatch"
                end
            | LT_ENV(body, i, j, env) =>
-               (* Should be the same as checking TC_ENV and 
+               (* Should be the same as checking TC_ENV and
                 * therefore the two cases should probably just
                 * call the same helper function *)
-               (let val kenv' = 
+               (let val kenv' =
                         List.drop(kenv, j)
-                        handle Subscript => 
+                        handle Subscript =>
                                (if j < 0 then (print "j = "; print(Int.toString j);
                                                print "\n")
                                 else ();
                                 bug "[LT_ENV]: dropping too many frames")
                     fun bindToKinds(Lamb(_,ks)) = ks
                       | bindToKinds(Beta(_,_,ks)) = ks
-                    fun addBindToKEnv(b,ke) = 
+                    fun addBindToKEnv(b,ke) =
                         tkInsert(ke,bindToKinds b)
-                    val bodyKenv = 
+                    val bodyKenv =
                         foldr addBindToKEnv kenv' (teToBinders env)
                 in teKindChk kenv (env,j);
                    ltyChk' bodyKenv body
                 end))
     and ltyChk' kenv lty =
          ltyIChk kenv (lt_out lty)
-         handle x => 
+         handle x =>
            (with_pp (fn ppstrm => (PPLty.ppLty (!pd) ppstrm lty;
                                    PP.newline ppstrm));
             raise x)
  in ltyChk'
-end (* function ltKindCheckGen *)	   
+end (* function ltKindCheckGen *)
 
 end (* structure LtyKindChk *)

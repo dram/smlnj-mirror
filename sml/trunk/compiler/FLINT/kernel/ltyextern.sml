@@ -15,7 +15,7 @@ local
   structure LD = LtyDef
   structure FR = FunRecMeta  (* fkind, rkind, CC_*, RK_*, LT_*, etc., formally defined here *)
   structure LK = LtyKernel
-  structure LB = LtyBasic		     
+  structure LB = LtyBasic
   structure LKC = LtyKindChk
   structure PO = Primop     (* really should not refer to this *)
   structure PP = PrettyPrint
@@ -187,7 +187,7 @@ fun lt_select(lty: LT.lty, i: int, whereCalled) =
 			     (PU.pps ppstm "LtyExtern.tc_select: expected TC_TUPLE; tyc = ";
 			      PPLty.ppTyc 20 ppstm tyc; PP.newline ppstm));
 		       bug ("tc_select: bad tyc [" ^ whereCalled ^ "]")))
-    in 
+    in
       (case LK.lt_whnm_out lty
 	of LT.LT_STR ltys =>
 	     (List.nth (ltys, i)
@@ -195,7 +195,7 @@ fun lt_select(lty: LT.lty, i: int, whereCalled) =
 	 | LT.LT_TYC tyc => LD.ltc_tyc(tc_select(tyc, i))
 	 | _ => bug ("lt_select: bad lty [" ^ whereCalled ^ "}"))
     end
-    
+
 fun tc_swap t =
   (case (LK.tc_whnm_out t)
     of LT.TC_ARROW (LT.FF_VAR (r1,r2), [s1], [s2]) =>
@@ -283,7 +283,7 @@ fun typeNarrowGen () =
       fun tycNarrow tyc =
           (case TcDict.find(!tycDictR, tyc)
              of SOME tyc' => tyc'
-              | NONE => 
+              | NONE =>
                 let val newtyc =
 		    (case (LK.tc_whnm_out tyc)
 		       of LT.TC_PRIM pt =>
@@ -299,7 +299,7 @@ fun typeNarrowGen () =
       fun ltyNarrow lty =
           (case LtDict.find(!ltyDictR, lty)
              of SOME lty' => lty'
-              | NONE => 
+              | NONE =>
                 let val newlty =
 		    (case LK.lt_whnm_out lty
 		       of LT.LT_TYC tc => LD.ltc_tyc (tycNarrow tc)
@@ -363,8 +363,8 @@ fun typeWrapGen () =
       and tycUnwrap (tyc: LT.tyc) =
 	  (case TcDict.find(!tycUnwrapMap, tyc)
 	    of SOME tyc' => tyc'
-	     | NONE => 
-	       let val newtyc = 
+	     | NONE =>
+	       let val newtyc =
 		   (case (LK.tc_whnm_out tyc)
 		      of (LT.TC_VAR _ | LT.TC_NVAR _ | LT.TC_PRIM _) => tyc
 		       | LT.TC_FN (ks, tyc') => LD.tcc_fn(ks, tycUnwrap tyc') (* impossible case *)
@@ -391,7 +391,7 @@ fun typeWrapGen () =
       fun ltyUnwrap (lty: LT.lty) =
 	  (case LtDict.find(!ltyUnwrapMap, lty)
 	    of SOME lty' => lty'
-	     | NONE => 
+	     | NONE =>
 	       let val newlty =
 		   (case (LK.lt_whnm_out lty)
 		      of LT.LT_TYC tyc => LD.ltc_tyc (tycUnwrap tyc)
@@ -417,7 +417,7 @@ fun typeWrapGen () =
 (************************************************************************
  *            SUBSTITION OF NAMED VARS IN A TYC/LTY                     *
  ************************************************************************)
-      
+
 fun tc_nvar_elim_gen () =
     let val dict = ref (TcDict.empty)
 

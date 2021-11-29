@@ -1,4 +1,10 @@
-(* Basics/stats/timer.sml *)
+(* timeit.sml
+ *
+ * COPYRIGHT (c) 2021 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *
+ * QUESTION: why is this file here and not in Basics/stats?
+ *)
 
 structure TimeIt =
 struct
@@ -6,7 +12,7 @@ struct
 local
 
     fun say msg = (Control_Print.say msg; Control_Print.flush ())
-    open Time Timer	  
+    open Time Timer
 in
 
 fun timeIt (doit: bool) (name: string, loc: string, f : 'a -> 'b, arg: 'a) : 'b =

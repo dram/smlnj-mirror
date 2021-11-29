@@ -6,7 +6,7 @@
 
 (* Lty: definition of "raw" (or internal) types ltyI and tycI and their
  * hash-consed version lty and tyc -- the basic types and "contstructors"
- * for PLambda/FLINT types. 
+ * for PLambda/FLINT types.
  * Hash-consing machinery for lty and tyc.
  * Nadathur closure machinery for type functions.
  * [DBM, 2021.10] *)
@@ -121,7 +121,7 @@ end (* local of hashconsing implementation basics *)
 
 (** definition of kinds for all the lambda tycs *)
 (* [KM???] TK_BOX does not appear to be used. TK_BOX and TK_MONO are "subkinds"
- * of one another, according to tkSubkind, defined below. Does this mean that 
+ * of one another, according to tkSubkind, defined below. Does this mean that
  * any tyc of kind TK_BOX is also of kind TK_MONO, and vice versa? *)
 datatype tkindI
   = TK_MONO                                    (* ground mono tycon *)
@@ -414,7 +414,7 @@ local (* hashconsing impl *)
         | (TC_BOX t) => getAux t
         | (TC_TUPLE ts) => fsmerge ts
         | (TC_ARROW(_, ts1, ts2)) => fsmerge (ts1@ts2)
-        | (TC_PARROW(t1, t2)) => fsmerge [t1, t2] 
+        | (TC_PARROW(t1, t2)) => fsmerge [t1, t2]
         | (TC_WRAP (ref(_, t, AX_NO))) => AX_NO
         | (TC_WRAP (tyc as ref(_, t, AX_REG(b,vs,nvs)))) =>
               AX_REG (wrap_is_whnm tyc andalso b, vs, nvs)

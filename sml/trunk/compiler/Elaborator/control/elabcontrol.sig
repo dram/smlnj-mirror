@@ -7,7 +7,7 @@
  *)
 
 signature ELAB_CONTROL =
-sig
+  sig
 
     val etdebugging : bool ref
 	(* ElabType *)
@@ -62,4 +62,4 @@ sig
   (* show culprits in type error messages (default false) *)
     val showTypeErrorCulprits : bool ref
 
-end (* signature ELAB_CONTROL *)
+  end (* signature ELAB_CONTROL *)

@@ -74,8 +74,7 @@ fun stampOf(B.VALbind (V.VALvar {access=a, ...})) = root a
  * calls consolidateStatic, therefore we don't have duplicate bindings
  * of the same symbol.
  *)
-fun stalePids (deltaEnv, baseEnv) =
-  let
+fun stalePids (deltaEnv, baseEnv) = let
 
       (* any rebindings? *)
       val anyrebound = ref false

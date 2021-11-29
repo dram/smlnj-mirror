@@ -25,7 +25,7 @@ structure PrimTyc :> PRIM_TYC =
    *)
 
     datatype primtyc
-      = PT_NUM of int                   (* integer (0 for IntInf.int) *)
+      = PT_NUM of int                   (* integer/word (0 for IntInf.int) *)
       | PT_REAL of int                  (* reals *)
       | PT_STRING                       (* string type; always a pointer *)
       | PT_EXN                          (* exception type *)

@@ -7,7 +7,7 @@
  *)
 
 structure ModulePropLists =
-struct
+  struct
 
     val { getFn = strEntityLty, setFn = setStrEntityLty, ... } = let
 	  fun holder (e: Modules.strEntity) = #properties e
@@ -46,4 +46,4 @@ struct
 	  end
 *)
 
-end (* structure ModulePropLists *)
+  end (* structure ModulePropLists *)

@@ -1,10 +1,10 @@
-(* COPYRIGHT (c) 1996 Bell Laboratories*) 
+(* COPYRIGHT (c) 1996 Bell Laboratories*)
 (* elabdebug.sml *)
 
 signature ELABDEBUG =
 sig
   val debugMsg : bool ref -> string -> unit
-  val debugPrint : bool ref 
+  val debugPrint : bool ref
                    -> (string *
 		       (PrettyPrint.stream -> 'a -> unit) *
 		       'a)
@@ -29,7 +29,7 @@ local
 
   open PP
 
-in 
+in
 
 fun debugMsg (debugging: bool ref) (msg: string) =
     if (!debugging)
@@ -56,7 +56,7 @@ fun debugPrint (debugging: bool ref)
 	     PP.flushStream ppstrm))
     else ()
 
-fun ppSymList ppstrm (syms: S.symbol list) = 
+fun ppSymList ppstrm (syms: S.symbol list) =
      PU.ppClosedSequence ppstrm
      {front=(fn ppstrm => PP.string ppstrm "["),
       sep=(fn ppstrm => (PP.string ppstrm ",")),
@@ -68,7 +68,7 @@ fun ppSymList ppstrm (syms: S.symbol list) =
 
 (* more debugging *)
 fun envSymbols (env: SE.staticEnv) =
-      SE.fold (fn ((s,_),sl) => s::sl) nil env 
+      SE.fold (fn ((s,_),sl) => s::sl) nil env
 
 fun checkEnv (env: SE.staticEnv, sym: S.symbol) =
       (SE.look(env,sym); "YES") handle SE.Unbound => "NO"

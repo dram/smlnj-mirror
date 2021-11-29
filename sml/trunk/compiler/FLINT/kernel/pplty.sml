@@ -53,7 +53,7 @@ fun ppList ppstrm {sep: string, pp : PP.stream -> 'a -> unit} (list: 'a list) =
 
 (* ppFflag : PP.stream -> Lty.fflag -> unit *)
 fun ppFflag ppstrm fflag =
-    let val fflagString = 
+    let val fflagString =
 	    (case fflag
 	      of LT.FF_FIXED => "[f]"
 	       | LT.FF_VAR bb =>
