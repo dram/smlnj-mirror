@@ -5341,7 +5341,32 @@ NONE if the rootvar was not relevant.
 
 
 ================================================================================
-[NN] Literature
+[45] pattern matrices, rows and columns (Pettersson, et al.)
+================================================================================
+
+In the pattern matrix approach (e.g. Pettersson),
+
+* columns represent positions across the AND or "product" (or "tuple"
+  or "record") structure of the pattern space. Flattening or
+  "dispatching" product structure splits columns.
+  
+
+* rows repseent "strata" in the pattern space (in states after partial
+  constructor discrimination has been done, i.e. possibly some
+  constructors have been "dispatched" (i.e. we have branched on some
+  constructor choices). Constructor dispatch partitions rows according
+  to their (leading?) constructor.
+
+What constructor information is visible at any point in the matching process? In
+Pettersson, it is only the top/first row of subpatterns that is
+visible, dispatchable. So some dispatchable constructor information
+may be "hidden" by variables above it in the column.
+  
+[see dev-notes/match-compiler/pettersson/notes.txt]
+
+
+================================================================================
+[A0] Literature (Bibliography)
 ================================================================================
 
 1. Cardelli, "Compiling a Functional Language", L&FP 1984, Section 5: Pattern Matchng
@@ -5356,7 +5381,7 @@ Describes pattern matching as implemented in LML (Lazy ML).
 
 
 ================================================================================
-[0] High level overview of the new match compiler [email to Bob, 2020.5.31]
+[A1] High level overview of the new match compiler [email to Bob, 2020.5.31]
 ================================================================================
 
 I am trying to reconstruct the match compilation algorithm from first
