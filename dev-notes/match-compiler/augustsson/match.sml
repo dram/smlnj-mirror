@@ -1,6 +1,6 @@
 (* augustsson/match.sml *)
 (* Match compilation following Wadler's presentation in Chapter 5 of
- * "Implementation of Functional Languages", 1987? *)
+ * "Implementation of Functional Languages", 1987 *)
 
 structure MC =
 struct
