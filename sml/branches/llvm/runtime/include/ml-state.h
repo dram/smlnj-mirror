@@ -12,16 +12,13 @@
 #include "ml-base.h"
 #endif
 
-#ifndef _ML_ROOTS_
-#include "ml-roots.h"
+#ifndef _ML_LIMITS_
+#include "ml-limits.h"
 #endif
 
 #if (!defined(_CNTR_) && defined(ICOUNT))
 #include "cntr.h"
 #endif
-
-#define CALLEESAVE	3
-
 
 /** The ML state vector **
  */

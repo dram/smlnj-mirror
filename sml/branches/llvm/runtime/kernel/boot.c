@@ -415,7 +415,9 @@ PVT void LoadBinFile (ml_state_t *msp, char *fname)
 
       /* allocate space and read code object */
 	codeObj = ML_AllocCode (msp, thisSzB);
+	ENABLE_CODE_WRITE
 	ReadBinFile (file, PTR_MLtoC(char, codeObj), thisSzB, fname);
+	DISABLE_CODE_WRITE
 
 	FlushICache (PTR_MLtoC(char, codeObj), thisSzB);
 

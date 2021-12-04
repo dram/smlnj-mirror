@@ -82,7 +82,7 @@ case "$VERSION" in
       fi
     fi
     ;;
-  *amd64-darwin)
+  *amd64-darwin|*arm64-darwin)
     XCODE_SDK_PATH=`xcrun --show-sdk-path`
     INCLFILE=$XCODE_SDK_PATH/usr/include/unistd.h
     # verify that unistd.h exists at the expected place

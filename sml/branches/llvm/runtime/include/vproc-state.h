@@ -24,11 +24,6 @@
 #include "ml-timer.h"
 #endif
 
-#if defined(MP_SUPPORT) && (! defined(_ML_MP_))
-#include "ml-mp.h"
-#endif
-
-
 /** The Virtual processor state vector **
  *
  * The fields that are accessed by the runtime assembly code are allocated at
@@ -55,10 +50,6 @@ struct vproc_state {
 				    /* the last GC (see kernel/timers.c). */
     Time_t	*vp_gcTime;	    /* The cumulative GC time. */
     Addr_t	vp_limitPtrMask;   /* for raw-C-call interface */
-#ifdef MP_SUPPORT
-    mp_pid_t	vp_mpSelf;	    /* the owning process's ID */
-    vproc_status_t vp_mpState;	    /* proc state (see ml-mp.h) */
-#endif
 };
 
 #endif /* !_VPROC_STATE_ */

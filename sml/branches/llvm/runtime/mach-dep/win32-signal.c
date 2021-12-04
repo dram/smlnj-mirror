@@ -17,12 +17,7 @@
 
 #include "win32-sigtbl.c"
 
-#ifndef MP_SUPPORT
 #define SELF_VPROC	(VProc[0])
-#else
-/** for MP_SUPPORT, we'll use SELF_VPROC for now **/
-#define SELF_VPROC	(VProc[0])
-#endif
 
 /* ListSignals:
  */
@@ -32,7 +27,7 @@ ml_val_t ListSignals (ml_state_t *msp)
     SayDebug("win32:ListSignals: returning dummy signal list\n");
 #endif
     return ML_SysConstList (msp, &SigTbl);
-} 
+}
 
 /* PauseUntilSignal:
  *
@@ -43,7 +38,7 @@ void PauseUntilSignal (vproc_state_t *vsp)
 #ifdef WIN32_DEBUG
     SayDebug("win32:PauseUntilSignal: returning without pause\n");
 #endif
-} 
+}
 
 /* SetSignalState:
  */
@@ -63,7 +58,7 @@ int GetSignalState (vproc_state_t *vsp, int sigNum)
     SayDebug("win32:GetSignalState: returning state for signal %d as ML_SIG_DEFAULT\n",sigNum);
 #endif
     return ML_SIG_DEFAULT;
-}  
+}
 
 
 /* SetSignalMask:

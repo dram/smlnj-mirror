@@ -26,10 +26,6 @@ ml_val_t _ml_P_Process_exece (ml_state_t *msp, ml_val_t arg)
 
       /* use the heap for temp space for the argv[] and envp[] vectors */
     cp = (char **)(msp->ml_allocPtr);
-#ifdef SIZES_C64_ML32
-      /* must 8-byte align this */
-    cp = (char **)ROUNDUP((Unsigned64_t)cp, ADDR_SZB);
-#endif
     argv = cp;
     for (p = arglst;  p != LIST_nil;  p = LIST_tl(p))
         *cp++ = STR_MLtoC(LIST_hd(p));

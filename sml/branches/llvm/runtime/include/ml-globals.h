@@ -76,9 +76,4 @@ extern void AllocGlobals (ml_state_t *msp);
 /* Bind a C function */
 extern ml_val_t BindCFun (char *moduleName, char *funName);
 
-#ifdef SIZES_C64_ML32
-/* patch the 32-bit addresses */
-extern void PatchAddrs ();
-#endif
-
 #endif /* !_ML_GLOBALS_ */

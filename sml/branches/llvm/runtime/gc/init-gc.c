@@ -25,7 +25,6 @@
 #include "ml-globals.h"
 #include "ml-timer.h"
 #include "gc-stats.h"
-#include "ml-mp.h"
 
 PVT int		DfltRatios[MAX_NUM_GENS] = {
 	DFLT_RATIO1,	DFLT_RATIO2,	DFLT_RATIO,	DFLT_RATIO,
@@ -201,7 +200,7 @@ void InitHeap (ml_state_t *msp, bool_t isBoot, heap_params_t *params)
 
   /* allocate the base memory object that holds the allocation space */
     {
-	baseObj = MEM_AllocMemObj (MAX_NUM_PROCS*params->allocSz);
+	baseObj = MEM_AllocMemObj (params->allocSz, FALSE);
 	if (baseObj == NIL(mem_obj_t *)) {
 	    Die ("unable to allocate memory object for allocation spaces");
 	}
@@ -217,7 +216,7 @@ void InitHeap (ml_state_t *msp, bool_t isBoot, heap_params_t *params)
     for (i = 0;  i < MAX_NUM_GENS;  i++) {
 	ratio = DfltRatios[i];
 	if (i == 0)
-	    max_sz = MAX_SZ1(params->allocSz * MAX_NUM_PROCS);
+	    max_sz = MAX_SZ1(params->allocSz);
 	else {
 	    max_sz = (5*max_sz)/2;
 	    if (max_sz > 64*ONE_MEG) max_sz = 64*ONE_MEG;
@@ -269,7 +268,7 @@ void InitHeap (ml_state_t *msp, bool_t isBoot, heap_params_t *params)
   /* initialize new space */
     heap->baseObj = baseObj;
     heap->allocBase = allocBase;
-    heap->allocSzB = MAX_NUM_PROCS*params->allocSz;
+    heap->allocSzB = params->allocSz;
     MarkRegion (BIBOP, (ml_val_t *)MEMOBJ_BASE(baseObj), MEMOBJ_SZB(heap->baseObj), AID_NEW);
 #ifdef VERBOSE
     SayDebug ("NewSpace = [%p, %p:%p), %d bytes\n",

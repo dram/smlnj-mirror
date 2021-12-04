@@ -141,8 +141,9 @@ void RunML (ml_state_t *msp)
 			sprintf(buf2, "<file %.184s>", namestring);
 			loc = ML_CString(msp, buf2);
 		    }
-		    else
+		    else {
 			loc = ML_CString(msp, "<unknown file>");
+		    }
 		    LIST_cons(msp, traceStk, loc, LIST_nil);
 		    EXN_ALLOC(msp, exn, OverflowId, ML_unit, traceStk);
 		    RaiseMLExn (msp, exn);
@@ -151,14 +152,16 @@ void RunML (ml_state_t *msp)
 	      case REQ_RAISE_OVERFLOW: { /* a request for raising Overflow */
 		    ml_val_t	loc, traceStk, exn;
 		    char *namestring;
+		    SayDebug("RunML: raise Overflow request: pc = %p\n", msp->ml_pc);
 		    if ((namestring = (char *)BO_AddrToCodeObjTag(msp->ml_pc)) != NIL(char *))
 		    {
 			char	buf2[192];
 			sprintf(buf2, "<file %.184s>", namestring);
 			loc = ML_CString(msp, buf2);
 		    }
-		    else
+		    else {
 			loc = ML_CString(msp, "<unknown file>");
+		    }
 		    LIST_cons(msp, traceStk, loc, LIST_nil);
 		    EXN_ALLOC(msp, exn, OverflowId, ML_unit, traceStk);
 		    RaiseMLExn (msp, exn);

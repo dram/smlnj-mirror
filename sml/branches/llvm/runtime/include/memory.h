@@ -21,7 +21,7 @@ struct mem_obj_hdr {
 typedef struct mem_obj mem_obj_t;
 
 extern void MEM_InitMemory ();
-extern mem_obj_t *MEM_AllocMemObj (Word_t szb);
+extern mem_obj_t *MEM_AllocMemObj (Word_t szb, bool_t isExec);
 extern void MEM_FreeMemObj (mem_obj_t *obj);
 
 #define MEMOBJ_BASE(objPtr)	(((struct mem_obj_hdr *)(objPtr))->base)

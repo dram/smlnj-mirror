@@ -67,10 +67,6 @@ void Die (const char *fmt, ...)
     fprintf (stderr, "\n");
     va_end(ap);
 
-#ifdef MP_SUPPORT
-    MP_Shutdown ();
-#endif
-
     Exit (1);
 
 } /* end of Die */
@@ -85,10 +81,6 @@ void AssertFail (const char *a, const char *file, int line)
 {
     fprintf (stderr, "%s: Assertion failure (%s) at \"%s:%d\"\n",
 	MLCmdName, a, file, line);
-
-#ifdef MP_SUPPORT
-    MP_Shutdown ();
-#endif
 
     Exit (2);
 

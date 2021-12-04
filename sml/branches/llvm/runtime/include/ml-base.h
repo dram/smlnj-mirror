@@ -149,12 +149,8 @@ extern void AssertFail (const char *a, const char *file, int line);
 #define RND_MEMOBJ_SZB(SZ)	ROUNDUP(SZ,BIBOP_PAGE_SZB)
 
 /** C types used in the run-time system **/
-#ifdef SIZES_C64_ML32
-typedef Unsigned32_t ml_val_t;
-#else /* ML values and pointers have the same size */
 typedef struct { Word_t v[1]; } ml_object_t; /* something for an ml_val_t to point to */
 typedef ml_object_t *ml_val_t;
-#endif
 typedef struct vproc_state vproc_state_t;
 typedef struct ml_state ml_state_t;
 typedef struct heap heap_t;

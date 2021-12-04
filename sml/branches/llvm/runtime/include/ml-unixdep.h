@@ -98,7 +98,7 @@
 extern int	sys_nerr;
 extern char	*sys_errlist[];
 
-#elif defined(OPSYS_DARWIN) /** MacOS X 10.5 for PPC / 10.6+ for x86 / 10.10+ for x86_64 **/
+#elif defined(OPSYS_DARWIN) /** macOS for arm64 and x86_64 **/
 #  define OS_NAME       "Darwin"
 #  define HAS_POSIX_LIBRARIES
 #  define HAS_POSIX_SIGS

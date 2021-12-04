@@ -37,9 +37,6 @@ PVT char	*LoadImage	/* the path name of the image file to load */
 		    = DFLT_IMAGE;
 PVT char	*BootFrom	/* the boot source (bin file list file). */
 		    = NULL;
-# ifdef MP_SUPPORT
-PVT int		NumProcs = 1;	/* not used */
-# endif
 
 PVT void ParseOptions (int argc, char **argv, heap_params_t **heapParams);
 
@@ -117,16 +114,6 @@ PVT void ParseOptions (int argc, char **argv, heap_params_t **heapParams)
 		CHECK("cmdname");
 		MLCmdName = optionArg;
 	    }
-#ifdef MP_SUPPORT
-	    else if (MATCH("nprocs")) {
-		CHECK("nprocs");
-		NumProcs = atoi(optionArg);
-		if (NumProcs < 0)
-		    NumProcs = 0;
-		else if (NumProcs > MAX_NUM_PROCS)
-		    NumProcs = MAX_NUM_PROCS;
-	    }
-#endif
 	    else if (MATCH("quiet")) {
 		SilentLoad = TRUE;
 	    }
@@ -134,7 +121,10 @@ PVT void ParseOptions (int argc, char **argv, heap_params_t **heapParams)
 		SilentLoad = FALSE;
 	    }
 	    else if (MATCH("objects")) {
-	      DumpObjectStrings = TRUE;
+	        DumpObjectStrings = TRUE;
+	    }
+	    else if (MATCH("gcmessages")) {
+		GCMessages = TRUE;
 	    }
 	    else if (MATCH("debug")) {
 		CHECK("debug");

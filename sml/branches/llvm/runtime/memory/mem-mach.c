@@ -48,7 +48,7 @@ void MEM_InitMemory ()
  * Map a BIBOP_PAGE_SZB aligned chunk of szb bytes of virtual memory.  Return
  * the address of the mapped memory (or NIL on failure).
  */
-PVT status_t MapMemory (mem_obj_t *obj, Addr_t szb)
+PVT status_t MapMemory (mem_obj_t *obj, Addr_t szb, bool_t isExec)
 {
     Addr_t		addr, offset;
     kern_return_t	sts;

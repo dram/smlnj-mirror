@@ -460,6 +460,21 @@ extern void SetFSR(int);
 #    error "unknown OPSYS for amd64"
 #  endif
 
+#elif defined(ARCH_ARM64)
+
+#  if defined(OPSYS_DARWIN)
+    /** arm64, Darwin **/
+      /* we do not define SIG_OVERFLOW, because we do not use hardware traps to
+       * implement overflow.
+       */
+#    define SIG_GetPC(scp)		((scp)->uc_mcontext->__ss.__pc)
+#    define SIG_SetPC(scp, addr)	{ (scp)->uc_mcontext->__ss.__pc = (Addr_t) addr; }
+#    define SIG_ZeroLimitPtr(scp)	{ (scp)->uc_mcontext->__ss.__x[25] = 0; }
+
+#  else
+#    error "unknown OPSYS for arm64"
+#  endif
+
 #endif
 
 #ifndef SIG_InitFPE

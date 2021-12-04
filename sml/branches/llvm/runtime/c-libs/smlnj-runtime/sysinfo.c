@@ -48,17 +48,11 @@ ml_val_t _ml_RunT_sysinfo (ml_state_t *msp, ml_val_t arg)
 	res = ML_CString(msp, "<unknown>");
     else if (STREQ("HEAP_SUFFIX", name))
         res = ML_CString(msp, MACHINE_ID "-" OPSYS_ID);
-    else if (STREQ("ARCH_NAME", name)
+    else if (STREQ("ARCH_NAME", name))
 #if   defined(ARCH_ARM64)
         res = ML_CString(msp, "ARM64");
 #elif   defined(ARCH_AMD64)
 	res = ML_CString(msp, "AMD64");
-#elif defined(ARCH_PPC)
-	res = ML_CString(msp, "PPC");
-#elif defined(ARCH_SPARC)
-	res = ML_CString(msp, "SPARC");
-#elif defined(ARCH_X86)
-	res = ML_CString(msp, "X86");
 #else
 	res = ML_CString(msp, "<unknown>");
 #endif
