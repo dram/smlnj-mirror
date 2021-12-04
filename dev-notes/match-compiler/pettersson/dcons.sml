@@ -36,9 +36,10 @@ fun dconFamily dcon =
 
 (* isExhaustive : dcon list -> bool *)
 fun isExhaustive (dcons as dcon :: _) =
-    let val family = dconFamily dcon
-     in subset (family, dcons)
-    end
+      let val family = dconFamily dcon
+       in subset (family, dcons)
+      end
+  | isExhaustive nil = raise Fail "isExhaustive nil"
 
 (* isConstant : dcon -> bool *)
 fun isConstant dcon =

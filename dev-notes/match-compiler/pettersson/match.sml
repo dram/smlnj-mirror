@@ -8,13 +8,16 @@ struct
 
 local
   open Dcons Absyn
-  type dcon = Dcons.dcon
 
   (* snoc : 'a list * 'a -> 'a list
    *  "reverse cons", adds x at the end of xs *)
   fun snoc (xs, x) = xs @ [x]
 
+  exception MC_BUG
+  fun bug msg = (print ("BUG: "^msg); raise MC_BUG)
+
 in
+
 (* let constants be "represented" by nullary constructor applications,
  * e.g. true ==> APP ("TRUE", TUP nil), as in Augustssen/Wadler *)
 
@@ -38,16 +41,17 @@ datatype link
 type path = link list
 type ruleno = int
 
-(* pmatrix: preprocessed pattern matrices *)
+(* pmatrix, pmatrixR, pmatrixC: preprocessed pattern matrices *)
 type prow = ppat list  (* row of patterns *)
 type pcol = ppat list  (* column of patterns *)
 type pmatrix  = ppat list list (* pattern matrix, ambiguous order *)
-type pmatrixR = prow list  (* "row-major" pattern matrix = pmatrix *)
-type pmatrixC = pcol list (* "column-major" pattern matrix = pmatrix *)
-type indicesR = int list  (* row indices in ascending order *)
+type pmatrixR = prow list  (* "row-major" (elements are rows) pattern matrix == pmatrix *)
+type pmatrixC = pcol list (* "column-major" (elements are columns) pattern matrix == pmatrix *)
+type indicesR = int list  (* row indices in ascending order, 0-based *)
 
 (* INVARIANT (for pmatrix, pmatrixR, pmatrixC: all elements have same length
- * Note that pmatrix == pmatrixR == pmatrixC *)
+ * Note that pmatrix == pmatrixR == pmatrixC, so the types do not actually distinguish
+ * row-major and column-major pattern matrices. *)
 
 (* "augmented pmatrix with paths and rules
  * INVARIANT: if |pmatrix| = m x n, then |paths| = n and |rules| = m *)
@@ -59,13 +63,12 @@ type amatrix = {pmatrix : pmatrixR, paths: path list, rules: ruleno list}
  * [May need to be augmented to implement "merging of equivalent nodes".] *)
 datatype dt (* "state" *)
   = TEST of path * (dcon * dt) list * dt option  (* "Test" state; choice node *)
-  | LEAF of ruleno                        (* "Final" state; leaf node *)
-
+  | LEAF of ruleno                               (* "Final" state; leaf node *)
 
 (* pattern preprocessing *****************************************************)
 
 (* 1. for each source rule (pat, exp) [plus root match variable "x"],
-      (a) build an environment mapping source vars inthe pat to paths
+      (a) build an environment mapping source vars in the pat to paths
       (b) each path could be translated into a unique "match" variable, so
           this environment can be treated as a variable substitution s
           This is well-defined because each source variable appears at
@@ -77,9 +80,9 @@ datatype dt (* "state" *)
 type svenv = (var * path) list
 fun svenvBind (var, path, svenv) = (var, path) :: svenv
 
-(* preprocess : pat -> ppat * svenv
+(* preprocessPat : pat -> ppat * svenv
  * uses the fact that any var appears at most once in a pattern *)
-fun preprocess (pat: pat): ppat * svenv =
+fun preprocessPat (pat: pat): ppat * svenv =
     let fun proc (path, pat, svenv) =
 	    (case pat
 	      of PVAR v => (PPVAR,  svenvBind (v, path, svenv))
@@ -109,6 +112,8 @@ fun iselect (xs, is) =
     let fun sel (xs as (x::xs'), n, indices as (i::is')) =
 	    if i = n then x :: sel (xs', n+1, is')
 	    else sel (xs', n+1, indices)
+	  | sel (xs, n, nil) = nil  (* no more indices, no more items to select *)
+	  | sel (nil, n, is) = bug "iselect..sel, ran out of xs"
      in sel (xs, 0, is)
     end
 
@@ -123,24 +128,26 @@ fun mergeIndices (nil, js) = js
 	| LESS => i :: mergeIndices (is', js)
 	| GREATER => j :: mergeIndices(is, js'))
 
-
 (* transpose : pmatrix -> pmatrix
  *  REQUIRE: all "rows" (elements) of pmatrix have the same length
  *  simple, "brute force" version of list-matrix transpose  *)
-fun transpose (m: pmatrix) : pmatrix =
-    List.tabulate (length (hd m),  (* number of columns *)
-		   fn n => map (fn row => List.nth(row,n)) m)
+fun transpose (m as (row0::_): pmatrix) : pmatrix =
+    List.tabulate (length row0,  (* number of columns *)
+		   fn n => map (fn row => List.nth (row, n)) m)
+  | transpose nil = nil  (* no rows, empty pmatrix *)
 
 (* destructTuple : pcol -> pmatrixC
  *  REQUIRE: arg is a pcol starting with a PPTUP pattern;
- *  all patterns in pcol will be either PPVAR or PPTUP *)
-fun destructTuple (PPTUP pats :: rest) =
+ *  all patterns in pcol will be either PPVAR or PPTUP;
+ *  if the head ppat is a null-tuple, then we get a pmatrixC of width 0 (all nil rows) *)
+fun destructTupleCol (PPTUP pats :: rest) =
     let val varRow = List.tabulate (length pats, (fn _ => PPVAR))
-	fun mkrow (PPTUP pats') = pats'
+	fun mkrow (PPTUP pats') = pats' (* length pats' = length pat by typing *)
 	  | mkrow PPVAR = varRow
-    in pats :: map mkrow rest
+	  | mkrow (PPCON _) = bug "destructTupleCol..mkrow PPCON"
+     in transpose (pats :: map mkrow rest)
     end
-
+  | destructTupleCol _ = bug "destructTupleCol"
 
 (* The Match Compiler **********************************************************)
 
@@ -155,18 +162,32 @@ fun destructTuple (PPTUP pats :: rest) =
     been flattened, but none of any PTUP columns after the PCON column will be flattened. *)
 fun columnScan (paths, columns) =
     let fun scan (prevpaths, prevcols, curpath::restpaths, curcol::restcols) =
-	    (case hd curcol
-	      of PPCON (dcon, argpat) =>  (* found a PPCON column *)
+	    (case curcol
+	      of PPCON (dcon, argpat) :: _ =>  (* found a PPCON column *)
 		 (SOME (curpath, curcol), revAppend (prevpaths, restpaths),
 		  revAppend (prevcols, restcols))
-	       | PPTUP pats =>  (* found a PPTUP column, flatten it in place and continue *)
-		 scan (prevpaths, prevcols,
+	       | PPTUP pats :: _ =>  (* found a PPTUP column, flatten it in place and continue *)
+		 let val restpaths' = (List.mapi (fn (i,p) => snoc(curpath, PL i)) pats) @ restpaths
+		     val restcols' = (destructTupleCol curcol) @ restcols
+		     val num_restpaths' = length restpaths'
+		     val num_restcols' = length restcols'
+		 in if num_restpaths' <> num_restcols'
+		    then (print ("num_restpaths' = "^(Int.toString num_restpaths'));
+			  print ("num_restcols' = "^(Int.toString num_restcols'));
+			  bug "columnScan: paths, columns mismatch")
+		    else scan (prevpaths, prevcols, restpaths', restcols')
+		 end
+(*		 scan (prevpaths, prevcols,
 		       (List.mapi (fn (i,p) => snoc(curpath, PL i)) pats) @ restpaths,
 		       (destructTuple curcol) @ restcols)
-	       | PPVAR => (* found a PPVAR column, leave it in place and continue *)
+*)
+	       | PPVAR :: _ => (* found a PPVAR column, leave it in place and continue *)
 		 scan (snoc (prevpaths, curpath), snoc (prevcols, curcol),
-		       restpaths, restcols))
+		       restpaths, restcols)
+	       | nil => bug "columnScan..scan: null curcol")
 	  | scan (prevpaths, prevcols, nil, nil) = (NONE, prevpaths, prevcols)
+	  | scan (prevpaths, prevcols, nil, _) = bug "columnScan: ran out of paths"
+	  | scan (prevpaths, prevcols, _, nil) = bug "columnScan: ran out of columns"
      in scan (nil, nil, paths, columns)
     end
 
@@ -176,7 +197,7 @@ fun columnScan (paths, columns) =
  *  row indices plus the row indices of PVARS in the column. The row indices for
  *  a dcon also include all the var indices. *)
 fun columnSplit pcol =
-    let fun insert (dcon, i, nil) = [(dcon, [i])]
+    let fun insert (dcon: dcon, i, nil) = [(dcon, [i])]
 	  | insert (dcon, i, (binder as (dcon', indices))::rest) =
 	      if dcon' = dcon
 	      then (dcon', i::indices) :: rest
@@ -185,6 +206,7 @@ fun columnSplit pcol =
 	      scan (rest, n+1, insert (dcon, n, dcontable), vindices)
 	  | scan (PPVAR::rest, n, dcontable, vindices) =
 	      scan (rest, n+1, dcontable, n::vindices)
+	  | scan (PPTUP _ :: _, _, _, _) = bug "columnSplit..scan: unexpected PPTUP"
 	  | scan (nil, _, dcontable, vindices) = (dcontable, vindices)
         val (dcontable, vindices) =  scan (pcol, 0, nil, nil)
      in (map (fn (dcon, indices) => (dcon, rev indices)) dcontable,
@@ -195,7 +217,9 @@ fun columnSplit pcol =
  *  If the dcons in a PCON column are not exhaustive (e.g. cons without nil)
  *  and there are no variable patterns (PVAR) in the column, then there should
  *  be a MATCH_ERROR default branch.
- *  ASSERT: path not in paths *)
+ *  ASSERT: path not in paths 
+ *  ASSERT: hd pcol is PPCON _ 
+ *  ASSERT: amatrix is not empty *)
 fun branch (pcol, path, {pmatrix = rows, paths, rules}: amatrix) : dt =
     let val (dcon_rows, var_rows) : (dcon * indicesR) list * indicesR =
 	    columnSplit pcol
@@ -211,7 +235,8 @@ fun branch (pcol, path, {pmatrix = rows, paths, rules}: amatrix) : dt =
 		        else (case columnPat
 			       of PPCON (_, argpat) =>
 				  argpat :: thisrow  (* add argpat to row *)
-				| PPVAR => PPVAR :: thisrow)
+				| PPVAR => PPVAR :: thisrow
+				| PPTUP _ => bug "branch..mkDconDt..residualRow: PPTUP")
 		    end
 	        val residualPmatrix = map residualRow indices
 		val residualPaths = if constDcon then paths else snoc (path, CL dcon) :: paths
@@ -229,18 +254,52 @@ fun branch (pcol, path, {pmatrix = rows, paths, rules}: amatrix) : dt =
      in TEST (path, dcon_dts, default_dt)
     end
 
-(* match : amatrix -> dt *)
+(* branchLast : pcol * path * rules -> dt
+ *  build dt branching on a final single-column PCON column
+ *  ASSERT: pcol not null
+ *  ASSERT: hd pcol is PPCON _
+ *  ASSERT: |pcol| = |rules|
+ *  ASSERT: all dcons in pcol are constant dcons (otherwise this would not be last column) *)
+and branchLast (pcol, path, rules) =
+    let fun mkDT (PPCON (dcon, _) :: restcol, r :: restrules, dtbranches) =
+	      mkDT (restcol, restrules, (dcon, LEAF r) :: dtbranches)
+	  | mkDT (PPVAR :: restcol, r :: restrules, dtbranches) =
+	      TEST (path, rev dtbranches, SOME(LEAF r))  (* finish with first PPVAR encountered *)
+	  | mkDT (PPTUP _ :: restcol, _, _) = bug "branchLast..mkDT: PPTUP"
+	  | mkDT (nil, nil, dtbranches) = (* no PPVARs in pcol *)
+	      TEST (path, rev dtbranches, NONE)  (* may not be exhaustive *)
+	  | mkDT _ = bug "branchLast..mkDT: mismatched pcol and rules"
+    in mkDT (pcol, rules, nil)
+    end
+
+(* match : amatrix -> dt
+ *  REQUIRES: amatrix.pmatrix not empty *)
 and match ({pmatrix, paths, rules} : amatrix) =
     let val (pathColOp, paths', pmatrixC') = columnScan(paths, transpose pmatrix)
  	  (* scan for PCON column *)
      in case pathColOp
-	  of NONE => LEAF (hd rules)
-	       (* no PPCON columns found ==> all PPVARS, Variable Rule applies *)
+	  of NONE => (* no PPCON columns found ==> all PPVARS, Variable Rule applies *)
+	       (case rules
+		 of r :: _ => LEAF r
+		  | nil => bug "match: null rules")
 	   | SOME (path, pcol) =>
-	       let val amatrix = {pmatrix = transpose pmatrixC', paths = paths', rules = rules}
-	        in branch (pcol, path, amatrix)
-	       end
+	     (case pmatrixC'
+	       of nil => branchLast (pcol, path, rules)
+	        | _ => 
+		   let val amatrix = {pmatrix = transpose pmatrixC', paths = paths', rules = rules}
+	            in branch (pcol, path, amatrix)
+		   end)
     end
+
+(* matchToAmatrix : Absyn.match -> amatrix *)
+fun matchToAmatrix (match: Absyn.match) =
+    let val nrules = length match
+	val ppats = map (fn (pat,_) => [#1 (preprocessPat pat)]) match
+     in {pmatrix = ppats, paths = [nil], rules = List.tabulate (nrules, (fn n => n))}
+    end
+
+fun test (rules: Absyn.match) =
+    match (matchToAmatrix rules)
 
 end (* top local *)
 end (* structure MC *)

@@ -1,4 +1,4 @@
-(* tests.sml *)
+(* match-compiler/augustsson/tests.sml *)
 
 (* example m1 *)
 (* x => x *)
@@ -37,7 +37,9 @@ val m4 =
      ERROR);
 
 (* example 5: unweildy *)
-
+(* unweildy (nil, nil) = A
+   unweildy (xs, ys) = B (xs, ys) 
+*)
 val m5 =
     (["u0"],
      [([PTUP [pnil, pnil]],
