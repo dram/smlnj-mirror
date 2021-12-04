@@ -22,7 +22,6 @@ LIB_DIRS =	smlnj-runtime \
 		smlnj-time \
 		smlnj-date \
 		smlnj-math \
-#		smlnj-mp \
 #		smlnj-ccalls \
 		win32 \
 		win32-io \
@@ -66,10 +65,6 @@ clean :
 	cd smlnj-math
 	$(MAKE) MAKE="$(MAKE)" clean
 	cd $(MAKEDIR)
-
-#	cd smlnj-mp
-#	$(MAKE) MAKE="$(MAKE)" clean
-#	cd $(MAKEDIR)
 
 #	cd smlnj-ccalls
 #	$(MAKE) MAKE="$(MAKE)" clean

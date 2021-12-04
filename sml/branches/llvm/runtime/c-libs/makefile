@@ -21,7 +21,6 @@ LIBS =		posix-os/libposix-os.a \
 		smlnj-time/libsmlnj-time.a \
 		smlnj-date/libsmlnj-date.a \
 		smlnj-math/libsmlnj-math.a \
-		smlnj-mp/libsmlnj-mp.a \
 		posix-error/libposix-error.a \
 		posix-filesys/libposix-filesys.a \
 		posix-io/libposix-io.a \
@@ -42,7 +41,6 @@ LIB_DIRS =	posix-os \
 		smlnj-time \
 		smlnj-date \
 		smlnj-math \
-		smlnj-mp \
 		posix-error \
 		posix-filesys \
 		posix-io \

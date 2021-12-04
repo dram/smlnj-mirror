@@ -13,7 +13,9 @@
 #ifndef CLIB_NAME
 #define CLIB_NAME	"CodeGen"
 #define CLIB_VERSION	"1.0"
-#define CLIB_DATE	"January 4, 2020"
+#define CLIB_DATE	"September 4, 2021"
 #endif
 
 CFUNC("generate",		_ml_CodeGen_generate,		"")
+CFUNC("listTargets",		_ml_CodeGen_listTargets,	"")
+CFUNC("setTarget",		_ml_CodeGen_setTarget,		"")
