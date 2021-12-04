@@ -64,4 +64,3 @@ signature CODE_OBJ =
     val mkLiterals : Word8Vector.vector -> Unsafe.Object.object
 
   end;
-

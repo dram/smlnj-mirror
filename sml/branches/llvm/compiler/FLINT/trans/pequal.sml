@@ -6,7 +6,7 @@
 
 signature PEQUAL =
   sig
-    type toTcLt = (Types.ty -> PLambdaType.tyc) * (Types.ty -> PLambdaType.lty)
+    type toTcLt = (Types.ty -> Lty.tyc) * (Types.ty -> Lty.lty)
     (*
      * Constructing generic equality functions; the current version will
      * use runtime polyequal function to deal with abstract types. (ZHONG)
@@ -29,7 +29,11 @@ structure PEqual : PEQUAL =
     structure EM = ErrorMsg
     structure T  = Types
     structure BT = BasicTypes
-    structure LT = PLambdaType
+    structure LT = Lty
+    structure LK = LtyKernel
+    structure LD = LtyDef
+    structure LB = LtyBasic
+    structure LE = LtyExtern
     structure TU = TypesUtil
     structure SE = StaticEnv
     structure PO = Primop
@@ -77,7 +81,7 @@ structure PEqual : PEQUAL =
 	  (name, rep, toDconLty toTcLt (TU.dconType(tyc,domain)))
 
     val (trueDcon', falseDcon') = let
-	  val lt = LT.ltc_parrow(LT.ltc_unit, LT.ltc_bool)
+	  val lt = LD.ltc_parrow(LB.ltc_unit, LB.ltc_bool)
 	  fun h (DATACON{name, rep, ...}) = (name, rep, lt)
 	  in
 	    (h BT.trueDcon, h BT.falseDcon)
@@ -171,13 +175,13 @@ structure PEqual : PEQUAL =
    *                   Lambda Types for equality                              *
    ****************************************************************************)
 
-    val boolty = LT.ltc_bool
-    fun eqLty lt = LT.ltc_parrow(LT.ltc_tuple [lt, lt], boolty)
-    fun intEqTy sz = eqLty (LT.ltc_num sz)
+    val boolty = LB.ltc_bool
+    fun eqLty lt = LD.ltc_parrow(LD.ltc_tuple [lt, lt], boolty)
+    fun intEqTy sz = eqLty (LB.ltc_num sz)
     val uintEqTy = intEqTy  (* unsigned numbers same as signed in LT *)
-    val booleqty = eqLty (LT.ltc_bool)
+    val booleqty = eqLty (LB.ltc_bool)
 (* FIXME: since real is **not** an equality type, this definition is not needed!!! *)
-    val realeqty = eqLty (LT.ltc_real)
+    val realeqty = eqLty (LB.ltc_real)
 
     exception Notfound
 
@@ -279,7 +283,7 @@ structure PEqual : PEQUAL =
 			    | loop(_,nil) = trueLexp
 			  val lt = toLty ty
 			  in
-			    patch := FN(v, LT.ltc_tuple [lt,lt],
+			    patch := FN(v, LD.ltc_tuple [lt,lt],
 				       LET(x, SELECT(0, VAR v),
 					 LET(y, SELECT(1, VAR v),
 					   loop(0, tyl))));
@@ -326,8 +330,8 @@ structure PEqual : PEQUAL =
 							     RECORD[VAR ww, VAR uu])
 						     end)
 					val lt = toLty ty
-					val argty = LT.ltc_tuple [lt,lt]
-					val pty = LT.ltc_parrow(argty, boolty)
+					val argty = LD.ltc_tuple [lt,lt]
+					val pty = LD.ltc_parrow(argty, boolty)
 					val body = (case dcons
 					       of [] => bug "empty data types"
 (*						| [dcon] => inside dcon       *)
@@ -394,7 +398,7 @@ structure PEqual : PEQUAL =
 	    (GENOP({default=getPolyEq(),
 		    (* might want to include intinf into this table (but we
 		     * need a tcc_intinf for that)... *)
-		    table=[([LT.tcc_string], getStrEq())]},
+		    table=[([LB.tcc_string], getStrEq())]},
 		   PO.POLYEQL, toLty polyEqTy,
 		   [toTyc concreteType]))
 

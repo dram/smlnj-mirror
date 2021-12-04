@@ -1,10 +1,10 @@
-(* COPYRIGHT (c) 1996 Bell Laboratories*) 
+(* COPYRIGHT (c) 1996 Bell Laboratories*)
 (* elabdebug.sml *)
 
 signature ELABDEBUG =
 sig
   val debugMsg : bool ref -> string -> unit
-  val debugPrint : bool ref 
+  val debugPrint : bool ref
                    -> (string *
 		       (PrettyPrint.stream -> 'a -> unit) *
 		       'a)
@@ -29,7 +29,7 @@ local
 
   open PP
 
-in 
+in
 
 fun debugMsg (debugging: bool ref) (msg: string) =
     if (!debugging)
@@ -47,19 +47,16 @@ fun debugPrint (debugging: bool ref)
     if (!debugging)
     then with_default_pp
 	  (fn ppstrm =>
-	    (openHVBox ppstrm (PP.Rel 0);
+	    (openHVBox ppstrm (PP.Abs 2);
 	     PP.string ppstrm msg;
-	     newline ppstrm;
-	     PP.nbSpace ppstrm 2;
-	     openHVBox ppstrm (PP.Rel 0);
+	     PP.nbSpace ppstrm 1;
 	     printfn ppstrm arg;
 	     closeBox ppstrm;
 	     newline ppstrm;
-	     closeBox ppstrm;
 	     PP.flushStream ppstrm))
     else ()
 
-fun ppSymList ppstrm (syms: S.symbol list) = 
+fun ppSymList ppstrm (syms: S.symbol list) =
      PU.ppClosedSequence ppstrm
      {front=(fn ppstrm => PP.string ppstrm "["),
       sep=(fn ppstrm => (PP.string ppstrm ",")),
@@ -71,15 +68,16 @@ fun ppSymList ppstrm (syms: S.symbol list) =
 
 (* more debugging *)
 fun envSymbols (env: SE.staticEnv) =
-      SE.fold (fn ((s,_),sl) => s::sl) nil env 
+      SE.fold (fn ((s,_),sl) => s::sl) nil env
 
 fun checkEnv (env: SE.staticEnv, sym: S.symbol) =
       (SE.look(env,sym); "YES") handle SE.Unbound => "NO"
 
 fun withInternals (f: unit -> 'a) =
-    (ElabDataControl.setInternals ();
-     (f() before ElabDataControl.resetInternals ())
-     handle exn => (ElabDataControl.resetInternals (); raise exn))
+    let val savedInternals = ElabDataControl.setInternals ()
+     in (f() before ElabDataControl.resetInternals savedInternals)
+        handle exn => (ElabDataControl.resetInternals savedInternals; raise exn)
+    end
 
 end (* local *)
 end (* structure ElabDebug *)

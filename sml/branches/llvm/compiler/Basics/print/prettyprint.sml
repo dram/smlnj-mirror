@@ -16,9 +16,13 @@ signature PRETTYPRINT =
     include PP_STREAM
     val openVBoxI : stream -> int -> unit
     val defaultDevice : device
+    val mkDevice : int -> device
     val with_pp : device -> (stream -> unit) -> unit
+    val with_pp_sans : device -> (stream -> unit) -> unit
     val with_default_pp : (stream -> unit) -> unit
+    val with_default_pp_sans: int -> (stream -> unit) -> unit  (* 1st arg is linewidth *)
     val pp_to_string : int -> (stream -> 'a -> unit) -> 'a -> string
+    val pp_to_string_sans : int -> (stream -> 'a -> unit) -> 'a -> string
   end
 
 structure PrettyPrint : PRETTYPRINT =
@@ -77,7 +81,18 @@ structure PrettyPrint : PRETTYPRINT =
 	 linewidth = (fn () => !Control_Print.linewidth),
 	 flush = Control_Print.flush}
 
+    fun mkDevice (lineWidth : int) : device =
+	{consumer = Control_Print.say,
+	 linewidth = (fn () => lineWidth),
+	 flush = Control_Print.flush}
+
     fun with_pp device (f: PP.stream -> unit) =
+	let val ppstrm = PP.openStream device
+	 in f ppstrm;
+	    PP.closeStream ppstrm
+	end
+
+    fun with_pp_sans device (f: PP.stream -> unit) =
 	let val ppstrm = PP.openStream device
 	 in f ppstrm;
 	    PP.closeStream ppstrm
@@ -85,6 +100,13 @@ structure PrettyPrint : PRETTYPRINT =
 
     fun with_default_pp (f: PP.stream -> unit) =
 	let val ppstrm = PP.openStream(defaultDevice)
+	 in f ppstrm;
+	    PP.closeStream ppstrm
+	end
+
+    fun with_default_pp_sans lineLength (f: PP.stream -> unit) =
+	let val device = mkDevice (lineLength)
+	    val ppstrm = PP.openStream(device)
 	 in f ppstrm;
 	    PP.closeStream ppstrm
 	end
@@ -97,6 +119,16 @@ structure PrettyPrint : PRETTYPRINT =
 	 in with_pp device
 	      (fn ppStrm => ppFn ppStrm obj);
 	    String.concat(List.rev(!l))
+	end
+
+    fun pp_to_string_sans wid ppFn obj =
+	let val buffer = ref ([] : string list)
+	    fun attach s = buffer := s :: !buffer
+	    val device = {consumer = attach,
+			  linewidth = (fn _ => wid),
+			  flush = fn()=>()}
+	 in with_pp_sans device (fn ppStrm => ppFn ppStrm obj);
+	    String.concat(List.rev(!buffer))
 	end
 
   end (* structure PrettyPrint *)

@@ -1,17 +1,18 @@
 (* Copyright 1989 by AT&T Bell Laboratories *)
 (* tuples.sml *)
 
-(* 
- * TUPLES and Tuples should be called RECORDS and Records, since 
- * records are the primary concept, and tuples are a derived form. 
+(*
+ * TUPLES and Tuples should be called RECORDS and Records, since
+ * records are the primary concept, and tuples are a derived form.
  *)
-signature TUPLES = 
+signature TUPLES =
 sig
 
   val numlabel : int -> Types.label
   val mkTUPLEtyc : int -> Types.tycon
   val isTUPLEtyc : Types.tycon -> bool
   val mkRECORDtyc : Types.label list -> Types.tycon
+  val mkTUPLEtype : Types.ty list -> Types.ty
 
 end  (* signature TUPLES *)
 
@@ -19,8 +20,8 @@ structure Tuples : TUPLES = struct
 
 open Types
 
-datatype labelOpt = NOlabel | SOMElabel of label
-datatype tyconOpt = NOtycon | SOMEtycon of tycon
+type labelOpt = label option
+type tyconOpt = tycon option
 
 structure LabelArray = DynamicArrayFn (
   struct
@@ -53,7 +54,7 @@ fun labelsToSymbol(labels: label list) : Symbol.symbol =
 
 (* this is an optimization to make similar record tycs point to the same thing,
 	thus speeding equality testing on them *)
-fun mkRECORDtyc labels = 
+fun mkRECORDtyc labels =
     let val recordName = labelsToSymbol labels
         val number = Symbol.number recordName
         val name = Symbol.name recordName
@@ -65,17 +66,17 @@ fun mkRECORDtyc labels =
 	  end
     end
 
-val numericLabels = LabelArray.array(0,NOlabel)
-val tupleTycons = TyconArray.array(0,NOtycon)
+val numericLabels = LabelArray.array (0,NONE)
+val tupleTycons = TyconArray.array (0,NONE)
 
 fun numlabel i =
     case LabelArray.sub(numericLabels,i)
-      of NOlabel =>
+      of NONE =>
 	   let val newlabel = Symbol.labSymbol(Int.toString i)
-	    in LabelArray.update(numericLabels,i,SOMElabel(newlabel));
+	    in LabelArray.update(numericLabels,i,SOME newlabel);
 	       newlabel
 	   end
-       | SOMElabel(label) => label
+       | SOME label => label
 
 fun numlabels n =
     let fun labels (0,acc) = acc
@@ -85,19 +86,22 @@ fun numlabels n =
 
 fun mkTUPLEtyc n =
     case TyconArray.sub(tupleTycons,n)
-      of NOtycon =>
+      of NONE =>
            let val tycon = mkRECORDtyc(numlabels n)
-	    in TyconArray.update(tupleTycons,n,SOMEtycon(tycon));
+	    in TyconArray.update(tupleTycons,n,SOME tycon);
 	       tycon
 	   end
-       | SOMEtycon(tycon) => tycon
+       | SOME tycon => tycon
 
 fun checklabels (2,nil) = false   (* {1:t} is not a tuple *)
   | checklabels (n,nil) = true
-  | checklabels (n, lab::labs) = 
+  | checklabels (n, lab::labs) =
 	Symbol.eq(lab, numlabel n) andalso checklabels(n+1,labs)
 
 fun isTUPLEtyc(RECORDtyc labels) = checklabels(1,labels)
   | isTUPLEtyc _ = false
-    
+
+(* mkTUPLEtype : ty list -> ty *)
+fun mkTUPLEtype (elemTys) = CONty(mkTUPLEtyc (length elemTys), elemTys)
+
 end (* structure Tuples *)

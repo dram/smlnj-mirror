@@ -7,6 +7,11 @@
 signature CONREP =
   sig
 
+    (* `infer isRec cons` determines the representation of a datatype and its
+     * constructors.  The constructors are represented by triples `(sym, isConst, ty)`,
+     * where `sym` is the constructor name, `isConst` is a boolean that is true for
+     * nullary constructors, and `ty` is the type of the constructor.
+     *)
     val infer : bool -> (Symbol.symbol * bool * Types.ty) list
                      -> (Access.conrep list * Access.consig)
 

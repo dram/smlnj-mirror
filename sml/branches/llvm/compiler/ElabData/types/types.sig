@@ -1,6 +1,6 @@
 (* types.sig
  *
- * COPYRIGHT (c) 2017 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2021 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *)
 
@@ -16,22 +16,17 @@ datatype eqprop = YES | NO | IND | OBJ | DATA | ABS | UNDEF
 type varSource = Symbol.symbol * SourceMap.region
 type litSource = IntInf.int * SourceMap.region
 
-(*
-and ovldSource
-  = OVAR of Symbol.symbol * SourceMap.region	(* overloaded variable occurrence *)
-  | OINT of IntInf.int * SourceMap.region	(* overloaded int literal occurrence *)
-  | OWORD of IntInf.int * SourceMap.region	(* overloaded word literal occurrence *)
-*)
 datatype openTvKind
   = META
   | FLEX of (label * ty) list
-			 
+
 (* In future, may need to add real, char, string literals as new forms of
  * overload tvKinds *)
 and tvKind
   = INSTANTIATED of ty
   | OPEN of {depth: int, eq: bool, kind: openTvKind}
   | UBOUND of {depth: int, eq: bool, name: Symbol.symbol}
+     (* name does not include the leading apostrophy(s) *)
   | OVLDV of  (* overloaded variable (operator) *)
     {eq: bool,  (* equality attribute, may be set by unification *)
      sources: varSource list} (* names and locations of overloaded
@@ -63,7 +58,7 @@ and tyckind
    = PRIMITIVE 		(* primitive tycons *)
   | ABSTRACT of tycon
   | DATATYPE of
-     {index: int,
+     {index: int,			(* index for RECtyc *)
       stamps: Stamps.stamp vector,
       root : EntPath.entVar option,    (* the root field used by type spec only *)
       freetycs: tycon list,            (* tycs derived from functor params *)
@@ -91,12 +86,12 @@ and tycon
 
 and ty
   = VARty of tyvar
-  | IBOUND of int
+  | IBOUND of int		(* DeBruijn index; must be in a tyfun *)
   | CONty of tycon * ty list
   | POLYty of {sign: polysign, tyfun: tyfun}
   | MARKty of ty * SourceMap.region
-  | WILDCARDty
-  | UNDEFty
+  | WILDCARDty			(* used for avoiding cascading errors *)
+  | UNDEFty			(* pre-type-checking type *)
 
 and tyfun
   = TYFUN of {arity : int, body : ty}
@@ -117,10 +112,9 @@ and dtmember =
      sign: Access.consig}
 
 and dtypeFamily =
-  {mkey: Stamps.stamp,
-   members: dtmember vector,
-   properties: PropList.holder}
-
+    {mkey: Stamps.stamp,
+     members: dtmember vector,
+     properties: PropList.holder}
 
 and stubinfo =
     {owner : PersStamps.persstamp,

@@ -14,7 +14,7 @@
  *)
 signature BFC = sig
     type bfc
-    type stats = { env: int, inlinfo: int, data: int, code: int }
+    type stats = { env: int, data: int, code: int }
     val new : unit -> { store: SmlInfo.info * { contents: bfc, stats: stats }
 			       -> unit,
 		        get: SmlInfo.info -> { contents: bfc, stats: stats } }
@@ -27,9 +27,13 @@ struct
 
     structure BF = Binfile
     type bfc = BF.bfContents
-    type stats = { env: int, inlinfo: int, data: int, code: int }
+    type stats = { env: int, data: int, code: int }
 
-    val version = #version_id SMLNJVersion.version
+    (* version info for binfiles *)
+    val version = BF.mkVersion {
+            arch = arch,
+            smlnjVersion = SMLNJVersion.version'
+          }
 
     fun new () = let
 	val m = ref SmlInfoMap.empty
@@ -42,8 +46,7 @@ struct
 	      | NONE => let
 		    val binname = SmlInfo.binname i
 		    fun reader s = let
-			val x = BF.read { arch = arch, version = version,
-					  stream = s }
+			val x = BF.read { stream = s, version = version }
 		    in
 			store (i, x);
 			x
@@ -63,8 +66,7 @@ struct
 	    (Seek.seek (s, Position.fromInt offset);
 	     (* We can use an empty static env because no
 	      * unpickling will be done. *)
-	     #contents (BF.read { arch = arch, version = version,
-				  stream = s }))
+	     #contents (BF.read { stream = s, version = version }))
     in
 	SafeIO.perform { openIt = fn () => BinIO.openIn stable,
 			 closeIt = BinIO.closeIn,

@@ -13,6 +13,7 @@ signature BASICTYPES =
     val isArrowType : Types.ty -> bool
     val domain : Types.ty -> Types.ty
     val range : Types.ty -> Types.ty
+    val domainNrange : Types.ty -> Types.ty * Types.ty
 
     val unitTycon : Types.tycon
     val unitTy : Types.ty

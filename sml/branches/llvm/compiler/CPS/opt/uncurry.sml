@@ -7,9 +7,11 @@
 functor Uncurry(MachSpec : MACH_SPEC) : ETASPLIT  =
 struct
 
-local open CPS
-      structure LT = LtyExtern
-      structure LV = LambdaVar
+local
+  structure LD = LtyDef
+  structure LB = LtyBasic
+  structure LV = LambdaVar
+  open CPS
 in
 
 fun bug s = ErrorMsg.impossible ("Uncurry: " ^ s)
@@ -48,7 +50,7 @@ val debug = !Control.CG.debugcps (* false *)
 fun debugprint s = if debug then Control.Print.say s else ()
 fun debugflush() = if debug then Control.Print.flush() else ()
 
-val defaultArrow = LT.ltc_parrow(LT.ltc_void,LT.ltc_void)
+val defaultArrow = LD.ltc_parrow (LB.ltc_void, LB.ltc_void)
 
 fun extendLty(t,[]) = t
   | extendLty(t,a) = defaultArrow

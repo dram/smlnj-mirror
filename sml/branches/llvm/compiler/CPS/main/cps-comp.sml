@@ -3,7 +3,7 @@
  * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
- * Translate CPS to machine code.
+ * Translate FLINT to machine code via CPS and CFG.
  *)
 
 signature CPS_COMP =

@@ -20,7 +20,7 @@ is
 
 	version.template : version (target: version.sml
                                     versionfile: ../../../../config/version
-                                    releasefile: ../../../../config/release)
+                                    releasedate: ../../../../config/releasedate)
 
 # endif
 

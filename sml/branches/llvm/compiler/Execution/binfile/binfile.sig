@@ -1,6 +1,6 @@
 (* binfile.sig
  *
- * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2021 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
  * author: Matthias Blume
@@ -16,21 +16,35 @@
 
 signature BINFILE = sig
 
+  (* the contents of a binfile *)
     type bfContents
+
+    type version_info = {
+        bfVersion : word,       (* the binfile version; this will be 0w0 for
+                                 * old-format files, and the hexadecimal version
+                                 * date 0wxYYYYMMDD for SML/NJ 2021.1 and later.
+                                 *)
+        arch : string,          (* the architecture string *)
+        smlnjVersion : string   (* the SML/NJ version string *)
+      }
+
+  (* create the version info for the current binfile version *)
+    val mkVersion : {arch : string, smlnjVersion : string} -> version_info
+
+  (* get the version info for the binfile *)
+    val version : bfContents -> version_info
 
     exception FormatError
 
     type pid = PersStamps.persstamp
-    type stats = { env: int, inlinfo: int, data: int, code: int }
+    type stats = { env: int, data: int, code: int }
     type pickle = { pid: pid, pickle: Word8Vector.vector }
 
     val staticPidOf    : bfContents -> pid
     val exportPidOf    : bfContents -> pid option
-    val lambdaPidOf    : bfContents -> pid
     val cmDataOf       : bfContents -> pid list
 
     val senvPickleOf   : bfContents -> pickle
-    val lambdaPickleOf : bfContents -> pickle
 
     val guidOf         : bfContents -> string
 
@@ -39,11 +53,11 @@ signature BINFILE = sig
 
   (* create the abstract binfile contents *)
     val create : {
+            version : version_info,
 	    imports: ImportTree.import list,
 	    exportPid: pid option,
 	    cmData: pid list,
 	    senv: pickle,
-	    lambda: pickle,
 	    guid: string,
 	    csegments: CodeObj.csegments
 	  } -> bfContents
@@ -53,14 +67,12 @@ signature BINFILE = sig
 
   (* read binfile contents from an IO stream *)
     val read : {
-	    arch: string,
-	    version: int list,
+            version : version_info,                     (* expected binfile version *)
 	    stream: BinIO.instream
 	  } -> { contents: bfContents, stats: stats }
 
   (* write binfile contents to an IO stream *)
     val write : {
-	    arch: string, version: int list,
 	    stream: BinIO.outstream,
 	    contents: bfContents, nopickle: bool
 	  } -> stats

@@ -30,6 +30,7 @@ signature ELAB_CONTROL =
     val instantiateSigs : bool ref
 	(* ElabMod, Control_MC *)
     val etopdebugging : bool ref
+	(* ElabTop *)
 
     val markabsyn : bool ref
 	(* ElabCore, ElabTop, ElabUtil, Control_MC *)

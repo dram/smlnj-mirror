@@ -7,17 +7,12 @@
 signature PLAMBDA =
   sig
 
-    type tkind = PLambdaType.tkind
-    type tyc = PLambdaType.tyc
-    type lty = PLambdaType.lty
-    type lvar = LambdaVar.lvar
-
   (*
    * dataconstr records the name of the constructor, the corresponding conrep,
    * and the lambda type lty; value carrying data constructors would have
    * arrow type.
    *)
-    type dataconstr = Symbol.symbol * Access.conrep * lty
+    type dataconstr = Symbol.symbol * Access.conrep * Lty.lty
 
   (*
    * con: used to specify all possible switching statements. Efficient switch
@@ -26,11 +21,10 @@ signature PLAMBDA =
    * it more general, including constants of any numerical types.
    *)
     datatype con
-      = DATAcon of dataconstr * tyc list * lvar
+      = DATAcon of dataconstr * Lty.tyc list * LambdaVar.lvar
       | INTcon of int IntConst.t	(* sz = 0 for IntInf.int *)
       | WORDcon of int IntConst.t
       | STRINGcon of string
-      | VLENcon of int
 
   (*
    * lexp: the universal typed intermediate language. TFN, TAPP is abstraction
@@ -44,38 +38,37 @@ signature PLAMBDA =
    * ETAG, RAISE, and HANDLE are for exceptions.
    *)
     datatype lexp
-      = VAR of lvar
+      = VAR of LambdaVar.lvar
       | INT of int IntConst.t	(* sz = 0 for IntInf.int *)
       | WORD of int IntConst.t
       | REAL of int RealConst.t
       | STRING of string
-      | PRIM of Primop.primop * lty * tyc list
-      | GENOP of dict * Primop.primop * lty * tyc list
+      | PRIM of Primop.primop * Lty.lty * Lty.tyc list
+      | GENOP of dict * Primop.primop * Lty.lty * Lty.tyc list
 
-      | FN of lvar * lty * lexp
-      | FIX of lvar list * lty list * lexp list * lexp
+      | FN of LambdaVar.lvar * Lty.lty * lexp
+      | FIX of LambdaVar.lvar list * Lty.lty list * lexp list * lexp
       | APP of lexp * lexp
-      | LET of lvar * lexp * lexp
+      | LET of LambdaVar.lvar * lexp * lexp
 
-      | TFN of tkind list * lexp
-      | TAPP of lexp * tyc list
+      | TFN of Lty.tkind list * lexp
+      | TAPP of lexp * Lty.tyc list
 
-      | RAISE of lexp * lty
+      | RAISE of lexp * Lty.lty
       | HANDLE of lexp * lexp
-      | ETAG of lexp * lty
+      | ETAG of lexp * Lty.lty
 
-      | CON of dataconstr * tyc list * lexp
+      | CON of dataconstr * Lty.tyc list * lexp
       | SWITCH of lexp * Access.consig * (con * lexp) list * lexp option
 
-      | VECTOR of lexp list * tyc
+      | VECTOR of lexp list * Lty.tyc
       | RECORD of lexp list
       | SRECORD of lexp list
       | SELECT of int * lexp
 
-      | PACK of lty * tyc list * tyc list * lexp
-      | WRAP of tyc * bool * lexp
-      | UNWRAP of tyc * bool * lexp
+      | WRAP of Lty.tyc * bool * lexp
+      | UNWRAP of Lty.tyc * bool * lexp
 
-    withtype dict = {default: lexp, table: (tyc list * lexp) list}
+    withtype dict = {default: lexp, table: (Lty.tyc list * lexp) list}
 
   end (* signature PLAMBDA *)

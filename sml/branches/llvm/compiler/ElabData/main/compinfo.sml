@@ -14,11 +14,11 @@ structure CompInfo =
    *)
     type 'absyn compInfo = {
 	mkStamp: unit -> Stamps.stamp,
-	mkLvar: Symbol.symbol option -> Access.lvar,
+	mkLvar: Symbol.symbol option -> LambdaVar.lvar,
 	anyErrors: bool ref,
 	error: ErrorMsg.errorFn,
 	errorMatch: SourceMap.region -> string,
-	transform: 'absyn -> 'absyn,
+	transform: 'absyn -> 'absyn, (* normally the identity *)
 	sourceName : string
       }
 

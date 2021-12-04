@@ -33,7 +33,6 @@ Group
 
 	(* stuff that lived (or should have) in Frontend (aka GenericVC) *)
 	structure Control
-	structure SymbolicEnv
 	structure ArithOps
 	structure Primop
 	structure PrimopBind
@@ -62,7 +61,7 @@ Group
         structure Stamps
         structure Bindings
         structure TypesUtil
-        structure VarCon
+        structure Variable
         structure ModuleUtil
 	structure PrimopId
         structure BasicTypes
@@ -81,7 +80,6 @@ Group
 
 	(* corresponding signatures *)
 	signature CONTROL
-	signature SYMENV
 	signature ENVIRONMENT
 	signature PRIM_ENV
 	signature ENVREF
@@ -100,7 +98,7 @@ Group
 	signature STAMPS
 	signature BINDINGS
 	signature TYPESUTIL
-	signature VARCON
+	signature VARIABLE
 	signature MODULEUTIL
 	signature BASICTYPES
 	signature PPTYPE
@@ -139,8 +137,6 @@ is
 
 TopLevel/environ/environ.sig
 TopLevel/environ/environ.sml
-TopLevel/environ/symenv.sig
-TopLevel/environ/symenv.sml
 
 TopLevel/interact/envref.sml
 TopLevel/interact/evalloop.sig
@@ -180,24 +176,27 @@ FLINT/flint/chkflint.sml
 FLINT/flint/flint.sig
 FLINT/flint/flint.sml
 FLINT/flint/flintutil.sml
+FLINT/flint/printflint.sig
+FLINT/flint/printflint.sml
 FLINT/flint/ppflint.sig
 FLINT/flint/ppflint.sml
 FLINT/flint/tvarcvt.sml
-FLINT/kernel/primtyc.sig
-FLINT/kernel/primtyc.sml
-FLINT/kernel/ltybasic.sig
-FLINT/kernel/ltybasic.sml
-FLINT/kernel/ltydef.sig
-FLINT/kernel/ltydef.sml
-FLINT/kernel/ltydict.sml
-FLINT/kernel/ltyextern.sig
-FLINT/kernel/ltyextern.sml
-FLINT/kernel/ltykernel.sig
-FLINT/kernel/ltykernel.sml
 FLINT/kernel/lty.sig
 FLINT/kernel/lty.sml
+FLINT/kernel/ltykernel.sig
+FLINT/kernel/ltykernel.sml
+FLINT/kernel/ltydef.sig
+FLINT/kernel/ltydef.sml
+FLINT/kernel/funrecmeta.sig
+FLINT/kernel/funrecmeta.sml
+FLINT/kernel/ltybasic.sig
+FLINT/kernel/ltybasic.sml
+FLINT/kernel/ltyextern.sig
+FLINT/kernel/ltyextern.sml
+FLINT/kernel/ltydict.sml
+FLINT/kernel/primtyc.sig
+FLINT/kernel/primtyc.sml
 FLINT/kernel/ltykindchk.sml
-
 FLINT/kernel/pplty.sml
 
 FLINT/main/flint-opt.sml
@@ -211,18 +210,13 @@ FLINT/opt/lcontract.sml
 FLINT/opt/recover.sml
 FLINT/opt/specialize.sml
 FLINT/opt/loopify.sml
-FLINT/opt/split.sml
 FLINT/opt/lift.sml
-(* not enabled, so don't compile [JHR; 2017-10-16]
-FLINT/opt/abcopt.sml
-*)
 FLINT/plambda/chkplexp.sml
 FLINT/plambda/flintnm.sml
 FLINT/plambda/pflatten.sig
 FLINT/plambda/pflatten.sml
 FLINT/plambda/plambda.sig
 FLINT/plambda/plambda.sml
-FLINT/plambda/plambdatype.sml
 FLINT/plambda/pplexp.sml
 FLINT/plambda/reorder.sml
 FLINT/reps/coerce.sml
@@ -233,17 +227,12 @@ FLINT/reps/typeoper.sml
 FLINT/reps/wrapping.sml
 FLINT/trans/module-plists.sml
 FLINT/trans/transtkind.sml
-FLINT/trans/matchcomp.sml
-FLINT/trans/mccommon.sml
-FLINT/trans/mcprint.sml
 FLINT/trans/pequal.sml
 FLINT/trans/transutil.sml
 FLINT/trans/translate.sml
 FLINT/trans/transprim.sml
 FLINT/trans/transtypes.sml
 FLINT/trans/literal-to-num.sml    (* uses CoreIntInf functionality *)
-
-FLINT/lsplit/ls-inline.sml
 
 (* The CPS stages *)
 CPS/clos/globalfix.sml

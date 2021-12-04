@@ -106,18 +106,11 @@
 
 #### END OF EXPLANATION, SPEC STARTS HERE...
 
-# Turn off splitting. It would confuse the compiler because the following
-# files are not actually loaded at boot time.
-nosplit
-
 # The "signature" of the runtime system.  (No _Core yet.)
 bind asig = assembly.sig (primitive)
 
 # The placeholder for the runtime system. (No _Core yet.)
 rts-placeholder rts = dummy.sml (asig, primitive)
-
-# We can now turn the cross-module optimizer on (when available)...
-split
 
 # definition of type order
 bind order = order.sml (primitive)

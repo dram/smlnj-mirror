@@ -18,7 +18,7 @@ signature CCONFIG = sig
 	  } -> {
 	    pid: hash,
 	    pickle: pickle,
-	    exportLvars: Access.lvar list,
+	    exportLvars: LambdaVar.lvar list,
 	    exportPid: pid option,
 	    newenv: StaticEnv.staticEnv
 	  }

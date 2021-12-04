@@ -28,7 +28,7 @@ signature COMPILE0 =
 	  } -> {
 	    absyn: Absyn.dec,
 	    newstatenv: StaticEnv.staticEnv,
-	    exportLvars: Access.lvar list,
+	    exportLvars: LambdaVar.lvar list,
 	    exportPid: pid option,
 	    staticPid: hash,
 	    pickle: pickle
@@ -39,20 +39,17 @@ signature COMPILE0 =
 	    source: Source.inputSource,
 	    ast: Ast.dec,
 	    statenv: StaticEnv.staticEnv,
-	    symenv: SymbolicEnv.env,
 	    compInfo: Absyn.dec CompInfo.compInfo,
 	    guid: guid,
-	    checkErr: string -> unit,
-	    splitting: int option
+	    checkErr: string -> unit
 	  } -> {
 	    csegments: CodeObj.csegments,
 	    newstatenv: StaticEnv.staticEnv,
 	    absyn: Absyn.dec (* for pretty printing only *),
 	    exportPid: pid option,
-	    exportLvars: Access.lvar list,
+	    exportLvars: LambdaVar.lvar list,
 	    staticPid: hash,
 	    pickle: pickle,
-	    inlineExp: FLINT.prog option,
 	    imports: ImportTree.import list
 	  }
 

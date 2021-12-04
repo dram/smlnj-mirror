@@ -36,13 +36,13 @@ structure Access : ACCESS =
       | LISTCONS
       | LISTNIL
 
-  (* See ElabData/types/core-basictypes.sml and
-   * Elaborator/types/basictypes.sml for samples
+  (* See ElabData/types/basictypes.sml for examples
    *
    * FLINT/cps/switch.sml uses consig during representation analysis
+   * CLAIM: for consig CSIG(m,n), the number of datacons of the datatype is m+n?
    *)
     datatype consig
-      = CSIG of int * int                    (* # dcon tagged, # untagged *)
+      = CSIG of int * int               (* # dcon tagged, # untagged *)
       | CNIL
 
   (****************************************************************************
@@ -64,19 +64,19 @@ structure Access : ACCESS =
       | prAcc (NO_ACCESS) = "NO_ACCESS"
 
   (** printing the conrep *)
-    fun prRep (UNTAGGED) = "UT"
+    fun prRep UNTAGGED = "UT"
       | prRep (TAGGED i) = concat["TG(", Int.toString i, ")"]
-      | prRep (TRANSPARENT) = "TN"
+      | prRep TRANSPARENT = "TN"
       | prRep (CONSTANT i) = concat["CN(", Int.toString i, ")"]
-      | prRep (REF) = "RF"
-      | prRep (EXN acc) = "EXN" ^ prAcc acc
-      | prRep (LISTCONS) = "LC"
-      | prRep (LISTNIL) = "LN"
+      | prRep REF = "RF"
+      | prRep (EXN acc) = concat["EXN(" ^ prAcc acc, ")"]
+      | prRep LISTCONS = "LC"
+      | prRep LISTNIL = "LN"
       | prRep (SUSP _) = "SS"
 
   (** printing the data sign *)
     fun prCsig (CSIG(i,j)) = concat["B", Int.toString i, "U", Int.toString j]
-      | prCsig (CNIL) = "CNIL"
+      | prCsig CNIL = "CNIL"
 
   (** testing if a conrep is an exception or not *)
     fun isExn (EXN _) = true

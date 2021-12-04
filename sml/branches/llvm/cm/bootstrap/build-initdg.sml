@@ -22,7 +22,6 @@ structure BuildInitDG :> BUILD_INIT_DG = struct
     structure EM = ErrorMsg
     structure SM = SourceMap
     structure DG = DependencyGraph
-    structure LSC = Control.LambdaSplitting
 
     fun build (gp: GeneralParams.info) specgroup = let
 	val ovldR = Control.overloadKW
@@ -77,18 +76,18 @@ structure BuildInitDG :> BUILD_INIT_DG = struct
 		loop (pos, TextIO.inputLine stream, [])
 	    end
 
-	    fun loop (split, m, pos) =
+	    fun loop (m, pos) =
 		case lineIn pos of
 		    NONE => (error (pos, pos) "unexpected end of file"; NONE)
 		  | SOME (line, newpos) => let
 			val error = error (pos, newpos)
-			fun sml (spec, s, xe, rts, ecs) = let
+			fun sml (spec, xe, rts, ecs) = let
 			    val p = SrcPath.file
 				     (SrcPath.standard
 					  { env = penv, err = error }
 					  { context = context, spec = spec })
 			    val attribs =
-				{ split = s, is_rts = rts, extra_compenv = xe,
+				{ is_rts = rts, extra_compenv = xe,
 				  explicit_core_sym = ecs, noguid = false }
 			in SmlInfo.info' attribs gp
 					 { sourcepath = p,
@@ -98,9 +97,8 @@ structure BuildInitDG :> BUILD_INIT_DG = struct
 					   locl = false,
 					   controllers = [ovldC] }
 			end
-			fun bogus n = 
-			    DG.SNODE { smlinfo = sml (n, LSC.UseDefault, NONE,
-						      false, NONE),
+			fun bogus n =
+			    DG.SNODE { smlinfo = sml (n, NONE, false, NONE),
 				       localimports = [], globalimports = [] }
 			fun look n =
 			    case StringMap.find (m, n) of
@@ -115,32 +113,16 @@ structure BuildInitDG :> BUILD_INIT_DG = struct
 			    val xe =
 				if needs_primenv then SOME PrimEnv.primEnv
 				else NONE
-			    val i = sml (file, split, xe, is_rts, ecs)
+			    val i = sml (file, xe, is_rts, ecs)
 			    val n = DG.SNODE { smlinfo = i,
 					       localimports = li,
 					       globalimports = [] }
 			in
-			    loop (split, StringMap.insert (m, name, n), newpos)
+			    loop (StringMap.insert (m, name, n), newpos)
 			end
 			val looksb = DG.SB_SNODE o look
 
-			fun spl args = let
-			    fun invalid () =
-				(error "invalid split spec"; LSC.UseDefault)
-			in
-			    case args of
-				[] => LSC.UseDefault
-			      | [x] => 
-				(case LSplitArg.arg x of
-				     SOME ls => ls
-				   | NONE => invalid ())
-			      | _ => invalid ()
-			end
-
-			fun proc [] = loop (split, m, newpos)
-			  | proc ("split" :: arg) = loop (spl arg, m, newpos)
-			  | proc ["nosplit"] =
-			    loop (LSC.Suggest NONE, m, newpos)
+			fun proc [] = loop (m, newpos)
 			  | proc ("bind" :: name :: file :: args)  =
 			    node (name, file, args, false, NONE)
 			  | proc ("rts-placeholder" :: name :: file :: args) =
@@ -161,7 +143,7 @@ structure BuildInitDG :> BUILD_INIT_DG = struct
 			proc line
 		    end
 	in
-	    loop (LSC.UseDefault, StringMap.empty, 1)
+	    loop (StringMap.empty, 1)
 	end
 	fun openIt () = TextIO.openIn (SrcPath.osstring specgroup)
     in

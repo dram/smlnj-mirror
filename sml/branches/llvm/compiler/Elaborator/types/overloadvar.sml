@@ -1,5 +1,5 @@
-(* overloadvar.sml 
- * 
+(* overloadvar.sml
+ *
  * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *)
@@ -8,9 +8,9 @@ signature OVERLOADVAR =
 sig
     val symToScheme : Symbol.symbol -> Types.tyfun
     val defaultTy : Symbol.symbol -> Types.ty
-    val resolveVar : Symbol.symbol * Types.ty * VarCon.var list -> VarCon.var option
+    val resolveVar : Symbol.symbol * Types.ty * Variable.var list -> Variable.var option
 end
-    
+
 structure OverloadVar : OVERLOADVAR =
 struct
 
@@ -19,6 +19,7 @@ local
     structure T = Types
     structure BT = BasicTypes
     structure TU = TypesUtil
+    structure V = Variable
     structure OLC = OverloadClasses
 in
 
@@ -82,7 +83,7 @@ fun symToScheme (s: S.symbol) : T.tyfun =
     case Option.map #2 (lookup s)
      of SOME scheme => scheme
       | NONE => bug "symToScheme"
-		    
+
 fun symToClass (s: S.symbol) : OLC.class =
     case Option.map #3 (lookup s)
      of SOME class => class
@@ -93,8 +94,8 @@ fun defaultTy (s: S.symbol) : T.ty =
      of ty :: _ => ty
       | nil => bug "defaultTy"
 
-fun resolveVar (name: S.symbol, indicator: T.ty, variants) : VarCon.var option =
-    let fun getVariant (indicator: T.ty, class, variants) : VarCon.var option =
+fun resolveVar (name: S.symbol, indicator: T.ty, variants) : V.var option =
+    let fun getVariant (indicator: T.ty, class, variants) : V.var option =
             (* ASSERT: length class = length variants *)
 	    let fun get (ty1::restTy, v1::restVariants) =
 		    if TU.equalType(indicator, ty1) then SOME v1
@@ -105,6 +106,6 @@ fun resolveVar (name: S.symbol, indicator: T.ty, variants) : VarCon.var option =
 	    end
     in getVariant (indicator, symToClass name, variants)
     end
-    
+
 end (* local *)
 end (* structure OverloadClasses *)

@@ -1,6 +1,6 @@
 (* edcontrol.sig
  *
- * (C) 2001 Lucent Technologies, Bell Labs
+ * (C) 2021 The Fellowship of SML/NJ
  *)
 
 signature ELABDATA_CONTROL =
@@ -8,17 +8,29 @@ sig
 
   val saveLvarNames : bool ref
 
+  val envdebugging : bool ref
+      (* Env debugging *)
+
   val eedebugging : bool ref
-      (* EntityEnv *)
+      (* EntityEnv debugging *)
 
   val mudebugging : bool ref
-      (* ModuleUtil *)
+      (* ModuleUtil debugging *)
 
   val tudebugging : bool ref
-      (* TypesUtil *)
+      (* TypesUtil debugging *)
+
+  val tpdebugging : bool ref
+      (* PPType debugging *)
 
   val typesInternals : bool ref
       (* show types internal reps *)
+
+  val typeUnalias : bool ref
+      (* "unalias" types in PPType *)
+
+  val mpdebugging : bool ref
+      (* PPMod debugging *)
 
   val modulesInternals : bool ref
       (* show modules internal reps *)
@@ -32,11 +44,11 @@ sig
   val internals : bool ref
       (* (general) show internal reps *)
 
-  val setInternals : unit -> unit
-      (* set all internals controls to true *)
-				 
-  val resetInternals : unit -> unit
-      (* set all internals controls to false *)
+  val setInternals : unit -> bool * bool * bool * bool * bool
+      (* set all internals controls to true, returning "former" values *)
+
+  val resetInternals : bool * bool * bool * bool * bool -> unit
+      (* set all internals controls to "former" values *)
 
   val boxedconstconreps : bool ref
       (* constructor representation (used in ConRep) *)

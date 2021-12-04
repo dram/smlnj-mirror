@@ -29,7 +29,7 @@
  * in cpp).  We'll call the pieces of source that are being combined "file segments"
  * or "segments" for short.
  *
- * We'll assume that minimal granularity for resynchonization is a 
+ * We'll assume that minimal granularity for resynchonization is a
  * source line (i.e. no switching files in the middle of a line).
  * The boundaries between source file segments will be marked by #line
  * commands embedded in comments.  These have the form '(*#line nn "filename"*)'
@@ -46,7 +46,7 @@
  * during parsing and used in elaboration be within a single segment (and therefore
  * be associated with a single source file)? The type and implementation of
  * function fileregion imply that a region can span multiple segments.
- * 
+ *
  * QUESTION: Presumably, the original motivation for adding this feature was to support
  * Norman Ramsey's nw "literate programming" system, which we no longer support.
  * What new clients use this functionality?
@@ -57,7 +57,7 @@
  * New functionality for mapping regions to source strings (for enhanced type error
  * messages) is currently incompatible with resynchronization.
  *
- *) 
+ *)
 
 structure SourceMap :> SOURCE_MAP =
 struct
@@ -79,7 +79,7 @@ struct
      * input stream is 1 (????) *)
 
   type region = charpos * charpos
-    (* INVARIANT: (lo,hi) : region ==> lo <= hi 
+    (* INVARIANT: (lo,hi) : region ==> lo <= hi
      * If region /= (0,0), then lo < hi, i.e. all non-null regions are nonempty. *)
 
   type sourceloc = {fileName:string, line:int, column:int}
@@ -123,6 +123,9 @@ struct
    * a proper region, and does not have a location in the file. In particular, it
    * should not be viewed as an empty region at the beginning of the input. *)
 
+  fun isNullRegion ((_,0): region) = true
+    | isNullRegion _ = false
+
   (* newSourceMap: create a new sourcemap, given initial file name.
    * called only one place, in Source.newSource.  Initial position at the
    * start of the first line is 1, initial line number is 1. *)
@@ -161,21 +164,21 @@ struct
    * exceed a target position, while maintaining the lines/files invariants.
    * The first line of the result will contain the target position.
    * ASSUMPTION: pos is >= initial pos of the sourcemap (normally 1). *)
-  fun remove pos (lines: (charpos * line) list, files: string list) = 
-      let fun strip (lines as (pos', line)::lines', files as (_ :: files')) = 
-              if pos' > pos then 
+  fun remove pos (lines: (charpos * line) list, files: string list) =
+      let fun strip (lines as (pos', line)::lines', files as (_ :: files')) =
+              if pos' > pos then
                  (case line
                     of LINE _ => strip (lines', files)
-		     | SYNC _ => strip (lines', files')) 
+		     | SYNC _ => strip (lines', files'))
               else (lines, files)
 	    | strip _ = bug "remove"
        in strip(lines, files)
       end
 
-  (* ASSUMPTION: pos lies within the given line: 
+  (* ASSUMPTION: pos lies within the given line:
    *   lineStart <= pos < start of next line  *)
   fun column ((lineStart, line), pos) =
-      let val col = case line 
+      let val col = case line
 		      of LINE _  => 1
 		       | SYNC(_,c,_) => c
        in pos - lineStart + col
@@ -197,10 +200,10 @@ struct
 
   fun fileregion ({lines,files}: sourcemap) ((lo, hi): region) =
       if isNullRegion(lo,hi) then [] else
-      let fun posToSourceLoc(pos, (linePos, line)::_,  file::_): sourceloc = 
+      let fun posToSourceLoc(pos, (linePos, line)::_,  file::_): sourceloc =
 		 {fileName=file, line=lineNo(line), column=column((linePos,line), pos)}
 	    | posToSourceLoc _ = bug "posToSourceLoc"
-	  
+
 	  fun gather((linePos, line)::lines', files as file::files',
 		     segment_end, answers) =
 	       if linePos <= lo then (* last item *)
@@ -225,7 +228,7 @@ struct
        in gather(lines0, files0, posToSourceLoc(hi,lines0,files0), [])
       end
 
-   (* newlineCount : sourcemap -> region -> int 
+   (* newlineCount : sourcemap -> region -> int
     * determines the (approximate) number of newlines occurring in a region,
     * which may be 0 for a region that lies within a single line. Any lines
     * containing #line directives (i.e. SYNC lines) are not counted. *)
@@ -256,7 +259,7 @@ struct
    (* widenToLines - take a region and expand it to the beginning, respectively end,
     * of the first and last lines intersecting the region. This works only
     * for nonsegmented inputs (no noninitial SYNCs). Also assumes that the
-    * region hi limit comes before the last newline in the input, which 
+    * region hi limit comes before the last newline in the input, which
     * should be the case if the input ends with a newline. *)
    fun widenToLines ({lines,files}: sourcemap) ((lo, hi) : region) =
        if isNullRegion (lo,hi) then nullRegion

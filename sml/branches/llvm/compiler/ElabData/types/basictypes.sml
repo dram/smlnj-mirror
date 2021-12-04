@@ -59,6 +59,9 @@ structure BasicTypes : BASICTYPES =
     fun range (T.CONty(_,[_,ty])) = ty
       | range (T.MARKty(ty, region)) = range ty
       | range _ = bug "range"
+    fun domainNrange (T.CONty(_,[dom,ran])) = (dom,ran)
+      | domainNrange (T.MARKty(ty, region)) = domainNrange ty
+      | domainNrange _ = bug "range"
 
   (*** building record and product types ***)
 

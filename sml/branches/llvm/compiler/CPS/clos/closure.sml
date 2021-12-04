@@ -30,7 +30,8 @@ local
   structure SL = LV.SortedList
   structure CGoptions = Control.CG
   structure SProf = StaticProf(MachSpec)
-  val saveLvarNames = LV.saveLvarNames
+
+  val saveLvarNames = Control.ElabData.saveLvarNames
   val dupLvar = LV.dupLvar
   val mkLvar = LV.mkLvar
 

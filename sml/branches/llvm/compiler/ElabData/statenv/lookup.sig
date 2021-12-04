@@ -8,7 +8,7 @@ sig
   val lookSig : StaticEnv.staticEnv * Symbol.symbol * ErrorMsg.complainer
                 -> Modules.Signature
 
-  val lookFsig : StaticEnv.staticEnv * Symbol.symbol * ErrorMsg.complainer 
+  val lookFsig : StaticEnv.staticEnv * Symbol.symbol * ErrorMsg.complainer
 		 -> Modules.fctSig
 
   val lookStr : StaticEnv.staticEnv * SymPath.path * ErrorMsg.complainer
@@ -23,18 +23,20 @@ sig
   val lookTyc : StaticEnv.staticEnv * SymPath.path * ErrorMsg.complainer
                 -> Types.tycon
 
-  val lookArTyc : StaticEnv.staticEnv * SymPath.path * int 
+  val lookArTyc : StaticEnv.staticEnv * SymPath.path * int
                     * ErrorMsg.complainer -> Types.tycon
 
-  (* lookValSym and lookSym return value or constructor bindings *)
-  val lookValSym : StaticEnv.staticEnv * Symbol.symbol * ErrorMsg.complainer
-		   -> VarCon.value
+  (* lookValSym and lookSym return value or constructor bindings (Absyn.value) *)
 
-  val lookVal : StaticEnv.staticEnv * SymPath.path * ErrorMsg.complainer
-                -> VarCon.value
+  val lookIdSym  : StaticEnv.staticEnv * Symbol.symbol * ErrorMsg.complainer
+		    -> Absyn.value
+
+  val lookIdSymOp: StaticEnv.staticEnv * Symbol.symbol-> Absyn.value option
+
+  val lookIdPath : StaticEnv.staticEnv * SymPath.path * ErrorMsg.complainer
+                    -> Absyn.value
 
   val lookExn : StaticEnv.staticEnv * SymPath.path * ErrorMsg.complainer
-                -> VarCon.datacon
+                -> Types.datacon
 
 end (* signature LOOKUP *)
-

@@ -4,68 +4,6 @@
  * All rights reserved.
  *)
 
-(* Match compiler controls *)
-structure Control_MC : MCCONTROL =
-  struct
-
-    val priority = [10, 10, 4]
-    val obscurity = 2
-    val prefix = "compiler-mc"
-
-    val registry = ControlRegistry.new { help = "match compiler settings" }
-
-    val _ = BasicControl.nest (prefix, registry, priority)
-
-    val bool_cvt = ControlUtil.Cvt.bool
-
-    val nextpri = ref 0
-
-    fun flag (n, h, d) = let
-	  val r = ref d
-	  val p = !nextpri
-	  val ctl = Controls.control {
-		  name = n,
-		  pri = [p],
-		  obscurity = obscurity,
-		  help = h,
-		  ctl = r
-		}
-	  in
-	    nextpri := p + 1;
-	    ControlRegistry.register
-		registry
-		{ ctl = Controls.stringControl bool_cvt ctl,
-		  envName = SOME (ControlUtil.EnvName.toUpper "COMPILER_MC_" n) };
-	    r
-	  end
-
-    val debugging = flag ("debugging", "general match compiler debugging", false)
-    val printArgs = flag ("print-args", "arguments print mode", false)
-    val printRet = flag ("print-ret", "return print mode", false)
-    val bindNoVariableWarn =
-	flag ("nobind-warn", "whether to warn if no variables get bound",
-	      false)
-    val bindNonExhaustiveWarn =
-	flag ("warn-non-exhaustive-bind",
-	      "whether to warn on non-exhaustive bind", true)
-    val bindNonExhaustiveError =
-	flag ("error-non-exhaustive-bind",
-	      "whether non-exhaustive bind is an error", false)
-    val matchNonExhaustiveWarn =
-	flag ("warn-non-exhaustive-match",
-	      "whether to warn on non-exhaustive match", true)
-    val matchNonExhaustiveError =
-	flag ("error-non-exhaustive-match",
-	      "whether non-exhaustive match is an error", false)
-    (* matchExhaustiveError overrides matchExhaustiveWarn *)
-    val matchRedundantWarn =
-	flag ("warn-redundant", "whether to warn on redundant matches", true)
-    val matchRedundantError =
-	flag ("error-redundant", "whether a redundant match is an error", true)
-    (* matchRedundantError overrides matchRedundantWarn *)
-  end (* structure Control_MC *)
-
-
 (* Code generation controls (including some used in FLINT?) *)
 structure Control_CG : CGCONTROL =
   struct
@@ -173,53 +111,54 @@ structure Control : CONTROL =
       val _ = BasicControl.nest (prefix, registry, priority)
 
       val bool_cvt = ControlUtil.Cvt.bool
+      val string_cvt = ControlUtil.Cvt.string
 
       val nextpri = ref 0
 
-      fun register (n, h, r) = let
+      fun register (cvtFn, name, help, defaultRef) = let
 	    val p = !nextpri
 	    val ctl = Controls.control {
-		    name = n,
+		    name = name,
 		    pri = [p],
 		    obscurity = obscurity,
-		    help = h,
-		    ctl = r
+		    help = help,
+		    ctl = defaultRef
 		  }
 	    in
 	      nextpri := p + 1;
               ControlRegistry.register registry {
-		  ctl = Controls.stringControl bool_cvt ctl,
-		  envName = SOME (ControlUtil.EnvName.toUpper "CONTROL_" n)
+		  ctl = Controls.stringControl cvtFn ctl,
+		  envName = SOME (ControlUtil.EnvName.toUpper "CONTROL_" name)
 		};
-	      r
+	      defaultRef
 	    end
 
-    (* `new (n, h, d)` defines new control reference with default value `d` and registers
-     * it with name `n` and help message `h`.
+    (* `new (n, h, d)` defines new control reference with default value `d`
+     * and registers it with name `n` and help message `h`.
      *)
-      fun new (n, h, d) = let
-	    val r = ref d
-	    in
-	      register (n, h, r)
-	    end
+      fun new (n, h, d) = register (bool_cvt, n, h, ref d)
 
     in
 
-    structure Print : PRINTCONTROL = Control_Print
+    structure Print : PRINTCONTROL = Control_Print (* Basics/print/printcontrol.sml *)
 
-    structure ElabData : ELABDATA_CONTROL = ElabDataControl
+    (* ElabData controls *)
+    structure ElabData : ELABDATA_CONTROL = ElabDataControl (* ElabData/main/edcontrol.{sml,sig} *)
 
-    structure Elab : ELAB_CONTROL = ElabControl
+    (* elaborator controls *)
+    structure Elab : ELAB_CONTROL = ElabControl (* Elaborator/control/elabcontrol.{sml,sig} *)
 
-    structure MC : MCCONTROL = Control_MC
+    (* MatchComp (match compiler) controls *)
+    structure MC : MC_CONTROL = MCControl (* Elaborator/control/mccontrol.{sml,sig} *)
 
-    structure FLINT = FLINT_Control
+    (* FLINT controls *)
+    structure FLINT = FLINT_Control (* FLINT/main/control.{sml,sig} *)
 
     structure CG : CGCONTROL = Control_CG
 
     open BasicControl
-    (* provides: val printWarnings = ref true
-     *)
+    (* provides: val printWarnings = ref true *)
+
     open ParserControl
     (* provides: val primaryPrompt = ref "- "
 		 val secondaryPrompt = ref "= "
@@ -230,14 +169,17 @@ structure Control : CONTROL =
      *)
 
     val debugging = new ("debugging", "?", false)
+    val eldebugging = new ("eldebugging", "evalloop debugging", false)
+    val pddebugging = new ("pddebugging", "PPDec debugging", false)
     val printAst = new ("printAst", "whether to print Ast representation", false)
-    val printAbsyn = register ("printAbsyn", "whether to print Absyn representation", ElabControl.printAbsyn)
+    val printAbsyn = ElabControl.printAbsyn
+
     val interp = new ("interp", "?", false)
 
-    val progressMsgs = new ("progressMsgs", "whether to print a message after each phase is completed", false)
+    val progressMsgs =
+	new ("progressMsgs", "whether to print a message after each phase is completed", false)
     val trackExn =
-	new ("track-exn",
-	     "whether to generate code that tracks exceptions", true)
+	new ("track-exn", "whether to generate code that tracks exceptions", true)
     (* warning message when call of polyEqual compiled: *)
     val polyEqWarn =
 	new ("poly-eq-warn", "whether to warn about calls of polyEqual", true)
@@ -250,52 +192,6 @@ structure Control : CONTROL =
     val saveConvert : bool ref = saveit
     val saveCPSopt : bool ref = saveit
     val saveClosure : bool ref = saveit
-
-    structure LambdaSplitting = struct
-	datatype globalsetting = Off | Default of int option
-	type localsetting = int option option
-	val UseDefault : localsetting = NONE
-	fun Suggest s : localsetting = SOME s
-	fun parse "off" = SOME Off
-	  | parse "on" = SOME (Default NONE)
-	  | parse s = Option.map (Default o SOME) (Int.fromString s)
-	fun show Off = "off"
-	  | show (Default NONE) = "on"
-	  | show (Default (SOME i)) = Int.toString i
-	local
-	    val registry = ControlRegistry.new
-			       { help = "cross-module inlining" }
-
-	    val priority = [10, 10, 0, 1]
-
-	    val _ = BasicControl.nest ("inline", registry, priority)
-
-	    val cvt = { tyName = "Control.LambdaSplitting.globalsetting",
-			fromString = parse, toString = show }
-	    val state_r = ref (Default NONE)
-	    val ctl = Controls.control
-			  { name = "split-aggressiveness",
-			    pri = [0],
-			    obscurity = 1,
-			    help = "aggressiveness of lambda-splitter",
-			    ctl = state_r }
-	    val _ = ControlRegistry.register
-			registry
-			{ ctl = Controls.stringControl cvt ctl,
-			  envName = SOME "INLINE_SPLIT_AGGRESSIVENESS" }
-	in
-   	    fun set x = Controls.set (ctl, x)
-	    fun get () =
-		case Controls.get ctl of
-		    Off => NONE
-		  | Default d => d
-	    fun get' NONE = get ()
-	      | get' (SOME a) =
-		(case Controls.get ctl of
-		     Off => NONE
-		   | Default _ => a)
-	end
-      end (* LambdaSplitting *)
 
     val tdp_instrument = TDPInstrument.enabled
 

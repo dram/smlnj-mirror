@@ -4,21 +4,6 @@
  * All rights reserved.
  *)
 
-(* match compiler controls *)
-signature MCCONTROL =
-  sig
-    val debugging : bool ref
-    val printArgs : bool ref
-    val printRet : bool ref
-    val bindNoVariableWarn : bool ref
-    val bindNonExhaustiveWarn : bool ref
-    val bindNonExhaustiveError : bool ref
-    val matchNonExhaustiveWarn : bool ref
-    val matchNonExhaustiveError : bool ref
-    val matchRedundantWarn : bool ref
-    val matchRedundantError : bool ref
-  end (* signature MCCONTROL *)
-
 (* general code-generation controls *)
 signature CGCONTROL =
   sig
@@ -75,12 +60,14 @@ signature CGCONTROL =
 signature CONTROL =
   sig
     structure Print : PRINTCONTROL
-    structure ElabData : ELABDATA_CONTROL
-    structure Elab : ELAB_CONTROL
-    structure MC : MCCONTROL
+    structure ElabData : ELABDATA_CONTROL  (* ElabData controls *)
+    structure Elab : ELAB_CONTROL  (* Elaborator controls *)
+    structure MC : MC_CONTROL  (* match compiler controls *)
     structure FLINT : FLINTCONTROL
     structure CG : CGCONTROL
     val debugging : bool ref
+    val eldebugging : bool ref (* EvalLoopF debugging *)
+    val pddebugging : bool ref (* PPDec debugging *)
     val printAst : bool ref
     val printAbsyn : bool ref
 
@@ -99,7 +86,7 @@ signature CONTROL =
        (* turn on interpreter -- defunct *)
 
     val progressMsgs : bool ref
-       (* turn on printing of progress messages at end of major stages *)
+       (* turn on printing of progress messages at end of major stages in evalloop *)
 
     val saveLambda : bool ref
     val preserveLvarNames : bool ref
@@ -111,20 +98,6 @@ signature CONTROL =
     val saveConvert : bool ref
     val saveCPSopt : bool ref
     val saveClosure : bool ref
-
-    structure LambdaSplitting : sig
-	datatype globalsetting
-	  = Off			      (* completely disabled *)
-	  | Default of int option       (* default aggressiveness; NONE: off *)
-	type localsetting = int option option
-	val UseDefault : localsetting
-	val Suggest : int option -> localsetting
-	val set : globalsetting -> unit
-	val get : unit -> int option
-	val get' : localsetting -> int option
-	val parse : string -> globalsetting option
-	val show : globalsetting -> string
-    end
 
     val tdp_instrument : bool ref
 

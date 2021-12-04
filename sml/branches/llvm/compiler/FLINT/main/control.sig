@@ -12,11 +12,21 @@ signature FLINTCONTROL =
     val printFctTypes   : bool ref   (* show functor types *)
     val phases		: string list ref  (* determine phases and their order *)
 
+    val lkdebugging     : bool ref   (* LtyKernel debugging *)
     val tmdebugging     : bool ref   (* TransTypes debugging *)
     val trdebugging     : bool ref   (* Translate debugging *)
     val nmdebugging     : bool ref   (* Plambda normalization (FlintNM) *)
+    val lcdebugging     : bool ref   (* lcontract phase debugging (LContract) *)
+    val fcdebugging     : bool ref   (* fcontract phase debugging (FContract) *)
+    val fccounters      : bool ref   (* fcontract counter messages (FContract) *)
+    val spdebugging     : bool ref   (* specialize phase debugging (Specialize) *)
+    val ffdebugging     : bool ref   (* fixfix phase debugging (FixFix) *)
+    val wrdebugging     : bool ref   (* wrap phase debugging (Wrapping) *)
     val redebugging     : bool ref   (* reify phase debugging (Reify) *)
     val rtdebugging     : bool ref   (* runtime types debugging (RuntimeType) *)
+
+    val lineWidth	: int ref    (* FLINT pretty printer line width (def 200) *)
+    val printDepth	: int ref    (* FLINT pretty printer print depth (def 200) *)
 
     val inlineThreshold	: int ref    (* inline threshold *)
     (* val splitThreshold	: int ref *)
@@ -33,7 +43,7 @@ signature FLINTCONTROL =
     val check		: bool ref    (* typecheck IR? *)
     val checkDatatypes	: bool ref    (* typecheck datatypes *)
     val checkKinds	: bool ref    (* check kinds *)
-    val plchk           : bool ref    (* type check plambda after translate *)
+    val checkPLambda    : bool ref    (* type check plambda after translate *)
 
     (* for use in FLINT/main/flintcomp.sml *)
     val recover : (LambdaVar.lvar -> unit) ref

@@ -10,7 +10,7 @@ sig
 exception ChkPlexp (* PLambda type check error *)
 
 val checkLtyTop : PLambda.lexp * int -> bool
-val checkLty : PLambda.lexp * PLambdaType.ltyEnv * int -> bool
+val checkLty : PLambda.lexp * LtyBasic.ltyEnv * int -> bool
 val newlam_ref : PLambda.lexp ref
 val fname_ref : string ref
 
@@ -19,11 +19,17 @@ end (* signature CHKPLEXP *)
 structure ChkPlexp : CHKPLEXP =
 struct
 
-local structure LT = PLambdaType
-      structure LV = LambdaVar
-      structure DA = Access
-      structure DI = DebIndex
-      open PLambda
+local
+  structure DI = DebIndex
+  structure LV = LambdaVar
+  structure DA = Access
+  structure LT = Lty
+  structure LK = LtyKernel
+  structure LD = LtyDef
+  structure LB = LtyBasic
+  structure LE = LtyExtern  (* == PLambdaType *)
+  structure LKC = LtyKindChk
+  open PLambda
 in
 
 exception ChkPlexp (* PLambda type check error *)
@@ -66,9 +72,7 @@ fun simplify(le,0) = STRING "<dummy>"
             | LET(v, e1, e2) => LET(v, h e1, h e2)
             | TFN(ks, e) => TFN(ks, h e)
             | TAPP(e, ts) => TAPP(h e, ts)
-            | PACK(lt, ts, nts, e) => PACK(lt, ts, nts, h e)
             | CON(l, x, e) => CON(l, x, h e)
-(*          | DECON(l, x, e) => DECON(l, x, h e) *)
             | FIX(lv, lt, le, b) => FIX(lv, lt, map h le, h b)
             | SWITCH(e, l, dc, opp) =>
                (let fun g(c, x) = (c, h x)
@@ -110,36 +114,36 @@ fun laterPhase i = (i > 20)
 (****************************************************************************
  *           MAIN FUNCTION --- val checkLty : PLambda.lexp -> bool          *
  ****************************************************************************)
-fun checkLty (lexp, venv : LT.ltyEnv, phase) =
+fun checkLty (lexp, venv : LB.ltyEnv, phase) =
 let
 
-val ltEquiv = LT.lt_eqv
-val ltString = if laterPhase(phase) then LT.ltc_void else LT.ltc_string
-val ltExn = if laterPhase(phase) then LT.ltc_void else LT.ltc_exn
-fun ltEtag lt = if laterPhase(phase) then LT.ltc_void
-                else LT.ltc_etag lt
-fun ltVector t = if laterPhase(phase) then LT.ltc_void
-                 else LT.ltc_tyc(LT.tcc_vector t)
+val ltEquiv = LK.lt_eqv
+val ltString = if laterPhase(phase) then LB.ltc_void else LB.ltc_string
+val ltExn = if laterPhase(phase) then LB.ltc_void else LB.ltc_exn
+fun ltEtag lt = if laterPhase(phase) then LB.ltc_void
+                else LB.ltc_etag lt
+fun ltVector t = if laterPhase(phase) then LB.ltc_void
+                 else LD.ltc_tyc(LB.tcc_vector t)
 
 (** lazily selecting a field from a record/structure type *)
 exception LtySelect
 fun ltSel (lt, i) =
-  (LT.lt_select(lt, i)) handle _ => raise LtySelect
+  (LE.lt_select(lt, i, "chkplexp#127")) handle _ => raise LtySelect
 
 (** build a function or functor type from a pair of arbitrary ltys *)
 fun ltFun (x, y) =
-  if (LT.ltp_tyc x) andalso (LT.ltp_tyc y) then LT.ltc_parrow(x, y)
-  else LT.ltc_pfct(x, y)
+  if (LD.ltp_tyc x) andalso (LD.ltp_tyc y) then LD.ltc_parrow(x, y)
+  else LD.ltc_pfct(x, y)
 
-fun ltTup ts = LT.ltc_tyc(LT.tcc_tuple (map LT.ltd_tyc ts)) handle LT.DeconExn => bug "ltTup"
+fun ltTup ts = LD.ltc_tyc(LD.tcc_tuple (map LD.ltd_tyc ts)) handle LD.DeconExn => bug "ltTup"
 
 (** lazily finding out the arg and res of an lty *)
 exception LtyArrow
 fun ltArrow lt =
-  (if LT.ltp_tyc lt then LT.ltd_parrow lt
-   else LT.ltd_pfct lt) handle _ => raise LtyArrow
+  (if LD.ltp_tyc lt then LD.ltd_parrow lt
+   else LD.ltd_pfct lt) handle _ => raise LtyArrow
 
-val lt_inst_chk = LT.lt_inst_chk_gen()
+val lt_inst_chk = LE.lt_inst_chk_gen()
 (* kind checker for ltys *)
 val ltyChk = fn _ => fn _ => 1 (* LtyKindChk.ltKindCheckGen () *)
 (* kind checker for tycs *)
@@ -156,8 +160,8 @@ fun ltTyApp le s (lt, ts, kenv) =
        handle zz =>
        (clickerror ();
         say (s ^ "  **** Kind conflicting in lexp =====> \n    ");
-        case zz of LT.LtyAppChk => say "      exception LtyAppChk raised! \n"
-                 | LT.KindChk _ =>  say "      exception KindChk raised! \n"
+        case zz of LE.LtyAppChk => say "      exception LtyAppChk raised! \n"
+                 | LKC.KindChk _ =>  say "      exception KindChk raised! \n"
                  | _ => say "   other weird exception raised! \n";
         say "\n \n"; lePrint le; say "\n For Types: \n";
         ltPrint lt; say "\n and   \n    ";
@@ -175,7 +179,7 @@ fun ltMatch le msg (t1, t2) =
             PU.pps s "t2:"; PP.newline s; PPLty.ppLty 20 s t2; PP.newline s;
             PU.pps s"***************************************************";
             PP.newline s)); raise Fail "ltMatch"))
-  handle LT.TeUnbound =>
+  handle LK.TeUnbound =>
   (clickerror();
    with_pp(fn s =>
      (PU.pps s ("ERROR(checkLty): exception teUnbound2 in ltMatch"^msg); PP.newline s;
@@ -191,7 +195,7 @@ fun ltFnApp le s (t1, t2) =
             (clickerror ();
              say (s ^ "  **** Applying Non-Arrow Type in lexp =====> \n    ");
              case zz of LtyArrow => say "exception LtyArrow raised. \n"
-                      | LT.TeUnbound => say "exception TeUnbound raised. \n"
+                      | LK.TeUnbound => say "exception TeUnbound raised. \n"
                       | _ => say "other weird exceptions raised\n";
              say "\n \n";  lePrint le; say "\n For Types \n";
              ltPrint t1; say "\n and   \n    "; ltPrint t2; say "\n \n";
@@ -207,7 +211,7 @@ fun ltFnAppR le s (t1, t2) =  (*** used for DECON lexps ***)
             (clickerror ();
              say (s ^ "  **** Rev-Apply Non-Arrow Type in lexp =====> \n    ");
              case zz of LtyArrow => say "exception LtyArrow raised. \n"
-                      | LT.TeUnbound => say "exception TeUnbound raised. \n"
+                      | LK.TeUnbound => say "exception TeUnbound raised. \n"
                       | _ => say "other weird exceptions raised\n";
              say "\n \n";  lePrint le; say "\n For Types \n";
              ltPrint t1; say "\n and   \n    "; ltPrint t2; say "\n \n";
@@ -222,8 +226,8 @@ fun ltSelect le s (lt, i) =
      handle zz =>
        (clickerror ();
         say (s ^ "  **** Select from a wrong-type lexp  =====> \n    ");
-        case zz of LtySelect => say "exception LtyArrow raised. \n"
-                 | LT.TeUnbound => say "exception TeUnbound raised. \n"
+        case zz of LtyArrow => say "exception LtyArrow raised. \n"
+                 | LK.TeUnbound => say "exception TeUnbound raised. \n"
                  | _ => say "other weird exceptions raised\n";
         say "\n \n";  lePrint le; say "\n \n";
         say "Selecting "; say (Int.toString i);
@@ -236,13 +240,13 @@ fun ltSelect le s (lt, i) =
 fun ltConChk le s (DATAcon ((_,rep,lt), ts, v), root, kenv, venv, d) =
       let val t1 = ltTyApp le "DECON" (lt, ts, kenv)
           val t = ltFnAppR le "DECON" (t1, root)
-       in LT.ltInsert(venv, v, t, d)
+       in LB.ltInsert(venv, v, t, d)
       end
   | ltConChk le s (c, root, kenv, venv, d) = let
       val nt = (case c
 	     of INTcon{ty = 0, ...} => bug "INTcon: IntInf"
-	      | INTcon{ty, ...} => LT.ltc_num ty
-	      | WORDcon{ty, ...} => LT.ltc_num ty
+	      | INTcon{ty, ...} => LB.ltc_num ty
+	      | WORDcon{ty, ...} => LB.ltc_num ty
 	      | STRINGcon _ => ltString
 	      | _ => raise Fail "help"
 	    (* end case *))
@@ -250,11 +254,11 @@ fun ltConChk le s (DATAcon ((_,rep,lt), ts, v), root, kenv, venv, d) =
 	((ltMatch le s (nt, root)) handle Fail _ => say "ConChk ltEquiv\n"); venv
       end
 
-(** check : tkindEnv * ltyEnv * DI.depth -> lexp -> lty *)
+(** check : tkindEnv * LB.ltyEnv * DI.depth -> lexp -> lty *)
 fun check (kenv, venv, d) =
   let fun ltyChkMsg msg lexp kenv lty =
 		  ltyChk kenv lty
-		  handle LT.KindChk kndchkmsg =>
+		  handle LKC.KindChk kndchkmsg =>
 			 (say ("*** Kind check failure during \
 			       \ PLambda type check: ");
 			  say (msg);
@@ -271,16 +275,17 @@ fun check (kenv, venv, d) =
 	  in
 	      (case le
 		of VAR v =>
-		   (LT.ltLookup(venv, v, d)
-		    handle LT.ltUnbound =>
-			   (say ("** Lvar ** " ^ (LV.lvarName(v))
-				 ^ " is unbound *** \n");
-			    bug "unexpected lambda code in checkLty"))
+		   (case LB.ltLookup(venv, v, d)
+		      of NONE =>
+			   (say ("ChkPlexp.check: unbound lvar: " ^ LV.lvarName(v)
+				 ^ "\n");
+			    bug "unexpected lambda code in checkLty")
+		       | SOME lty => lty)
 		 | INT{ty = 0, ...} => bug "unexpected IntInf in checkLty"
-		 | INT{ty, ...} => LT.ltc_num ty
-		 | WORD{ty, ...} => LT.ltc_num ty
+		 | INT{ty, ...} => LB.ltc_num ty
+		 | WORD{ty, ...} => LB.ltc_num ty
 (* REAL32: will need extra cases *)
-		 | REAL _ => LT.ltc_real
+		 | REAL _ => LB.ltc_real
 		 | STRING _ => ltString
 		 | PRIM(p, t, ts) =>
 		   (* kind check t and ts *)
@@ -292,7 +297,7 @@ fun check (kenv, venv, d) =
 		 | FN(v, t, e1) =>
 		   let val _ = ltyChkenv "FN bound var" t
 					 (* kind check bound variable type *)
-                       val venv' = LT.ltInsert(venv, v, t, d)
+                       val venv' = LB.ltInsert(venv, v, t, d)
                        val res = check (kenv, venv', d) e1
                        val _ = ltyChkenv "FN rng" res
 		       val _ = debugmsg "FN"
@@ -305,7 +310,7 @@ fun check (kenv, venv, d) =
 		 | FIX(vs, ts, es, eb) =>
 		   let val _ = map (ltyChkenv "FIX bound var") ts
 				   (* kind check bound variable types *)
-		       fun h (env, v::r, x::z) = h(LT.ltInsert(env, v, x, d), r, z)
+		       fun h (env, v::r, x::z) = h(LB.ltInsert(env, v, x, d), r, z)
 			 | h (env, [], []) = env
 			 | h _ = bug "unexpected FIX bindings in checkLty."
                        val venv' = h(venv, vs, ts)
@@ -330,7 +335,7 @@ fun check (kenv, venv, d) =
 		 | LET(v, e1, e2) =>
 		   let val t1 = loop e1
                        val _ = ltyChkenv "LET definien" t1
-                       val venv' = LT.ltInsert(venv, v, t1, d)
+                       val venv' = LB.ltInsert(venv, v, t1, d)
 		       val bodyLty = check (kenv, venv', d) e2
 		       val _ = ltyChkenv "LET body" bodyLty
 		       val _ = debugmsg "LET"
@@ -342,12 +347,12 @@ fun check (kenv, venv, d) =
                        val lt = check (kenv', venv, DI.next d) e
                        val _ = ltyChkMsgLexp "TFN body" (ks::kenv) lt
 		       val _ = debugmsg "TFN"
-		   in LT.ltc_poly(ks, [lt])
+		   in LD.ltc_poly(ks, [lt])
 		   end
 
 		 | TAPP(e, ts) =>
 		   let val lt = loop e
-                       val _ = map ((ltyChkenv "TAPP args") o LT.ltc_tyc) ts
+                       val _ = map ((ltyChkenv "TAPP args") o LD.ltc_tyc) ts
 				   (* kind check type args *)
                        val _ = ltyChkenv "TAPP type function " lt
 		       val _ = debugmsg "TAPP"
@@ -356,18 +361,8 @@ fun check (kenv, venv, d) =
 
 		 | GENOP(dict, p, t, ts) =>
 		   ((* should type check dict also *)
-			(map ((ltyChkenv "GENOP args ") o LT.ltc_tyc) ts;
+			(map ((ltyChkenv "GENOP args ") o LD.ltc_tyc) ts;
 			 ltTyApp le "GENOP" (t, ts, kenv)))
-
-		 | PACK(lt, ts, nts, e) =>
-		   let val argTy = ltTyApp le "PACK-A" (lt, ts, kenv)
-		       val _ = ltyChkenv " PACK-A " argTy
-		       val bodyTy = loop e
-		       val _ = ltyChkenv " PACK body " bodyTy
-		       val _ = debugmsg "PACK"
-		   in ((ltMatch le "PACK-M" (argTy, loop e)) handle Fail _ => say "PACK ltEquiv\n") ;
-                      ltTyApp le "PACK-R" (lt, nts, kenv)
-		   end
 
 		 | CON((_, rep, lt), ts, e) =>
 		   let val t1 = ltTyApp le "CON" (lt, ts, kenv)
@@ -393,13 +388,13 @@ fun check (kenv, venv, d) =
 		 | SRECORD el =>
 		   let val elemsltys = map loop el
 		       val _ = map (ltyChkenv "SRECORD elem ") elemsltys
-		   in LT.ltc_str elemsltys
+		   in LD.ltc_str elemsltys
 		   end
 		 | VECTOR (el, t)  =>
 		   let val ts = map loop el
-		   in ltyChkenv "VECTOR index " (LT.ltc_tyc t);
+		   in ltyChkenv "VECTOR index " (LD.ltc_tyc t);
                       map (ltyChkenv "VECTOR vector ") ts;
-                      app (fn x => ltMatch le "VECTOR" (x, LT.ltc_tyc t)) ts;
+                      app (fn x => ltMatch le "VECTOR" (x, LD.ltc_tyc t)) ts;
                       debugmsg "VECTOR ";
 		      ltVector t
 		   end
@@ -433,7 +428,7 @@ fun check (kenv, venv, d) =
 		 | ETAG(e, t) =>
 		   let val z = loop e   (* what do we check on e ? *)
                        val _ = ltyChkenv "ETAG 1 " z
-		       val _ = ltMatch le "ETAG1" (z, LT.ltc_string)
+		       val _ = ltMatch le "ETAG1" (z, LB.ltc_string)
                        val _ = ltyChkenv "ETAG " t
 		       val _ = debugmsg "ETAG"
 		   in ltEtag t
@@ -459,16 +454,16 @@ fun check (kenv, venv, d) =
 
 		       (** these two cases should never happen before wrapping *)
 		 | WRAP(t, b, e) =>
-		   (ltMatch le "WRAP" (loop e, LT.ltc_tyc t);
-		    if laterPhase(phase) then LT.ltc_void
-		    else LT.ltc_tyc(if b then LT.tcc_box t else LT.tcc_abs t))
+		   (ltMatch le "WRAP" (loop e, LD.ltc_tyc t);
+		    if laterPhase(phase) then LB.ltc_void
+		    else LD.ltc_tyc(if b then LD.tcc_box t else t))
 
 		 | UNWRAP(t, b, e) =>
-		   let val ntc = if laterPhase(phase) then LT.tcc_void
-				 else (if b then LT.tcc_box t else LT.tcc_abs t)
-                       val nt = LT.ltc_tyc ntc
+		   let val ntc = if laterPhase(phase) then LB.tcc_void
+				 else (if b then LD.tcc_box t else t)
+                       val nt = LD.ltc_tyc ntc
                        val _ = ltyChkenv "UNWRAP " nt
-		   in (ltMatch le "UNWRAP" (loop e, nt); LT.ltc_tyc t)
+		   in (ltMatch le "UNWRAP" (loop e, nt); LD.ltc_tyc t)
 		   end)
 	  end (* loop *)
   in (* wrap loop with kind check of result *)
@@ -481,7 +476,7 @@ in
   !anyerror
 end (* end of function checkLty *)
 
-fun checkLtyTop(lexp, phase) = checkLty(lexp, LT.initLtyEnv, phase)
+fun checkLtyTop(lexp, phase) = checkLty(lexp, LB.initLtyEnv, phase)
 
 end (* toplevel local *)
 end (* structure CheckLty *)

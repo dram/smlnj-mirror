@@ -68,8 +68,6 @@ signature CORETOOLS = sig
 
     type setup = string option * string option (* (pre, post) *)
 
-    type splitting = int option option (* see ....Control.LambdaSplitting... *)
-
     (* A controller is a generic mechanism for manipulating state.
      * The first stage of save'restore is meant to capture the part of
      * the state in question so that the second stage can restore it.
@@ -89,7 +87,6 @@ signature CORETOOLS = sig
     type smlparams =
 	 { share: Sharing.request,
 	   setup: setup,
-	   split: splitting,
 	   noguid: bool,
 	   locl: bool,
 	   controllers: controller list }

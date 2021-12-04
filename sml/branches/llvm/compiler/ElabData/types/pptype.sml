@@ -24,7 +24,6 @@ sig
   val resetPPType : unit -> unit
   val ppFormals : PrettyPrint.stream -> int -> unit
 
-  val debugging : bool ref
   val unalias : bool ref
 
 end (* signature PPTYPE *)
@@ -33,27 +32,32 @@ structure PPType : PPTYPE =
 struct
 
 local
-      structure SP = SymPath
-      structure IP = InvPath
-      structure BT = BasicTypes
-      structure T = Types
-      structure TU = TypesUtil
-      structure PP = PrettyPrint
-      structure PU = PPUtil
-      open Types PPUtil
+  structure SP = SymPath
+  structure IP = InvPath
+  structure BT = BasicTypes
+  structure T = Types
+  structure TU = TypesUtil
+  structure PP = PrettyPrint
+  structure PU = PPUtil
+  open Types PPUtil
 in
 
-val debugging = ref false
-val unalias = ref true
+val debugging = ElabDataControl.tpdebugging
+val unalias = ElabDataControl.typeUnalias
 
 fun bug s = ErrorMsg.impossible ("PPType: " ^ s)
-val pps = PP.string
+
+fun say msg = (Control_Print.say msg; Control_Print.flush ())
+fun saynl msg = (Control_Print.say (msg ^ "\n"); Control_Print.flush ())
+fun saysnl msgs = saynl (concat msgs)
+fun dbsaynl msg = if !debugging then saynl msg else ()
+fun dbsaysnl msgs = if !debugging then saysnl msgs else ()
 
 fun C f x y = f y x
 
 val internals = ElabDataControl.typesInternals
 
-val unitPath = IP.extend(IP.empty,Symbol.tycSymbol "unit")
+val unitPath = IP.extend(IP.empty,Symbol.tycSymbol "unit")  (* [<unit>] *)
 
 fun boundTyvarName k =
     let val a = Char.ord #"a"
@@ -141,7 +145,7 @@ fun tyvarPrintname (tyvar) =
     end
 
 fun ppkind ppstrm kind =
-    pps ppstrm
+    PP.string ppstrm
       (case kind
 	 of PRIMITIVE => "P" | FORMAL => "F"
           | FLEXTYC _ => "X" | ABSTRACT _ => "A"
@@ -149,34 +153,35 @@ fun ppkind ppstrm kind =
 	  | DATATYPE {stripped,...} =>
 	    if stripped then "DS" else "D")
 
-fun effectivePath(path,tyc,env) : string =
-    let fun tycPath (GENtyc{path,...} | DEFtyc{path,...} | PATHtyc{path,...}) =
-	    SOME path
-	  | tycPath _ = NONE
-	fun find(path,tyc) =
-	    (ConvertPaths.findPath(path,
-		(fn tyc' => TU.equalTycon(tyc',tyc)),
-		(fn x => SOME(Lookup.lookTyc(env,x,(fn _ => raise StaticEnv.Unbound)))
-		         handle StaticEnv.Unbound => NONE)))
-	fun search(path,tyc) =
-	    let val (suffix,found) = find(path,tyc)
-	     in if found then (suffix,true)
+(* effectivePath : IP.path * T.tycon * StaticEnv.statenv -> string *)
+fun effectivePath(path: IP.path, tyc: T.tycon, env: StaticEnv.staticEnv) : string =
+    let val _ = dbsaysnl [">>> effectivePath: ", IP.toString path]
+	fun find (path: IP.path, tycon: T.tycon) =
+            let fun check tycon' = TU.equalTycon (tycon', tycon)
+		fun look sympath =
+		    SOME (Lookup.lookTyc (env, sympath, (fn _ => raise StaticEnv.Unbound)))
+		    handle StaticEnv.Unbound => NONE
+	     in ConvertPaths.findPath (path, check, look)
+	    end
+	fun search (path, tyc) =
+	    let val (suffix, found) = find (path,tyc)
+	     in if found then (suffix, true)
 		else if not (!unalias) then (suffix, false)
 		else case TU.unWrapDef1 tyc
 		       of SOME tyc' =>
-			   (case tycPath tyc'
+			   (case TU.tycPath tyc'
 			      of SOME path' =>
-				  let val x as (suffix',found') = search(path',tyc')
+				  let val x as (suffix', found') = search(path',tyc')
 				   in if found' then x
-				      else (suffix,false)
+				      else (suffix, false)
 				  end
-			       | NONE => (suffix,false))
-			| NONE => (suffix,false)
+			       | NONE => (suffix, false))
+			| NONE => (suffix, false)
 	    end
 	val (suffix,found) = search(path,tyc)
 	val name = SP.toString(SP.SPATH suffix)
      in if found
-	    then name
+	then name
 	else "?."^name
     end
 
@@ -204,19 +209,20 @@ fun ppEqProp ppstrm p =
 		   | DATA => "DATA"
 		   | ABS => "ABS"
 		   | UNDEF => "UNDEF"
-     in pps ppstrm a
+     in PP.string ppstrm a
     end
 
 (* the following two functions used to be defined in PPUtil *)
 fun ppSymPath ppstream (path: SymPath.path) =
     PP.string ppstream (SymPath.toString path)
 
-fun ppInvPath ppstream (ipath: InvPath.path) =
-    PP.string ppstream (SymPath.toString(ConvertPaths.invertIPath ipath))
+fun ppInvPath ppstrm (ipath: InvPath.path) =
+    PP.string ppstrm (SymPath.toString(ConvertPaths.invertIPath ipath))
 
-fun ppBool ppstream b =
-    case b of true => pps ppstream "t" | false => pps ppstream "f"
+fun ppBool ppstrm b =
+    PP.string ppstrm (case b of true => "t" | false => "f")
 
+(* ppTycon1 : StaticEnv.staticEnv -> PP.ppstream -> (T.dtmembers * T.tycon list) option -> unit *)
 fun ppTycon1 env ppstrm membersOp =
     let val {openHVBox,openHOVBox,closeBox,pps,break,...} = en_pp ppstrm
 	fun ppTyc (tyc as GENtyc { path, stamp, eq, kind, ... }) =
@@ -281,12 +287,11 @@ fun ppTycon1 env ppstrm membersOp =
 		     PP.string ppstrm (EntPath.entPathToString entPath);
 		     PP.string ppstrm "]";
 		   closeBox())
-	     else ppInvPath ppstrm path
+	     else PP.string ppstrm (SP.toString (ConvertPaths.stripPath path))
 
 	  | ppTyc ERRORtyc = pps "[E]"
      in ppTyc
     end
-
 
 and ppType1 env ppstrm (ty: ty, sign: T.polysign,
                         membersOp: (T.dtmember vector * T.tycon list) option) : unit =
@@ -301,45 +306,45 @@ and ppType1 env ppstrm (ty: ty, sign: T.polysign,
 		                handle Subscript => false
 		    in pps ((if eq then "''" else "'") ^ boundTyvarName n)
 		   end
-	       | CONty(tycon, args) => let
-		     fun otherwise () =
-			 (openHOVBox 2;
-			  ppTypeArgs args;
-			  break{nsp=0,offset=0};
-			  ppTycon1 env ppstrm membersOp tycon;
-			  closeBox())
-		   in case tycon
-		        of GENtyc { stamp, kind, ... } =>
-			 (case kind of
-			      PRIMITIVE =>
-			      if Stamps.eq(stamp,arrowStamp)
-			      then case args
-			            of [domain,range] =>
-				       (openHVBox 0;
-					if strength domain = 0
-					then (openHVBox 1;
-					      pps "(";
-					      prty domain;
-					      pps ")";
-					      closeBox())
-					else prty domain;
-					break{nsp=1,offset=0};
-					pps "-> ";
-					prty range;
-					closeBox())
-				     | _ => bug "CONty:arity"
-			      else (openHOVBox 2;
-                                    ppTypeArgs args;
-                                    break{nsp=0,offset=0};
-                                    ppTycon1 env ppstrm membersOp tycon;
-                                    closeBox())
-			    | _ => otherwise ())
-		       | RECORDtyc labels =>
-			 if Tuples.isTUPLEtyc(tycon)
-			 then ppTUPLEty args
-			 else ppRECORDty(labels, args)
-		       | _ => otherwise ()
-		 end
+	       | CONty(tycon, args) =>
+		   let fun otherwise () =
+			     (openHOVBox 2;
+			        ppTypeArgs args;
+			        break{nsp=0,offset=0};
+			        ppTycon1 env ppstrm membersOp tycon;
+			      closeBox())
+		    in case tycon
+		         of GENtyc { stamp, kind, ... } =>
+			      (case kind of
+				   PRIMITIVE =>
+				   if Stamps.eq(stamp,arrowStamp)
+				   then case args
+					 of [domain,range] =>
+					    (openHVBox 0;
+					     if strength domain = 0
+					     then (openHVBox 1;
+						   pps "(";
+						   prty domain;
+						   pps ")";
+						   closeBox())
+					     else prty domain;
+					     break{nsp=1,offset=0};
+					     pps "-> ";
+					     prty range;
+					     closeBox())
+					  | _ => bug "CONty:arity"
+				   else (openHOVBox 2;
+					 ppTypeArgs args;
+					 break{nsp=0,offset=0};
+					 ppTycon1 env ppstrm membersOp tycon;
+					 closeBox())
+				 | _ => otherwise ())
+			  | RECORDtyc labels =>
+			     if Tuples.isTUPLEtyc(tycon)
+			     then ppTUPLEty args
+			     else ppRECORDty(labels, args)
+			  | _ => otherwise ()
+		   end
 	       | POLYty{sign,tyfun=TYFUN{arity,body}} =>
                    if !internals
                    then (openHOVBox 1;
@@ -462,9 +467,9 @@ fun ppTyfun env ppstrm (TYFUN{arity,body}) =
 (* ppFormals : PP.stream -> int -> unit *)
 fun ppFormals ppstrm =
     let fun ppF 0 = ()
-	  | ppF 1 = pps ppstrm " 'a"
-	  | ppF n = (pps ppstrm " ";
-		     ppTuple ppstrm (fn ppstrm => fn s => pps ppstrm ("'"^s))
+	  | ppF 1 = PP.string ppstrm " 'a"
+	  | ppF n = (PP.string ppstrm " ";
+		     ppTuple ppstrm (fn ppstrm => fn s => PP.string ppstrm ("'"^s))
 				    (typeFormals n))
      in ppF
     end

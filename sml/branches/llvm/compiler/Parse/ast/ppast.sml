@@ -14,7 +14,7 @@ local structure EM = ErrorMsg
       structure PP = PrettyPrint
       structure PU = PPUtil
 
-      open Ast Fixity (* Tuples VarCon Types PrettyPrint PPUtil PPType PPVal *)
+      open Ast Fixity
 in
 
 val internals = ParserControl.astInternals

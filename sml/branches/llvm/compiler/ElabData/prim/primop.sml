@@ -56,12 +56,12 @@ structure Primop : PRIMOP =
       | TESTU of int * int         		(* E: word to int conversions, e.g. testu_31_31 *)
       | TEST of int * int          		(* E: int to smaller int conversions, e.g. test_32_31 *)
       | TRUNC of int * int        		(* E: int to smaller int/word truncation, e.g. trunc_32_31 *)
-      | EXTEND of int * int        		(* E: sign-extend word/int to larger int *)
+      | EXTEND of int * int        		(* E: sign extensions to larger int/word *)
       | COPY of int * int          		(* E: conversions, e.g. copy_32_32_ii *)
-      | TEST_INF of int            		(* E: intinf conversions; e.g., test_inf_31 *)
-      | TRUNC_INF of int           		(* E: intinf truncations; e.g., trunc_inf_31 *)
-      | EXTEND_INF of int          		(* E: sign-extend word/int to intinf *)
-      | COPY_INF of int            		(* E: conversions to intinf; e.g., copy_8_inf *)
+      | TEST_INF of int            		(* E: intinf conversions, e.g. test_inf_31 *)
+      | TRUNC_INF of int           		(* E: intinf truncations, e.g. trunc_inf_31 *)
+      | EXTEND_INF of int          		(* E: intinf extensions, e.g. extend_8_inf *)
+      | COPY_INF of int            		(* E: conversions to intinf, e.g. copy_8_inf *)
       | REAL_TO_INT of {			(* E: floor, round *)
 	    floor: bool, from: int, to: int
 	  }

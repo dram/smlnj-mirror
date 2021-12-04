@@ -42,9 +42,9 @@ functor CompileF (
 
     (** take ast, do semantic checks,
      ** and output the new env, absyn and pickles *)
-    fun elaborate {ast, statenv=senv, compInfo=cinfo, guid} = let
-	  val (absyn, nenv) = ElabTop.elabTop(ast, senv, cinfo)
-	  val (absyn, nenv) = if CompInfo.anyErrors cinfo
+    fun elaborate {ast, statenv=senv, compInfo, guid} = let
+	  val (absyn, nenv) = ElabTop.elabTop(ast, senv, compInfo)
+	  val (absyn, nenv) = if CompInfo.anyErrors compInfo
 		then (Absyn.SEQdec nil, StaticEnv.empty)
 	        else (absyn, nenv)
 	  val { pid, pickle, exportLvars, exportPid, newenv } =
@@ -115,25 +115,19 @@ functor CompileF (
 
     (** take the flint code and generate the machine binary code *)
     local
-      val inline = LSplitInline.inline
       val addCode = Stats.addStat (Stats.makeStat "Code Size")
     in
-    fun codegen { flint, imports, symenv, splitting, compInfo } = let
-	(* hooks for cross-module inlining and specialization *)
-	  val (flint, revisedImports) = inline (flint, imports, symenv)
-	(* optimized FLINT code *)
-	  val (flint, inlineExp) = FLINTOpt.optimize (flint, compInfo, splitting)
+    fun codegen { flint, imports, sourceName } = let
+        (* optimized FLINT code *)
+          val flint = FLINTOpt.optimize (flint, sourceName)
 	(* from optimized FLINT code, generate the machine code.  *)
-	  val csegs = M.compile {
-		  prog = flint,
-		  source = #sourceName compInfo
-		}
+	  val csegs = M.compile {prog = flint, source = sourceName}
 	(* Obey the nosplit directive used during bootstrapping.  *)
 	(* val inlineExp = if isSome splitting then inlineExp else NONE *)
 	  val codeSz = (CodeObj.size(#code csegs) + Word8Vector.length(#data csegs))
 	  in
 	    addCode codeSz;
-	    { csegments=csegs, inlineExp=inlineExp, imports = revisedImports }
+	    { csegments=csegs, imports = imports }
 	  end
     end (* local codegen *)
 
@@ -148,24 +142,23 @@ functor CompileF (
      * used by interact/evalloop.sml, cm/compile/compile.sml only            *
      *************************************************************************)
     (** compiling the ast into the binary code = elab + translate + codegen *)
-    fun compile {source, ast, statenv, symenv, compInfo=cinfo, checkErr=check, splitting, guid} = let
+    fun compile {source, ast, statenv, compInfo, checkErr=check, guid} = let
 	  val {absyn, newstatenv, exportLvars, exportPid, staticPid, pickle } =
-		elaborate {ast=ast, statenv=statenv, compInfo=cinfo, guid = guid}
+		elaborate {ast=ast, statenv=statenv, compInfo=compInfo, guid = guid}
 		before (check "elaborate")
 	  val absyn =
-		instrument {source=source, senv = statenv, compInfo=cinfo} absyn
+		instrument {source=source, senv = statenv, compInfo=compInfo} absyn
 		before (check "instrument")
 	  val {flint, imports} =
 		translate {
 		    absyn=absyn, exportLvars=exportLvars,
 		    newstatenv=newstatenv, oldstatenv=statenv,
-		    compInfo=cinfo
+		    compInfo=compInfo
 		  }
 		before check "translate"
-	  val {csegments, inlineExp, imports = revisedImports} =
-		codegen {
-		    flint = flint, imports = imports, symenv = symenv,
-		    splitting = splitting, compInfo = cinfo
+	  val {csegments, imports} = codegen {
+		    flint = flint, imports = imports,
+                    sourceName = #sourceName compInfo
 		  }
 		before (check "codegen")
 	(*
@@ -182,8 +175,7 @@ functor CompileF (
 	    exportLvars = exportLvars,
 	    staticPid = staticPid,
 	    pickle = pickle,
-	    inlineExp = inlineExp,
-	    imports = revisedImports
+	    imports = imports
 	  } end (* function compile *)
 
   end (* functor CompileF *)

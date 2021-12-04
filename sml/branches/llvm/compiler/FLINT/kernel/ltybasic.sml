@@ -7,158 +7,139 @@
 structure LtyBasic : LTYBASIC =
 struct
 
-local structure PT = PrimTyc
-      structure DI = DebIndex
-      structure LT = Lty
-      structure LK = LtyKernel
-
-      fun bug msg = ErrorMsg.impossible("LtyExtern: "^msg)
-      val say = Control.Print.say
+local
+  structure DI = DebIndex
+  structure LV = LambdaVar
+  structure PT = PrimTyc
+  structure LT = Lty
+  structure LK = LtyKernel
+  structure LD = LtyDef
 
       (** common utility functions *)
-      val tk_inj = LK.tk_inj
-      val tk_out = LK.tk_out
 
-      val tc_inj = LK.tc_inj
-      val tc_out = LK.tc_out
+  fun bug msg = ErrorMsg.impossible("LtyExtern: "^msg)
+  val say = Control.Print.say
 
-      val lt_inj = LK.lt_inj
-      val lt_out = LK.lt_out
+  fun plist(p, []) = ""
+    | plist(p, x::xs) =
+	(p x) ^ (String.concat (map (fn z => ("," ^ (p z))) xs))
 
-      val tcc_env = LK.tcc_env
-      val ltc_env = LK.ltc_env
+  fun pfflag (LT.FF_VAR b) =
+	let fun pff (true, true) = "rr"  | pff (true, false) = "rc"
+	      | pff (false, true) = "cr" | pff (false, false) = "cc"
+	 in pff b
+	end
+    | pfflag (LT.FF_FIXED) = "f"
 
-(* duplicated in ltykernel.sml *)
+  fun parw(p, (ff, t1, t2)) =
+	"<" ^ (p t1) ^ "> -" ^ pfflag ff ^ "-> <" ^ (p t2) ^ ">"
 
-      val itos = Int.toString
-
-      fun plist(p, []) = ""
-        | plist(p, x::xs) =
-            (p x) ^ (String.concat (map (fn z => ("," ^ (p z))) xs))
-
-      fun pfflag (LT.FF_VAR b) =
-            let fun pff (true, true) = "rr"  | pff (true, false) = "rc"
-                  | pff (false, true) = "cr" | pff (false, false) = "cc"
-             in pff b
-            end
-        | pfflag (LT.FF_FIXED) = "f"
-
-      fun parw(p, (ff, t1, t2)) =
-            "<" ^ (p t1) ^ "> -" ^ pfflag ff ^ "-> <" ^ (p t2) ^ ">"
+(*  open Lty LtyDef *)
 
 in
 
-open Lty LtyDef
-
-(** new a type variable, currently not used *)
-val mkTvar : unit -> tvar = LT.mkTvar
-
 (** utility functions for constructing tkinds *)
 fun tkc_arg n =
-  let fun h (n, r) = if n < 1 then r else h(n-1, tkc_mono::r)
+  let fun h (n, r) = if n < 1 then r else h(n-1, LT.tkc_mono::r)
    in h(n, [])
   end
 
-val tkc_fn1 = tkc_fun(tkc_arg 1, tkc_mono)
-val tkc_fn2 = tkc_fun(tkc_arg 2, tkc_mono)
-val tkc_fn3 = tkc_fun(tkc_arg 3, tkc_mono)
+val tkc_fn1 = LT.tkc_fun(LT.tkc_arg 1, LT.tkc_mono)
+val tkc_fn2 = LT.tkc_fun(LT.tkc_arg 2, LT.tkc_mono)
+val tkc_fn3 = LT.tkc_fun(LT.tkc_arg 3, LT.tkc_mono)
 
-fun tkc_int 0 = tkc_mono
-  | tkc_int 1 = tkc_fn1
-  | tkc_int 2 = tkc_fn2
-  | tkc_int 3 = tkc_fn3
-  | tkc_int i = tkc_fun(tkc_arg i, tkc_mono)
+fun tkc_int 0 = LT.tkc_mono
+  | tkc_int 1 = LT.tkc_fn1
+  | tkc_int 2 = LT.tkc_fn2
+  | tkc_int 3 = LT.tkc_fn3
+  | tkc_int i = LT.tkc_fun(LT.tkc_arg i, LT.tkc_mono)
 
-(** primitive fflags and rflags *)
-val ffc_plambda = ffc_var (false, false)
-val ffc_rrflint = ffc_var (true, true)
+(** primitive fflags *)
+val ffc_plambda = LD.ffc_var (false, false)
+val ffc_rrflint = LD.ffc_var (true, true)
 
 fun ffc_fspec (x as LT.FF_FIXED, (true,true)) = x
-  | ffc_fspec (x as LT.FF_VAR _, nx) = ffc_var nx
+  | ffc_fspec (x as LT.FF_VAR _, nx) = LD.ffc_var nx
   | ffc_fspec _ = bug "unexpected case in ffc_fspec"
 
 fun ffd_fspec (LT.FF_FIXED) = (true,true)
   | ffd_fspec (LT.FF_VAR x) = x
 
 (** utility functions for constructing tycs *)
-val tcc_int    = tcc_prim PT.ptc_int
-val tcc_num    = tcc_prim o PT.ptc_num
-val tcc_real   = tcc_prim PT.ptc_real	(* REAL32: FIXME *)
-val tcc_string = tcc_prim PT.ptc_string
-val tcc_exn    = tcc_prim PT.ptc_exn
-val tcc_void   = tcc_prim PT.ptc_void
-val tcc_unit   = tcc_tuple []
+val tcc_int    = LD.tcc_prim PT.ptc_int
+val tcc_num    = LD.tcc_prim o PT.ptc_num
+val tcc_real   = LD.tcc_prim PT.ptc_real	(* REAL32: FIXME *)
+val tcc_string = LD.tcc_prim PT.ptc_string
+val tcc_exn    = LD.tcc_prim PT.ptc_exn
+val tcc_void   = LD.tcc_prim PT.ptc_void
+val tcc_unit   = LD.tcc_tuple []
 val tcc_bool   =
-  let val tbool = tcc_sum [tcc_unit, tcc_unit]
-      val tsig_bool = tcc_fn ([tkc_mono], tbool)
-   in tcc_fix((1, #["bool"], tsig_bool, []), 0)
+  let val tbool = LD.tcc_sum [tcc_unit, tcc_unit]
+      val tsig_bool = LD.tcc_fn ([LT.tkc_mono], tbool)
+   in LD.tcc_fix((1, #["bool"], tsig_bool, []), 0)
   end
 
-val tcc_list   =  (* not exported, used for the printing purpose *)
-  let val alpha = tcc_var (DI.innermost, 0)
-      val tlist = tcc_var (DI.innersnd, 0)
-      val alist = tcc_app (tlist, [alpha])
-      val tcc_cons = tcc_tuple [alpha, alist]
-      val tlist = tcc_fn([tkc_mono], tcc_sum [tcc_cons, tcc_unit])
+val tcc_list   =  (* not exported, used for printing *)
+  let val alpha = LD.tcc_var (1, 0)  (* innermost type abstraction *)
+      val tlist = LD.tcc_var (2, 0)  (* next to innermost type abstraction *)
+      val alist = LD.tcc_app (tlist, [alpha])
+      val tcc_cons = LD.tcc_tuple [alpha, alist]
+      val tlist = LD.tcc_fn ([LT.tkc_mono], LD.tcc_sum [tcc_cons, tcc_unit])
                             (** the order here should be consistent with
                                 that in basics/basictypes.sml **)
-      val tsig_list = tcc_fn([tkc_int 1], tlist)
-   in tcc_fix((1, #["list"], tsig_list, []), 0)
+      val tsig_list = LD.tcc_fn ([tkc_int 1], tlist)
+   in LD.tcc_fix((1, #["list"], tsig_list, []), 0)
   end
 
-fun tcc_tv i     = tcc_var(DI.innermost, i)
-fun tcc_ref x    = tcc_app(tcc_prim PT.ptc_ref, [x])
-fun tcc_array x  = tcc_app(tcc_prim PT.ptc_array, [x])
-fun tcc_vector x = tcc_app(tcc_prim PT.ptc_vector, [x])
-fun tcc_etag x   = tcc_app(tcc_prim PT.ptc_etag, [x])
+fun tcc_tv i     = LD.tcc_var(DI.innermost, i)
+fun tcc_ref x    = LD.tcc_app(LD.tcc_prim PT.ptc_ref, [x])
+fun tcc_array x  = LD.tcc_app(LD.tcc_prim PT.ptc_array, [x])
+fun tcc_vector x = LD.tcc_app(LD.tcc_prim PT.ptc_vector, [x])
+fun tcc_etag x   = LD.tcc_app(LD.tcc_prim PT.ptc_etag, [x])
 
 (** primitive lambda ltys *)
-val ltc_int    = ltc_tyc tcc_int
-val ltc_num    = ltc_tyc o tcc_num
-val ltc_real   = ltc_tyc tcc_real
-val ltc_string = ltc_tyc tcc_string
-val ltc_exn    = ltc_tyc tcc_exn
-val ltc_void   = ltc_tyc tcc_void
-val ltc_unit   = ltc_tyc tcc_unit
-val ltc_bool   = ltc_tyc tcc_bool
+val ltc_int    = LD.ltc_tyc tcc_int
+val ltc_num    = LD.ltc_tyc o tcc_num
+val ltc_real   = LD.ltc_tyc tcc_real
+val ltc_string = LD.ltc_tyc tcc_string
+val ltc_exn    = LD.ltc_tyc tcc_exn
+val ltc_void   = LD.ltc_tyc tcc_void
+val ltc_unit   = LD.ltc_tyc tcc_unit
+val ltc_bool   = LD.ltc_tyc tcc_bool
 
-val ltc_tv     = ltc_tyc o tcc_tv
-val ltc_ref    = fn x => (ltc_tyc o tcc_ref o ltd_tyc) x handle DeconExn => bug "ltc_ref on Poly"
-val ltc_array  = fn x => (ltc_tyc o tcc_array o ltd_tyc) x handle DeconExn => bug "ltc_array on Poly"
-val ltc_vector = fn x => (ltc_tyc o tcc_vector o ltd_tyc) x handle DeconExn => bug "ltc_vector on Poly"
-val ltc_etag   = fn x => (ltc_tyc o tcc_etag o ltd_tyc) x handle DeconExn => bug "ltc_etag on Poly"
+val ltc_tv     = LD.ltc_tyc o tcc_tv
 
-val ltc_top = ltc_ppoly([tkc_mono], ltc_tv 0)
+fun ltc_ref x = LD.ltc_tyc (tcc_ref (LD.ltd_tyc x))
+		handle DeconExn => bug "ltc_ref on Poly"
 
-(***************************************************************************
- *            UTILITY FUNCTIONS FOR TESTING EQUIVALENCE                    *
- ***************************************************************************)
+fun ltc_array x = LD.ltc_tyc (tcc_array (LD.ltd_tyc x))
+		  handle DeconExn => bug "ltc_array on Poly"
 
-(** testing equivalence of tkinds, tycs, ltys, fflags, and rflags *)
-val tk_eqv    : tkind * tkind -> bool = LK.tk_eqv
-val tc_eqv    : tyc * tyc -> bool = LK.tc_eqv
-val lt_eqv    : lty * lty -> bool = LK.lt_eqv
-val ff_eqv    : fflag * fflag -> bool = LK.ff_eqv
-val rf_eqv    : rflag * rflag -> bool = LK.rf_eqv
+fun ltc_vector x = LD.ltc_tyc (tcc_vector (LD.ltd_tyc x))
+		   handle DeconExn => bug "ltc_vector on Poly"
 
+fun ltc_etag x = LD.ltc_tyc (tcc_etag (LD.ltd_tyc x))
+		 handle DeconExn => bug "ltc_etag on Poly"
+
+val ltc_top = LD.ltc_ppoly([LT.tkc_mono], ltc_tv 0)
 
 (***************************************************************************
- *            UTILITY FUNCTIONS FOR PRETTY PRINTING                        *
+ *            UTILITY FUNCTIONS FOR [[PRETTY]] PRINTING (to strings)       *
  ***************************************************************************)
 
 (** (pretty?) printing of tkinds, tycs, and ltys -- see pplty.sml for real
  ** pretty printing **)
-fun tk_print (x : tkind) =
-  (case tk_out x
-    of LT.TK_MONO => "K0"
-     | LT.TK_BOX => "KB0"
-     | LT.TK_FUN(ks, k) =>
-         "<" ^ (plist(tk_print, ks)) ^ "->" ^ (tk_print k) ^ ">"
-     | LT.TK_SEQ zs => "KS(" ^ (plist(tk_print, zs)) ^ ")")
+fun tk_print (x : LT.tkind) =
+    (case LT.tk_out x
+      of LT.TK_MONO => "K0"
+       | LT.TK_BOX => "KB0"
+       | LT.TK_FUN(ks, k) =>
+	   "<" ^ (plist(tk_print, ks)) ^ "->" ^ (tk_print k) ^ ">"
+       | LT.TK_SEQ zs => "KS(" ^ (plist(tk_print, zs)) ^ ")")
 
-fun tc_print (x : tyc) =
-  (case (tc_out x)
-    of LT.TC_VAR(i,j) => "TV(" ^ (DI.di_print i) ^ "," ^ (itos j) ^ ")"
+fun tc_print (x : LT.tyc) =
+  (case (LK.tc_whnm_out x)
+    of LT.TC_VAR(i,j) => "TV(" ^ (DI.di_print i) ^ "," ^ (Int.toString j) ^ ")"
      | LT.TC_NVAR v => "NTV(v" ^ LambdaVar.prLvar v ^ ")"
      | LT.TC_PRIM pt => PT.pt_print pt
      | LT.TC_FN(ks, t) =>
@@ -168,35 +149,30 @@ fun tc_print (x : tyc) =
          (tc_print t) ^ "[" ^ (plist(tc_print, zs)) ^ "]"
      | LT.TC_SEQ zs => "TS(" ^ (plist(tc_print,zs)) ^ ")"
      | LT.TC_PROJ (t, i) =>
-         "TP(" ^ (tc_print t) ^ "," ^ (itos i) ^ ")"
+         "TP(" ^ (tc_print t) ^ "," ^ (Int.toString i) ^ ")"
      | LT.TC_SUM tcs =>
          "TSUM(" ^ (plist(tc_print, tcs)) ^ ")"
      | LT.TC_FIX {family={gen=tc,params=ts,...}, index=i} =>
-         if tc_eqv(x,tcc_bool) then "B"
-         else if tc_eqv(x,tcc_list) then "LST"
-         else (let (* val ntc = case ts of [] => tc
-                                                 | _ => tcc_app(tc, ts) *)
+         if LK.tc_eqv(x,tcc_bool) then "B"
+         else if LK.tc_eqv(x,tcc_list) then "LST"
+         else (let (* val ntc = case ts of [] => tc | _ => LD.tcc_app(tc, ts) *)
                    val _ = 1
                in ("DT{" ^ "DATA"  ^ (* "[" ^ (tc_print tc)
                    ^ "] &&" ^ (plist(tc_print, ts))
-                   ^ "&&" ^*)  "===" ^ (itos i) ^ "}")
+                   ^ "&&" ^*)  "===" ^ (Int.toString i) ^ "}")
                end)
-     | LT.TC_ABS t => "Ax(" ^ (tc_print t) ^ ")"
      | LT.TC_BOX t => "Bx(" ^ (tc_print t) ^ ")"
-     | LT.TC_TUPLE(_,zs) => "TT<" ^ (plist(tc_print, zs)) ^ ">"
+     | LT.TC_TUPLE zs => "TT<" ^ (plist(tc_print, zs)) ^ ">"
      | LT.TC_ARROW (ff,z1,z2) =>
          parw(fn u => plist(tc_print,u),(ff,z1,z2))
      | LT.TC_PARROW _ => bug "unexpected TC_PARROW in tc_print"
-     | LT.TC_TOKEN (k, t) =>
-         if LT.token_isvalid k then
-             (LT.token_abbrev k) ^ "(" ^ (tc_print t) ^ ")"
-         else bug "unexpected TC_TOKEN tyc in tc_print"
+     | LT.TC_WRAP t => "WR" ^ "(" ^ (tc_print t) ^ ")"
      | LT.TC_CONT ts => "Cnt(" ^ (plist(tc_print,ts)) ^ ")"
      | LT.TC_IND _ => bug "unexpected TC_IND in tc_print"
      | LT.TC_ENV _ => bug "unexpected TC_ENV in tc_print")
 
-fun lt_print (x : lty) =
-  (case lt_out x
+fun lt_print (x : LT.lty) =
+  (case LK.lt_whnm_out x
     of LT.LT_TYC t => tc_print t
      | LT.LT_STR zs => "S{" ^ (plist(lt_print, zs)) ^ "}"
      | LT.LT_FCT (ts1,ts2) =>
@@ -209,18 +185,14 @@ fun lt_print (x : lty) =
      | LT.LT_ENV _ => bug "unexpected LT_ENV in lt_print")
 
 
-(** finding out the depth for a tyc's innermost-bound free variables *)
-val tc_depth : tyc * depth -> depth = LK.tc_depth
-val tcs_depth: tyc list * depth -> depth = LK.tcs_depth
-
 (** adjusting an lty or tyc from one depth to another *)
 fun lt_adj (lt, d, nd) =
   if d = nd then lt
-  else ltc_env(lt, 0, nd - d, LT.teEmpty)
+  else LK.ltc_env(lt, 0, nd - d, LT.teEmpty)
 
 fun tc_adj (tc, d, nd) =
   if d = nd then tc
-  else tcc_env(tc, 0, nd - d, LT.teEmpty)
+  else LK.tcc_env(tc, 0, nd - d, LT.teEmpty)
        (* handle LK.TCENV => bug "tc_adj" *)
 
 (** The following functions are similiar to lt_adj and tc_adj;
@@ -237,63 +209,44 @@ fun mkTycEnv (i, k, dd, te) =
 in
 fun lt_adj_k (lt, d, nd, k) =
   if d = nd then lt
-  else ltc_env(lt, k, nd-d+k, mkTycEnv(0, k, nd-d, LT.teEmpty))
+  else LK.ltc_env(lt, k, nd-d+k, mkTycEnv(0, k, nd-d, LT.teEmpty))
 
 fun tc_adj_k (tc, d, nd, k) =
   if d = nd then tc
-  else tcc_env(tc, k, nd-d+k, mkTycEnv(0, k, nd-d, LT.teEmpty))
+  else LK.tcc_env(tc, k, nd-d+k, mkTycEnv(0, k, nd-d, LT.teEmpty))
        handle LK.TCENV => bug "tc_adj_k"
 
 end (* lt_adj_k and tc_adj_k *)
 
-(** automatically flattening the argument or the result type *)
-val lt_autoflat : lty -> bool * lty list * bool = LK.lt_autoflat
-
-(** testing if a tyc is a unknown constructor *)
-val tc_unknown : tyc -> bool = LK.tc_unknown
-
-(***************************************************************************
- *            UTILITY FUNCTIONS ON TKIND ENVIRONMENT                       *
- ***************************************************************************)
-
-type tkindEnv = LT.tkindEnv
-exception tkUnbound = LT.tkUnbound
-val initTkEnv = LT.initTkEnv
-val tkLookup = LT.tkLookup
-val tkInsert = LT.tkInsert
-
-(***************************************************************************
- *            UTILITY FUNCTIONS ON TYC ENVIRONMENT                         *
- ***************************************************************************)
-
-type tycEnv = LT.tycEnv
-datatype teBinder = datatype LT.teBinder
-val teEmpty = LT.teEmpty
-val teCons = LT.teCons
 
 (***************************************************************************
  *            UTILITY FUNCTIONS ON LTY ENVIRONMENT                         *
  ***************************************************************************)
 
-(** utility values and functions on ltyEnv *)
-type ltyEnv = (lty * DebIndex.depth) LambdaVar.Map.map
+(* ltyEnv: environment mapping lvars to lty and DI.depth
+ *  plus utility values and functions on ltyEnv,
+ *  used in: plambda/chkplexp.sml, flint/chkflint-named.sml, flint/chkflint.sml *)
 
-exception ltUnbound
-val initLtyEnv : ltyEnv = LambdaVar.Map.empty
+type ltyEnv = (LT.lty * DI.depth) LambdaVar.Map.map
 
+(* initLtyEnv : ltyEnv *)
+val initLtyEnv : ltyEnv = LV.Map.empty
+
+(* ltLookup : ltyEnv * LambdaVar.lvar * DI.depth -> SOME lty *)
 fun ltLookup (venv, lv, nd) =
-  (case LambdaVar.Map.find(venv, lv)
-     of NONE  =>
-	  (say "**** hmmm, I didn't find the variable ";
-	   say (LambdaVar.prLvar lv); say "\n";
-	   raise ltUnbound)
-      | SOME (lt, d) =>
-	  if d=nd then lt
-	  else if d > nd then bug "unexpected depth info in ltLookup"
-	       else ltc_env(lt, 0, nd - d, LT.teEmpty)
-  (*easc*))
+    (case LambdaVar.Map.find (venv, lv)
+       of NONE  =>
+	    (say ("ltLookup: unbound lvar: " ^ LambdaVar.prLvar lv ^ "\n");
+	     NONE)
+	| SOME (lty, d) =>
+	    if d=nd then SOME lty
+	    else if d > nd then bug "ltLookup: unexpected depth"
+	    else SOME (LK.ltc_env (lty, 0, nd - d, LT.teEmpty))
+    (*end case*))
 
-fun ltInsert (venv, lv, lt, d) = LambdaVar.Map.insert(venv, lv, (lt, d))
+(* ltInsert : ltyEnv * LV.lvar * LT.lty * DI.depth -> ltyEnv *)
+fun ltInsert (venv, lvar, lty, depth) =
+    LambdaVar.Map.insert(venv, lvar, (lty, depth))
 
 end (* top-level local *)
 end (* structure LtyBasic *)

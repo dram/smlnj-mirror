@@ -21,7 +21,6 @@ Library
 	signature PERSSTAMPS
 	signature STATICENV
 	signature DYNAMICENV
-	signature SYMENV
 	signature ENVIRONMENT
 	signature ENVREF
 	signature MODULE_ID
@@ -40,7 +39,7 @@ Library
 	signature STAMPS
 	signature BINDINGS
 	signature TYPESUTIL
-	signature VARCON
+	signature VARIABLE
 	signature MODULEUTIL
 	signature BASICTYPES
 	signature PPTYPE
@@ -58,7 +57,6 @@ Library
 	structure PersStamps
 	structure StaticEnv
 	structure DynamicEnv
-	structure SymbolicEnv
 	structure Environment
 	structure EnvRef
 	structure ModuleId
@@ -87,7 +85,7 @@ Library
         structure Stamps
         structure Bindings
         structure TypesUtil
-        structure VarCon
+        structure Variable
         structure ModuleUtil
         structure PrimopId
         structure BasicTypes

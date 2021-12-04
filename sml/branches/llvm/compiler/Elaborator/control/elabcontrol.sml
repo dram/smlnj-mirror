@@ -70,15 +70,16 @@ structure ElabControl : ELAB_CONTROL =
     val markabsyn = onew ("markabsyn", "mark abstract syntax", true)
         (* ElabCore, ElabTop, ElabUtil, Control_MC *)
 
-    val printAbsyn = ref false
+    val printAbsyn = onew ("printAbsyn", "absyn print mode", false)
+    val stats = onew ("stats", "match compiler timings and stats", false)
+
 
   (***** Controls for warning messages *****)
 
-(* NOTE: we currently disable this check because of false positives for
+(* NOTE: we currently disable this unusedWarn check because of false positives for
  * mutually recursive functions.  The false positives are caused by a
  * transformation done during type checking, which should be removed
- * at some point.
- *)
+ * at some point.  CHECK if problem solved. *)
     val unusedWarn = cnew (
 	  "unused-warn",
 	  "warn when variables are defined but not used",

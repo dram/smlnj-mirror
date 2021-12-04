@@ -7,6 +7,8 @@
 Group
         signature ELAB_CONTROL
 	structure ElabControl
+        signature MC_CONTROL
+        structure MCControl
 
 	signature BASICTYPES
 	signature INSTANTIATE
@@ -22,6 +24,12 @@ Group
 	structure ElabMod
 	structure ElabTop
 
+	structure MCCommon
+	structure Andor
+	structure DecisionTree
+        structure MCUtil
+	structure MatchComp
+
 	structure BasicTypes
 	structure ElabUtil
 	structure ElabDebug
@@ -32,6 +40,9 @@ is
 
 	control/elabcontrol.sig
 	control/elabcontrol.sml
+	control/mccontrol.sig
+	control/mccontrol.sml
+        control/timeit.sml
 
 	types/unify.sml
 	types/overloadclasses.sml
@@ -56,6 +67,20 @@ is
 	elaborate/elabmod.sml
 	elaborate/elabtop.sml
 	elaborate/check-unused.sml
+
+	matchcomp/mcstats.sml
+	matchcomp/paths.sml
+        matchcomp/mccommon.sml
+	matchcomp/mcutil.sml
+        matchcomp/mcprint.sml
+        matchcomp/matchprint.sml
+        matchcomp/protoandor.sml
+        matchcomp/andor.sml
+        matchcomp/decisiontree.sml
+        matchcomp/generate.sml
+        matchcomp/preprocessing.sml
+        matchcomp/matchcomp.sml
+        matchcomp/matchtrans.sml
 
 	$smlnj/viscomp/elabdata.cm
 	$smlnj/viscomp/basics.cm

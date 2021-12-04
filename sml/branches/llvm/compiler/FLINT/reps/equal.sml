@@ -22,13 +22,20 @@ end (* signature EQUAL *)
 structure Equal : EQUAL =
 struct
 
-local structure BT = BasicTypes
-      structure LT = LtyExtern
-      structure PT = PrimTyc
-      structure PO = Primop
-      structure PP = PrettyPrint
-      structure FU = FlintUtil
-      open FLINT
+local
+  structure BT = BasicTypes
+  structure LT = Lty
+  structure FR = FunRecMeta
+  structure LK = LtyKernel
+  structure LD = LtyDef
+  structure LB = LtyBasic
+  structure LE = LtyExtern
+  structure PT = PrimTyc
+  structure PO = Primop
+  structure PL = PLambda
+  structure PP = PrettyPrint
+  structure FU = FlintUtil
+  open FLINT
 in
 
 val debugging = ref false
@@ -37,9 +44,8 @@ val say = Control.Print.say
 val mkv = LambdaVar.mkLvar
 val ident = fn x => x
 
-
 val (trueDcon', falseDcon') =
-  let val lt = LT.ltc_arrow(LT.ffc_rrflint, [LT.ltc_unit], [LT.ltc_bool])
+  let val lt = LD.ltc_arrow(LB.ffc_rrflint, [LB.ltc_unit], [LB.ltc_bool])
       fun h (Types.DATACON{name, rep, ...}) = (name, rep, lt)
    in (h BT.trueDcon, h BT.falseDcon)
   end
@@ -51,24 +57,24 @@ exception Poly
  ****************************************************************************)
 
 (** assumptions: typed created here will be reprocessed in wrapping.sml *)
-fun eqLty lt  = LT.ltc_arrow(LT.ffc_rrflint, [lt, lt], [LT.ltc_bool])
-fun eqTy tc   = eqLty(LT.ltc_tyc tc)
-val booleqty  = eqLty (LT.ltc_bool)
-fun numeqty sz = eqLty (LT.ltc_num sz)
+fun eqLty lt  = LD.ltc_arrow(LB.ffc_rrflint, [lt, lt], [LB.ltc_bool])
+fun eqTy tc   = eqLty(LD.ltc_tyc tc)
+val booleqty  = eqLty (LB.ltc_bool)
+fun numeqty sz = eqLty (LB.ltc_num sz)
 
 (****************************************************************************
  *              equal --- the equality function generator                   *
  ****************************************************************************)
 exception Notfound
 
-val fkfun = {isrec=NONE, known=false, cconv=CC_FUN LT.ffc_rrflint, inline=IH_SAFE}
+val fkfun = {isrec=NONE, known=false, cconv=FR.CC_FUN LB.ffc_rrflint, inline=FR.IH_SAFE}
 
 fun branch (e, te, fe) =
     let val x = mkv()
     in LET([x], e,
 	   SWITCH(VAR x, BT.boolsign,
-		  [(DATAcon(trueDcon', [], mkv()), te),
-		   (DATAcon(falseDcon', [], mkv()), fe)], NONE))
+		  [(PL.DATAcon(trueDcon', [], mkv()), te),
+		   (PL.DATAcon(falseDcon', [], mkv()), fe)], NONE))
     end
 
 (* equal : lvar * lvar -> lexp
@@ -78,8 +84,8 @@ fun branch (e, te, fe) =
  *  to replace a branch on POLYEQUAL with a branch on a more type-specific equality in
  *  certain cases, such as numeric, string, boolean, and ref equality, and tuples of such. *)
 fun equal (peqv, seqv) =
-    let fun eq (tc: tyc, x: value, y: value, te: lexp, fe: lexp) =
-	    let fun eq_tuple (_: int, []: tyc list, te, fe) = te
+    let fun eq (tc: LT.tyc, x: value, y: value, te: lexp, fe: lexp) =
+	    let fun eq_tuple (_: int, []: LT.tyc list, te, fe) = te
 		  | eq_tuple (n, ty::tys, te, fe) =
 		      let val a = mkv()
 			  val b = mkv()
@@ -90,18 +96,18 @@ fun equal (peqv, seqv) =
 					  fe)))
 		      end
 
-	     in if LT.tcp_tuple tc then
-		   if length(LT.tcd_tuple tc) > 10 then raise Poly
+	     in if LD.tcp_tuple tc then
+		   if length(LD.tcd_tuple tc) > 10 then raise Poly
 		   else (case fe
 		           of (APP _ | RET _) =>
-			       eq_tuple(0, LT.tcd_tuple tc, te, fe)
+			       eq_tuple(0, LD.tcd_tuple tc, te, fe)
 			    | _ => let val f = mkv()
 				   in FIX([(fkfun, f, [], fe)],
-					  eq_tuple(0, LT.tcd_tuple tc,
+					  eq_tuple(0, LD.tcd_tuple tc,
 						   te, APP(VAR f, [])))
 				   end)
-		else if LT.tcp_prim tc then
-		    let val prim = LT.tcd_prim tc
+		else if LD.tcp_prim tc then
+		    let val prim = LD.tcd_prim tc
 		    in case PT.numSize prim  (* is it a PT_NUM? *)
 			of SOME sz =>
 			   BRANCH((NONE, PrimopUtil.mkIEQL sz, numeqty sz, []), [x,y], te, fe)
@@ -110,12 +116,12 @@ fun equal (peqv, seqv) =
 			       branch(APP(VAR seqv, [x,y]), te, fe)
 			   else raise Poly
 		    end
-		else if LT.tc_eqv(tc,LT.tcc_bool) then
+		else if LK.tc_eqv(tc,LB.tcc_bool) then
 		    BRANCH((NONE, PrimopUtil.IEQL, booleqty, []), [x,y], te, fe)
-	        else if (LT.tcp_app tc) then
-	            let val (t, _) = LT.tcd_app tc
-		     in if LT.tcp_prim t then
-			    let val prim = LT.tcd_prim t
+	        else if (LD.tcp_app tc) then
+	            let val (t, _) = LD.tcd_app tc
+		     in if LD.tcp_prim t then
+			    let val prim = LD.tcd_prim t
 			    in if PT.pt_eq(prim, PT.ptc_ref) then
 				   BRANCH((NONE, PO.PTREQL, eqTy tc, []), [x,y], te, fe)
 			       else raise Poly

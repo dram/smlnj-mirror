@@ -51,7 +51,7 @@ functor Interact(EvalLoop : EVALLOOP) : INTERACT =
 			  | EvalLoop.ExnDuringExecution exn' =>
 (* FIXME: it would be useful to have a way to raise exn' without modifying its
  * trace-back history so that the message displayed to the user does not include
- * a confusing reference to this line of compiler code!
+ * a confusing reference to this line of compiler code!  Also for line 65.
  *)
 			      if isOuter then raise exn' else raise exn
 			  | _ => (

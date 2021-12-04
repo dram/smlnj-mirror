@@ -3,371 +3,427 @@
  * COPYRIGHT (c) 2017 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
- * Pretty printer for Flint IL.
+ * "True" Pretty Printer for Flint IL, using PrettyPrint library.
  *)
 
 structure PPFlint :> PPFLINT =
 struct
-    (** frequently used structures *)
-    structure F = FLINT
-    structure FU = FlintUtil
-    structure S = Symbol
-    structure LV = LambdaVar
-    structure LT = LtyExtern
-    structure PO = Primop
-    structure PU = PrintUtil
-    structure CTRL = Control.FLINT
 
-    (** some print utilities **)
-    val say = Control_Print.say
-    val margin = ref 0
-    exception Undent
-    fun indent n = margin := !margin + n
-    fun undent n = (margin := !margin - n;
-		    if !margin < 0 then raise Undent
-		    else ())
-    fun dent () = PU.tab(!margin)
-    val newline = PU.newline
+  (** frequently used structures *)
+  structure S = Symbol
+  structure LV = LambdaVar
+  structure LT = Lty
+  structure LK = LtyKernel
+  structure LD = LtyDef
+  structure LB = LtyBasic
+  structure LE = LtyExtern
+  structure FR = FunRecMeta
+  structure PL = PLambda
+  structure F = FLINT
+  structure FU = FlintUtil
+  structure PO = Primop
+  structure PU = PrintUtil
+  structure PP = PrettyPrint
+  structure PPU = PPUtil
+  structure CTRL = Control.FLINT
 
-    infix &
-    fun op& (f1,f2) () = (f1(); f2())
-
-    fun toStringFFlag ff =
+    (* fflagToString : F.fflag -> string *)
+    fun fflagToString ff =
       let fun h b = if b then "r" else "c"
-       in LT.ffw_var (ff, fn (b1,b2) => (h b1)^(h b2), fn _ => "f")
+       in LD.ffw_var (ff, fn (b1,b2) => (h b1)^(h b2), fn _ => "f")
       end
 
-    fun toStringFKind ({isrec,cconv,inline,...}:F.fkind) =
-	(case inline of F.IH_ALWAYS => "(i)"
-		      | F.IH_UNROLL => "(u)"
-		      | F.IH_MAYBE(s,ws) => "(i:"^(Int.toString s)^")"
-		      | F.IH_SAFE => "")^
-	     (case isrec
-	       of SOME(_,F.LK_UNKNOWN) => "R"
-		| SOME(_,F.LK_LOOP) => "LR"
-		| SOME(_,F.LK_TAIL) => "TR"
-		| NONE => "")^
-		  (case cconv
-		    of F.CC_FCT => "FCT"
-		     | F.CC_FUN fixed => ("FUN "^(toStringFFlag fixed)))
+    (* fkindToString : FR.fkind -> string *)
+    fun fkindToString ({isrec,cconv,inline,...}: FR.fkind) =
+	(case inline
+	   of FR.IH_ALWAYS => "(i)"
+	    | FR.IH_UNROLL => "(u)"
+	    | FR.IH_MAYBE(s,ws) => "(i:" ^ Int.toString s ^ ")"
+	    | FR.IH_SAFE => "")  ^
+	(case isrec
+	   of SOME(_,FR.LK_UNKNOWN) => "R"
+	    | SOME(_,FR.LK_LOOP) => "LR"
+	    | SOME(_,FR.LK_TAIL) => "TR"
+	    | NONE => "")  ^
+	(case cconv
+	   of FR.CC_FCT => "FCT"
+	    | FR.CC_FUN fixed => "FUN " ^ fflagToString fixed)
 
-(*
-    fun toStringFKind F.FK_ESCAPE  = "FK_ESCAPE"
-      | toStringFKind F.FK_KNOWN   = "FK_KNOWN"
-      | toStringFKind F.FK_KREC    = "FK_KREC"
-      | toStringFKind F.FK_KTAIL   = "FK_KTAIL"
-      | toStringFKind F.FK_NOINL   = "FK_NOINL"
-      | toStringFKind F.FK_HANDLER = "FK_HANDLER"
-*)
-
-    val printFKind = say o toStringFKind
+    fun ppFKind ppstrm fkind = PP.string ppstrm (fkindToString fkind)
 
     (** classifications of various kinds of records *)
-    fun toStringRKind (F.RK_VECTOR tyc) = "VECTOR[" ^ LT.tc_print tyc ^ "]"
-      | toStringRKind F.RK_STRUCT = "STRUCT"
-      | toStringRKind (F.RK_TUPLE _) = "RECORD"
+    fun rkindToString (FR.RK_VECTOR tyc) = "VECTOR[" ^ LB.tc_print tyc ^ "]"
+      | rkindToString FR.RK_STRUCT = "STRUCT"
+      | rkindToString FR.RK_TUPLE = "RECORD"
 
-    val printRKind = say o toStringRKind
+    fun ppRKind ppstrm rkind = PP.string ppstrm (rkindToString rkind)
 
     (** con: used to specify all possible switching statements. *)
-    fun toStringCon (F.DATAcon((symbol,_,_),_,_))   = S.name symbol
-      | toStringCon (F.INTcon{ival, ty}) =
+    fun conToString (PL.DATAcon((symbol,_,_),_,_))   = S.name symbol
+      | conToString (PL.INTcon{ival, ty}) =
 	  concat["(I", Int.toString ty, ")", IntInf.toString ival]
-      | toStringCon (F.WORDcon{ival, ty}) =
+      | conToString (PL.WORDcon{ival, ty}) =
 	  concat["(W", Int.toString ty, ")", IntInf.toString ival]
-      | toStringCon (F.STRINGcon s) = PrintUtil.formatString s
-      | toStringCon (F.VLENcon n)   = Int.toString n
+      | conToString (PL.STRINGcon s) = PrintUtil.formatString s
 
-    val printCon = say o toStringCon
+    fun ppCon ppstrm con = PP.string ppstrm (conToString con)
 
     (** simple values, including variables and static constants. *)
-    fun toStringValue (F.VAR v) = LV.lvarName v
-      | toStringValue (F.INT{ival, ty}) =
+    fun valueToString (F.VAR v) = LV.lvarName v
+      | valueToString (F.INT{ival, ty}) =
 	  concat["(I", Int.toString ty, ")", IntInf.toString ival]
-      | toStringValue (F.WORD{ival, ty}) =
+      | valueToString (F.WORD{ival, ty}) =
 	  concat["(W", Int.toString ty, ")", IntInf.toString ival]
-      | toStringValue (F.REAL{rval, ty}) =
+      | valueToString (F.REAL{rval, ty}) =
 	  concat["(R", Int.toString ty, ")", RealLit.toString rval]
-      | toStringValue (F.STRING s) = PrintUtil.formatString s
+      | valueToString (F.STRING s) = PrintUtil.formatString s
 
-    val printSval = say o toStringValue
-    val LVarString = ref LV.lvarName
+    fun ppValue ppstrm value = PP.string ppstrm (valueToString value)
 
-    fun printVar v = say (!LVarString v)
-    val printTyc = say o LT.tc_print
-    val printLty = say o LT.lt_print
-    fun printTvTk (tv:LT.tvar,tk) =
-	say ((LV.lvarName tv)^":"^(LT.tk_print tk))
+    val lvarToStringRef = ref LV.lvarName
+    fun ppVar ppstrm lvar = PP.string ppstrm (!lvarToStringRef lvar)
 
-    val parenCommaSep = ("(", ",", ")")
-    val printValList = PU.printClosedSequence ("[",",","]") printSval
-    val printVarList = PU.printClosedSequence ("[",",","]") printVar
-    val printTycList = PU.printClosedSequence ("[",",","]") printTyc
-    val printLtyList = PU.printClosedSequence ("[",",","]") printLty
-    val printTvTkList = PU.printClosedSequence ("[",",","]") printTvTk
+    fun ppTyc ppstrm tyc = PP.string ppstrm (LB.tc_print tyc)
+    fun ppLty ppstrm lty = PP.string ppstrm (LB.lt_print lty)
+    fun ppTvTk ppstrm (tv:LT.tvar,tk) =
+	PP.string ppstrm ((LV.lvarName tv)^":"^(LB.tk_print tk))
 
-    fun printDecon (F.DATAcon((_,Access.CONSTANT _,_),_,_)) = ()
+    val ppValList = PPU.ppBracketedSequence ("[", "]", ppValue)
+    val ppVarList = PPU.ppBracketedSequence ("[", "]", ppVar)
+    val ppTycList = PPU.ppBracketedSequence ("[", "]", ppTyc)
+    val ppLtyList = PPU.ppBracketedSequence ("[", "]", ppLty)
+    val ppTvTkList = PPU.ppBracketedSequence ("[", "]", ppTvTk)
+
+    fun ppDecon ppstrm (PL.DATAcon((_,Access.CONSTANT _,_),_,_)) = ()
         (* WARNING: a hack, but then what about constant exceptions ? *)
-      | printDecon (F.DATAcon((symbol,conrep,lty),tycs,lvar)) =
+      | ppDecon ppstrm (PL.DATAcon((symbol,conrep,lty),tycs,lvar)) =
 	(* <lvar> = DECON(<symbol>,<conrep>,<lty>,[<tycs>]) *)
-	(printVar lvar;
-	 say " = DECON(";
-	 say (S.name symbol); say ",";
-	 say (Access.prRep conrep); say ",";
-	 printLty lty; say ",";
-	 printTycList tycs; say ")";
-	 newline(); dent())
-      | printDecon _ = ()
+	(PP.openHBox ppstrm;
+	 ppVar ppstrm lvar;
+	 PP.string ppstrm " = DECON(";
+	 PP.string ppstrm (S.name symbol); PP.string ppstrm ",";
+	 PP.string ppstrm (Access.prRep conrep); PP.string ppstrm ",";
+	 ppLty ppstrm lty; PP.string ppstrm ",";
+	 ppTycList ppstrm tycs; PP.string ppstrm ")";
+	 PP.closeBox ppstrm)
+      | ppDecon _ _ = ()
 
-    fun appPrint prfun sepfun [] = ()
-      | appPrint prfun sepfun (x::xs) =
-	(prfun x;  app (fn y => (sepfun(); prfun y)) xs)
+    fun ppApp ppstrm prfun sepfun [] = ()
+      | ppApp ppstrm prfun sepfun (x::xs) =
+	(prfun ppstrm x;  app (fn y => (sepfun ppstrm; prfun ppstrm y)) xs)
 
     (** the definitions of the lambda expressions *)
 
-    fun complex (F.LET _) = true
-      | complex (F.FIX _) = true
-      | complex (F.TFN _) = true
-      | complex (F.SWITCH _) = true
-      | complex (F.CON _) = true
-      | complex (F.HANDLE _) = true
+    fun complex (F.LET _ | F.FIX _ | F.TFN _ | F.SWITCH _ | F.CON _ | F.HANDLE _) = true
       | complex _ = false
 
-    fun pLexp (F.RET values) =
+    fun ppLexp ppstrm (F.RET values, pd) =
 	(* RETURN [values] *)
-	(say "RETURN "; printValList values)
+	(PP.string ppstrm "RETURN "; ppValList ppstrm values)
 
-      | pLexp (F.APP (f, args)) =
+      | ppLexp ppstrm (F.APP (f, args), pd) =
 	(* APP(f, [args]) *)
-	(say "APP(";
-	 printSval f;
-	 say ",";
-	 printValList args;
-	 say ")")
+	(PP.string ppstrm "APP(";
+	 ppValue ppstrm f;
+	 PP.string ppstrm ",";
+	 ppValList ppstrm args;
+	 PP.string ppstrm ")")
 
-      | pLexp (F.TAPP (tf, tycs)) =
+      | ppLexp ppstrm (F.TAPP (tf, tycs), pd) =
 	(* TAPP(tf, [tycs]) *)
-	(say "TAPP(";
-	 printSval tf;
-	 say ",";
-	 printTycList tycs;
-	 say ")")
+	(PP.string ppstrm "TAPP(";
+	 ppValue ppstrm tf;
+	 PP.string ppstrm ",";
+	 ppTycList ppstrm tycs;
+	 PP.string ppstrm ")")
 
-      | pLexp (F.LET (vars, lexp, body)) =
+      | ppLexp ppstrm (F.LET (vars, lexp, body), pd) =
 	(* [vars] = lexp   OR   [vars] =
 	 *   body                 lexp
 	 *                      body
 	 *)
-	(printVarList vars; say " = ";
-	 if complex lexp then
-	     (indent 2; newline(); dent(); pLexp lexp; undent 2)
+	(PP.openVBox ppstrm (PP.Abs 0);
+	 ppVarList ppstrm vars; PP.string ppstrm " = ";
+	 if complex lexp
+	 then (PP.openVBox ppstrm (PP.Abs 2);
+	       PP.cut ppstrm;
+	       ppLexp ppstrm (lexp, pd-1);
+	       PP.closeBox ppstrm)
 	 else
 	     let val len = (3		(* for the " = " *)
 			    + 2		(* for the "[]" *)
 			    + (length vars) (* for each comma *)
 			    + (foldl	(* sum of varname lengths *)
-			       (fn (v,n) => n + (size (!LVarString v)))
+			       (fn (v,n) => n + (size (!PrintFlint.lvarToStringRef v)))
 			       0 vars))
-	     in
-		 indent len;  pLexp lexp;  undent len
+	     in PP.openHVBox ppstrm (PP.Abs len);
+		ppLexp ppstrm (lexp, pd-1);
+		PP.closeBox ppstrm
 	     end;
-	 newline();  dent();  pLexp body)
+         PP.cut ppstrm;
+	 ppLexp ppstrm (body, pd-1);
+	 PP.closeBox ppstrm)
 
-      | pLexp (F.FIX (fundecs, body)) =
+      | ppLexp ppstrm (F.FIX (fundecs, body), pd) =
       (* FIX(<fundec1>,
        *     <fundec2>,
        *     <fundec3>)
        * <body>
        *)
-	(say "FIX(";
-	 indent 4;
-	 appPrint printFundec (newline & dent) fundecs;
-	 undent 4;  say ")";  newline();
-	 dent();
-	 pLexp body)
+	(PP.openVBox ppstrm (PP.Abs 0);
+	  PP.string ppstrm "FIX(";
+	  PP.openVBox ppstrm (PP.Abs 4);
+	   ppApp ppstrm (ppFundec (pd-1)) PP.cut fundecs;
+	   PP.string ppstrm ")";
+	  PP.closeBox ppstrm;
+	  PP.cut ppstrm;
+	  ppLexp ppstrm (body, pd-1);
+	 PP.closeBox ppstrm)
 
-      | pLexp (F.TFN ((tfk as {inline,...}, lvar, tv_tk_list, tfnbody), body)) =
+      | ppLexp ppstrm (F.TFN ((tfk as {inline}, lvar, tv_tk_list, tfnbody), body), pd) =
 	(* v =
 	 *   TFN([tk],lty,
 	 *     <tfnbody>)
 	 * <body>
 	 *)
-	(printVar lvar; say " = "; newline();
-	 indent 2; dent();
-	 if inline = F.IH_SAFE then () else say "i"; say "TFN(";
-	 printTvTkList tv_tk_list; say ",";
-	 (*** printLty lty; say ","; *** lty no longer available ***)
-         newline();
-	 indent 2;
-	 dent();
-	 pLexp tfnbody;
-	 undent 4; say ")"; newline();
-	 dent();
-	 pLexp body)
+	(PP.openVBox ppstrm (PP.Abs 2);
+	  ppVar ppstrm lvar; PP.string ppstrm " = ";
+	  PP.cut ppstrm;
+	  PP.string ppstrm "TFN";
+	  PP.string ppstrm
+           (case inline
+	      of FR.IH_SAFE => "s "
+	       | FR.IH_ALWAYS => "a "
+	       | FR.IH_UNROLL => "u "
+	       | FR.IH_MAYBE _ => "m ");
+	  ppTvTkList ppstrm tv_tk_list; PP.string ppstrm ".";
+	 (*** ppLty ppstrm lty; PP.string ppstrm ","; *** lty no longer available ***)
+          PP.openVBox ppstrm (PP.Abs 2);
+           PP.cut ppstrm;
+	   ppLexp ppstrm (tfnbody, pd-1);
+          PP.closeBox ppstrm;
+	  PP.cut ppstrm;
+	  ppLexp ppstrm (body, pd-1);
+	 PP.closeBox ppstrm)
 
       (** NOTE: I'm ignoring the consig here **)
-      | pLexp (F.SWITCH (value, consig, con_lexp_list, lexpOption)) =
+      | ppLexp ppstrm (F.SWITCH (value, consig, con_lexp_list, lexpOption), pd) =
 	(* SWITCH <value>
 	 *   <con> =>
 	 *       <lexp>
 	 *   <con> =>
 	 *       <lexp>
 	 *)
-	 (say "SWITCH "; printSval value; newline();
-	  indent 2;  dent();
-	  appPrint printCase (newline & dent) con_lexp_list;
-	  case  lexpOption of
-	      NONE => ()
-	    | SOME lexp =>		(* default case *)
-		  (newline(); dent(); say "_ => ";
-		      indent 4;  newline();  dent();
-		      pLexp lexp;  undent 4);
-		      undent 2)
+	 (PP.openVBox ppstrm (PP.Abs 2);
+	   PP.string ppstrm "SWITCH "; ppValue ppstrm value;
+	   PP.cut ppstrm;
+	   ppApp ppstrm (ppCase (pd-1)) PP.cut con_lexp_list;
+	   case  lexpOption
+	    of NONE => ()
+	     | SOME lexp =>		(* default case *)
+	         (PP.cut ppstrm; PP.string ppstrm "_ => ";
+		  PP.openVBox ppstrm (PP.Abs 4);
+		   PP.cut ppstrm;
+		   ppLexp ppstrm (lexp, pd-1);
+		  PP.closeBox ppstrm);
+	  PP.closeBox ppstrm)
 
-      | pLexp (F.CON ((symbol,_,_), tycs, value, lvar, body)) =
+      | ppLexp ppstrm (F.CON ((symbol,_,_), tycs, value, lvar, body), pd) =
 	 (* <lvar> = CON(<symbol>, <tycs>, <value>)
 	  * <body>
 	  *)
-	 (printVar lvar; say " = CON(";
-	  say (S.name symbol); say ", ";
-	  printTycList tycs;  say ", ";
-	  printSval value;  say ")";
-	  newline();  dent();  pLexp body)
+	 (PP.openVBox ppstrm (PP.Abs 0);
+	   ppVar ppstrm lvar; PP.string ppstrm " = CON(";
+	   PP.string ppstrm (S.name symbol); PP.string ppstrm ", ";
+	   ppTycList ppstrm tycs;  PP.string ppstrm ", ";
+	   ppValue ppstrm value;  PP.string ppstrm ")";
+           PP.cut ppstrm;
+	   ppLexp ppstrm (body, pd-1);
+	  PP.closeBox ppstrm)
 
-      | pLexp (F.RECORD (rkind, values, lvar, body)) =
+      | ppLexp ppstrm (F.RECORD (rkind, values, lvar, body), pd) =
 	 (* <lvar> = RECORD(<rkind>, <values>)
 	  * <body>
 	  *)
-	 (printVar lvar;  say " = ";
-	  printRKind rkind; say " ";
-	  printValList values;
-	  newline();  dent();  pLexp body)
+	(PP.openVBox ppstrm (PP.Abs 0);
+	  ppVar ppstrm lvar;  PP.string ppstrm " = ";
+	  ppRKind ppstrm rkind; PP.string ppstrm " ";
+	  ppValList ppstrm values;
+	  PP.cut ppstrm;
+	  ppLexp ppstrm (body, pd-1);
+	 PP.closeBox ppstrm)
 
-      | pLexp (F.SELECT (value, int, lvar, body)) =
+      | ppLexp ppstrm (F.SELECT (value, int, lvar, body), pd) =
 	 (* <lvar> = SELECT(<value>, <int>)
 	  * <body>
 	  *)
-	 (printVar lvar;  say " = SELECT(";
-	  printSval value;  say ", ";
-	  say (Int.toString int);  say ")";
-	  newline();  dent();  pLexp body)
+	(PP.openVBox ppstrm (PP.Abs 0);
+	  ppVar ppstrm lvar;  PP.string ppstrm " = SELECT(";
+	  ppValue ppstrm value;  PP.string ppstrm ", ";
+	  PP.string ppstrm (Int.toString int);  PP.string ppstrm ")";
+	  PP.cut ppstrm;
+	  ppLexp ppstrm (body, pd-1);
+	 PP.closeBox ppstrm)
 
-      | pLexp (F.RAISE (value, ltys)) =
+      | ppLexp ppstrm (F.RAISE (value, ltys), pd) =
 	 (* NOTE: I'm ignoring the lty list here. It is the return type
 	  * of the raise expression. (ltys temporarily being printed --v)
 	  *)
 	 (* RAISE(<value>) *)
-	 (say "RAISE(";
-	  printSval value; say ") : "; printLtyList ltys)
+	 (PP.string ppstrm "RAISE(";
+	  ppValue ppstrm value; PP.string ppstrm ") : "; ppLtyList ppstrm ltys)
 
-      | pLexp (F.HANDLE (body, value)) =
+      | ppLexp ppstrm (F.HANDLE (body, value), pd) =
 	 (* <body>
 	  * HANDLE(<value>)
 	  *)
-	 (pLexp body;
-	  newline();  dent();
-	  say "HANDLE(";  printSval value;  say ")")
+	(PP.openVBox ppstrm (PP.Abs 0);
+	  ppLexp ppstrm (body, pd-1);
+	  PP.cut ppstrm;
+	  PP.string ppstrm "HANDLE(";  ppValue ppstrm value;  PP.string ppstrm ")";
+	 PP.closeBox ppstrm)
 
-      | pLexp (F.BRANCH ((d, primop, lty, tycs), values, body1, body2)) =
+      | ppLexp ppstrm (F.BRANCH ((d, primop, lty, tycs), values, body1, body2), pd) =
 	 (* IF PRIM(<primop>, <lty>, [<tycs>]) [<values>]
           * THEN
 	  *   <body1>
           * ELSE
 	  *   <body2>
 	  *)
-	 ((case d of NONE => say "IF PRIMOP("
-                   | _ => say "IF GENOP(");
-	  say (PrimopUtil.toString primop);  say ", ";
-	  printLty lty;  say ", ";
-	  printTycList tycs;  say ") ";
-	  printValList values; newline();
-          dent();
-          appPrint printBranch (newline & dent)
-              [("THEN", body1), ("ELSE", body2)])
+	let fun branch ppstrm (str, lexp) =  (* ppBranch? *)
+		(PP.string ppstrm str;
+		 ppLexp ppstrm (lexp, pd))
+         in PP.openVBox ppstrm (PP.Abs 0);
+	    case d
+	      of NONE => PP.string ppstrm "IF PRIMOP("
+	       | _ => PP.string ppstrm "IF GENOP(";
+	    PP.string ppstrm (PrimopUtil.toString primop);  PP.string ppstrm ", ";
+	    ppLty ppstrm lty;  PP.string ppstrm ", ";
+	    ppTycList ppstrm tycs;  PP.string ppstrm ") ";
+	    ppValList ppstrm values;
+	    PP.cut ppstrm;
+	    ppApp ppstrm branch PP.cut [("THEN", body1), ("ELSE", body2)];
+	    PP.closeBox ppstrm
+	end
 
-      | pLexp (F.PRIMOP (p as (_, PO.MKETAG, _, _), [value], lvar, body)) =
+      | ppLexp ppstrm (F.PRIMOP (p as (_, PO.MKETAG, _, _), [value], lvar, body), pd) =
 	 (* <lvar> = ETAG(<value>[<tyc>])
 	  * <body>
 	  *)
-	 (printVar lvar;  say " = ETAG(";
-	  printSval value;  say "[";
-	  printTyc (FU.getEtagTyc p);  say "])";
-	  newline();  dent();  pLexp body)
+	(PP.openVBox ppstrm (PP.Abs 0);
+	  ppVar ppstrm lvar;  PP.string ppstrm " = ETAG(";
+	  ppValue ppstrm value;  PP.string ppstrm "[";
+	  ppTyc ppstrm (FU.getEtagTyc p);  PP.string ppstrm "])";
+	  PP.cut ppstrm;
+	  ppLexp ppstrm (body, pd-1);
+         PP.closeBox ppstrm)
 
-      | pLexp (F.PRIMOP (p as (_, PO.WRAP, _, _), [value], lvar, body)) =
+      | ppLexp ppstrm (F.PRIMOP (p as (_, PO.WRAP, _, _), [value], lvar, body), pd) =
 	 (* <lvar> = WRAP(<tyc>, <value>)
 	  * <body>
 	  *)
-	 (printVar lvar;  say " = WRAP(";
-	  printTyc (FU.getWrapTyc p);  say ", ";
-	  printSval value;  say ")";
-	  newline();  dent();  pLexp body)
+	(PP.openVBox ppstrm (PP.Abs 0);
+	  ppVar ppstrm lvar;  PP.string ppstrm " = WRAP(";
+	  ppTyc ppstrm (FU.getWrapTyc p);  PP.string ppstrm ", ";
+	  ppValue ppstrm value;  PP.string ppstrm ")";
+	  PP.cut ppstrm;
+	  ppLexp ppstrm (body, pd-1);
+         PP.closeBox ppstrm)
 
-      | pLexp (F.PRIMOP (p as (_, PO.UNWRAP, _, []), [value], lvar, body)) =
+      | ppLexp ppstrm (F.PRIMOP (p as (_, PO.UNWRAP, _, []), [value], lvar, body), pd) =
 	 (* <lvar> = UNWRAP(<tyc>, <value>)
 	  * <body>
 	  *)
-	 (printVar lvar;  say " = UNWRAP(";
-	  printTyc (FU.getUnWrapTyc p);  say ", ";
-	  printSval value;  say ")";
-	  newline();  dent();  pLexp body)
+	(PP.openVBox ppstrm (PP.Abs 0);
+	  ppVar ppstrm lvar;  PP.string ppstrm " = UNWRAP(";
+	  ppTyc ppstrm (FU.getUnWrapTyc p);  PP.string ppstrm ", ";
+	  ppValue ppstrm value;  PP.string ppstrm ")";
+	  PP.cut ppstrm;
+	  ppLexp ppstrm (body, pd-1);
+         PP.closeBox ppstrm)
 
-      | pLexp (F.PRIMOP ((d, primop, lty, tycs), values, lvar, body)) =
+      | ppLexp ppstrm (F.PRIMOP ((d, primop, lty, tycs), values, lvar, body), pd) =
 	 (* <lvar> = PRIM(<primop>, <lty>, [<tycs>]) [<values>]
 	  * <body>
 	  *)
-	 (printVar lvar;
-          (case d of NONE => say " = PRIMOP("
-                   | _ => say " = GENOP(");
-	  say (PrimopUtil.toString primop);  say ", ";
-	  printLty lty;  say ", ";
-	  printTycList tycs;  say ") ";
-	  printValList values;
-	  newline();  dent();  pLexp body)
+	(PP.openVBox ppstrm (PP.Abs 0);
+	  ppVar ppstrm lvar;
+          (case d
+	     of NONE => PP.string ppstrm " = PRIMOP("
+              | _ => PP.string ppstrm " = GENOP(" );
+	  PP.string ppstrm (PrimopUtil.toString primop);  PP.string ppstrm ", ";
+	  ppLty ppstrm lty;  PP.string ppstrm ", ";
+	  ppTycList ppstrm tycs;  PP.string ppstrm ") ";
+	  ppValList ppstrm values;
+	  PP.cut ppstrm;
+	  ppLexp ppstrm (body, pd-1);
+         PP.closeBox ppstrm)
 
-    and printFundec (fkind as {cconv,...}, lvar, lvar_lty_list, body) =
+    (* ppFundec : int -> PP.ppstream -> F.fundec -> unit *)
+    and ppFundec pd ppstrm ((fkind as {cconv,...}, lvar, lvar_lty_list, body): F.fundec) =
 	(*  <lvar> : (<fkind>) <lty> =
 	 *    FN([v1 : lty1,
 	 *        v2 : lty2],
 	 *      <body>)
 	 *)
-	(printVar lvar; say " : ";
-	 say "("; printFKind fkind; say ") ";
-	 (*** the return-result lty no longer available ---- printLty lty; **)
-         say " = "; newline();
-	 indent 2;
-	 dent();
-	 say "FN([";
-	 indent 4;
-	 (case lvar_lty_list of
-	      [] => ()
-	    | ((lvar,lty)::L) =>
-		  (printVar lvar; say " : ";
-		   if !CTRL.printFctTypes orelse cconv <> F.CC_FCT
-		   then printLty lty else say "???";
-		   app (fn (lvar,lty) =>
-			(say ","; newline(); dent();
-			 printVar lvar; say " : "; printLty lty)) L));
-	      say "],"; newline();
-	      undent 2;  dent();
-	      pLexp body; say ")";
-	      undent 4)
+	let fun ppargs nil = ()
+	      | ppargs ((lvar,lty)::rest) =
+		  (PP.openVBox ppstrm (PP.Abs 0);
+		    ppVar ppstrm lvar; PP.string ppstrm " : ";
+		    if !CTRL.printFctTypes orelse cconv <> FR.CC_FCT
+		    then ppLty ppstrm lty
+		    else PP.string ppstrm "???";
+		    if null rest
+		    then (PP.string ppstrm "]"; PP.closeBox ppstrm)
+		    else (PP.cut ppstrm; ppargs rest))
+         in PP.openVBox ppstrm (PP.Abs 2);ppVar ppstrm lvar; PP.string ppstrm " : ";
+	     PP.string ppstrm "("; ppFKind ppstrm fkind; PP.string ppstrm ") ";
+	     (*** the result lty no longer available ---- ppLty ppstrm lty; **)
+	     PP.string ppstrm " = ";
+	     PP.cut ppstrm;
+	     PP.string ppstrm "FN([";
+	     ppargs lvar_lty_list;
+	     PP.openVBox ppstrm (PP.Abs 2);
+	      PP.cut ppstrm;
+	      ppLexp ppstrm (body, pd-1); PP.string ppstrm ")";
+	     PP.closeBox ppstrm;
+	    PP.closeBox ppstrm
+	end
 
-    and printCase (con, lexp) =
-	(printCon con;
-	 say " => ";
-         indent 4; newline(); dent();
-	 printDecon con;
-	 pLexp lexp; undent 4)
+    and ppCase pd ppstrm (con, lexp) =
+	(PP.openVBox ppstrm (PP.Abs 2);
+	   PP.cut ppstrm;
+	   ppCon ppstrm con;
+	   PP.string ppstrm " => ";
+	   PP.openVBox ppstrm (PP.Abs 4);
+	     PP.cut ppstrm;
+	     ppDecon ppstrm con;
+	     PP.cut ppstrm;
+	     ppLexp ppstrm (lexp, pd-1);
+	   PP.closeBox ppstrm;
+	 PP.closeBox ppstrm)
 
-    and printBranch (s, lexp) =
-	(say s;
-         indent 4; newline(); dent();
-	 pLexp lexp; undent 4)
+    and ppBranch ppstrm (s, lexp, pd) =
+	(PP.openVBox ppstrm (PP.Abs 4);
+	   PP.string ppstrm s;
+	   PP.cut ppstrm;
+	   ppLexp ppstrm (lexp, pd-1);
+	 PP.closeBox ppstrm)
 
-    fun printLexp lexp = pLexp lexp before (newline(); newline())
+    fun printLexp lexp =
+	PP.with_pp (PP.mkDevice (!CTRL.lineWidth))
+	  (fn ppstrm => (ppLexp ppstrm (lexp, !CTRL.printDepth)))
 
-    fun printProg prog = (printFundec prog; newline())
+    fun printLexpLimited (lexp, printDepth) =
+	PP.with_pp (PP.mkDevice (!CTRL.lineWidth))
+		   (fn ppstrm => (ppLexp ppstrm (lexp, printDepth)))
 
+    fun printProg prog =
+	PP.with_pp (PP.mkDevice (!CTRL.lineWidth))
+		   (fn ppstrm => (ppFundec (!CTRL.printDepth) ppstrm prog))
+
+    fun printProgLimited (prog, printDepth) =
+	PP.with_pp (PP.mkDevice (!CTRL.lineWidth))
+		   (fn ppstrm => (ppFundec printDepth ppstrm prog))
 
 end (* structure PPFlint *)

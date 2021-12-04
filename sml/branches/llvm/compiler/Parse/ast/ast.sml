@@ -78,7 +78,7 @@ structure Ast : AST =
     (* PATTERN *)
     and pat
       = WildPat					(* empty pattern *)
-      | VarPat of path				(* variable pattern *)
+      | VarPat of path				(* variable/const-dcon pattern *)
       | IntPat of literal			(* integer *)
       | WordPat of literal			(* word literal *)
       | StringPat of string			(* string *)

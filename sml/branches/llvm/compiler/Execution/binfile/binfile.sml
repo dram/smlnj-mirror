@@ -1,6 +1,6 @@
 (* binfile.sml
  *
- * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2021 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
  * author: Matthias Blume
@@ -14,6 +14,7 @@ structure Binfile :> BINFILE =
 
     structure Pid = PersStamps
     structure W8V = Word8Vector
+    structure SS = Substring
 
     exception FormatError = CodeObj.FormatError
 
@@ -23,16 +24,29 @@ structure Binfile :> BINFILE =
 
     type executable = CodeObj.executable
 
-    type stats = { env: int, inlinfo: int, data: int, code: int }
+    type stats = { env: int, data: int, code: int }
 
     type pickle = { pid: pid, pickle: W8V.vector }
 
+    type version_info = {
+        bfVersion : word,       (* will be 0w0 for old versions *)
+        arch : string,
+        smlnjVersion : string
+      }
+
+    val bfVersion = 0wx20211123         (* Bin File version 2021-11-23 *)
+
+    fun mkVersion {arch, smlnjVersion} : version_info = {
+            bfVersion = 0w0,        (* old binfile format for now *)
+            arch = arch, smlnjVersion = smlnjVersion
+          }
+
     datatype bfContents = BF of {
+        version : version_info,
 	imports: ImportTree.import list,
 	exportPid: pid option,
 	cmData: pid list,
 	senv: pickle,
-	lambda: pickle,
 	guid: string,
 	csegments: csegments,
 	executable: executable option ref
@@ -40,15 +54,18 @@ structure Binfile :> BINFILE =
 
     fun unBF (BF x) = x
 
+    val version = #version o unBF
+
     val bytesPerPid = Pid.persStampSize
-    val magicBytes = 16
+    val oldVersInfoSzb = 16
+    val newVersInfoSzb = 40     (* post 2021.1 *)
+
+    val binFileKind = "BinFile "
 
     val exportPidOf = #exportPid o unBF
     val cmDataOf = #cmData o unBF
     val senvPickleOf = #senv o unBF
     val staticPidOf = #pid o senvPickleOf
-    val lambdaPickleOf = #lambda o unBF
-    val lambdaPidOf = #pid o lambdaPickleOf
 
     val guidOf = #guid o unBF
 
@@ -173,26 +190,38 @@ structure Binfile :> BINFILE =
 	  end
     end (* local *)
 
-  (* The "magic string" is a 16-byte string that is formed from the architecture
-   * and version number.  The basic format is "<arch>-<version>", with the architecture
-   * limited to 7 characters and the verion limited to 8 (one character for the "-").
-   * It is padded with spaces as necessary to fill out 16 bytes.
-   *)
-    fun mkMAGIC (arch, version) = let
-	  val vbytes = 8			(* version part; allow for xxxx.y.z *)
-	  val abytes = magicBytes - vbytes - 1  (* arch part *)
+    fun mkVersionInfo {bfVersion=0w0, arch, smlnjVersion} = let
+        (* old-style binfile.  The version info is a 16-byte string formed from the
+         * architecture and SML/NJ version number. The basic format is "<arch>-<version>",
+         * with the architecture limited to 7 characters and the verion limited to 8
+         * (one character for the "-").  It is padded with spaces as necessary to
+         * fill out 16 bytes.
+         *)
+	  val vbytes = 8			        (* version part; allow for xxxx.y.z *)
+	  val abytes = oldVersInfoSzb - vbytes - 1      (* arch part *)
 	  fun trim (i, s) = if (size s > i) then substring (s, 0, i) else s
-	(* use at most the first three components of version_id *)
-	  fun vers2s [] = []
-	    | vers2s [x] = [Int.toString x]
-	    | vers2s [x, y] = [Int.toString x, ".", Int.toString y]
-	    | vers2s (x :: y :: z :: _) = [Int.toString x, ".", Int.toString y, ".", Int.toString z]
-	  val v = trim (vbytes, concat (vers2s version))
+          val v = trim (vbytes, smlnjVersion)
 	  val a = trim (abytes, arch)
 	  in
-	     StringCvt.padRight #" " magicBytes (concat[a, "-", v])
+            StringCvt.padRight #" " oldVersInfoSzb (concat[a, "-", v])
 	    (* assert (W8V.length (MAGIC <arch>) = magicBytes *)
 	  end
+      | mkVersionInfo {bfVersion, arch, smlnjVersion} = let
+          fun byte shft = chr(Word.toIntX(Word.andb(Word.>>(bfVersion, shft), 0wxff)))
+          val vers = String.implode [
+                  byte 0w24, byte 0w16, byte 0w8, byte 0w0
+                ]
+	  fun fixWid (w, s) = if (size s > w)
+                  then substring (s, 0, w)
+                else if (size s < w)
+                  then StringCvt.padRight #" " w s
+                  else s
+          in
+            String.concat[binFileKind, vers, fixWid(12, arch), fixWid(16, smlnjVersion)]
+          end
+
+    fun versionInfoSzb ({bfVersion=0w0, ...} : version_info) = oldVersInfoSzb
+      | versionInfoSzb _ = newVersInfoSzb
 
   (* calculate size of code objects (including lengths and entrypoints) *)
     fun codeSize (csegs: csegments) =
@@ -203,33 +232,66 @@ structure Binfile :> BINFILE =
    * call to "write".
    *)
     fun size { contents, nopickle } = let
-	  val { imports, exportPid, senv, cmData, lambda,  csegments, guid, ... } =
+	  val { version, imports, exportPid, senv, cmData, csegments, guid, ... } =
 		unBF contents
 	  val (_, picki) = pickleImports imports
 	  val hasExports = isSome exportPid
 	  fun pickleSize { pid, pickle } = if nopickle then 0 else W8V.length pickle
+        (* the number of length fields depends of the file-format version *)
+          val fieldsSz = if #bfVersion version = 0w0 then 9 * 4 else 8 * 4
 	  in
-	    magicBytes +
-	    9 * 4 +
+	    versionInfoSzb version +
+	    fieldsSz +
 	    W8V.length picki +
 	    (if hasExports then bytesPerPid else 0) +
 	    bytesPerPid * (length cmData + 2) + (* 2 extra: stat/sym *)
 	    String.size guid +
-	    pickleSize lambda +
+	    0 + (* unused lambda size *)
 	    codeSize csegments +
 	    pickleSize senv
 	  end
 
-    fun create { imports, exportPid, cmData, senv, lambda, csegments, guid } = BF {
+    fun create { version, imports, exportPid, cmData, senv, csegments, guid } = BF{
+            version = version,
 	    imports = imports,
 	    exportPid = exportPid,
 	    cmData = cmData,
 	    senv = senv,
-	    lambda = lambda,
 	    guid = guid,
 	    csegments = csegments,
 	    executable = ref NONE
 	  }
+
+  (* read the version info; we first read oldVersInfoSzb bytes and check for a 2021.1+
+   * header format.  If so, we read the additional bytes.
+   *)
+    fun readVersionInfo s = let
+          val blk = bytesIn (s, oldVersInfoSzb)
+          fun trimWS (s, i, n) = SS.string(SS.dropr Char.isSpace (SS.extract(s, i, SOME n)))
+          in
+            (* the first 8 bytes of the 2021.1+ binfile format is the file kind,
+             * so we check for that first.
+             *)
+            if Byte.unpackStringVec(Word8VectorSlice.slice(blk, 0, SOME 8)) = binFileKind
+              then let (* new format *)
+                fun byte i = Word.fromLargeWord(Word8.toLargeWord(W8V.sub(blk, i)))
+                val bfV = Word.<<(byte 8, 0w24) + Word.<<(byte 9, 0w16)
+                      + Word.<<(byte 10, 0w8) + byte 11
+                val hdr = Byte.bytesToString(W8V.concat[
+                        blk, bytesIn (s, newVersInfoSzb - oldVersInfoSzb)
+                      ])
+                val a = trimWS(hdr, 12, 12)
+                val v = trimWS(hdr, 24, 16)
+                in
+                  {bfVersion = bfV, arch = a, smlnjVersion = v}
+                end
+              else let (* old format *)
+                val magic = SS.dropr Char.isSpace (SS.full (Byte.bytesToString blk))
+                val (a, v) = SS.splitl (fn #"-" => false | _ => true) magic
+                in
+                  {bfVersion = 0w0, arch = SS.string a, smlnjVersion = SS.string(SS.triml 1 v)}
+                end
+          end
 
   (* must be called with second arg >= 0 *)
     fun readCSegs (strm, nbytes) = let
@@ -247,7 +309,7 @@ structure Binfile :> BINFILE =
 	  end
 
     fun readGUid s = let
-	  val _ = bytesIn (s, magicBytes)
+	  val _ = readVersionInfo s
 	  val _ = readInt32 s
 	  val ne = readInt32 s
 	  val importSzB = readInt32 s
@@ -263,21 +325,26 @@ structure Binfile :> BINFILE =
 	    Byte.bytesToString (bytesIn (s, g))
 	  end
 
-    fun read { arch, version, stream = s } = let
-	  val MAGIC = mkMAGIC (arch, version)
-	  val magic = bytesIn (s, magicBytes)
-	  val _ = if Byte.bytesToString magic <> MAGIC
+    fun read { version : version_info, stream = s } = let
+	  val version' = readVersionInfo s
+          val _ = if #arch version <> #arch version'
 		then error (concat[
-		    "bad magic number \"", String.toString(Byte.bytesToString magic),
-		    "\", expected \"", String.toString MAGIC, "\""
+		    "incorrect architecture \"", #arch version',
+		    "\", expected \"", #arch version, "\""
 		  ])
-		else ()
+                else if #smlnjVersion version <> #smlnjVersion version'
+		then error (concat[
+		    "incorrect compiler version \"", #smlnjVersion version',
+		    "\", expected \"", #smlnjVersion version, "\""
+		  ])
+                  else ()
 	  val leni = readInt32 s
 	  val ne = readInt32 s
 	  val importSzB = readInt32 s
 	  val cmInfoSzB = readInt32 s
 	  val nei = cmInfoSzB div bytesPerPid
-	  val lambdaSz = readInt32 s
+        (* read unused lambda size (old format only) *)
+	  val _ = if #bfVersion version' = 0w0 then readInt32 s else 0
 	  val g = readInt32 s
 	  val pad = readInt32 s
 	  val cs = readInt32 s
@@ -289,11 +356,13 @@ structure Binfile :> BINFILE =
 		  | _ => error "too many export PIDs"
 		(* end case *))
 	  val envPids = readPidList (s, nei)
-	  val (staticPid, lambdaPid, cmData) = (case envPids
-		 of st :: lm :: cmData => (st, lm, cmData)
+	  val (staticPid, cmData) = (case (envPids, #bfVersion version')
+		 of (st :: _ :: cmData, 0w0) =>
+                    (* NOTE: the second item is the lambdaPID, which is not used *)
+                      (st, cmData)
+                  | (st :: cmData, _) => (st, cmData) (* new format does not have lambdaPID *)
 		  | _ => error "env PID list"
 		(* end case *))
-	  val plambda = bytesIn (s, lambdaSz)
 	  val guid = Byte.bytesToString (bytesIn (s, g))
 	(* skip padding *)
 	  val _ = if pad <> 0 then ignore (bytesIn (s, pad)) else ()
@@ -302,16 +371,16 @@ structure Binfile :> BINFILE =
 	  val penv = bytesIn (s, es)
 	  in {
 	    contents = create {
+                version = version',
 		imports = imports,
 		exportPid = exportPid,
 		cmData = cmData,
 		senv = { pid = staticPid, pickle = penv },
-		lambda = { pid = lambdaPid, pickle = plambda },
 		guid = guid,
 		csegments = code
 	      },
 	    stats = {
-		env = es, inlinfo = lambdaSz, code = cs,
+		env = es, code = cs,
 		data = W8V.length (#data code)
 	      }
 	  } end
@@ -324,12 +393,13 @@ structure Binfile :> BINFILE =
 	  writeInt32 s (CodeObj.entrypoint code);
 	  CodeObj.output (s, code))
 
-    fun write { arch, version, stream = s, contents, nopickle } = let
+    fun write { stream = s, contents, nopickle } = let
 	(* Keep this in sync with "size" (see above). *)
-	  val { imports, exportPid, cmData, senv, lambda, csegments, guid, ... } = unBF contents
+	  val { version, imports, exportPid, cmData, senv, csegments, guid, ... } = unBF contents
 	  val { pickle = senvP, pid = staticPid } = senv
-	  val { pickle = lambdaP, pid = lambdaPid } = lambda
-	  val envPids = staticPid :: lambdaPid :: cmData
+          val envPids = if (#bfVersion version = 0w0)
+                then staticPid :: staticPid :: cmData (* second PID is unused lambdaPid *)
+                else staticPid :: cmData
 	  val (leni, picki) = pickleImports imports
 	  val importSzB = W8V.length picki
 	  val (ne, epl) = (case exportPid
@@ -339,7 +409,8 @@ structure Binfile :> BINFILE =
 	  val nei = length envPids
 	  val cmInfoSzB = nei * bytesPerPid
 	  fun pickleSize { pid, pickle } = if nopickle then 0 else W8V.length pickle
-	  val lambdaSz = pickleSize lambda
+	(* unused lambda size *)
+	  val lambdaSz = 0
 	  val g = String.size guid
 	  val pad = 0			(* currently no padding *)
 	  val cs = codeSize csegments
@@ -348,23 +419,28 @@ structure Binfile :> BINFILE =
 		then fn () => ()
 		else fn () => BinIO.output (s, senvP)
 	  val datasz = W8V.length (#data csegments)
-	  val MAGIC = mkMAGIC (arch, version)
+        (* the various length fields; the `lambdaSz` field is omitted in newer versions *)
+          val fields = let
+                val flds = [g, pad, cs, es]
+                val flds = if #bfVersion version = 0w0
+                      then lambdaSz :: flds
+                      else flds
+                in
+                  leni :: ne :: importSzB :: cmInfoSzB :: flds
+                end
 	  in
-	    BinIO.output (s, Byte.stringToBytes MAGIC);
-	    app (writeInt32 s) [leni, ne, importSzB, cmInfoSzB,
-				lambdaSz, g, pad, cs, es];
+	    BinIO.output (s, Byte.stringToBytes (mkVersionInfo version));
+	    app (writeInt32 s) fields;
 	    BinIO.output (s, picki);
 	    writePidList (s, epl);
 	    (* arena1 *)
 	    writePidList (s, envPids);
-	    (* arena2 -- pickled flint stuff *)
-	    if lambdaSz = 0 then () else BinIO.output (s, lambdaP);
 	    (* GUID area *)
 	    BinIO.output (s, Byte.stringToBytes guid);
 	    (* padding area is currently empty *)
 	    writeCSegs (s, csegments);
 	    writeEnv ();
-	    { env = es, inlinfo = lambdaSz, data = datasz, code = cs }
+	    { env = es, data = datasz, code = cs }
 	  end
 
     fun exec (BF {imports, exportPid, executable, csegments, ... }, dynEnv, exnWrapper) = let

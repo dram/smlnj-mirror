@@ -22,10 +22,14 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
   struct
 
     structure DA = Access
-    structure LT = LtyExtern
+    structure LT = Lty
+    structure LD = LtyDef
+    structure LB = LtyBasic
+    structure FR = FunRecMeta
+    structure LE = LtyExtern
     structure LV = LambdaVar
     structure AP = Primop
-    structure DI = DebIndex
+    structure PL = PLambda
     structure F  = FLINT
     structure FU = FlintUtil
     structure M  = LV.Map
@@ -239,18 +243,18 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
    *                   convert : F.prog -> CPS.function                      *
    ***************************************************************************)
     fun convert fdec =
-     let val {getLty=getlty, cleanUp, ...} = Recover.recover (fdec, true)
+     let val (* {getLty= *) getlty (* , cleanUp, ...} *) = Recover.recover (fdec, true)
 	 val ctypes = map CU.ctype
 	 fun res_ctys f =
 	   let val lt = getlty (F.VAR f)
-	    in if LT.ltp_fct lt then ctypes (#2(LT.ltd_fct lt))
-	       else if LT.ltp_arrow lt then ctypes (#3(LT.ltd_arrow lt))
+	    in if LD.ltp_fct lt then ctypes (#2(LD.ltd_fct lt))
+	       else if LD.ltp_arrow lt then ctypes (#3(LD.ltd_arrow lt))
 		    else [CU.BOGt]
 	   end
 	 fun get_cty v = CU.ctype (getlty v)
 	 fun is_float_record u =
-	   LT.ltw_tyc (getlty u,
-		       fn tc => LT.tcw_tuple (tc, fn l => all_float (map CU.ctyc l),
+	   LD.ltw_tyc (getlty u,
+		       fn tc => LD.tcw_tuple (tc, fn l => all_float (map CU.ctyc l),
 					      fn _ => false),
 		       fn _ => false)
 
@@ -354,7 +358,7 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 			    val kont = makmc (fn vs => APP(VAR k, vs), res_ctys f)
 			    val (vl,body) =
 				case fk
-				 of {isrec=SOME(_,F.LK_TAIL),...} => let
+				 of {isrec=SOME(_,FR.LK_TAIL),...} => let
 				     (* for tail recursive loops, we create a
 				      * local function that takes its continuation
 				      * from the environment *)
@@ -395,7 +399,7 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 	      | (F.TFN _ | F.TAPP _) =>
 		  bug "unexpected TFN and TAPP in convert"
 
-	      | F.RECORD(F.RK_VECTOR _, [], v, e) =>
+	      | F.RECORD(FR.RK_VECTOR _, [], v, e) =>
 		  bug "zero length vectors in convert"
 	      | F.RECORD(rk, [], v, e) => let
 		  val _ = newname(v, tagInt 0)
@@ -407,10 +411,10 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 		      val nvl = lpvars vl
 		      val ce = loop(e, c)
 		   in case rk
-		       of F.RK_TUPLE _ =>
+		       of FR.RK_TUPLE =>
 			   if (all_float ts) then recordFL(nvl, ts, v, ce)
 			   else recordNM(nvl, ts, v, ce)
-			| F.RK_VECTOR _ =>
+			| FR.RK_VECTOR _ =>
 			   RECORD(RK_VECTOR, map (fn x => (x, OFFp0)) nvl, v, ce)
 			| _ => recordNM(nvl, ts, v, ce)
 		  end
@@ -422,8 +426,8 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 		      else selectNM(i, nu, v, ct, ce)
 		  end
 
-	      | F.SWITCH(e,l,[a as (F.DATAcon((_,DA.CONSTANT 0,_),_,_),_),
-			      b as (F.DATAcon((_,DA.CONSTANT 1,_),_,_),_)],
+	      | F.SWITCH(e,l,[a as (PL.DATAcon((_,DA.CONSTANT 0,_),_,_),_),
+			      b as (PL.DATAcon((_,DA.CONSTANT 1,_),_,_),_)],
 			 NONE) =>
 		  loop(F.SWITCH(e,l,[b,a],NONE),c)
 	      | F.SWITCH (u, sign, l, d) =>
@@ -431,7 +435,7 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 		      val kont = makmc(fn vl => APP(F, vl), rttys c)
 		      val body = let
 			    val df = mkv()
-			    fun proc (cn as (F.DATAcon(dc, _, v)), e) =
+			    fun proc (cn as (PL.DATAcon(dc, _, v)), e) =
 				  (cn, loop (F.LET([v], F.RET [u], e), kont))
 			      | proc (cn, e) = (cn, loop(e, kont))
 			    val b = switch {
@@ -531,8 +535,8 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 		  end
 
 	      | F.PRIMOP(po as (_,AP.MARKEXN,_,_), [x,m], v, e) =>
-		  let val bty = LT.ltc_void
-		      val ety = LT.ltc_tuple[bty,bty,bty]
+		  let val bty = LB.ltc_void
+		      val ety = LD.ltc_tuple[bty,bty,bty]
 		      val (xx,x0,x1,x2) = (mkv(),mkv(),mkv(),mkv())
 		      val (y,z,z') = (mkv(),mkv(),mkv())
 		   in PURE(P.UNBOX, [lpvar x], xx, CU.ctype ety,
@@ -681,7 +685,7 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 
 	      | F.PRIMOP(po as (_,p,lt,ts), ul, v, e) =>
 		  let val ct =
-			case (#3(LT.ltd_arrow(LT.lt_pinst (lt, ts))))
+			case (#3(LD.ltd_arrow(LE.lt_pinst (lt, ts))))
 			 of [x] => CU.ctype x
 			  | _ => bug "unexpected case in F.PRIMOP"
 		      val vl = lpvars ul
@@ -710,7 +714,7 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 
 	val vl = k::(map #1 vts)
 	val cl = CNTt::(map (CU.ctype o #2) vts)
-     in (ESCAPE, f, vl, cl, bogus_header body) before cleanUp()
+     in (ESCAPE, f, vl, cl, bogus_header body)
     end (* function convert *)
 
   end (* functor Convert *)

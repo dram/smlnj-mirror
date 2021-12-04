@@ -21,16 +21,8 @@ structure CPSUtil : sig
 
     val BOGt : CPS.cty
 
-    val ctyc  : LtyDef.tyc -> CPS.cty
-    val ctype : LtyDef.lty -> CPS.cty
-
-(**** not needed yet *****
-  (* return the size of a CPS function *)
-    val sizeOfFun : CPS.function -> int
-
-  (* create a copy of a function with fresh LVars for the bound variables *)
-    val copyFun : CPS.function -> CPS.function
-****)
+    val ctyc  : Lty.tyc -> CPS.cty
+    val ctype : Lty.lty -> CPS.cty
 
   end = struct
 
@@ -128,15 +120,18 @@ structure CPSUtil : sig
     val BOGt = CPS.PTRt CPS.VPT  (* bogus pointer type whose length is unknown *)
 
     local
-      structure LT = LtyExtern
-      val tc_real = LT.tcc_real (* REAL32: this code assumes only one float type *)
-      val lt_real = LT.ltc_real
+      structure LT = Lty
+      structure LK = LtyKernel
+      structure LD = LtyDef
+      structure LB = LtyBasic
+      val tc_real = LB.tcc_real (* REAL32: this code assumes only one float type *)
+      val lt_real = LB.ltc_real
       val ptc_int = PT.ptc_int
     in
 
     (* REAL32: this code assumes only one float type *)
-    fun tcflt tc = if LT.tc_eqv(tc, tc_real) then true else false
-    fun ltflt lt = if LT.lt_eqv(lt, lt_real) then true else false
+    fun tcflt tc = if LK.tc_eqv(tc, tc_real) then true else false
+    fun ltflt lt = if LK.lt_eqv(lt, lt_real) then true else false
 
     fun rtyc (f, []) = CPS.RPT 0
       | rtyc (f, ts) = let
@@ -147,7 +142,7 @@ structure CPSUtil : sig
 	    loop(ts, true, 0)
 	  end
 
-    fun ctyc tc = LT.tcw_prim (tc,
+    fun ctyc tc = LD.tcw_prim (tc,
 	  fn pt => (case PT.numSize pt
 	       of SOME 0 => BOGt
 		| SOME sz => CPS.NUMt{sz = sz, tag = (sz <= Target.defaultIntSz)}
@@ -156,81 +151,20 @@ structure CPSUtil : sig
 		      | NONE => BOGt
 		    (* end case *))
 	      (* end case *)),
-	  fn tc => LT.tcw_tuple (tc,
+	  fn tc => LD.tcw_tuple (tc,
 	      fn ts => CPS.PTRt(rtyc(tcflt, ts)),
 	      fn tc =>
-		if LT.tcp_arrow tc then CPS.FUNt
-		else if LT.tcp_cont tc then CPS.CNTt
+		if LD.tcp_arrow tc then CPS.FUNt
+		else if LD.tcp_cont tc then CPS.CNTt
 		else BOGt))
 
     fun ctype lt =
-	  LT.ltw_tyc(lt, fn tc => ctyc tc,
+	  LD.ltw_tyc(lt, fn tc => ctyc tc,
 	      fn lt =>
-		LT.ltw_str(lt, fn ts => CPS.PTRt(rtyc(fn _ => false, ts)),
-		    fn lt => if LT.ltp_fct lt then CPS.FUNt
-			     else if LT.ltp_cont lt then CPS.CNTt
+		LD.ltw_str(lt, fn ts => CPS.PTRt(rtyc(fn _ => false, ts)),
+		    fn lt => if LD.ltp_fct lt then CPS.FUNt
+			     else if LD.ltp_cont lt then CPS.CNTt
 				  else BOGt))
     end (* local *)
-
-(**** not needed yet *****
-  (* return the "size" of a CPS function *)
-    val sizeOfFun (_, _, _, body) = let
-	  fun cntArgs ([], n) = n
-	    | cntArgs (_::r, n) = cntArgs(r, n+1)
-	  fun sz (cexp, n) = (case cexp
-		 of CPS.RECORD(_, vl, _, e) => sz (e, cntArgs(vl, n))
-		  | CPS.SELECT(_, _, _, _, e) => sz(e, n+1)
-		  | CPS.OFFSET(_, _, _, e) => sz(e, n+1)
-		  | CPS.APP _ => n+1
-		  | CPS.FIX(fl, e) => List.foldl (fn (f, n) => sizeOfFun f + n) (sz (e, n)) fl
-		  | CPS.SWITCH(_, _, ce) => List.foldl (fn (e, n) => sz(e, n+1)) (n+1) ce
-		  | CPS.BRANCH(_, _, _, c1, c2) => sz (c2, sz (c1, n+1))
-		  | CPS.SETTER(_, _, e) => sz (e, n+1)
-		  | CPS.LOOKER(_, _, _, _, e) => sz (e, n+1)
-		  | CPS.ARITH(_, _, _, _, e) => sz (e, n+1)
-		  | CPS.PURE(_, _, _, _, e) => sz (e, n+1)
-		  | CPS.RCC(_, _, _, vl, _, e) => sz (e, cntArgs(vl, n))
-		(* end case *))
-	  in
-	    sz (body, 1)
-	  end
-
-    structure LVMap = LambdaVar.Map
-
-  (* create a copy of a function with fresh LVars for the bound variables *)
-    fun copyFun (fk, f, xs, tys, e) = let
-	  fun bind (env, x, k) = let
-		val x' = LambdaVar.dupLvar x
-		in
-		  k (LVMap.insert(env, x, x'), x')
-		end
-	  fun renameVar env x = (case LVMap.find (env, x)
-		 of NONE => x
-		  | SOME x' => x'
-		(* end case *))
-	  fun rename env (CPS.VAR x) = CPS.VAR(renameVar env x)
-	    | rename env (CPS.LABEL lv) = CPS.LABEL(renameVar env lv)
-	    | rename _ v = v
-	  fun copyExp (env, cexp) = (case cexp
-		 of CPS.RECORD(rk, vl, x, e) => bind (env, x, fn (env', x') =>
-		      CPS.RECORD(rk, List.map (fn (v, p) => (rename env v, p)) vl, x',
-			copyExp(env', e))
-		  | CPS.SELECT(i, v, x, ty, e) => bind (env, x, fn (env', x') =>
-		      CPS.SELECT(i, rename env v, x', ty, copyExp(env', e)))
-		  | CPS.OFFSET(i, v, x, e) =>  bind (env, x, fn (env', x') =>
-		      CPS.OFFSET(i, rename env v, x', copyExp(env', e)))
-		  | CPS.APP(f, vl) => CPS.APP(rename env f, List.map (rename env) vl)
-		  | CPS.FIX(fl, e) =>
-		  | CPS.SWITCH(v, id, ce) => List.foldl (fn (e, n) => sz(e, n+1)) (n+1) ce
-		  | CPS.BRANCH(tst, vl, id, c1, c2) => sz (c2, sz (c1, n+1))
-		  | CPS.SETTER(oper, vl, e) => sz (e, n+1)
-		  | CPS.LOOKER(oper, vl, x, ty, e) => sz (e, n+1)
-		  | CPS.ARITH(oper, vl, x, ty, e) => sz (e, n+1)
-		  | CPS.PURE(oper, vl, x, ty, e) => sz (e, n+1)
-		  | CPS.RCC(_, _, _, vl, _, e) => sz (e, cntArgs(vl, n))
-		(* end case *))
-	  in
-	  end
-*****)
 
   end

@@ -22,15 +22,17 @@ structure TransPrim : sig
     val trans : {
 	    coreAcc : string -> PLambda.lexp,
 	    coreExn : string list -> PLambda.lexp option,
-	    mkv : unit -> PLambda.lvar,
-	    mkRaise : PLambda.lexp * PLambda.lty -> PLambda.lexp
-	  } -> Primop.primop * PLambda.lty * PLambda.tyc list -> PLambda.lexp
+	    mkv : unit -> LambdaVar.lvar,
+	    mkRaise : PLambda.lexp * Lty.lty -> PLambda.lexp
+	  } -> Primop.primop * Lty.lty * Lty.tyc list -> PLambda.lexp
 
   end = struct
 
     structure PO = Primop
-    structure L = PLambda
-    structure LT = PLambdaType   (* = LtyExtern *)
+    structure PL = PLambda
+    structure LT = Lty
+    structure LD = LtyDef
+    structure LB = LtyBasic
     structure Tgt = Target
 
     fun bug msg = ErrorMsg.impossible("TransPrim: " ^ msg)
@@ -38,57 +40,58 @@ structure TransPrim : sig
     fun warn s = Control.Print.say(concat["*** WARNING: ", s, "\n"])
 
   (* various useful PLambda types *)
-    val lt_tyc = LT.ltc_tyc
-    val lt_arw = LT.ltc_parrow
-    val lt_tup = LT.ltc_tuple
-    val lt_int = LT.ltc_int
-  (* the largest fixed-precision int type *)
-    val lt_fixed_int = LT.ltc_num Tgt.fixedIntSz
-    val lt_bool = LT.ltc_bool
-    val lt_unit = LT.ltc_unit
+    val lt_tyc = LD.ltc_tyc
+    val lt_arw = LD.ltc_parrow
+    val lt_tup = LD.ltc_tuple
+
+    val lt_int = LB.ltc_int
+    val lt_fixed_int = LB.ltc_num Tgt.fixedIntSz
+        (* the largest fixed-precision int type *)
+    val lt_bool = LB.ltc_bool
+    val lt_unit = LB.ltc_unit
 
     val lt_ipair = lt_tup [lt_int, lt_int]
     val lt_icmp = lt_arw (lt_ipair, lt_bool)
     val lt_intop1 = lt_arw (lt_int, lt_int)
 
-    val unitLexp = L.RECORD[]
+    val unitLexp = PL.RECORD[]
 
     val boolsign = BasicTypes.boolsign
     val (trueDcon', falseDcon') = let
-	  val lt = LT.ltc_parrow(LT.ltc_unit, LT.ltc_bool)
+	  val lt = LD.ltc_parrow(LB.ltc_unit, LB.ltc_bool)
 	  fun mk (Types.DATACON{name, rep, typ,...}) = (name, rep, lt)
 	  in
 	    (mk BasicTypes.trueDcon, mk BasicTypes.falseDcon)
           end
 
-    val trueLexp = L.CON(trueDcon', [], unitLexp)
-    val falseLexp = L.CON(falseDcon', [], unitLexp)
+    val trueLexp = PL.CON(trueDcon', [], unitLexp)
+    val falseLexp = PL.CON(falseDcon', [], unitLexp)
 
   (* unsigned comparison on tagged integers used for bounds checking *)
-    val LESSU = L.PRIM(PO.CMP{oper=PO.LT, kind=PO.UINT Tgt.defaultIntSz}, lt_icmp, [])
+    val LESSU = PL.PRIM(PO.CMP{oper=PO.LT, kind=PO.UINT Tgt.defaultIntSz}, lt_icmp, [])
 
-    val lt_len = LT.ltc_poly([LT.tkc_mono], [lt_arw(LT.ltc_tv 0, lt_int)])
+    val lt_len = LD.ltc_poly([LT.tkc_mono], [lt_arw(LB.ltc_tv 0, lt_int)])
     val lt_upd = let
-	  val x = LT.ltc_ref (LT.ltc_tv 0)
+	  val x = LB.ltc_ref (LB.ltc_tv 0)
           in
-	    LT.ltc_poly([LT.tkc_mono], [lt_arw(lt_tup [x, lt_int, LT.ltc_tv 0], LT.ltc_unit)])
+	    LD.ltc_poly([LT.tkc_mono], [lt_arw(lt_tup [x, lt_int, LB.ltc_tv 0], LB.ltc_unit)])
           end
 
   (* get length of sequence *)
-    fun lenOp seqtc = L.PRIM(PO.LENGTH, lt_len, [seqtc])
+    fun lenOp seqtc = PL.PRIM(PO.LENGTH, lt_len, [seqtc])
 
   (* inline operations and constants for a given numeric kind *)
     type inline_ops = {
 	lt_arg : LT.lty,	(* PLambda type for this kind of number *)
 	lt_argpair : LT.lty,	(* PLambda type for pairs of numbers *)
 	lt_cmp : LT.lty,	(* PLambda type of comparison function *)
-	multiply : L.lexp,	(* multiplication primitive function *)
-	negate : L.lexp,	(* negation primitive function *)
-	less : L.lexp,		(* less-than primitive function *)
-	greater : L.lexp,	(* greater-than primitive function *)
-	equal : L.lexp,		(* equality primitivefunction *)
-	zero : L.lexp,		(* the value 0 for the given type *)
-	negOne : L.lexp		(* the value -1 for the given type *)
+	multiply : PL.lexp,	(* multiplication primitive function *)
+	negate : PL.lexp,	(* negation primitive function *)
+	less : PL.lexp,		(* less-than primitive function *)
+	greater : PL.lexp,	(* greater-than primitive function *)
+	equal : PL.lexp,		(* equality primitivefunction *)
+	zero : PL.lexp,		(* the value 0 for the given type *)
+	negOne : PL.lexp		(* the value -1 for the given type *)
       }
 
   (* a cache of the inline_ops records *)
@@ -96,47 +99,47 @@ structure TransPrim : sig
       fun mkInlineOps nk = let
 	    val (lt_arg, lt_argpair, multiply, negate, zero, negOne) = (case nk
 		   of PO.INT sz => let
-			val lt_arg = LT.ltc_num sz
+			val lt_arg = LB.ltc_num sz
 	    		val lt_argpair = lt_tup [lt_arg, lt_arg]
 			val lt_mul = lt_arw (lt_argpair, lt_arg)
 			val lt_neg = lt_arw (lt_arg, lt_arg)
 			in (
 			  lt_arg, lt_argpair,
-			  L.PRIM(PO.IARITH{oper = PO.IMUL, sz = sz}, lt_mul, []),
-			  L.PRIM(PO.IARITH{oper = PO.INEG, sz = sz}, lt_neg, []),
-			  L.INT{ival = 0, ty = sz},
-			  L.INT{ival = ~1, ty = sz}
+			  PL.PRIM(PO.IARITH{oper = PO.IMUL, sz = sz}, lt_mul, []),
+			  PL.PRIM(PO.IARITH{oper = PO.INEG, sz = sz}, lt_neg, []),
+			  PL.INT{ival = 0, ty = sz},
+			  PL.INT{ival = ~1, ty = sz}
 			) end
 		    | PO.UINT sz => let
-			val lt_arg = LT.ltc_num sz
+			val lt_arg = LB.ltc_num sz
 	    		val lt_argpair = lt_tup [lt_arg, lt_arg]
 			val lt_mul = lt_arw (lt_argpair, lt_arg)
 			val lt_neg = lt_arw (lt_arg, lt_arg)
 			in (
 			  lt_arg, lt_argpair,
-			  L.PRIM(PO.PURE_ARITH{oper = PO.MUL, kind = nk}, lt_mul, []),
-			  L.PRIM(PO.PURE_ARITH{oper = PO.NEG, kind = nk}, lt_neg, []),
-			  L.WORD{ival = 0, ty = sz},
-			  L.WORD{ival = ~1, ty = sz} (* unused *)
+			  PL.PRIM(PO.PURE_ARITH{oper = PO.MUL, kind = nk}, lt_mul, []),
+			  PL.PRIM(PO.PURE_ARITH{oper = PO.NEG, kind = nk}, lt_neg, []),
+			  PL.WORD{ival = 0, ty = sz},
+			  PL.WORD{ival = ~1, ty = sz} (* unused *)
 			) end
 		    | PO.FLOAT sz => let
 (* REAL64: type will depend on size *)
-			val lt_arg = LT.ltc_real
+			val lt_arg = LB.ltc_real
 	    		val lt_argpair = lt_tup [lt_arg, lt_arg]
 			val lt_mul = lt_arw (lt_argpair, lt_arg)
 			val lt_neg = lt_arw (lt_arg, lt_arg)
 			in (
 			  lt_arg, lt_argpair,
-			  L.PRIM(PO.PURE_ARITH{oper = PO.MUL, kind = nk}, lt_mul, []),
-			  L.PRIM(PO.PURE_ARITH{oper = PO.NEG, kind = nk}, lt_neg, []),
-			  L.REAL{rval = RealLit.zero false, ty = sz},
-			  L.REAL{rval = RealLit.m_one, ty = sz} (* unused *)
+			  PL.PRIM(PO.PURE_ARITH{oper = PO.MUL, kind = nk}, lt_mul, []),
+			  PL.PRIM(PO.PURE_ARITH{oper = PO.NEG, kind = nk}, lt_neg, []),
+			  PL.REAL{rval = RealLit.zero false, ty = sz},
+			  PL.REAL{rval = RealLit.m_one, ty = sz} (* unused *)
 			) end
 		  (* end case *))
 	    val lt_cmp = lt_arw (lt_argpair, lt_bool)
-	    val less = L.PRIM (PO.CMP { oper = PO.LT, kind = nk }, lt_cmp, [])
-	    val greater = L.PRIM (PO.CMP { oper = PO.GT, kind = nk }, lt_cmp, [])
-	    val equal = L.PRIM (PO.CMP { oper = PO.EQL, kind = nk }, lt_cmp, [])
+	    val less = PL.PRIM (PO.CMP { oper = PO.LT, kind = nk }, lt_cmp, [])
+	    val greater = PL.PRIM (PO.CMP { oper = PO.GT, kind = nk }, lt_cmp, [])
+	    val equal = PL.PRIM (PO.CMP { oper = PO.EQL, kind = nk }, lt_cmp, [])
 	    in {
 	      lt_arg = lt_arg, lt_argpair = lt_argpair, lt_cmp = lt_cmp,
 	      multiply = multiply, negate = negate,
@@ -180,7 +183,7 @@ structure TransPrim : sig
 
   (* inline operators for numeric types *)
 
-    fun baselt (PO.UINT sz) = LT.ltc_num sz
+    fun baselt (PO.UINT sz) = LB.ltc_num sz
 
   (* type of a shift operation where `k` is the kind of value being shifted *)
     fun shiftTy k = let
@@ -190,12 +193,12 @@ structure TransPrim : sig
           end
 
   (* shift primops *)
-    fun rshiftOp k = L.PRIM(PO.PURE_ARITH{oper=PO.RSHIFT, kind=k}, shiftTy k, [])
-    fun rshiftlOp k = L.PRIM(PO.PURE_ARITH{oper=PO.RSHIFTL, kind=k}, shiftTy k, [])
-    fun lshiftOp k = L.PRIM(PO.PURE_ARITH{oper=PO.LSHIFT, kind=k}, shiftTy k, [])
+    fun rshiftOp k = PL.PRIM(PO.PURE_ARITH{oper=PO.RSHIFT, kind=k}, shiftTy k, [])
+    fun rshiftlOp k = PL.PRIM(PO.PURE_ARITH{oper=PO.RSHIFTL, kind=k}, shiftTy k, [])
+    fun lshiftOp k = PL.PRIM(PO.PURE_ARITH{oper=PO.LSHIFT, kind=k}, shiftTy k, [])
 
   (* zero literal for given word type *)
-    fun lword0 (PO.UINT sz) = L.WORD{ival = 0, ty = sz}
+    fun lword0 (PO.UINT sz) = PL.WORD{ival = 0, ty = sz}
 
   (* pick the name of an infinf conversion from "_Core" based on the size; for tagged
    * numbers, we return the boxed conversion for the ML Value-sized numbers; a second
@@ -204,7 +207,7 @@ structure TransPrim : sig
     local
       fun pickName (cvt32, cvt64) sz =
 	    if (sz = 64) then cvt64
-	    else if (sz = Tgt.mlValueSz) then cvt32 (* NOTE: sz must be 32 here! *)
+	    else if (sz = Tgt.mlValueSz) then cvt32
 	    else if (sz > Tgt.defaultIntSz)
 	      then bug(concat["bogus size ", Int.toString sz, " for intinf conversion"])
 	    else if Tgt.is64
@@ -228,20 +231,20 @@ structure TransPrim : sig
 	  fun mkFn ty body = let
 		val x = mkv()
 		in
-		  L.FN(x, ty, body(L.VAR x))
+		  PL.FN(x, ty, body(PL.VAR x))
 		end
 	(* make a let expression *)
 	  fun mkLet rhs body = let
 		val x = mkv()
 		in
-		  L.LET(x, rhs, body(L.VAR x))
+		  PL.LET(x, rhs, body(PL.VAR x))
 		end
 	(* make an application to two arguments *)
-	  fun mkApp2 (rator, a, b) = L.APP(rator, L.RECORD[a, b])
+	  fun mkApp2 (rator, a, b) = PL.APP(rator, PL.RECORD[a, b])
 	(* if-then-else *)
-	  fun mkCOND (a, b, c) = L.SWITCH(a, boolsign, [
-		  (L.DATAcon(trueDcon', [], mkv()), b),
-		  (L.DATAcon(falseDcon', [], mkv()), c)
+	  fun mkCOND (a, b, c) = PL.SWITCH(a, boolsign, [
+		  (PL.DATAcon(trueDcon', [], mkv()), b),
+		  (PL.DATAcon(falseDcon', [], mkv()), c)
 		],
 		NONE)
 	(* for some 64-bit arithmetic operations on 32-bit machines, we need to add
@@ -249,22 +252,22 @@ structure TransPrim : sig
 	 * module).
 	 *)
 	  val mkPrim = if Tgt.is64
-		then L.PRIM
+		then PL.PRIM
 		else let
 		(* returns a lambda abstraction that wraps the primop with its
 		 * extra argument.
 		 *)
 		  fun cvt (poName, po, lt) = let
-			val int64Ty = LT.ltc_num 64
+			val int64Ty = LB.ltc_num 64
 			val argTy = lt_tup [int64Ty, int64Ty]
 			val extraTy = lt_arw (argTy, int64Ty)
 			val primTy = lt_arw (lt_tup [int64Ty, int64Ty, extraTy], int64Ty)
 			in
 			  mkFn argTy (fn p =>
-			    mkLet (L.SELECT(0, p)) (fn arg1 =>
-			      mkLet (L.SELECT(1, p)) (fn arg2 =>
-				L.APP(L.PRIM(po, primTy, []),
-				  L.RECORD[arg1, arg2, coreAcc poName]))))
+			    mkLet (PL.SELECT(0, p)) (fn arg1 =>
+			      mkLet (PL.SELECT(1, p)) (fn arg2 =>
+				PL.APP(PL.PRIM(po, primTy, []),
+				  PL.RECORD[arg1, arg2, coreAcc poName]))))
 			end
 		  fun chkPrim (po as PO.IARITH{oper, sz=64}, lt, ts) = (case oper
 			 of PO.IMUL => cvt("i64Mul", po, lt)
@@ -272,60 +275,60 @@ structure TransPrim : sig
 			  | PO.IMOD => cvt("i64Mod", po, lt)
 			  | PO.IQUOT => cvt("i64Quot", po, lt)
 			  | PO.IREM => cvt("i64Rem", po, lt)
-			  | _ => L.PRIM(po, lt, ts)
+			  | _ => PL.PRIM(po, lt, ts)
 			(* end *))
 		    | chkPrim (po as PO.PURE_ARITH{oper, kind=PO.UINT 64}, lt, ts) = (
 			case oper
 			 of PO.MUL => cvt("w64Mul", po, lt)
 			  | PO.QUOT => cvt("w64Div", po, lt)
 			  | PO.REM => cvt("w64Mod", po, lt)
-			  | _ => L.PRIM(po, lt, ts)
+			  | _ => PL.PRIM(po, lt, ts)
 			(* end *))
 		    | chkPrim (po as PO.TESTU(64, to), lt, ts) = let
-			val (argTy, resTy) = (case LT.ltd_arrow lt
+			val (argTy, resTy) = (case LD.ltd_arrow lt
 			       of (_, [a], [r]) => (a, r)
 				| _ => bug (concat[
-				      "unexpected type ", LT.lt_print lt, " of TEST"
+				      "unexpected type ", LB.lt_print lt, " of TEST"
 				    ])
 			      (* end case *))
 			val extraTy = lt_arw (argTy, resTy)
 			val primTy = lt_arw (lt_tup [argTy, extraTy], resTy)
 			in
 			  mkFn argTy (fn arg =>
-			    L.APP(L.PRIM(po, primTy, []),
-			      L.RECORD[arg, coreAcc "w64ToInt32"]))
+			    PL.APP(PL.PRIM(po, primTy, []),
+			      PL.RECORD[arg, coreAcc "w64ToInt32"]))
 			end
 		    | chkPrim (po as PO.TEST(64, to), lt, ts) = let
-			val (argTy, resTy) = (case LT.ltd_arrow lt
+			val (argTy, resTy) = (case LD.ltd_arrow lt
 			       of (_, [a], [r]) => (a, r)
 				| _ => bug (concat[
-				      "unexpected type ", LT.lt_print lt, " of TEST"
+				      "unexpected type ", LB.lt_print lt, " of TEST"
 				    ])
 			      (* end case *))
 			val extraTy = lt_arw (argTy, resTy)
 			val primTy = lt_arw (lt_tup [argTy, extraTy], resTy)
 			in
 			  mkFn argTy (fn arg =>
-			    L.APP(L.PRIM(po, primTy, []),
-			      L.RECORD[arg, coreAcc "w64ToInt32X"]))
+			    PL.APP(PL.PRIM(po, primTy, []),
+			      PL.RECORD[arg, coreAcc "w64ToInt32X"]))
 			end
-		    | chkPrim arg = L.PRIM arg
+		    | chkPrim arg = PL.PRIM arg
 		  in
 		    chkPrim
 		  end
 	(* inline expand a checked logical shift operation (right or left) *)
 	  fun inlineLogicalShift (shiftOp, kind) = let
 		val shiftLimit = (case kind
-		       of PO.UINT lim => L.WORD{ival = IntInf.fromInt lim, ty = Tgt.defaultIntSz}
+		       of PO.UINT lim => PL.WORD{ival = IntInf.fromInt lim, ty = Tgt.defaultIntSz}
 			| _ => bug "unexpected kind in inlineShift"
 		      (* end case *))
 		val argt = lt_tup [baselt kind, lt_int]
 		val cmpShiftAmt =
-		      L.PRIM(PO.CMP{oper=PO.LTE, kind=PO.UINT Tgt.defaultIntSz}, lt_icmp, [])
+		      PL.PRIM(PO.CMP{oper=PO.LTE, kind=PO.UINT Tgt.defaultIntSz}, lt_icmp, [])
 		in
 		  mkFn argt (fn p =>
-		    mkLet (L.SELECT(0, p)) (fn w =>
-		      mkLet (L.SELECT(1, p)) (fn cnt =>
+		    mkLet (PL.SELECT(0, p)) (fn w =>
+		      mkLet (PL.SELECT(1, p)) (fn cnt =>
 			mkCOND(
 			  mkApp2(cmpShiftAmt, shiftLimit, cnt),
 			  lword0 kind,
@@ -339,12 +342,12 @@ structure TransPrim : sig
 	 * be zeros.
 	 *)
 	  fun inlineArithmeticShiftRight (kind as PO.UINT sz) = let
-		fun lword n = L.WORD{ival = Int.toLarge n, ty = Tgt.defaultIntSz}
+		fun lword n = PL.WORD{ival = Int.toLarge n, ty = Tgt.defaultIntSz}
 		val shiftLimit = lword sz
 		val shiftWidth = lword Tgt.defaultIntSz
 		val argt = lt_tup [baselt kind, lt_int]
 		val cmpShiftAmt =
-		      L.PRIM(PO.CMP{oper=PO.LTE, kind=PO.UINT Tgt.defaultIntSz}, lt_icmp, [])
+		      PL.PRIM(PO.CMP{oper=PO.LTE, kind=PO.UINT Tgt.defaultIntSz}, lt_icmp, [])
 		in
 		  if (sz < Tgt.defaultIntSz)
 		    then let
@@ -353,8 +356,8 @@ structure TransPrim : sig
 		      val wordKind = PO.UINT Tgt.defaultIntSz
 		      in
 			mkFn (argt) (fn p =>
-			  mkLet (L.SELECT(0, p)) (fn w =>
-			  mkLet (L.SELECT(1, p)) (fn cnt =>
+			  mkLet (PL.SELECT(0, p)) (fn w =>
+			  mkLet (PL.SELECT(1, p)) (fn cnt =>
 			  mkLet (mkApp2(lshiftOp wordKind, w, delta')) (fn w' =>
 			    mkCOND(
 			      mkApp2(cmpShiftAmt, shiftLimit, cnt),
@@ -366,8 +369,8 @@ structure TransPrim : sig
 				delta'))))))
 		      end
 		    else mkFn argt (fn p =>
-		      mkLet (L.SELECT(0, p)) (fn w =>
-		      mkLet (L.SELECT(1, p)) (fn cnt =>
+		      mkLet (PL.SELECT(0, p)) (fn w =>
+		      mkLet (PL.SELECT(1, p)) (fn cnt =>
 			mkCOND(
 			  mkApp2(cmpShiftAmt, shiftLimit, cnt),
 			  mkApp2(rshiftOp kind, w, shiftWidth),
@@ -377,7 +380,7 @@ structure TransPrim : sig
 	  fun boundsChk (ix, seq, seqtc, t) body = (
 		case coreExn ["Subscript"]
 		 of SOME ssexn =>
-		      mkCOND(L.APP(LESSU, L.RECORD[ix, L.APP(lenOp seqtc, seq)]),
+		      mkCOND(PL.APP(LESSU, PL.RECORD[ix, PL.APP(lenOp seqtc, seq)]),
 			body,
 			mkRaise(ssexn, t))
 		  | NONE => (
@@ -386,13 +389,13 @@ structure TransPrim : sig
 		(* end case *))
 	(* inline subscript for vectors and arrays *)
 	  fun inlSubscript (subOp, argt, seqtc, t) = let
-		val oper = L.PRIM (subOp, lt, ts)
+		val oper = PL.PRIM (subOp, lt, ts)
 		in
 		  case coreExn ["Subscript"]
 		   of SOME ssexn =>
 			mkFn argt (fn p =>
-			  mkLet (L.SELECT(0, p)) (fn a =>
-			    mkLet (L.SELECT(1, p)) (fn i =>
+			  mkLet (PL.SELECT(0, p)) (fn a =>
+			    mkLet (PL.SELECT(1, p)) (fn i =>
 			      boundsChk (i, a, seqtc, t) (mkApp2(oper, a, i)))))
 		     | NONE => (
 			warn "no access to exn Subscript for inline subscript";
@@ -408,11 +411,11 @@ structure TransPrim : sig
 			val { lt_arg, lt_argpair, lt_cmp, zero, equal, ... } = inlops nk
 			in
 			  mkFn lt_argpair (fn z =>
-			    mkLet (L.SELECT(1, z)) (fn y =>
+			    mkLet (PL.SELECT(1, z)) (fn y =>
 			      mkCOND (
 				mkApp2 (equal, y, zero),
 				mkRaise (divexn, lt_arg),
-				L.APP(oper, z))))
+				PL.APP(oper, z))))
 			end
 		   | NONE => (warn "no access to Div exception"; oper)
 		end
@@ -422,14 +425,14 @@ structure TransPrim : sig
 		val cmpop = if ismax then greater else less
 		in
 		  mkFn lt_argpair (fn z =>
-		    mkLet (L.SELECT(0, z)) (fn x =>
-		      mkLet (L.SELECT(1, z)) (fn y =>
+		    mkLet (PL.SELECT(0, z)) (fn x =>
+		      mkLet (PL.SELECT(1, z)) (fn y =>
 			mkCOND (
 			  mkApp2 (cmpop, x, y),
 			  x,
 			  case nk
 			   of PO.FLOAT _ => let (* testing for NaN *)
-				val fequal = L.PRIM (PO.CMP { oper = PO.EQL, kind = nk }, lt_cmp, [])
+				val fequal = PL.PRIM (PO.CMP { oper = PO.EQL, kind = nk }, lt_cmp, [])
 				in
 				  mkCOND (mkApp2 (fequal, y, y), y, x)
 				end
@@ -440,58 +443,58 @@ structure TransPrim : sig
 		val { lt_arg, greater, zero, negate, ... } = inlops nk
 		in
 		  mkFn lt_arg (fn x =>
-		    mkCOND (mkApp2 (greater, x, zero), x, L.APP(negate, x)))
+		    mkCOND (mkApp2 (greater, x, zero), x, PL.APP(negate, x)))
 		end
 	(* inline Char.chr function *)
 	  fun inlChr () = (case coreExn ["Chr"]
 		 of SOME chrExn => let
 		      val wk = PO.UINT Tgt.defaultIntSz
-		      val geu = L.PRIM(PO.CMP{oper = PO.GTE, kind = wk}, lt_icmp, [])
-		      val c256 = L.INT{ival = 256, ty = Tgt.defaultIntSz}
+		      val geu = PL.PRIM(PO.CMP{oper = PO.GTE, kind = wk}, lt_icmp, [])
+		      val c256 = PL.INT{ival = 256, ty = Tgt.defaultIntSz}
 		      in
 			mkFn lt_int (fn i =>
 			  mkCOND(mkApp2 (geu, i, c256), mkRaise(chrExn, lt_int), i))
 		      end
 		  | NONE => (
 		      warn "no access to Chr exception";
-		      L.PRIM(PO.CAST, lt_intop1, []))
+		      PL.PRIM(PO.CAST, lt_intop1, []))
 		(* end case *))
 	(* conversion from fixed int to intinf *)
 	  fun inlToInf (opname: string, cvtName: string, primop, primoplt) = let
 		val (orig_arg_lt, res_lt) = (
-		      case LT.ltd_arrow primoplt handle LT.DeconExn => bug "inlToInfPrec"
+		      case LD.ltd_arrow primoplt handle LD.DeconExn => bug "inlToInfPrec"
 		       of (_, [a], [r]) => (a, r)
 			| _ => bug (concat[
-			      "unexpected type ", LT.lt_print primoplt, " of ", opname
+			      "unexpected type ", LB.lt_print primoplt, " of ", opname
 			    ])
 		      (* end case *))
-		val extra_arg_lt = LT.ltc_parrow(lt_fixed_int, res_lt)
-		val new_arg_lt = LT.ltc_tuple [orig_arg_lt, extra_arg_lt]
-		val new_lt = LT.ltc_parrow (new_arg_lt, res_lt)
+		val extra_arg_lt = LD.ltc_parrow(lt_fixed_int, res_lt)
+		val new_arg_lt = LD.ltc_tuple [orig_arg_lt, extra_arg_lt]
+		val new_lt = LD.ltc_parrow (new_arg_lt, res_lt)
 		in
 		  mkFn orig_arg_lt (fn x =>
-		    mkApp2 (L.PRIM (primop, new_lt, []), x, coreAcc cvtName))
+		    mkApp2 (PL.PRIM (primop, new_lt, []), x, coreAcc cvtName))
 		end
 	(* conversion from intinf to fixed int *)
 	  fun inlFromInf (opname, cvtName, primop, primoplt) = let
 		val (orig_arg_lt, res_lt) = (
-		      case LT.ltd_arrow primoplt handle LT.DeconExn => bug "inlFromInfPrec"
+		      case LD.ltd_arrow primoplt handle LD.DeconExn => bug "inlFromInfPrec"
 		       of (_, [a], [r]) => (a, r)
 			| _ => bug (concat[
-			      "unexpected type ", LT.lt_print primoplt, " of ", opname
+			      "unexpected type ", LB.lt_print primoplt, " of ", opname
 			    ])
 		      (* end case *))
-		val extra_arg_lt = LT.ltc_parrow (orig_arg_lt, lt_fixed_int)
-		val new_arg_lt = LT.ltc_tuple [orig_arg_lt, extra_arg_lt]
-		val new_lt = LT.ltc_parrow (new_arg_lt, res_lt)
+		val extra_arg_lt = LD.ltc_parrow (orig_arg_lt, lt_fixed_int)
+		val new_arg_lt = LD.ltc_tuple [orig_arg_lt, extra_arg_lt]
+		val new_lt = LD.ltc_parrow (new_arg_lt, res_lt)
 		in
 		  mkFn orig_arg_lt (fn x =>
-		    mkApp2 (L.PRIM (primop, new_lt, []), x, coreAcc cvtName))
+		    mkApp2 (PL.PRIM (primop, new_lt, []), x, coreAcc cvtName))
 		end
 	(* useful error message *)
 	  fun unexpectedTy () = bug(concat[
-		  "unexpected type (", LT.lt_print lt, "; [",
-		  String.concatWithMap "," LT.tc_print ts, "]) for ",
+		  "unexpected type (", LB.lt_print lt, "; [",
+		  String.concatWithMap "," LB.tc_print ts, "]) for ",
 		  PrimopUtil.toString prim
 		])
 	  in
@@ -524,9 +527,9 @@ structure TransPrim : sig
 		  val f = mkv() and g = mkv()
 		  in
 		    mkFn argt (fn z =>
-		      mkLet (L.SELECT(0, z)) (fn f =>
-			mkLet (L.SELECT(1, z)) (fn g =>
-			  mkFn t1 (fn x => L.APP(f, L.APP(g, x))))))
+		      mkLet (PL.SELECT(0, z)) (fn f =>
+			mkLet (PL.SELECT(1, z)) (fn g =>
+			  mkFn t1 (fn x => PL.APP(f, PL.APP(g, x))))))
 		  end
 	      | PO.INLBEFORE => let
 		  val (t1, t2) = (case ts
@@ -535,7 +538,7 @@ structure TransPrim : sig
 			(* end case *))
 		  val argt = lt_tup [t1, t2]
 		  in
-		    mkFn argt (fn x => L.SELECT(0, x))
+		    mkFn argt (fn x => PL.SELECT(0, x))
 		  end
 	      | PO.INLIGNORE => let
 		  val argt = (case ts
@@ -557,13 +560,13 @@ structure TransPrim : sig
 	     * eliminated the runtime-type specialization of arrays.  It might be useful
 	     * for exposing information about array lengths.
 	     *)
-              | PO.INLMKARRAY => L.TAPP(coreAcc "mkNormArray", ts)
+              | PO.INLMKARRAY => PL.TAPP(coreAcc "mkNormArray", ts)
 	      | PO.INLSUBSCRIPTV => let
 		  val (tc1, t1) = (case ts
 			 of [z] => (z, lt_tyc z)
 			  | _ => unexpectedTy ()
 			(* end case *))
-		  val seqtc = LT.tcc_vector tc1
+		  val seqtc = LB.tcc_vector tc1
 		  val argt = lt_tup [lt_tyc seqtc, lt_int]
 		  in
 		    inlSubscript (PO.SUBSCRIPT, argt, seqtc, t1)
@@ -573,7 +576,7 @@ structure TransPrim : sig
 			 of [z] => (z, lt_tyc z)
 			  | _ => unexpectedTy ()
 			(* end case *))
-		  val seqtc = LT.tcc_array tc1
+		  val seqtc = LB.tcc_array tc1
 		  val argt = lt_tup [lt_tyc seqtc, lt_int]
 		  in
 		    inlSubscript (PO.SUBSCRIPT, argt, seqtc, t1)
@@ -597,22 +600,22 @@ structure TransPrim : sig
 		    inlSubscript (PO.NUMSUBSCRIPTV kind, argt, tc1, t2)
 		  end
 	      | PO.INLUPDATE => let
-		  val oper = L.PRIM(PO.UPDATE, lt, ts)
+		  val oper = PL.PRIM(PO.UPDATE, lt, ts)
 		  val (tc1, t1) = (case ts
 			 of [z] => (z, lt_tyc z)
 			  | _ => unexpectedTy ()
 			(* end case *))
-		  val seqtc = LT.tcc_array tc1
+		  val seqtc = LB.tcc_array tc1
 		  val argt = lt_tup [lt_tyc seqtc, lt_int, t1]
 		  in
 		    mkFn argt (fn x =>
-		      mkLet (L.SELECT(0, x)) (fn a =>
-			mkLet (L.SELECT(1, x)) (fn i =>
-			  mkLet (L.SELECT(2, x)) (fn v =>
-			    boundsChk (i, a, seqtc, LT.ltc_unit) (L.APP(oper, L.RECORD[a, i, v]))))))
+		      mkLet (PL.SELECT(0, x)) (fn a =>
+			mkLet (PL.SELECT(1, x)) (fn i =>
+			  mkLet (PL.SELECT(2, x)) (fn v =>
+			    boundsChk (i, a, seqtc, LB.ltc_unit) (PL.APP(oper, PL.RECORD[a, i, v]))))))
 		  end
 	      | PO.INLNUMUPDATE kind => let
-		  val oper = L.PRIM(PO.NUMUPDATE kind, lt, ts)
+		  val oper = PL.PRIM(PO.NUMUPDATE kind, lt, ts)
 		  val (tc1, t1, t2) = (case ts
 			 of [a, b] => (a, lt_tyc a, lt_tyc b)
 			  | _ => unexpectedTy ()
@@ -620,10 +623,10 @@ structure TransPrim : sig
 		  val argt = lt_tup [t1, lt_int, t2]
 		  in
 		    mkFn argt (fn x =>
-		      mkLet (L.SELECT(0, x)) (fn a =>
-			mkLet (L.SELECT(1, x)) (fn i =>
-			  mkLet (L.SELECT(2, x)) (fn v =>
-			    boundsChk (i, a, tc1, LT.ltc_unit) (L.APP(oper, L.RECORD[a, i, v]))))))
+		      mkLet (PL.SELECT(0, x)) (fn a =>
+			mkLet (PL.SELECT(1, x)) (fn i =>
+			  mkLet (PL.SELECT(2, x)) (fn v =>
+			    boundsChk (i, a, tc1, LB.ltc_unit) (PL.APP(oper, PL.RECORD[a, i, v]))))))
 		  end
 	    (* int to char conversion *)
 	      | PO.INLCHR => inlChr()

@@ -31,7 +31,7 @@ local structure EM = ErrorMsg
       structure EP = EntPath
       structure S = Symbol
       structure SE = StaticEnv
-      open Modules Types VarCon
+      open Modules Types Variable
 in
 
 fun bug msg = EM.impossible ("Include: " ^ msg)
@@ -61,10 +61,10 @@ fun compatible(newtyc,oldtyc) =
 fun specified(symbol,elements) =
       List.exists (fn (n,_) => S.eq(symbol,n)) elements
 
-(*** elaborating IncludeSpec in signatures ***)                 
+(*** elaborating IncludeSpec in signatures ***)
 (* BUG! currently doesn't deal with general sigexp case (e.g. sigid where ...) *)
 fun elabInclude(SIG {stamp, elements=newElements,
-		     properties, typsharing, strsharing, 
+		     properties, typsharing, strsharing,
 		     name, closed, fctflag, stub},
                 oldEnv, oldElements, oldSlots,
                 region, compInfo as {mkStamp,error,...} : EU.compInfo) =
@@ -93,7 +93,7 @@ fun lookTycMap(ev,[]) = raise TycMap
  *)
 fun adjustType(ty,[]) = ty
   | adjustType(ty,tycmap) =
-      let fun newtyc (tyc as PATHtyc{entPath=[ev],...}) = 
+      let fun newtyc (tyc as PATHtyc{entPath=[ev],...}) =
                 (lookTycMap(ev,tycmap) handle TycMap => tyc)
             | newtyc tyc = tyc
        in TU.mapTypeFull newtyc ty
@@ -112,7 +112,7 @@ fun adjustTyc(tycon,[]) = tycon
              DEFtyc{tyfun=TYFUN{arity=arity,body=adjustType(body,tycmap)},
                     stamp=mkStamp(), strict=strict, path=path}
          | GENtyc _ => tycon
-         | PATHtyc{entPath=[ev],...} => 
+         | PATHtyc{entPath=[ev],...} =>
              (lookTycMap(ev,tycmap) handle TycMap => tycon)
          | _ => bug "adjustTyc")
 
@@ -121,7 +121,7 @@ fun adjustTyc(tycon,[]) = tycon
  * signature maching operations.
  *)
 and adjustSig(sign,[]) = sign
-  | adjustSig(sign as SIG {stamp, name, closed, fctflag, 
+  | adjustSig(sign as SIG {stamp, name, closed, fctflag,
 			   elements, properties,
 			   (* boundeps, lambdaty, *)
 			   typsharing, strsharing, stub},
@@ -132,8 +132,8 @@ and adjustSig(sign,[]) = sign
 	     properties = PropList.newHolder (),
              (* boundeps=ref NONE, *)
 	     (* lambdaty=ref NONE, *)
-	     elements=adjustElems(elements,tycmap), 
-	     typsharing=typsharing, 
+	     elements=adjustElems(elements,tycmap),
+	     typsharing=typsharing,
 	     strsharing=strsharing,
 	     stub = NONE}
   | adjustSig _ = bug "adjustSig"
@@ -149,7 +149,7 @@ and adjustFsig(sign as FSIG{kind,paramsig,bodysig,paramvar,paramsym},tycmap) =
 and adjustElems(elements,tycmap) = map (adjustElem tycmap) elements
 
 and adjustElem tycmap (sym,spec) =
-      let val nspec = 
+      let val nspec =
             case spec
              of TYCspec{entVar=ev,info=RegTycSpec{spec=tycon, repl=r, scope=s}} =>
                   TYCspec{entVar=ev,
@@ -179,7 +179,7 @@ fun addElem((name,nspec: M.spec), env, elems, slot) =
                       (entVar,spec,repl,scope)
 		 | _ => bug "addElem:TYCspec"
          in case compatible(tc,otc)
-             of KEEP_OLD => 
+             of KEEP_OLD =>
                   let val ntc = PATHtyc{arity=TU.tyconArity otc,
 					entPath=[oev], path=IP.IPATH[name]}
                       val _ = addMap(ev,ntc)
@@ -201,7 +201,7 @@ fun addElem((name,nspec: M.spec), env, elems, slot) =
               | INCOMPATIBLE =>
                   (err EM.COMPLAIN ("duplicate specifications for type "
                                     ^ S.name name ^ " caused by include")
-                   EM.nullErrorBody; 
+                   EM.nullErrorBody;
                    (env, elems, slot))
         end handle MU.Unbound _ => (* new tycon *)
               (let val ntyc = PATHtyc{arity=TU.tyconArity tc, entPath=[ev],
@@ -243,7 +243,7 @@ fun addElem((name,nspec: M.spec), env, elems, slot) =
            in (env, elems', slot+1)
           end)
 
-   | VALspec{spec=typ, ...} => 
+   | VALspec{spec=typ, ...} =>
        (if specified(name,elems)
         then (err EM.COMPLAIN ("duplicate value specifications for "
                                ^ S.name name ^ " caused by include")
@@ -264,10 +264,10 @@ fun addElem((name,nspec: M.spec), env, elems, slot) =
               (env, elems, slot))
         else (* new specification - ok *)
           let val newtyp = adjustType(typ,getMap())
-              val ndcon = DATACON {rep=rep, name=name, typ=newtyp, 
+              val ndcon = DATACON {rep=rep, name=name, typ=newtyp,
                                    const=const, sign=sign, lazyp=lazyp}
               val (slotOp, slot') =
-                case rep 
+                case rep
                  of A.EXN _ => (SOME slot, slot+1)
                   | _ => (NONE, slot)
 
@@ -278,7 +278,7 @@ fun addElem((name,nspec: M.spec), env, elems, slot) =
    | _ => bug "addElem"
 
 fun addElems(nil, env, elems, slot) = (env, elems, slot)
-  | addElems(e::nelems, env, elems, slot) = 
+  | addElems(e::nelems, env, elems, slot) =
       let (*** should use s to search for e in nelems if
                 elements is represented as a real env. ***)
           val (env', elems', slot') =
@@ -286,7 +286,7 @@ fun addElems(nil, env, elems, slot) = (env, elems, slot)
        in addElems(nelems, env', elems', slot')
       end
 
-val (env', elems', slots') = 
+val (env', elems', slots') =
       addElems(newElements, oldEnv, oldElements, oldSlots)
 
  in (env',elems', typsharing, strsharing, slots', fctflag)

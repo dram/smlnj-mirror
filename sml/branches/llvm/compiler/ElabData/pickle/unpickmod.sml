@@ -1,6 +1,6 @@
 (* unpickmod.sml
  *
- * COPYRIGHT (c) 2018 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2021 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
  * The new unpickler (based on the new generic unpickling facility).
@@ -32,8 +32,6 @@ signature UNPICKMOD = sig
 		      PersStamps.persstamp * Word8Vector.vector ->
 		      StaticEnv.staticEnv
 
-    val unpickleFLINT : Word8Vector.vector -> FLINT.prog option
-
     (* The env unpickler resulting from "mkUnpicklers" cannot be used for
      * "original" environments that come out of the elaborator.  For those,
      * continue to use "unpickleEnv".  "mkUnpicklers" is intended to be
@@ -42,8 +40,7 @@ signature UNPICKMOD = sig
 	{ session: UnpickleUtil.session,
 	  stringlist: string list UnpickleUtil.reader } ->
 	context ->
-	{ symenv: SymbolicEnv.env UnpickleUtil.reader,
-	  statenv: StaticEnv.staticEnv UnpickleUtil.reader,
+	{ statenv: StaticEnv.staticEnv UnpickleUtil.reader,
 	  symbol: Symbol.symbol UnpickleUtil.reader,
 	  symbollist: Symbol.symbol list UnpickleUtil.reader }
 end
@@ -54,17 +51,12 @@ structure UnpickMod : UNPICKMOD = struct
 		   ModuleId.tmap * (unit -> string)
 
     structure A = Access
-    structure DI = DebIndex
     structure LT = Lty
-    structure LD = LtyDef
-    structure LK = LtyKernel
-    structure PT = PrimTyc
-    structure F = FLINT
     structure T = Types
     structure SP = SymPath
     structure IP = InvPath
     structure MI = ModuleId
-    structure V = VarCon
+    structure V = Variable
     structure ED = EntPath.EvDict
     structure PS = PersStamps
     structure P = Primop
@@ -256,18 +248,6 @@ structure UnpickMod : UNPICKMOD = struct
 	    share csM cs
 	end
 
-	fun tkind () = let
-	    fun tk #"A" = LT.tkc_mono
-	      | tk #"B" = LT.tkc_box
-	      | tk #"C" = LT.tkc_seq (tkindlist ())
-	      | tk #"D" = LT.tkc_fun (tkindlist (), tkind ())
-	      | tk _ = raise Format
-	in
-	    share tkindM tk
-	end
-
-	and tkindlist () = list tkindListM tkind ()
-
 	fun numkind () = let
 	    fun nk #"A" = P.INT (int ())
 	      | nk #"B" = P.UINT (int ())
@@ -395,8 +375,7 @@ structure UnpickMod : UNPICKMOD = struct
     in
 	{ pid = pid, string = string, symbol = symbol,
 	  access = access, conrep = conrep, consig = consig,
-	  primop = primop, boollist = boollist, intoption = intoption,
-	  tkind = tkind, tkindlist = tkindlist }
+	  primop = primop, boollist = boollist, intoption = intoption }
     end
 
     fun mkEnvUnpickler extraInfo sessionInfo context = let
@@ -510,7 +489,7 @@ structure UnpickMod : UNPICKMOD = struct
 	val lmsPairM = UU.mkMap ()
 
 	val { pid, string, symbol, access, conrep, consig, intoption,
-	      primop, boollist, tkind, tkindlist } = sharedStuff
+	      primop, boollist } = sharedStuff
 
 	fun libModSpec () = option lmsOptM (pair lmsPairM (int, symbol)) ()
 
@@ -808,13 +787,6 @@ structure UnpickMod : UNPICKMOD = struct
 			    (map (fn (sy, (sp, tr)) => ((sy, sp), tr))
 			         (list elementsM
 				  (pair symSpecPM (symbol, spec')) ()))
-(*		    val beps = NONE
-		        (* option bepsOM
-			     (list bepsLM
-			        (pair epTkPM (entPath, tkind))) ()
-                            -- [DBM] This is not the right tkind (should be TKind.tkind)
-                            -- for the new SigPropList. It is the FLINT version. *)
-*)
 		    val ts = spathlistlist ()
 		    val ss = spathlistlist ()
 		    val r = { stamp = s,
@@ -830,7 +802,6 @@ structure UnpickMod : UNPICKMOD = struct
 					    tree = branch eltrl,
 					    lib = lib } }
 		in
-(*		    SigPropList.setSigBoundeps (r, beps);  (* not pickled, so beps=NONE *) *)
 		    (M.SIG r, M.SIGNODE r)
 		end
 	      | sg _ = raise Format
@@ -1251,7 +1222,7 @@ structure UnpickMod : UNPICKMOD = struct
 
 	fun env () = let
 	    val bindlist = list envM (pair symBindPM (symbol, binding')) ()
-	    fun bind ((s, (b, t)), e) = StaticEnv.bind0 (s, (b, SOME t), e)
+	    fun bind ((s, (b, t)), e) = StaticEnv.bindRB (s, (b, SOME t), e)
 	in
 	    StaticEnv.consolidate (foldl bind StaticEnv.empty bindlist)
 	end
@@ -1279,241 +1250,6 @@ structure UnpickMod : UNPICKMOD = struct
 	unpickle ()
     end
 
-    fun mkFlintUnpickler (session, sharedStuff) = let
-
-	fun share m r = UU.share session m r
-
-	fun list m r = UU.r_list session m r
-	fun option m r = UU.r_option session m r
-
-	fun pair m fp p = UU.r_pair session m fp p
-	val int = UU.r_int session
-	val intinf = UU.r_intinf session
-	val bool = UU.r_bool session
-
-	val { pid, string, symbol, access, conrep, consig,
-	      primop, boollist, tkind, tkindlist, intoption } = sharedStuff
-
-	val ltyM = UU.mkMap ()
-	val ltyListM = UU.mkMap ()
-	val tycM = UU.mkMap ()
-	val tycListM = UU.mkMap ()
-	val valueM = UU.mkMap ()
-	val conM = UU.mkMap ()
-	val dconM = UU.mkMap ()
-	val dictM = UU.mkMap ()
-	val fprimM = UU.mkMap ()
-	val lexpM = UU.mkMap ()
-	val fkindM = UU.mkMap ()
-	val rkindM = UU.mkMap ()
-	val ltyloM = UU.mkMap ()
-	val dictTableM = UU.mkMap ()
-	val dictOptionM = UU.mkMap ()
-	val valueListM = UU.mkMap ()
-	val lvarListM = UU.mkMap ()
-	val fundecListM = UU.mkMap ()
-	val conListM = UU.mkMap ()
-        val strListM = UU.mkMap ()
-	val lexpOptionM = UU.mkMap ()
-	val fundecM = UU.mkMap ()
-	val tfundecM = UU.mkMap ()
-	val lvLtPM = UU.mkMap ()
-	val lvLtPLM = UU.mkMap ()
-	val lvTkPM = UU.mkMap ()
-	val lvTkPLM = UU.mkMap ()
-	val tycLvPM = UU.mkMap ()
-
-	val lvar = LambdaVar.fromId o int
-
-	fun lty () = let
-	    fun lt #"A" = LD.ltc_tyc (tyc ())
-	      | lt #"B" = LD.ltc_str (ltylist ())
-	      | lt #"C" = LD.ltc_fct (ltylist (), ltylist ())
-	      | lt #"D" = LD.ltc_poly (tkindlist (), ltylist ())
-	      | lt _ = raise Format
-	in
-	    share ltyM lt
-	end
-
-	and ltylist () = list ltyListM lty ()
-
-	and tyc () = let
-	    fun tc #"A" = LD.tcc_var (DI.di_fromint (int ()), int ())
-	      | tc #"B" = LD.tcc_nvar (lvar ())
-	      | tc #"C" = LD.tcc_prim (PT.pt_fromint (int ()))
-	      | tc #"D" = LD.tcc_fn (tkindlist (), tyc ())
-	      | tc #"E" = LD.tcc_app (tyc (), tyclist ())
-	      | tc #"F" = LD.tcc_seq (tyclist ())
-	      | tc #"G" = LD.tcc_proj (tyc (), int ())
-	      | tc #"H" = LD.tcc_sum (tyclist ())
-	      | tc #"I" = LD.tcc_fix ((int (), Vector.fromList(strlist ()),
-                                       tyc (), tyclist ()), int ())
-	      | tc #"J" = LD.tcc_abs (tyc ())
-	      | tc #"K" = LD.tcc_box (tyc ())
-	      | tc #"L" = LD.tcc_tuple (tyclist ())
-	      | tc #"M" = LD.tcc_arrow (LD.ffc_var (bool (), bool ()),
-					tyclist (), tyclist ())
-	      | tc #"N" = LD.tcc_arrow (LD.ffc_fixed, tyclist (), tyclist ())
-	      | tc #"O" = LK.tc_inj (LT.TC_TOKEN (LK.token_key (int ()),
-						  tyc ()))
-	      | tc _ = raise Format
-	in
-	    share tycM tc
-	end
-
-        and strlist () = list strListM string ()
-	and tyclist () = list tycListM tyc ()
-
-	val lvarlist = list lvarListM lvar
-
-	fun value () = let
-	    fun v #"a" = F.VAR(lvar ())
-	      | v #"b" = F.INT{ty = int(), ival = intinf()}
-	      | v #"d" = F.WORD{ty = int(), ival = intinf()}
-	      | v #"f" = F.REAL{
-		      ty = int(),
-		      rval = RealLit.fromBytes (Byte.stringToBytes (string ()))
-		    }
-	      | v #"g" = F.STRING(string ())
-	      | v _ = raise Format
-	in
-	    share valueM v
-	end
-
-	val valuelist = list valueListM value
-
-	fun con () = let
-	    fun c #"1" = let
-		    val (dc, ts) = dcon ()
-		    in
-		      (F.DATAcon (dc, ts, lvar ()), lexp ())
-		    end
-	      | c #"2" = (F.INTcon{ty = int(), ival = intinf()}, lexp ())
-	      | c #"4" = (F.WORDcon{ty = int(), ival = intinf()}, lexp ())
-	      | c #"7" = (F.STRINGcon (string ()), lexp ())
-	      | c #"8" = (F.VLENcon (int ()), lexp ())
-	      | c _ = raise Format
-	in
-	    share conM c
-	end
-
-	and conlist () = list conListM con ()
-
-	and dcon () = let
-	    fun d #"x" = ((symbol (), conrep (), lty ()), tyclist ())
-	      | d _ = raise Format
-	in
-	    share dconM d
-	end
-
-	and dict () = let
-	    fun d #"y" =
-		{ default = lvar (),
-		  table = list dictTableM (pair tycLvPM (tyclist, lvar)) () }
-	      | d _ = raise Format
-	in
-	    share dictM d
-	end
-
-	and fprim () = let
-	    fun f #"z" = (option dictOptionM dict (),
-			  primop (), lty (), tyclist ())
-	      | f _ = raise Format
-	in
-	    share fprimM f
-	end
-
-	and lexp () = let
-	    fun e #"j" = F.RET (valuelist ())
-	      | e #"k" = F.LET (lvarlist (), lexp (), lexp ())
-	      | e #"l" = F.FIX (fundeclist (), lexp ())
-	      | e #"m" = F.APP (value (), valuelist ())
-	      | e #"n" = F.TFN (tfundec (), lexp ())
-	      | e #"o" = F.TAPP (value (), tyclist ())
-	      | e #"p" = F.SWITCH (value (), consig (), conlist (),
-				  lexpoption ())
-	      | e #"q" = let
-		    val (dc, ts) = dcon ()
-		in
-		    F.CON (dc, ts, value (), lvar (), lexp ())
-		end
-	      | e #"r" = F.RECORD (rkind (), valuelist (), lvar (), lexp ())
-	      | e #"s" = F.SELECT (value (), int (), lvar (), lexp ())
-	      | e #"t" = F.RAISE (value (), ltylist ())
-	      | e #"u" = F.HANDLE (lexp (), value ())
-	      | e #"v" = F.BRANCH (fprim (), valuelist (), lexp (), lexp ())
-	      | e #"w" = F.PRIMOP (fprim (), valuelist (), lvar (), lexp ())
-	      | e _ = raise Format
-	in
-	    share lexpM e
-	end
-
-	and lexpoption () = option lexpOptionM lexp ()
-
-	and fundec () = let
-	    fun f #"a" =
-		(fkind (), lvar (),
-		 list lvLtPLM (pair lvLtPM (lvar, lty)) (),
-		 lexp ())
-	      | f _ = raise Format
-	in
-	    share fundecM f
-	end
-
-	and fundeclist () = list fundecListM fundec ()
-
-	and tfundec () = let
-	    fun t #"b" = ({ inline = F.IH_SAFE }, lvar (),
-			  list lvTkPLM (pair lvTkPM (lvar, tkind)) (),
-			  lexp ())
-	      | t _ = raise Format
-	in
-	    share tfundecM t
-	end
-
-	and fkind () = let
-	    fun aug_unknown x = (x, F.LK_UNKNOWN)
-	    fun inlflag true = F.IH_ALWAYS
-	      | inlflag false = F.IH_SAFE
-	    fun fk #"2" = { isrec = NONE, cconv = F.CC_FCT,
-			    known = false, inline = F.IH_SAFE }
-	      | fk #"3" = { isrec = Option.map aug_unknown (ltylistoption ()),
-			    cconv = F.CC_FUN (LD.ffc_var (bool (), bool ())),
-			    known = bool (),
-			    inline = inlflag (bool ()) }
-	      | fk #"4" = { isrec = Option.map aug_unknown (ltylistoption ()),
-			    cconv = F.CC_FUN LD.ffc_fixed,
-			    known = bool (),
-			    inline = inlflag (bool ()) }
-	      | fk _ = raise Format
-	in
-	    share fkindM fk
-	end
-
-	and ltylistoption () = option ltyloM ltylist ()
-
-	and rkind () = let
-	    fun rk #"5" = F.RK_VECTOR (tyc ())
-	      | rk #"6" = F.RK_STRUCT
-	      | rk #"7" = FlintUtil.rk_tuple
-	      | rk _ = raise Format
-	in
-	    share rkindM rk
-	end
-    in
-	fundec
-    end
-
-    fun unpickleFLINT pickle = let
-	val session =
-	    UU.mkSession (UU.stringGetter (Byte.bytesToString pickle))
-	val sharedStuff = mkSharedStuff (session, A.LVAR o LambdaVar.fromId)
-	val flint = mkFlintUnpickler (session, sharedStuff)
-	val foM = UU.mkMap ()
-    in
-	UU.r_option session foM flint ()
-    end
-
     fun mkUnpicklers sessionInfo context = let
 	val { session, stringlist } = sessionInfo
 	val sharedStuff = mkSharedStuff (session, A.LVAR o LambdaVar.fromId)
@@ -1525,15 +1261,8 @@ structure UnpickMod : UNPICKMOD = struct
 			  sharedStuff = sharedStuff,
 			  lib = true }
 	val statenv = mkEnvUnpickler extraInfo sessionInfo context
-	val flint = mkFlintUnpickler (session, sharedStuff)
-	val pidFlintPM = UU.mkMap ()
-	val symbind = UU.r_pair session pidFlintPM (pid, flint)
-	val sblM = UU.mkMap ()
-	val sbl = UU.r_list session sblM symbind
-	fun symenv () = SymbolicEnv.fromListi (sbl ())
     in
-	{ symenv = symenv, statenv = statenv,
-	  symbol = symbol, symbollist = symbollist }
+	{ statenv = statenv, symbol = symbol, symbollist = symbollist }
     end
 
     val unpickleEnv =

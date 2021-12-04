@@ -1,19 +1,32 @@
-(* COPYRIGHT (c) 1997 YALE FLINT PROJECT *)
-(* ppflint.sig -- Pretty printer for Flint IL. *)
+(* ppflint.sig
+ *
+ * COPYRIGHT (c) 2021 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *
+ * Signature of new pretty printer (PPFlint) for FLINT IR.
+ *)
 
 signature PPFLINT =
-sig
-    val printFKind : FLINT.fkind -> unit
-    val printRKind : FLINT.rkind -> unit
-    val printCon   : FLINT.con -> unit
-    val printSval  : FLINT.value -> unit
-    val printLexp  : FLINT.lexp -> unit
-    val printFundec: FLINT.fundec -> unit
-    val printProg  : FLINT.prog -> unit
+  sig
 
-    (* defaults to LV.lvarName *)
-    val LVarString  : (FLINT.lvar -> string) ref
+    (* pretty printing functions *)
+    val ppFKind : PrettyPrint.stream -> FunRecMeta.fkind  -> unit
+    val ppRKind : PrettyPrint.stream -> FunRecMeta.rkind  -> unit
+    val ppCon   : PrettyPrint.stream -> PLambda.con    -> unit
+    val ppValue : PrettyPrint.stream -> FLINT.value  -> unit  (* was printSval *)
+    val ppFundec: int -> PrettyPrint.stream -> FLINT.fundec -> unit  (* also takes FLINT.prog *)
+    val ppLexp : PrettyPrint.stream -> (FLINT.lexp * int) -> unit
 
-    val toStringValue : FLINT.value -> string
+    (* "top-level" printing functions *)
+    val printLexp : FLINT.lexp -> unit
+      (* controlled by Control.FLINT.printDepth and Control.FLINT.lineWidth *)
+    val printLexpLimited : FLINT.lexp * int -> unit
+      (* controlled by Control.FLINT.lineWidth *)
+    val printProg : FLINT.prog -> unit
+      (* controlled by Control.FLINT.printDepth and Control.FLINT.lineWidth *)
+    val printProgLimited : FLINT.prog * int -> unit
+      (* controlled by Control.FLINT.lineWidth *)
 
-end (* signature PPFLINT *)
+    val valueToString : FLINT.value -> string
+
+  end (* signature PPFLINT *)
