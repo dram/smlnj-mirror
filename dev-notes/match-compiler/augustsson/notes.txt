@@ -1,0 +1,95 @@
+Wadler version of Augustssen pattern match compiler
+
+* Chapters 4, 5 in "The Implementation of Functional Programming
+  Languages" by Simon Peyton-Jones (et al), Prentice Hall 1987.
+  (Chapter 4 by Peyton-Jones and Wadler, Chapter 5 by Wadler)
+
+* gives Miranda code for a Miranda match compiler
+
+* left to right matching
+
+* no record/tuple construct, only curried patterns and curried constructor args
+  tuples in general are "simulated" by curried arguments of
+  "constructors", though there is curried a PAIR constructor for pairs.
+
+* CASE (on variable) plus FATBAR construction
+  FATBAR: (exp1 || exp2) evaluates exp1 and if that does not fail, returns its value,
+  	  else evaluates exp 2
+  FUN <pat> => <exp>   (pattern abstraction):
+    APP (FUN <pat> => <exp>) <arg>  fails if <arg> does not match <pat>
+
+  CASE <variable> <clause list>
+
+  CLAUSE <constructor> <variable list> <exp>
+    if constructor matches (CASE variable), then destruct, binding constructor args
+    to variables, and evaluate exp in that environment
+
+* It seems that "overlapping" patterns are to be avoided for reasons
+of efficiency or (lazy) semantics with this approach to match compilation.
+"Overlapping" patterns is where order of rules (equations) comes into play.  If all
+rules (lhs patterns) are disjoint, then rules can be permuted without changing the
+semantics of the match.
+
+* There are also problematic lazy evaluation effects (e.g. order of
+equations matters even if they are non-overlapping).
+
+* We do an SML rewrite of the match compiler of Chapter 5, for an
+  ML-style functional language (call-by-value, with 1st class tuples).
+
+  -- explicit tuple construction form and destruction form are added
+     to the exp absyn (TUP and DETUP).
+
+  -- matching a tuple pattern involves invoking tuple destruction (DETUP)
+     and binding new match variables to the components of the
+     destructed tuple.
+
+  -- terminology shifts:
+     clause ==> srule (short for switch rule)
+     CASE ==> SWITCH for the shallow constructor discrimination form
+     
+  -- no constant pattern elements other than datatype constructors, so
+     no int or string patterns (but bool (TRUE, FALSE) constructors
+     are supported.
+
+  -- various well-typed assumptions are used to infer invariants
+     (e.g. patterns in the same "column" have the same type)
+
+  -- Because of left-to-right matching, "rules" (equations) have a
+     lead (leftmost) accessible pattern, and that leftmost pattern
+     has the same type across rules (equations).
+
+  -- administrative variables are introduced to name new value
+     components as the matched value is destructed (e.g.
+
+        u0 = CONS (e1,e2)
+        SWITCH (u0, [CONS (u1, u2) => exp, NIL => exp'])
+	         
+     
+* The variables in a matchArg configuration (vars, eqns, default)
+represent the fringe of an "upper-left" slice of the original pattern
+space (with some constuctor selections having been made).  They
+represent points of further matching, using the corresponding pattern
+lists for each surviving equation.  Priority is given to the first
+var/pattern, which will be the "leftmost" edge of the matching
+frontier.
+
+* The "blocking" process for partitioning the original equations can
+result in several blocks repeatedly testing the same cons node:
+
+    cons ...  
+    x
+    cons
+    y
+    nil
+
+Here there will be 5 blocks (con, var, con, var, con), with the three
+con nodes testing the same value node for the same constructor
+discrimination.
+
+* At each test point a new match variable ("uddd") is introduced, and
+it will be bound to the corresponding matched value. When there is a
+(source) variable pattern at a test point (for some eqn), that match
+variable will be substituted for the source variable in the equation's
+expression.
+
+

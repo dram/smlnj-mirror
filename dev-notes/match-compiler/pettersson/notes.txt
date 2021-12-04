@@ -1,0 +1,442 @@
+(* pet/notes.txt *)
+Notes on the Pettersson's match compiler algorithm given in:
+
+   [1] Mikael Pettersson, "A Term Pattern-Match Compiler Inspired by
+       Finite Automata Theory", CC 92, Springer LNCS 641, 1992 *)
+
+   [2] Mikael Pettersson, Chapter 7: "Compiling Pattern Matching" in
+       "Compiling Natural Semantics", PhD Thesis, Link\"oping University, 1997.
+       (Springer LNCS 1549, 1999)
+
+* modifying the algorithm to treat tuples as first-class pattern constructs.
+
+  -- the top-level rows are component patterns of a "product-fringe" of
+     patterns that are either original (numbering one) or results of (possibly
+     repeated) tuple destructs.
+
+  -- typically the argument of a constructor is a tuple (e.g. cons). When
+     dispatching off a constructor, the "replacement column" will then be a
+     tuple column, which has to be separately destructed (i.e. tuple argument
+     destruct is not implicit in constructor dispatch).
+
+  -- when destructing a tuple column, there is a choice about where the replacement
+     (i.e. tuple component) columns should go in the matrix. Pettersson puts them at
+     the front of the matrix. They could also go at the end, or spliced into the
+     matrix at the position of the tuple column that is being destructed (or at
+     some random column position!).
+
+* test "states" correspond to OR nodes in the AND-OR tree.
+
+* tuple columns in the pattern matrix correspond to AND nodes in the AND-OR tree.
+  Tuple columns (AND nodes) are eliminated by a "flattening" process that merges
+  them into the implicit AND-fringe represented by the matrix columns.
+
+  -- there is a corresponding "explored" fringe of value subcomponents which
+     are being matched to the pattern fringe (1st row) of the matrix.
+
+  -- if all the nodes in this fringe are variables, then an immediate match
+     is guaranteed (first match attempt matches the head of each column)
+
+  -- the fringe is determined by
+     (a) previous constructor dispatches (choices, "test" results)
+     (b) tuple destructs
+
+* if the 1st row is not all variables, there are two choices
+
+  (1) there exists a constructor column (and possibly also tuple columns,
+      either before or after the first constructor column). There may be
+      multiple constructor columns (in which case the default is to focus
+      on the left-most one).
+
+  (2) There are no constructor columns, but there exists at least one tuple
+      column, which can be flattened (i.e. broken up into multiple component
+      columns, which can be placed at the left end of the matrix or inserted
+      in place of the tuple column, or whatever).
+
+  Flattening a tuple column may introduce a constructor component (i.e. when
+  one of the tuple components is a constructor pattern).
+
+  Should tuple column "flattening" be done eagerly, or lazily (i.e. when we
+  can't do anything else), or should we flatten tuple columns encountered
+  during a left-to-right scan for constructor columns?
+
+  Pettersson's algorithm eagerly flattens tuples as part of the process of
+  creating a test (OR) state/node.
+
+* the distinction of being a variable/constructor/tuple column is based on
+the form of the first (top) pattern in the column. A column may contain
+constructor patterns, but if the first row is a variable pattern, then
+the column counts as a variable column.
+
+* rows should have an assoicated number corresponding to the original
+  rule or equation from which the pattern comes.
+
+  -- Initially, each row is a single pattern, the lhs of one of the original
+     match rules, and so its number should be the index of that rule.
+
+  -- as a result of row filtering at constructor choice branches, the rule numbers
+     of rows will change, i.e. the 1st rule of a branch submatrix will not
+     correspond to the original rule 1, but to the earliest (least) rule number
+     which remains live for that branch.  So the notition of "live rules" is
+     still relevant.  The rule number for a rule will be needed to determine
+     which rhs expression to dispatch to in case of a successful match.
+
+
+* The connection to finite automata theory is very weak. The decision tree
+  being constructed is a very special case of a finite automata, and the
+  state-reduction "optimization" is also a trivial special case that involves
+  only leaf-nodes of the decision tree.
+
+* The algorithm goes directly from an initial representation of the match to
+  a decision tree without building an explicit analogue of an AND-OR tree
+  that summarized the entire pattern space. This is possible because constructor
+  dispatches are chosen "on the fly" by a very simple method: use the first
+  constructor dispatch discovered in a left-to-right scan of the pattern matrix
+  for a constructor column.
+
+* Terminology: "residual matrix"
+  We will call "submatrices" created for test branches (arcs) "residual
+  matrices".  There is a residual matrics for each non-constant constructor
+  (i.e. constructor with an argument pattern) at the choice/test node/state.
+
+* "residual column" (or not)
+  When dispatching off constructors in a "constructor column". There are a couple
+  cases:
+  (1) constant constructor --> no argument pattern --> no "residual" column
+      taking the place of the dispatching column in the "residual" matrices.
+  (2) non-constant constructor --> exists argument patterns for those constructors,
+      which may be PTUP patterns.  In this case, the residual matrices associated
+      with this constructor will have a column for the constructor argument.
+
+* The algorithms as described in [1] and [2] actually build a decision
+  tree (datatype state). The translation into "code" (generate phase) is
+  left implicit, illustrated indirectly through the examples.
+  The "finite automata" that is constructed is actually a decision tree
+  with shared leafs (representing dispatching to rhs expressions).
+
+* Terminology: a column is a PCON, PTUP, or PVAR column if the _head_ (or
+  first) pattern in the column is, respectively, a PCON, PTUP, or PVAR pattern.
+
+* POLICY issues:
+  (1) When there are no PCON columns in the current pmatrix, but there is at
+      least one PTUP column, then the (leftmost?) PTUP column should be
+      destructed into its component columns.
+  (2) Where should the component columns of a destructed PTUP column be placed?
+      Should they be appended to the front (left) of the residual pmatrix,
+      as is implicitly done in Pettersson's algorithm when destructing
+      PCON columns, or should they be spliced in at the possition of the
+      PTUP column. Since choice (test/OR) nodes are chosen in left to
+      right order, this will affect the resulting decision tree by possibly
+      moving later, derived PCON columns to the left.
+
+      E.g.
+
+      (p1, (p2, p3))  ==>  (p1, p2, p3)    -- destruct tuple in place
+      (p1, (p2, p3))  ==>  (p2, p3, p1)    -- destruct tuple to "front"
+
+  Suggested policy:
+
+  (1) destruct PTUP columns into multiple columns "in place", i.e. inserting
+  the component columns at the same column position as the PTUP column. The
+  new columns will need new path elements in the paths vector, whose length
+  always agrees with the number of columns in the pmatrix.
+
+  (2) When destructing a constructor (column), if the constructor is not
+  a constant, introduce a new column for its arguments by appending it to
+  the left (front) side of the pmatrix. If the parameter pattern is a PTUP,
+  it will then be expanded.
+
+* Note that PTUP column destructs do not affect the number of rows, but will
+  generally widen the rows of the pmatrix (replacing one PTUP column with
+  n, where n is the length or arity of the PTUP).
+
+  PTUP column destructs will be accompanied with corresponding new paths
+  in the paths vector, whose length is always the same as the pmatrix width.
+
+* Note that the treatement of a column is determined by its first pattern
+  (the "head" pattern"). So if a column is headed by a PVAR, the fact that
+  it is a "latent" PCON or PTUP pattern will not have any affect, until the
+  PVAR element is removed (by some PCON branching selecing submatrices).
+
+* Initial pattern matrix:
+  In SML-style, the matches for cases and function definitions/expressions
+  consist of an ordered list of "rules" containing a single lhs pattern and
+  a single rhs expression. So the initial pattern matrix will be a skinny
+  matrix with one column containing the single pattern for each rule. This
+  initial pattern matrix evolves through destructing tuple patterns (resulting
+  in new columns of the same length), and constructor case discrimination,
+  resulting in a residual matrix for each (non-constant) constructor choice.
+  Each column contains patterns of the same type, and is associated with a
+  particular pattern point designated by a path (Pettersson's "occurrence").
+
+  Originally there is only one null path for the original patterns, rooted
+  at the "top level" of the value match. Pettersson has "match variables" that
+  are introduced as the target is destructed.  Initially there are n top-level
+  match variables representing n curried arguments, but in the SML style, there
+  would be a single top-level variable for the single argument (target) value.
+  Pettersson breaks up paths by introducing new root match variables for the
+  possibly multiple arguments of a constructor in a constructor choice branch.
+  SML style would suggest a single new root match variable for the single
+  argument pattern of a constructor.
+
+  Paths/occurrences are used to generate new "derived" match variables that are
+  substituted for the source pattern variables in the respective rhs expressions.
+  
+* column scanning in the match function
+  The first process in the match function is to scan the columns of the pmatrix
+  (by default from left to right) looking for a PCON column to branch on
+  (i.e. to construct a Test (OR) node for).
+
+  As we scan, we may encounter PTUP columns. We could either (1) ignore them,
+  or (2) destruct them in a second pass only if no PCON columns are found,
+  or (3) destruct them "eagerly" as soon as they are found during the scan.
+  In case (3), the scan should probably restart after destructing by scanning
+  and potentially destructing the added component columns (if they include
+  either PTUP or PCON columns). That is, it should look for columns to destruct
+  among the columns that were just added by a PTUP destruct.
+
+  This policy means that nested tuple patterns will be completely "flattened"
+  to a sequence (fringe, frontier) of non-PTUP columns. But this applies only
+  to PTUP columns encountered before the "first" PCON column.
+  
+* pattern matrix "metadata"
+
+      paths:  pt0   pt1  pt2  pt3
+      ---------------------------
+      rules:
+      r0      p00   p01  p02  p03
+      r1      p10   p11  p12  p13
+      r2      p20   p21  p22  p23
+
+  For each column there is a path that indicates where that column is matched.
+  For each row there is a rule that indicates which rhs to evaluate when that
+  row is matched.
+
+  The path metadata is modified when columns are destructed (scanning).
+  The rules metadata is modified when the pmatrix is split on a PCON column.
+  (branching, or partitioning rows)
+
+  The row rules will remain sorted in ascending order when branching.
+
+  This metadata-augmented pattern matrix corresponds to the P, o, q triple
+  of [2, Sec 7.5.1].
+
+  [Should the row rule be a rule set? Of which probably only the least element
+   counts?]
+
+  For a match
+
+    p0 => e0  (rule 0)
+    p1 => e1  (rule 1)
+    p2 => e2  (rule 2)
+
+  The initial pmatrix + metadata is:
+
+    paths:  root  (where root = [])
+    ------------
+    rules:
+      0      p0 
+      1      p1 
+      2      p2
+
+  It has one column at path [] and three rows, one for each match rule.
+
+* Scanning columns is more convenient in column-major mode, while splitting cases
+  is more convenient in row-major mode. So should we keep transposing the pattern
+  matrix back and forth for the scan and split phases?
+
+  There probably is some fancy matrix representation (instead of pat list list)
+  that might make switching back in forth between row-major and column-major view
+  more efficient.
+
+* NOTE: the AND-OR tree construction has the advantage of collecting and merging
+  all the information relative to a given point in pattern space (i.e. a given path).
+  So there is no need to "optimize" by merging "states".
+
+* Duplicated decision subtrees.
+  This happens in Pettersson's MC due to the replication of submatrices of the
+  pmatrix that occurs with splitting. Example (?):
+
+     (x::xs, u)     => ...
+     (v,     y::ys) => ...
+
+  When splitting on column 0, the v row gets duplicated in both the cons and nil
+  branches.
+
+  Is
+
+     (x::xs, y::ys) => ...
+
+  also an example?  Check.
+
+  Duplication comes from "overlapping" residuals that contain the same
+  case discrimination at the same point (path).
+  
+  Duplication of decision trees may be reduced/eliminated by the
+  process of "reducing" or "optimizing" the decision tree (DFA) as described in [2;
+  Section 7.5.3]. Bottom up "merging" of decision subtrees starting
+  with LEAF nodes with the same rule? But what about pattern variable
+  bindings? Is this what the SPATs are for? I.e. Only merge dt nodes if
+  they are testing at the same path? and branches lead to already
+  merged nodes? Would this guarantee that pattern variable bindings
+  would be "coherent"?
+  
+
+* role of variable rule
+  A dispatch to a rule based on the variable rule (all patterns on the frontier
+  are variables) should correspond to a "default" rule number, and no further
+  tests should be required before dispatching the the corresponding rhs.
+
+  For the current MC, this means that any further potential tests will not
+  be relevant (they cannot rule out any live rules).
+
+  Check this.
+
+
+* how do leading PVAR patterns get stripped off to permit access to
+  dcon patterns lower in the same column (i.e. to "activate" latent
+  dcon patterns)?
+
+
+* pattern rows (frontiers) and rules
+  Need to track the rule(s) associated with each row of a pmatrix (original
+  or destruct residual).
+
+  Possible invariant:
+    (path/column, row) determines a pattern p (pattern point)
+    rule(row) = k
+    p is "consistent with" (equivalent to, equal to?) pat(rule(k))
+
+
+* Explanation or justification of "The Variable Rule" [2; Section 7.5.2].
+
+  In order to "match", the components of a value at locations path1, ..., pathn
+  (as destructed by earlier tests) must match some row. If a row consists
+  only of variables, then this match will be successful.
+
+  We choose the first matching row.
+
+  Thus if the first row is all variables, then the destructed components of
+  the row's (columns') paths will necessarily match. So we can immediately
+  dispatch to the row's rule rhs without further examination/testing.
+  
+* "Augmented" pattern matrix
+  The pattern matrix comes with two metadata components:
+
+    (1) path list labeling the columns (each column is working a
+        component designated by the corresponding path in the path list.
+
+    (2) rule list labeling the rule to dispatch for each row
+        each row, when matched, will dispatch to the corresponding
+        rule
+
+  So if the base pattern matrix is m x n (m rows of n columns), then
+  the paths will have length n (one per column) and the rules will
+  have length m (one per row).
+
+  The augmented pattern matrix is represented by the type amatrix:
+
+     type amatrix = {pmatrix : pmatrixR, paths: path list, rules: rule list}
+
+
+* brief outline of the reworked algorithm
+
+Start with a match:
+
+   p_0 => e_0
+   p_1 => e_1
+   ...
+   p_n => e_n
+
+(1) "preprocess each match pattern (type pat), producing a ppat
+(preprocessed pat) that replaces variable patterns with a generic
+PPVAR constructor, thus throwing away the variable, and an envionment
+(finite map) from pattern vars to paths (their location in the pat).
+So pi --> pp_i, svenv_i for i = 0 .. n.
+
+(2) Initial amatrix (augmented pattern matrix) is:
+
+paths/   []
+rules
+  0      [pp_0]
+  1      [pp_1]
+  ...
+  n      [pp_n]
+
+The initial pmatrix is the single column matrix (rows are singleton lists):
+
+   [pp_0]
+   [pp_1]
+   ...
+   [pp_n]
+
+(3) apply colScan to transpose of pmatrix to search for a PPCON-headed
+    column.
+
+   (a) if found, use branch function to "branch" on the column's constructors,
+       and recursively call match on the residual amatrix's to
+       produce a (TEST) decision tree (type dt).
+
+   (b) if not found, all columns are headed by PPVAR, so invoke
+       "Variable Rule" and produce a LEAF decision tree for the first
+       remaining rule (hd rules).
+
+   (c) "postprocess" dt to remove redundancies(1) (tests of same
+       constructors at same locations in the pattern space (i.e. with same paths).
+       This is the "DFA optimization" but here is is a simple,
+       bottom-up process. Probably need to add node ids to decision
+       tree nodes to facilitate this pass.
+
+(4) generate match "code" (an expression) from the decision tree.
+    This introduces fresh "match" variables to bind to the destructs
+    of non-constant dcons in TEST branches.  Original pattern
+    variables are then bound to expressions derived from these TEST
+    node match variables, which are bound in SWITCH expressions
+    derived from corresponding TEST nodes in the decision tree.(2)
+
+    Multiple occurrences of the same rule in LEAF nodes are factored
+    out by abstracting the associated rhs expression into a function
+    that is called at each occurrence of that rule (as in DBM-MC).
+    
+    In general, code generation could be done by a variant of the
+    DBM-MC generate function.
+
+-------------------
+Notes
+
+(1) redundancies in the decision tree arise from the fact that when
+branching, the pmatrix residuals for different constructors can
+share PPCON tests. This problem does not exist with AND-OR tree
+based matching because there is only one OR node representing a
+choice at any given path location.
+
+(2) The core colScan and match functions are not concerned with
+pattern variables and their bindings. The pattern variables are
+removed in the pattern preprocessing phase (with their locations
+recorded in svenvs), and "restored" in the code generation phase.
+
+
+* Some principles underlying the algorithm
+
+(1) row-rule associations are maintained through the matrix
+manipulations (e.g. PPTUP flattening, forming TEST residuals).
+
+(2) "buried" choices (i.e. PPCON patterns that are hidden beneath
+PPVAR patterns in a column). How do they get revealed (i.e. how do
+they rise to the top)? When are they irrelevant/redundant (never
+revealed)?  How are redundant rules detected?
+
+   If the Variable Rule is invoked, are all subsequent rows and
+   their rules redundant?  Yes, but only wrt the current residual
+   matrix. They might be relevant in some other residual. Ultimately
+   one can check rule redundancy from analysis of the decision tree.
+
+(3) Order of choices. Only "heuristic" for choosing among multiple
+"available" choice patterns (PPCON) is left to right priority. Choice
+patterns hidden beneath variables don't get a chance.
+
+
+* QUESTIONS
+
+(1) how and when are redundancy and exhaustiveness of a match
+detected?
