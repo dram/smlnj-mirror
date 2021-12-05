@@ -185,7 +185,7 @@ the column counts as a variable column.
 
   Paths/occurrences are used to generate new "derived" match variables that are
   substituted for the source pattern variables in the respective rhs expressions.
-  
+
 * column scanning in the match function
   The first process in the match function is to scan the columns of the pmatrix
   (by default from left to right) looking for a PCON column to branch on
@@ -202,7 +202,7 @@ the column counts as a variable column.
   This policy means that nested tuple patterns will be completely "flattened"
   to a sequence (fringe, frontier) of non-PTUP columns. But this applies only
   to PTUP columns encountered before the "first" PCON column.
-  
+
 * pattern matrix "metadata"
 
       paths:  pt0   pt1  pt2  pt3
@@ -239,8 +239,8 @@ the column counts as a variable column.
     paths:  root  (where root = [])
     ------------
     rules:
-      0      p0 
-      1      p1 
+      0      p0
+      1      p1
       2      p2
 
   It has one column at path [] and three rows, one for each match rule.
@@ -275,7 +275,7 @@ the column counts as a variable column.
 
   Duplication comes from "overlapping" residuals that contain the same
   case discrimination at the same point (path).
-  
+
   Duplication of decision trees may be reduced/eliminated by the
   process of "reducing" or "optimizing" the decision tree (DFA) as described in [2;
   Section 7.5.3]. Bottom up "merging" of decision subtrees starting
@@ -284,7 +284,7 @@ the column counts as a variable column.
   they are testing at the same path? and branches lead to already
   merged nodes? Would this guarantee that pattern variable bindings
   would be "coherent"?
-  
+
 
 * role of variable rule
   A dispatch to a rule based on the variable rule (all patterns on the frontier
@@ -323,7 +323,7 @@ the column counts as a variable column.
   Thus if the first row is all variables, then the destructed components of
   the row's (columns') paths will necessarily match. So we can immediately
   dispatch to the row's rule rhs without further examination/testing.
-  
+
 * "Augmented" pattern matrix
   The pattern matrix comes with two metadata components:
 
@@ -401,7 +401,7 @@ The initial pmatrix is the single column matrix (rows are singleton lists):
     Multiple occurrences of the same rule in LEAF nodes are factored
     out by abstracting the associated rhs expression into a function
     that is called at each occurrence of that rule (as in DBM-MC).
-    
+
     In general, code generation could be done by a variant of the
     DBM-MC generate function.
 
@@ -444,8 +444,8 @@ patterns hidden beneath variables don't get a chance.
 
 Consider the match patterns
 
-  (0)  x      true 
-  (1)  false  false 
+  (0)  x      true
+  (1)  false  false
   (2)  true   y
 
 The two columns seem to have "equivalent" discriminating power (two
@@ -467,23 +467,40 @@ pattern variable binding and use to a later "code generation" phase,
 as in DBM-MC.
 
 
-* pattern matrix, rows and columns
+* pattern matrix, roles of rows and columns
 
   -- columns: "vertical" segmentation based on the product (tuple) structure
-     of the patterns
+     of the patterns (expanded across levels in patterns as the matrices evolve).
 
   -- rows: "stratification" based on the "horizontal" priority
      ordering of the original rules, as it evolves during matching
      as constructors are dispatched on and lower structure is revealed.
-  
+
   -- start with a single column (of the original rule lhs patterns)
      multiple columns arise because of the destruction of tuple patterns.
 
   -- row structure is "ramified" by constructor branching with
      residual pattern matrices
-     
 
+
+* "shared states"
+  Multiple leaf nodes involving the same rule (same rhs expression)
+  are to be shared by abstracting the rhs expression to a function
+  that is called at each shared node.
+
+  Does this extend to shared "interior nodes" (all TEST) of the
+  decision tree?
+
+
+================================================================================
 * QUESTIONS
 
-(1) how and when are redundancy and exhaustiveness of a match
-detected?
+(1) how and when are redundancy and exhaustiveness of a match detected?
+
+(2) Examples to show non-leaf merging of decision tree nodes ("FDA states")?
+    (i.e. shared interior nodes of the decision tree).
+
+(3) Scope for heuristics for choice ordering?
+    Hindered by lack of information on "hidden" choices (OR nodes that
+    are not available even though they are not "subsidiary" because only
+    looking at 1st row patterns).
