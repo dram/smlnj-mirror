@@ -132,12 +132,12 @@ request tdp-util
 # pre-compile and install Concurrent ML, which is a library for message-passing
 # concurrency.
 #
-request cml
+#request cml
 
 # pre-compile and install the CML Library, which provides some useful CML
 # modules.
 #
-request cml-lib
+#request cml-lib
 
 # pre-compile and install eXene, which is a library for X-Windows programming.
 # EXene requires CML.
@@ -147,7 +147,7 @@ request cml-lib
 # pre-compile (certain) parts of MLRISC that are not already part of the SML/NJ
 # compiler itself
 #
-request mlrisc
+#request mlrisc
 
 # pre-compile and install the C-Kit, which is a library for parsing and
 # type-checking C programs
