@@ -8,3 +8,4 @@ $/smlnj-lib.cm
 dcons.sml
 absyn.sml
 match.sml
+tests.sml

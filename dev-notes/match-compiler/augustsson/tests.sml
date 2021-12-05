@@ -53,9 +53,9 @@ val match4 : match =
       (PTUP [PVAR "f", pcons (PVAR "x", PVAR "xs"), pcons (PVAR "y", PVAR "ys")],
        FUNapp(VAR "C", TUP [VAR "f", VAR "x", VAR" xs", VAR "y", VAR "ys"]))];
 
-(* example 5: unweildy *)
-(* unweildy (nil, nil) = A
-   unweildy (xs, ys) = B (xs, ys) 
+(* example 5: unwieldy *)
+(* unwieldy (nil, nil) = A
+   unwieldy (xs, ys) = B (xs, ys) 
 *)
 val match5: match =
      [(PTUP [pnil, pnil], VAR "A"),
