@@ -7,3 +7,4 @@ $/smlnj-lib.cm
 
 absyn.sml
 match.sml
+tests.sml

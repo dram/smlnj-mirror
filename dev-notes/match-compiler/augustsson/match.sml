@@ -23,7 +23,7 @@ type equation = pat list * exp
  *  -- vars are bound to a list of "targets", or values being matched. It has one 
  *     element to begin with, representing the original subject of the match
  *  -- eqns are the match "rules", where there is a pattern for each target
- *     variable in vars (so |#1 eqn| = |vars| for each eqn).
+ *     variable in vars (so |pats eqn| = |vars| for each eqn).
  *  -- default is the default expression to be used in case of failure to match
  *     any of the equations *)
 type matchArg = var list * equation list * exp
@@ -79,7 +79,7 @@ fun eqnPatKind ((pat::_, _): equation): patKind =
 		       
 (* partitionEqns : equation list -> equation list list *)
 (* partitions the list of equations into equation "blocks" where all the
- * equations in a block have the same kind of initial pattern (var, con, tuple).
+ * equations in a block have the same _kind_ of initial pattern (var, con, tuple).
  * For a given equation list, there may be mixture var blocks and con blocks,
  * or var blocks and tuple blocks, but not a mixture of con blocks and tuple blocks
  * (because of type checking). 
@@ -96,7 +96,7 @@ fun partitionEqns nil = nil
 
 (* choose : dcon * equation list -> equation list *)
 (* returns sublist of eqns whose dcon equals c, assuming all eqns are
- * isCon *)
+ * PKcon *)
 fun choose (c, eqns) = List.filter (fn eqn => getCon eqn = c) eqns
 
 (* match : matchArg -> expression *)
@@ -113,10 +113,10 @@ fun match (nil, nil, default) = default       (* no live equations *)
      foldr (matchVarConTup uvars) default (partitionEqns eqns)
 
 (* matchVarConTup : var list -> equation list * exp -> exp
- * REQUIRE: equation list not null
+ * REQUIRE: eqns : equation list is not nil
  * REQUIRE: eqns is a "block" of eqns of the same patKind
- * i.e. all equations in eqns have the same patKind, which
- * is therefore the patKind of first equation in the block. *)
+ *   i.e. all equations in eqns have the same patKind, which
+ *   is the patKind of first equation in the block. *)
 and matchVarConTup (uvars: var list) (eqns: equation list, default: exp) =
     case eqnPatKind (hd eqns)
       of PKvar => matchVar (uvars, eqns, default)
@@ -177,6 +177,17 @@ and matchSRule (dcon, _, nil, default) = (dcon, NONE, default)  (* NONE ??? *)
           (* cpat will be (PTUP nil) in the case where c is a constant constructor *)
      in (dcon, newvarOp, match (new_uvars, new_eqns, default))
     end
+
+(* prepMatch : Absyn.match -> matchArg *)
+(* "u0" is single default match variable bound to the whole target value being matched *)
+fun prepMatch (rules: Absyn.match) =
+    let fun prepRule (pat, exp) : equation =
+	    ([pat], exp)
+     in (["u0"], map prepRule rules, ERROR)
+    end
+
+(* test : Absyn.match -> exp *)
+fun test (rules: Absyn.match) = match (prepMatch rules)
 
 end (* top local *)
 end (* structure MC *)

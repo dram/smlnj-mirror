@@ -8,7 +8,10 @@ Notes on the Pettersson's match compiler algorithm given in:
        "Compiling Natural Semantics", PhD Thesis, Link\"oping University, 1997.
        (Springer LNCS 1549, 1999)
 
-* modifying the algorithm to treat tuples as first-class pattern constructs.
+Note: the match compiler currently used in SML/NJ will be referred to
+as the DBM-MC.
+
+* modifying Pettersson's algorithm to treat tuples as first-class pattern constructs.
 
   -- the top-level rows are component patterns of a "product-fringe" of
      patterns that are either original (numbering one) or results of (possibly
@@ -25,7 +28,8 @@ Notes on the Pettersson's match compiler algorithm given in:
      matrix at the position of the tuple column that is being destructed (or at
      some random column position!).
 
-* test "states" correspond to OR nodes in the AND-OR tree.
+* test "states" correspond to OR nodes in the AND-OR tree approach
+  used in DBM-MC.
 
 * tuple columns in the pattern matrix correspond to AND nodes in the AND-OR tree.
   Tuple columns (AND nodes) are eliminated by a "flattening" process that merges
@@ -435,6 +439,49 @@ revealed)?  How are redundant rules detected?
 "available" choice patterns (PPCON) is left to right priority. Choice
 patterns hidden beneath variables don't get a chance.
 
+
+* Constructor "hiding" phenomenon
+
+Consider the match patterns
+
+  (0)  x      true 
+  (1)  false  false 
+  (2)  true   y
+
+The two columns seem to have "equivalent" discriminating power (two
+constructors and a variable). But Pettersson's algorithm will give
+priority to the second column because it cannot "see" the constructors
+in the first column because they are "hidden" below the variable x.
+
+Here it does not appear to matter which column is used for
+discrimination first, but there are probably more complicated examples
+where the column with the hidden constructors is "better" according
+to choice point selection heuristics like those used in the DBM-MC.
+
+
+* pattern variable binding and use
+
+Petterson's algorithm starts by replacing the pattern variables by
+a single, generic PVAR atomic pattern, delegating the issues of
+pattern variable binding and use to a later "code generation" phase,
+as in DBM-MC.
+
+
+* pattern matrix, rows and columns
+
+  -- columns: "vertical" segmentation based on the product (tuple) structure
+     of the patterns
+
+  -- rows: "stratification" based on the "horizontal" priority
+     ordering of the original rules, as it evolves during matching
+     as constructors are dispatched on and lower structure is revealed.
+  
+  -- start with a single column (of the original rule lhs patterns)
+     multiple columns arise because of the destruction of tuple patterns.
+
+  -- row structure is "ramified" by constructor branching with
+     residual pattern matrices
+     
 
 * QUESTIONS
 
