@@ -97,7 +97,6 @@
     .globl CFUNSYM(ID) __SC__	\
     LABEL(CFUNSYM(ID))
 
-/* FIXME: move these definitions to the x86-prim.h file */
 #elif defined(ARCH_X86) || defined(ARCH_AMD64)
 #  error use x86-syntax.h instead if ml-base.h
 
