@@ -1,6 +1,6 @@
 /*! \file boot.c
  *
- * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2021 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
  * This is the bootstrap loader for booting from binfiles.
@@ -81,8 +81,9 @@ void BootML (const char *bootlist, heap_params_t *heapParams)
     BinFileList = BuildFileList (msp, bootlist, &max_boot_path_len);
 
   /* this space is ultimately wasted */
-    if ((fname = MALLOC (max_boot_path_len)) == NULL)
+    if ((fname = MALLOC (max_boot_path_len)) == NULL) {
 	Die ("unable to allocate space for boot file names");
+    }
 
   /* boot the system */
     while (BinFileList != LIST_nil) {
@@ -142,8 +143,9 @@ PVT ml_val_t BuildFileList (ml_state_t *msp, const char *bootlist, int *mbplp)
 
     if (listF != NULL) {
 	c = getc (listF);
-	if (c == EOF)
+	if (c == EOF) {
 	    Die ("bootlist file \"%s\" is empty", bootlist);
+        }
 	if (c == '%') {
 	    if (fgets (sizeBuf, SIZE_BUF_LEN, listF) != NIL(char *)) {
 	      /* hardly any checking here... */
@@ -152,8 +154,9 @@ PVT ml_val_t BuildFileList (ml_state_t *msp, const char *bootlist, int *mbplp)
 		max_num_boot_files = strtoul(sizeBuf, NULL, 0);
 		max_boot_path_len = strtoul(space+1, NULL, 0) + 2;
 	    }
-	    else
+	    else {
 		Die ("unable to read first line in \"%s\" after %%", bootlist);
+            }
 	}
 	else {
 	  /* size spec is missing -- use defaults */
@@ -162,20 +165,23 @@ PVT ml_val_t BuildFileList (ml_state_t *msp, const char *bootlist, int *mbplp)
 
 	*mbplp = max_boot_path_len; /* tell the calling function... */
 
-	if ((nameBuf = MALLOC(max_boot_path_len)) == NIL(char *))
+	if ((nameBuf = MALLOC(max_boot_path_len)) == NIL(char *)) {
 	    Die ("unable to allocate space for boot file names");
+        }
 
-	if ((fileNames = MALLOC(max_num_boot_files * sizeof(char *))) == NULL)
+	if ((fileNames = MALLOC(max_num_boot_files * sizeof(char *))) == NULL) {
 	    Die ("unable to allocate space for boot file name table");
+        }
 
       /* read in the file names, converting them to ML strings. */
 	while (fgets (nameBuf, max_boot_path_len, listF) != NIL(char *)) {
 	    j = strlen(nameBuf)-1;
 	    if (nameBuf[j] == '\n') nameBuf[j] = '\0';	/* remove "\n" */
-	    if (numFiles < max_num_boot_files)
+	    if (numFiles < max_num_boot_files) {
 		fileNames[numFiles++] = ML_CString(msp, nameBuf);
-	    else
+	    } else {
 		Die ("too many files\n");
+            }
 	}
 	fclose (listF);
     }
@@ -186,10 +192,12 @@ PVT ml_val_t BuildFileList (ml_state_t *msp, const char *bootlist, int *mbplp)
     }
 
     /* these guys are no longer needed from now on */
-    if (fileNames)
+    if (fileNames) {
 	FREE (fileNames);
-    if (nameBuf)
+    }
+    if (nameBuf) {
 	FREE (nameBuf);
+    }
 
     return fileList;
 
@@ -216,8 +224,9 @@ PVT FILE *OpenBinFile (const char *fname, bool_t isBinary)
  */
 PVT void ReadBinFile (FILE *file, void *buf, int nbytes, const char *fname)
 {
-    if (fread(buf, nbytes, 1, file) == -1)
+    if (fread(buf, nbytes, 1, file) == -1) {
 	Die ("cannot read file \"%s\"", fname);
+    }
 
 } /* end of ReadBinFile */
 
@@ -239,6 +248,53 @@ PVT Int32_t ReadPackedInt32 (FILE *file, const char *fname)
     return ((Int32_t)n);
 
 } /* end of ReadPackedInt32 */
+
+/* ReadHeader:
+ *
+ * Read the header of a binfile.  This code supports multiple binfile formats.
+ */
+PVT void ReadHeader (FILE *file, binfile_hdr_info_t *info, const char *fname)
+{
+  /* a buffer that is large enough to hold either form of header */
+    Byte_t buf[sizeof(new_binfile_hdr_t)];
+
+  /* we read the first 8 bytes to see if this is a old-style or new-style header */
+    ReadBinFile (file, buf, 8, fname);
+    if (memcmp(buf, "BinFile ", 8) == 0) {
+      /* new-style header */
+        new_binfile_hdr_t *p = (new_binfile_hdr_t *)buf;
+        ReadBinFile (file, &(buf[8]), sizeof(new_binfile_hdr_t) - 8, fname);
+      /* check version number */
+        info->version = BIGENDIAN_TO_HOST32(p->version);
+        if (info->version != BINFILE_VERSION) {
+	    Die ("invalid binfile version %0x for  \"%s\"", info->version, fname);
+        }
+        info->hdrSzB    = sizeof(new_binfile_hdr_t);
+        info->importCnt	= BIGENDIAN_TO_HOST32(p->importCnt);
+        info->exportCnt	= BIGENDIAN_TO_HOST32(p->exportCnt);
+        info->importSzB	= BIGENDIAN_TO_HOST32(p->importSzB);
+        info->cmInfoSzB	= BIGENDIAN_TO_HOST32(p->cmInfoSzB);
+        info->guidSzB	= BIGENDIAN_TO_HOST32(p->guidSzB);
+        info->pad       = BIGENDIAN_TO_HOST32(p->pad);
+        info->codeSzB   = BIGENDIAN_TO_HOST32(p->codeSzB);
+        info->envSzB    = BIGENDIAN_TO_HOST32(p->envSzB);
+    } else {
+      /* old-style header */
+        old_binfile_hdr_t *p = (old_binfile_hdr_t *)buf;
+        ReadBinFile (file, &(buf[8]), sizeof(old_binfile_hdr_t) - 8, fname);
+        info->version   = 0;
+        info->hdrSzB    = sizeof(old_binfile_hdr_t);
+        info->importCnt	= BIGENDIAN_TO_HOST32(p->importCnt);
+        info->exportCnt	= BIGENDIAN_TO_HOST32(p->exportCnt);
+        info->importSzB	= BIGENDIAN_TO_HOST32(p->importSzB);
+        info->cmInfoSzB	= BIGENDIAN_TO_HOST32(p->cmInfoSzB);
+        info->guidSzB	= BIGENDIAN_TO_HOST32(p->guidSzB);
+        info->pad       = BIGENDIAN_TO_HOST32(p->pad);
+        info->codeSzB   = BIGENDIAN_TO_HOST32(p->codeSzB);
+        info->envSzB    = BIGENDIAN_TO_HOST32(p->envSzB);
+    }
+
+} /* end of ReadHeader */
 
 /* ImportSelection:
  *
@@ -270,15 +326,16 @@ PVT void LoadBinFile (ml_state_t *msp, char *fname)
     int		    i, remainingCode, importRecLen;
     int             exportSzB = 0;
     ml_val_t	    codeObj, importRec, closure, val;
-    binfile_hdr_t   hdr;
+    binfile_hdr_info_t hdr;
     pers_id_t	    exportPerID;
     Int32_t         thisSzB, thisEntryPoint;
     size_t          archiveOffset;
     char            *atptr, *colonptr;
     char            *objname = fname;
 
-    if ((atptr = strchr (fname, '@')) == NULL)
+    if ((atptr = strchr (fname, '@')) == NULL) {
 	archiveOffset = 0;
+    }
     else {
 	if ((colonptr = strchr (atptr + 1, ':')) != NULL) {
 	    objname = colonptr + 1;
@@ -289,8 +346,9 @@ PVT void LoadBinFile (ml_state_t *msp, char *fname)
 	*atptr = '\0';
     }
 
-    if (!SilentLoad)
-      Say ("[Loading %s]\n", objname);
+    if (!SilentLoad) {
+        Say ("[Loading %s]\n", objname);
+    }
 
   /* open the file */
     file = OpenBinFile (fname, TRUE);
@@ -308,18 +366,7 @@ PVT void LoadBinFile (ml_state_t *msp, char *fname)
     }
 
   /* get the header */
-    ReadBinFile (file, &hdr, sizeof(binfile_hdr_t), fname);
-
-  /* get header byte order right */
-    hdr.importCnt	= BIGENDIAN_TO_HOST32(hdr.importCnt);
-    hdr.exportCnt	= BIGENDIAN_TO_HOST32(hdr.exportCnt);
-    hdr.importSzB	= BIGENDIAN_TO_HOST32(hdr.importSzB);
-    hdr.cmInfoSzB	= BIGENDIAN_TO_HOST32(hdr.cmInfoSzB);
-    hdr.lambdaSzB	= BIGENDIAN_TO_HOST32(hdr.lambdaSzB);
-    hdr.reserved	= BIGENDIAN_TO_HOST32(hdr.reserved);
-    hdr.pad             = BIGENDIAN_TO_HOST32(hdr.pad);
-    hdr.codeSzB		= BIGENDIAN_TO_HOST32(hdr.codeSzB);
-    hdr.envSzB		= BIGENDIAN_TO_HOST32(hdr.envSzB);
+    ReadHeader (file, &hdr, fname);
 
   /* read the import PerIDs, and create the import vector */
     {
@@ -352,12 +399,11 @@ PVT void LoadBinFile (ml_state_t *msp, char *fname)
   /* seek to code section */
     {
 	long	    off = archiveOffset
-	                + sizeof(binfile_hdr_t)
+	                + hdr.hdrSzB
 			+ hdr.importSzB
 	                + exportSzB
 	                + hdr.cmInfoSzB
-			+ hdr.lambdaSzB
-			+ hdr.reserved
+			+ hdr.guidSzB
 	                + hdr.pad;
 
 	if (fseek(file, off, SEEK_SET) == -1)
