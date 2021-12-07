@@ -99,6 +99,14 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Version 2021.1; 2021/??/??
 
 //--------------------------------------------------------------------
+[2021/12/07]::
++
+Fixed a bug in the way that non-printable `char` values were being
+printed in the REPL.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2021/11/23]::
 +
 Remove last traces of the lambda splitting support from CM.
