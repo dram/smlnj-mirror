@@ -113,6 +113,10 @@ ml_val_t llvm_codegen (ml_state_t *msp, const char *src, const char *pkl, size_t
     auto obj = CodeBuf->compile ();
     double objGenT = objGenTimer.msec();
 
+/* TODO: use arena allocation for the unpickler */
+  // deallocate the unpickled CFG IR
+    delete cu;
+
     if (obj != nullptr) {
       // copy the sections to a heap-allocated code object.  At the very end, we add the
       // name of ths source file.  The name string is word-aligned, nul-terminated,

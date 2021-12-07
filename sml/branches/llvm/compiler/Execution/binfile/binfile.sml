@@ -37,7 +37,7 @@ structure Binfile :> BINFILE =
     val bfVersion = 0wx20211123         (* Bin File version 2021-11-23 *)
 
     fun mkVersion {arch, smlnjVersion} : version_info = {
-            bfVersion = 0w0,        (* old binfile format for now *)
+            bfVersion = 0w0,            (* old format for now *)
             arch = arch, smlnjVersion = smlnjVersion
           }
 
@@ -234,19 +234,21 @@ structure Binfile :> BINFILE =
     fun size { contents, nopickle } = let
 	  val { version, imports, exportPid, senv, cmData, csegments, guid, ... } =
 		unBF contents
+          val oldFormat = (#bfVersion version = 0w0)
 	  val (_, picki) = pickleImports imports
 	  val hasExports = isSome exportPid
 	  fun pickleSize { pid, pickle } = if nopickle then 0 else W8V.length pickle
-        (* the number of length fields depends of the file-format version *)
-          val fieldsSz = if #bfVersion version = 0w0 then 9 * 4 else 8 * 4
+        (* the number of length fields depends on the file-format version *)
+          val fieldsSz = if oldFormat then 9 * 4 else 8 * 4
+        (* the number of environment PIDs depends on the file-format version *)
+          val nei = length cmData + (if oldFormat then 2 else 1)
 	  in
 	    versionInfoSzb version +
 	    fieldsSz +
 	    W8V.length picki +
 	    (if hasExports then bytesPerPid else 0) +
-	    bytesPerPid * (length cmData + 2) + (* 2 extra: stat/sym *)
+	    bytesPerPid * nei +
 	    String.size guid +
-	    0 + (* unused lambda size *)
 	    codeSize csegments +
 	    pickleSize senv
 	  end
@@ -283,12 +285,24 @@ structure Binfile :> BINFILE =
                 val a = trimWS(hdr, 12, 12)
                 val v = trimWS(hdr, 24, 16)
                 in
+(*
+Control_Print.say (concat [
+"readVersionInfo NEW [", String.toString hdr ^ "]\n"
+]);
+Control_Print.say (concat["  a = \"", String.toString a, "\"\n"]);
+Control_Print.say (concat["  v = \"", String.toString v, "\"\n"]);
+*)
                   {bfVersion = bfV, arch = a, smlnjVersion = v}
                 end
               else let (* old format *)
                 val magic = SS.dropr Char.isSpace (SS.full (Byte.bytesToString blk))
                 val (a, v) = SS.splitl (fn #"-" => false | _ => true) magic
                 in
+(*
+Control_Print.say (concat [
+"readVersionInfo OLD [", String.toString(SS.string magic) ^ "]\n"
+]);
+*)
                   {bfVersion = 0w0, arch = SS.string a, smlnjVersion = SS.string(SS.triml 1 v)}
                 end
           end
@@ -327,17 +341,28 @@ structure Binfile :> BINFILE =
 
     fun read { version : version_info, stream = s } = let
 	  val version' = readVersionInfo s
+          val oldFormat = (#bfVersion version = 0w0) orelse (#bfVersion version' = 0w0)
+        (* trim the SML/NJ version string to the maximum length supported by the
+         * binfile header format.
+         *)
+          fun smlnjVersion ({smlnjVersion=v, ...} : version_info) = let
+                val len = if oldFormat then 8 else 16
+                in
+                  if String.size v > len
+                    then String.substring(v, 0, len)
+                    else v
+                end
           val _ = if #arch version <> #arch version'
 		then error (concat[
-		    "incorrect architecture \"", #arch version',
+		    "incorrect architecture \"", String.toString(#arch version'),
 		    "\", expected \"", #arch version, "\""
 		  ])
-                else if #smlnjVersion version <> #smlnjVersion version'
+              else if smlnjVersion version <> smlnjVersion version'
 		then error (concat[
-		    "incorrect compiler version \"", #smlnjVersion version',
+		    "incorrect compiler version \"", String.toString(#smlnjVersion version'),
 		    "\", expected \"", #smlnjVersion version, "\""
 		  ])
-                  else ()
+                else ()
 	  val leni = readInt32 s
 	  val ne = readInt32 s
 	  val importSzB = readInt32 s
@@ -396,8 +421,9 @@ structure Binfile :> BINFILE =
     fun write { stream = s, contents, nopickle } = let
 	(* Keep this in sync with "size" (see above). *)
 	  val { version, imports, exportPid, cmData, senv, csegments, guid, ... } = unBF contents
+          val oldFormat = (#bfVersion version = 0w0)
 	  val { pickle = senvP, pid = staticPid } = senv
-          val envPids = if (#bfVersion version = 0w0)
+          val envPids = if oldFormat
                 then staticPid :: staticPid :: cmData (* second PID is unused lambdaPid *)
                 else staticPid :: cmData
 	  val (leni, picki) = pickleImports imports
@@ -409,8 +435,6 @@ structure Binfile :> BINFILE =
 	  val nei = length envPids
 	  val cmInfoSzB = nei * bytesPerPid
 	  fun pickleSize { pid, pickle } = if nopickle then 0 else W8V.length pickle
-	(* unused lambda size *)
-	  val lambdaSz = 0
 	  val g = String.size guid
 	  val pad = 0			(* currently no padding *)
 	  val cs = codeSize csegments
@@ -422,8 +446,8 @@ structure Binfile :> BINFILE =
         (* the various length fields; the `lambdaSz` field is omitted in newer versions *)
           val fields = let
                 val flds = [g, pad, cs, es]
-                val flds = if #bfVersion version = 0w0
-                      then lambdaSz :: flds
+                val flds = if oldFormat
+                      then 0 :: flds    (* include unused lambda size *)
                       else flds
                 in
                   leni :: ne :: importSzB :: cmInfoSzB :: flds
