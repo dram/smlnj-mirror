@@ -31,7 +31,25 @@ FILES::
 
 == Summary
 
-// **** summary description of release
+This release contains significant changes to the *SML/NJ* system.  As such, it should
+be viewed as beta software.  The major changes are
+--
+* The version numbering scheme has changed to a `YYYY.NN` scheme, where `YYY` is the
+  year of the release and `NN` is the release number for the year.
+* The **MLRISC** code generator that we have used for over 25 years has been replaced
+  with one based on the https:llvm.org[**LLVM Libraries**]
+* We have added support for the 64-bit *ARM* processor (currently for *macOS* only)
+* We have dropped support for 32-bit systems.  Since we do not have a 64-bit Windows
+  port yet, this version only supports *Linux/amd64*, *macOS/amd64*, and *macOS/arm64*.
+  A 64-bit Windows version is a high priority and we hope to include it in the next
+  release.
+* The pattern-match compiler has been completely rewritten.
+--
+
+While we hope that people will experiment with this version (and report any problems),
+we recommend sticking with the "legacy" releases of the system (currently
+https://smlnj.org/dist/working/110.99.2/110.99.2-README.html[110.99.2]) for
+production work.
 
 == Details
 
@@ -89,18 +107,6 @@ for more details.
 
 [.buglist,cols="^1,<15"]
 |=======
-| [.bugid]#278#
-| `ListMergeSort` is documented as stable, but is not (esp. since 110.78 rewrite!)
-| [.bugid]#279#
-| `Real.toLargeInt` returns zero for anything in range `[-512,512]`
-| [.bugid]#280#
-| 110.99 `config/install.sh -64` fails on macOS 10.15.7
-| [.bugid]#286#
-| Installation of *SML/NJ* v110.99.1 fails in fresh *Ubuntu* 20.04/*macOS* 10.15
-| [.bugid]#287#
-| Install errors with `request asdl`
-| [.bugid]#293#
-| SMLNJ Incompatibility with *macOS* 12 Beta
 |=======
 
 The following unnumbered bug was also fixed:
