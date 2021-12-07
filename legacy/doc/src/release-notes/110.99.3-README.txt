@@ -1,7 +1,7 @@
 // A template for creating release notes for a version
 //
-:version: 110.99.2
-:date: September 23, 2021
+:version: 110.99.3
+:date: ??
 :dist-dir: https://smlnj.org/dist/working/{version}/
 :history: {dist-dir}HISTORY.html
 :stem: latexmath
@@ -38,17 +38,6 @@ adds support for *macOS 12* (Monterey).
 
 === SML/NJ Library
 
-Several improvements to the *JSON* library:
---
-* Added convenience function `int` to the `JSON_STREAM_OUTPUT` interface.
-
-* Refactored the output modules in the *JSON* library.  These changes should
-  not affect current clients of the library, but allow the addition of
-  printing *JSON* to a `CharBuffer.buf`.
-
-* Bug fix to `JSONUtil` module; the `FIND` path arc was not getting
-  handled for the update functions (_i.e._, `replace`, `insert`, and `append`).
---
 
 === 32-bit macOS issues
 
@@ -94,8 +83,7 @@ for more details.
 
 The following unnumbered bug was also fixed:
 --
-  * Floating-point spill records were twice as large as necessary on 64-bit
-    systems.
+  * Fixed a bug in the printing of `char` values in the REPL.
 --
 
 == Supported systems
