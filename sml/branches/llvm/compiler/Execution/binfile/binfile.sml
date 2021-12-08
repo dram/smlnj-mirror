@@ -37,7 +37,7 @@ structure Binfile :> BINFILE =
     val bfVersion = 0wx20211123         (* Bin File version 2021-11-23 *)
 
     fun mkVersion {arch, smlnjVersion} : version_info = {
-            bfVersion = 0w0,            (* old format for now *)
+            bfVersion = 0w0,        (* old binfile format for now *)
             arch = arch, smlnjVersion = smlnjVersion
           }
 
@@ -447,7 +447,7 @@ Control_Print.say (concat [
           val fields = let
                 val flds = [g, pad, cs, es]
                 val flds = if oldFormat
-                      then 0 :: flds    (* include unused lambda size *)
+                      then 0 :: flds    (* include 0 for unused lambda size *)
                       else flds
                 in
                   leni :: ne :: importSzB :: cmInfoSzB :: flds
