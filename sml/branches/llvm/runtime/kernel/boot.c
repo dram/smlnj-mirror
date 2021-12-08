@@ -411,7 +411,8 @@ PVT void LoadBinFile (ml_state_t *msp, char *fname)
     }
 
   /* Read code objects and run them.  The first code object will be the
-   * data segment.  */
+   * data segment.
+   */
 
     remainingCode = hdr.codeSzB;
 
@@ -422,8 +423,9 @@ PVT void LoadBinFile (ml_state_t *msp, char *fname)
     /* thisEntryPoint = BIGENDIAN_TO_HOST32(thisEntryPoint); */
 
     remainingCode -= thisSzB + 2 * sizeof(Int32_t);
-    if (remainingCode < 0)
+    if (remainingCode < 0) {
 	Die ("format error (data size mismatch) in bin file \"%s\"", fname);
+    }
 
     if (thisSzB > 0) {
 	Byte_t		*dataObj = NEW_VEC(Byte_t, thisSzB);
@@ -438,13 +440,15 @@ PVT void LoadBinFile (ml_state_t *msp, char *fname)
 	val = ML_unit;
     }
   /* do a functional update of the last element of the importRec. */
-    for (i = 0;  i < importRecLen;  i++)
+    for (i = 0;  i < importRecLen;  i++) {
 	ML_AllocWrite(msp, i, PTR_MLtoC(ml_val_t, importRec)[i-1]);
+    }
     ML_AllocWrite(msp, importRecLen, val);
     val = ML_Alloc(msp, importRecLen);
   /* do a GC, if necessary */
-    if (NeedGC (msp, PERID_LEN+REC_SZB(5)))
+    if (NeedGC (msp, PERID_LEN+REC_SZB(5))) {
 	InvokeGCWithRoots (msp, 0, &BinFileList, &val, NIL(ml_val_t *));
+    }
 
     if (remainingCode > 0) {
       /* read the size and entry point for the code object */
@@ -459,9 +463,9 @@ PVT void LoadBinFile (ml_state_t *msp, char *fname)
 	    Die ("format error (code size mismatch) in bin file \"%s\"", fname);
 	}
 
-      /* allocate space and read code object */
-	codeObj = ML_AllocCode (msp, thisSzB);
+      /* allocate a code object and initialize with the code from the binfile */
 	ENABLE_CODE_WRITE
+	codeObj = ML_AllocCode (msp, thisSzB);
 	ReadBinFile (file, PTR_MLtoC(char, codeObj), thisSzB, fname);
 	DISABLE_CODE_WRITE
 
