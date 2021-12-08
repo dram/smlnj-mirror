@@ -1,0 +1,32 @@
+Notes on binfiles.adoc
+
+1. [line 22] Section title should indicate that this is the _old_ binfile layout (used in 110.99 and earlier?). I assume, for instance, that the 2nd field ("pickle of exported lambda-expr" is obsolete. Also, where does the "r" in line 35 come from?  Should it be "g" rather than "r", or the other way around?
+
+Should the Size column for "end of file" be 0 (zero)?
+
+2. [line 67] Does the seven character limit for the architecture include the "<"
+and ">" characters surrounding the actual architecture string?  E.g. "<amd64>" is
+7 characters?  Same for the "version" part: does it include "<" and ">" characters?
+Also "version" of what? The SML/NJ compiler, or the binfile format version.
+For example, is "<amd64>-<2022.10>" a possible magic string? Actually, it would
+seem to violate the 8 character limit on the version part, because "<2022.10>" is
+9 characters. (Note the use of "version" on line 73.)
+
+3. [line 74] "BinFie " is presumably a misspelling. Should be "BinFile ".
+
+4. [line 81] "version number is a date. Is this normally the date when a the current
+binfile format was introduced?  It changes only when a new binfile format is introduced?
+The phrase "date of the version" on line 103 needs clarification?
+Then on line 83 there is another field for "version number", which appears to be the
+SML/NJ release version number. This is slightly confusing.
+
+5. Do the terms "GUID" and "GUID area" need definitions or explanations?
+
+6. [line 162] Spelling: "immediatly".
+
+[DBM, 2021/12/7]
+
+
+
+
+
