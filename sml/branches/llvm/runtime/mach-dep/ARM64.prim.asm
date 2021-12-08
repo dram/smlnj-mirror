@@ -34,7 +34,10 @@
  *      r30             -- link register
  *      sp              -- stack pointer (r31)
  *
- * The stack pointer must be 16-byte aligned.
+ * The stack pointer must always be 16-byte aligned!  The frame pointer points to
+ * a two-word structure, where the first word is the address of the previous frame
+ * in the stack (i.e., the saved frame pointer) and the second word is the return
+ * address (saved lr register).
  */
 
 /* SML Register conventions for ARM64:
@@ -317,7 +320,7 @@ ALIGNED_ENTRY(restoreregs)
 	mov	x29, sp
     /* allocate the rest of the stack frame */
         mov     wtmp1, IM(FRAME_SIZE)
-        add     sp, sp, xtmp1
+        sub     sp, sp, xtmp1
 
     /* save C callee-save registers; note that we cannot use stp instructions
      * here because the offsets are too big.
@@ -341,6 +344,9 @@ ALIGNED_ENTRY(restoreregs)
 
     /* put the MLState struct pointer in tmp1 */
         mov     xtmp1, x0
+
+    /* save the MLState struct pointer in the stack */
+	str	xtmp1, mlStatePtr
 
     /* load the SML state from the MLState struct */
         ldp     allocptr, limitptr, MEM(xtmp1, AllocPtrOffMSP)
