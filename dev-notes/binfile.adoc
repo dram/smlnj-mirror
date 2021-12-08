@@ -16,8 +16,7 @@ and `runtime/kernel/boot.c`).  It was simplified by removing the
 support for multiple code objects in SML/NJ Version 110.99.
 It has been further modified for 2021.1 to include an initial file
 identifier and more structured version information (including a
-proper version).
-
+proper version).  The current version of the new format is `20211123`.
 
 == Binfile Format Description
 
@@ -66,13 +65,14 @@ The first 16-bytes of the header contain the so-called "magic string," which
 is formed from the architecture and version number.  The basic format is
 "``<``__arch__``>-<``__version__``>``", with the architecture limited to seven
 characters and the version limited to eight (leaving one character for the "``-``").
-The string is then padded with spaces to 16 bytes.
+The string is then padded with spaces to 16 bytes.  The CM info is a sequence of
+PIDs, where the first one is the static PID and the second is the unused lambda PID.
 
 === New Header Layout
 
 Starting in version 2021.1, the 16-byte magic string field was replaced by an 8-byte file
-kind (the string `"BinFie "`) followed by 32-bytes of version information.  The other change
-is that the `lambdaSzB` field (which is always `0`) was removed.
+kind (the string `"BinFie "`) followed by 32-bytes of version information.  The other changes
+are that the `lambdaSzB` field (which is always `0`) and the unused lambda PID were removed.
 
 [cols=">6m,>1m,<30a",options="header"]
 |====
