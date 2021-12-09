@@ -210,7 +210,7 @@ ml-lpt-lib 	   lib 	 ml-lpt-lib.cm ml-lpt-lib.cm ml-lpt/lib
 
 # ASDL generator and support library
 asdl               config asdl
-asdl               dprog  asdlgen - asdl/src/asdlgen
+asdl               dprog  asdlgen src/asdlgen asdl
 asdl               lib    asdlgen-tool.cm asdlgen-tool.cm asdl/tool
 asdl               lib    asdl-ext.cm     asdl-ext.cm     asdl/tool
 asdl               lib    asdl-lib.cm     asdl-lib.cm     asdl/src/lib/sml
