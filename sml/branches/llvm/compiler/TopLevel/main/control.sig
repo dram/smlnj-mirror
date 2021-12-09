@@ -51,7 +51,6 @@ signature CGCONTROL =
     val printCFG : bool ref
     val dumpCFG : bool ref
     val useLLVM : bool ref
-  (* controls that used to be in the MLRISC control structure *)
     val debugSpill : bool ref
     val debugSpillInfo : bool ref
   end (* signature CGCONTROL *)

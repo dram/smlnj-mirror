@@ -119,9 +119,10 @@ struct
 
     (* FLINT internal type-checking controls *)
     val check = new (flag_cvt, "check", "whether to typecheck the IR", false)
-        (* fails on MLRISC/*/*RegAlloc.sml *)
+
     val checkDatatypes = new (flag_cvt, "check-datatypes", "typecheck datatypes", false)
 	(* loops on the new cm.sml *)
+
     val checkKinds = new (flag_cvt, "check-kinds",
 			  "check kinding information", true)
 
