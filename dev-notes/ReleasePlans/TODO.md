@@ -7,9 +7,7 @@ target plus an additional "wish-list" of long-term goals.
 ## Maintain a 110.99.x branch for backwards compatibility
   * e.g., 32-bit, Sparc, PPC, ...
 
-## For 2021.1 (August 2021?)
-
-  * check if the problem with IntInf literals has gone away.
+## For 2021.1 (December 2021?)
 
   * Rewrite of pattern-match compilation to be an source to source translation of the
     `Absyn` IR.  Include direct translation of "or" patterns and support for Successor
@@ -20,11 +18,16 @@ target plus an additional "wish-list" of long-term goals.
   * Define SML/NJ style rules for pretty-printing module signatures
     and implement these rules for 2021.1.
 
-## High priority future work
-
   * 64-bit ARM support. (2021.1)
 
   * integrate LLVM code generator into install process (2021.1)
+
+## High priority future work
+
+  * check if the problem with IntInf literals has gone away.
+
+  * Switch to new binfile format.  The code is in place and partially debugged, but
+    there isn't time to debug it for 2021.1
 
   * New-new-runtime: new GC and core services with old version of C functions
     and the LLVM code generator.
@@ -37,7 +40,7 @@ target plus an additional "wish-list" of long-term goals.
 
 ## High priority bugs
 
-  * `IntInf.int` to/from `real` conversions
+  * `IntInf.int` to/from `real` conversions [DONE]
 
 ## Future work
 
