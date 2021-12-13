@@ -15,6 +15,11 @@
 #include "code-object.hxx"
 #include "llvm/Support/Error.h"
 
+// SML/NJ runtime function for printing an error message and exiting
+extern "C" {
+extern void Die (const char *, ...);
+}
+
 /* determine the object-file format that we use on this platform */
 #if defined(OPSYS_DARWIN)
 /* macOS uses MachO as it object-file format */
@@ -89,10 +94,15 @@ public:
 	this->_w.lo12.imm12 = (v & 0xfff);
     }
 
+    void patchB26 (uint32_t v)
+    {
+        this->_w.b26.imm = (v & 0x3fffff);
+    }
+
 private:
     union {
         uint32_t w32;
-	// instructions with 21-bit immediate values that represent the high
+	// instructions with a 21-bit immediate values that represent the high
 	// 21-bits of an offset.  (these are the "PC relative" instructions)
 	//
 	struct {
@@ -102,7 +112,7 @@ private:
 	    uint32_t immhi : 19;	// high 19 bits of immediate value
 	    uint32_t rd : 5;
 	} hi21;
-	// instructions with as 12-bit immediate value that is used for the
+	// instructions with a 12-bit immediate value that is used for the
 	// low bits of an offset.  (These include the add/sub immediate
 	// instructions that are used to compute addresses)
 	struct {
@@ -111,6 +121,11 @@ private:
 	    uint32_t rn : 5;		// source register
 	    uint32_t rd : 5;		// destination register
 	} lo12;
+        // unconditional branch instructions with a 26-bit offset
+        struct {
+            uint32_t op : 6;            // opcode bits
+            uint32_t imm : 26;          // 26-bit offset
+        } b26;
     } _w;
 };
 
@@ -150,7 +165,16 @@ void AArch64CodeObject::_resolveRelocs (llvm::object::SectionRef &sect, uint8_t 
 #endif
 		instr.patchLo12 (value);
 	    	break;
+#if defined(OBJFF_MACHO)
+            case llvm::MachO::ARM64_RELOC_BRANCH26:
+#elif defined(OBJFF_ELF)
+            case llvm::ELF::R_AARCH64_JUMP26:
+#endif
+                instr.patchB26 (value);
+                break;
 	    default:
+                Die ("Unknown relocation-record type %d at %p\n",
+                    reloc.getType(), (void*)offset);
 	    	break;
 	    }
 	  // update the instruction with the patched version
