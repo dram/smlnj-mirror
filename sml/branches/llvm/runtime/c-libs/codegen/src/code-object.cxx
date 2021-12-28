@@ -96,7 +96,7 @@ public:
 
     void patchB26 (uint32_t v)
     {
-        this->_w.b26.imm = (v & 0x3fffff);
+        this->_w.b26.imm = (v & 0x3ffffff);
     }
 
 private:
