@@ -40,7 +40,7 @@ while [ "$#" != 0 ] ; do
 	;;
     -64) ;;
     -z) MAKE_TARBALL=yes ;;
-    -C) CTL_FLAGS="$CTL_FLAGS $arg" ;;
+    -C*) CTL_FLAGS="$CTL_FLAGS $arg" ;;
     amd64-unix|arm64-unix)
 	TARGET=$arg
 	;;
