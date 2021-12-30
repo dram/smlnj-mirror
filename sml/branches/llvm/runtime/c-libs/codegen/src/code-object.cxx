@@ -10,6 +10,7 @@
  * All rights reserved.
  */
 
+#include "ml-sizes.h"  /* for endianess */
 #include <iostream>
 #include "target-info.hxx"
 #include "code-object.hxx"
@@ -106,25 +107,51 @@ private:
 	// 21-bits of an offset.  (these are the "PC relative" instructions)
 	//
 	struct {
+#if defined(BYTE_ORDER_BIG)
 	    uint32_t op1 : 1;		// opcode bit
 	    uint32_t immlo : 2;		// low two bits of immediate value
-	    uint32_t op2 : 6;		// more opcode bits
+	    uint32_t op2 : 5;		// more opcode bits
 	    uint32_t immhi : 19;	// high 19 bits of immediate value
 	    uint32_t rd : 5;
+#elif defined(BYTE_ORDER_LITTLE)
+	    uint32_t rd : 5;
+	    uint32_t immhi : 19;	// high 19 bits of immediate value
+	    uint32_t op2 : 5;		// more opcode bits
+	    uint32_t immlo : 2;		// low two bits of immediate value
+	    uint32_t op1 : 1;		// opcode bit
+#else
+#  error must specify an endianess
+#endif
 	} hi21;
 	// instructions with a 12-bit immediate value that is used for the
 	// low bits of an offset.  (These include the add/sub immediate
 	// instructions that are used to compute addresses)
 	struct {
+#if defined(BYTE_ORDER_BIG)
 	    uint32_t op1 : 10;		// opcode bits
 	    uint32_t imm12 : 12;	// 12-bit immediate value
 	    uint32_t rn : 5;		// source register
 	    uint32_t rd : 5;		// destination register
+#elif defined(BYTE_ORDER_LITTLE)
+	    uint32_t rd : 5;		// destination register
+	    uint32_t rn : 5;		// source register
+	    uint32_t imm12 : 12;	// 12-bit immediate value
+	    uint32_t op1 : 10;		// opcode bits
+#else
+#  error must specify an endianess
+#endif
 	} lo12;
         // unconditional branch instructions with a 26-bit offset
-        struct {
+	struct {
+#if defined(BYTE_ORDER_BIG)
             uint32_t op : 6;            // opcode bits
             uint32_t imm : 26;          // 26-bit offset
+#elif defined(BYTE_ORDER_LITTLE)
+            uint32_t imm : 26;          // 26-bit offset
+            uint32_t op : 6;            // opcode bits
+#else
+#  error must specify an endianess
+#endif
         } b26;
     } _w;
 };
@@ -139,7 +166,7 @@ void AArch64CodeObject::_resolveRelocs (llvm::object::SectionRef &sect, uint8_t 
       // the patch value; we ignore the relocation record if the symbol is not defined
 	auto symb = reloc.getSymbol();
 	if (sect.getObject()->symbols().end() != symb) {
-          // the address to be patched (relative to the beginning of the file)
+          // the address to be patched (relative to the beginning of the object file)
 	    auto offset = reloc.getOffset();
 	  // the patch value; we compute the offset relative to the address of
 	  // byte following the patched location.
@@ -352,24 +379,26 @@ void CodeObject::dump (bool bits)
 	}
     }
 
+  // dump relocation info
+    for (auto sect : this->_obj->sections()) {
+	this->_dumpRelocs (sect);
+    }
+
+  // conditionally dump the code bits
     if (bits && foundTextSect) {
-      // dump the bits of the text section
-	auto code = exitOnErr(textSect.getContents());
-	const unsigned char *bytes = (const unsigned char *)code.data();
-	llvm::dbgs () << "CONTENTS OF " << exitOnErr(textSect.getName()) << "\n";
-	for (size_t i = 0;  i < code.size(); i += 16) {
-	    size_t limit = std::min(i + 16, code.size());
+      // first we create a scratch object to hold the relocated code
+        size_t codeSzB = this->size();
+        uint8_t *bytes = new uint8_t [codeSzB];
+        this->getCode (bytes);
+	llvm::dbgs () << "RELOCATED CODE\n";
+	for (size_t i = 0;  i < codeSzB; i += 16) {
+	    size_t limit = std::min(i + 16, codeSzB);
 	    llvm::dbgs () << "  " << llvm::format_hex_no_prefix(i, 4) << ": ";
 	    for (int j = i;  j < limit;  j++) {
 		llvm::dbgs() << " " << llvm::format_hex_no_prefix(bytes[j], 2);
 	    }
 	    llvm::dbgs () << "\n";
 	}
-    }
-
-   // dump relocation info
-    for (auto sect : this->_obj->sections()) {
-	this->_dumpRelocs (sect);
     }
 
 }

@@ -144,4 +144,3 @@ llvm::Triple target_info::getTriple() const
 {
     return llvm::Triple(this->name, kVendor, kOS);
 }
-
