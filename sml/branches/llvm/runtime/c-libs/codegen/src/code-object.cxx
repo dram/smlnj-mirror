@@ -176,12 +176,13 @@ void AArch64CodeObject::_resolveRelocs (llvm::object::SectionRef &sect, uint8_t 
 	if (sect.getObject()->symbols().end() != symb) {
           // the address to be patched (relative to the beginning of the object file)
 	    auto offset = reloc.getOffset();
-	  // the patch value; we compute the offset relative to the address of
-	  // byte following the patched location.
+	  // the patch value.  PC relative addressing on the ARM is compute w.r.t. the
+          // instruction (*not* the following one).
+          //
 #if (LLVM_VERSION_MAJOR > 10) /* getValue returns an Expected<> value as of LLVM 11.x */
-	    int32_t value = (int32_t)exitOnErr(symb->getValue()) - ((int32_t)offset + 4);
+	    int32_t value = (int32_t)exitOnErr(symb->getValue()) - (int32_t)offset;
 #else
-	    int32_t value = (int32_t)symb->getValue() - ((int32_t)offset + 4);
+	    int32_t value = (int32_t)symb->getValue() - (int32_t)offset;
 #endif
 	  // get the instruction to be patched
 	    AArch64InsnWord instr(*(uint32_t *)(code + offset));
