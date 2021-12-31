@@ -97,22 +97,30 @@ public:
 
     void patchB26 (uint32_t v)
     {
-        this->_w.b26.imm = (v & 0x3ffffff);
+        // strip the two low bits (which should be "00"), since they will
+        // be added back to get a signed 28-bit offset.
+        //
+        this->_w.b26.imm = (v & 0xfffffff) >> 2;
     }
 
 private:
+    //! union of the different instruction encodings that we have to patch (plus the
+    //! raw 32-bit instruction word).
+    //! WARNING: the order of the bitfields is dependent on the endianess of the host processor!
+    //
     union {
+        //! raw instruction word
         uint32_t w32;
-	// instructions with a 21-bit immediate values that represent the high
-	// 21-bits of an offset.  (these are the "PC relative" instructions)
+	//! instructions with a 21-bit immediate values that represent the high
+	//! 21-bits of an offset.  (these are the "PC relative" instructions)
 	//
 	struct {
 #if defined(BYTE_ORDER_BIG)
-	    uint32_t op1 : 1;		// opcode bit
-	    uint32_t immlo : 2;		// low two bits of immediate value
-	    uint32_t op2 : 5;		// more opcode bits
-	    uint32_t immhi : 19;	// high 19 bits of immediate value
-	    uint32_t rd : 5;
+	    uint32_t op1 : 1;		//!< opcode bit
+	    uint32_t immlo : 2;		//!< low two bits of immediate value
+	    uint32_t op2 : 5;		//!< more opcode bits
+	    uint32_t immhi : 19;	//!< high 19 bits of immediate value
+	    uint32_t rd : 5;            //!< destination register
 #elif defined(BYTE_ORDER_LITTLE)
 	    uint32_t rd : 5;
 	    uint32_t immhi : 19;	// high 19 bits of immediate value
@@ -128,10 +136,10 @@ private:
 	// instructions that are used to compute addresses)
 	struct {
 #if defined(BYTE_ORDER_BIG)
-	    uint32_t op1 : 10;		// opcode bits
-	    uint32_t imm12 : 12;	// 12-bit immediate value
-	    uint32_t rn : 5;		// source register
-	    uint32_t rd : 5;		// destination register
+	    uint32_t op1 : 10;		//!< opcode bits
+	    uint32_t imm12 : 12;	//!< 12-bit immediate value
+	    uint32_t rn : 5;		//!< source register
+	    uint32_t rd : 5;		//!< destination register
 #elif defined(BYTE_ORDER_LITTLE)
 	    uint32_t rd : 5;		// destination register
 	    uint32_t rn : 5;		// source register
@@ -144,8 +152,8 @@ private:
         // unconditional branch instructions with a 26-bit offset
 	struct {
 #if defined(BYTE_ORDER_BIG)
-            uint32_t op : 6;            // opcode bits
-            uint32_t imm : 26;          // 26-bit offset
+            uint32_t op : 6;            //!< opcode bits
+            uint32_t imm : 26;          //!< 26-bit offset
 #elif defined(BYTE_ORDER_LITTLE)
             uint32_t imm : 26;          // 26-bit offset
             uint32_t op : 6;            // opcode bits
