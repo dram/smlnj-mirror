@@ -93,7 +93,6 @@ in
     structure P = Primop
     structure M = Modules
     structure B = Bindings
-    structure CTypes = PrimCTypes
 
     (** NOTE: the CRC functions really ought to work on Word8Vector.vectors **)
     fun pickle2hash pickle =

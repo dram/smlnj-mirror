@@ -1,7 +1,13 @@
-/* run-ml.c
- *
- * COPYRIGHT (c) 1993 by AT&T Bell Laboratories.
- */
+/// \file run-ml.c
+///
+/// \copyright 2021 The Fellowship of SML/NJ (http://www.smlnj.org)
+/// All rights reserved.
+///
+/// \brief The main dispatch function for running SML code and for
+///   servicing requests for runtime-system services
+///
+/// \author John Reppy
+///
 
 #include <stdio.h>
 #include <string.h>
@@ -111,33 +117,9 @@ void RunML (ml_state_t *msp)
 		vsp->vp_inSigHandler	= TRUE;
 		vsp->vp_handlerPending	= FALSE;
 	    }
-#ifdef SOFT_POLL
-	    else if (msp->ml_pollPending && !msp->ml_inPollHandler) {
-	      /* this is a poll event */
-#if defined(MP_SUPPORT) && defined(MP_GCPOLL)
-	      /* Note: under MP, polling is used for GC only */
-#ifdef POLL_DEBUG
-SayDebug ("run-ml: poll event\n");
-#endif
-	        msp->ml_pollPending = FALSE;
-	        InvokeGC (msp,0);
-#else
-	      /* check for GC */
-		if (NeedGC (msp, 4*ONE_K))
-		    InvokeGC (msp, 0);
-		msp->ml_arg		= MakeResumeCont(msp, pollh_resume);
-		msp->ml_cont		= PTR_CtoML(pollh_return_c);
-		msp->ml_exnCont		= PTR_CtoML(handle_v+1);
-		msp->ml_closure		= DEREF(MLPollHandler);
-		msp->ml_pc		=
-		msp->ml_linkReg		= GET_CODE_ADDR(msp->ml_closure);
-		msp->ml_inPollHandler	= TRUE;
-		msp->ml_pollPending	= FALSE;
-#endif /* MP_SUPPORT */
-	    }
-#endif /* SOFT_POLL */
-	    else
+	    else {
 	        InvokeGC (msp, 0);
+	    }
 	}
 	else {
 	    switch (request) {
@@ -150,7 +132,7 @@ SayDebug ("run-ml: poll event\n");
 		UncaughtExn (msp->ml_arg);
 		return;
 
-	      case REQ_FAULT: { /* a hardware fault */
+	      case REQ_FAULT: { /* a hardware overflow trap */
 		    ml_val_t	loc, traceStk, exn;
 		    char *namestring;
 		    if ((namestring = (char *)BO_AddrToCodeObjTag(msp->ml_faultPC)) != NIL(char *))
@@ -159,10 +141,29 @@ SayDebug ("run-ml: poll event\n");
 			sprintf(buf2, "<file %.184s>", namestring);
 			loc = ML_CString(msp, buf2);
 		    }
-		    else
+		    else {
 			loc = ML_CString(msp, "<unknown file>");
+		    }
 		    LIST_cons(msp, traceStk, loc, LIST_nil);
-		    EXN_ALLOC(msp, exn, msp->ml_faultExn, ML_unit, traceStk);
+		    EXN_ALLOC(msp, exn, OverflowId, ML_unit, traceStk);
+		    RaiseMLExn (msp, exn);
+		} break;
+
+	      case REQ_RAISE_OVERFLOW: { /* a request for raising Overflow */
+		    ml_val_t	loc, traceStk, exn;
+		    char *namestring;
+		    SayDebug("RunML: raise Overflow request: pc = %p\n", msp->ml_pc);
+		    if ((namestring = (char *)BO_AddrToCodeObjTag(msp->ml_pc)) != NIL(char *))
+		    {
+			char	buf2[192];
+			sprintf(buf2, "<file %.184s>", namestring);
+			loc = ML_CString(msp, buf2);
+		    }
+		    else {
+			loc = ML_CString(msp, "<unknown file>");
+		    }
+		    LIST_cons(msp, traceStk, loc, LIST_nil);
+		    EXN_ALLOC(msp, exn, OverflowId, ML_unit, traceStk);
 		    RaiseMLExn (msp, exn);
 		} break;
 
@@ -236,19 +237,6 @@ vsp->vp_totalSigCount.nHandled, vsp->vp_totalSigCount.nReceived);
 		vsp->vp_inSigHandler = FALSE;
 		break;
 
-#ifdef SOFT_POLL
-	      case REQ_POLL_RETURN:
-	      /* throw to the continuation */
-		SETUP_THROW(msp, msp->ml_arg, ML_unit);
-	      /* note that we are exiting the handler */
-		msp->ml_inPollHandler = FALSE;
-		ResetPollLimit (msp);
-		break;
-#endif
-
-#ifdef SOFT_POLL
-	      case REQ_POLL_RESUME:
-#endif
 	      case REQ_SIG_RESUME:
 #ifdef SIGNAL_DEBUG
 SayDebug("REQ_SIG_RESUME: arg = %#x\n", msp->ml_arg);

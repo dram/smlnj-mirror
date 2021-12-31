@@ -109,7 +109,7 @@ PVT status_t ExportImage (ml_state_t *msp, int kind, FILE *file)
 	heapHdr.numBOKinds	= NUM_BIGOBJ_KINDS;
 	heapHdr.numBORegions	= heap->numBORegions;
 	heapHdr.cacheGen	= heap->cacheGen;
-	heapHdr.allocSzB	= heap->allocSzB / MAX_NUM_PROCS;
+	heapHdr.allocSzB	= heap->allocSzB;
 
 	SAVE_REG(heapHdr.pervStruct, *PTR_MLtoC(ml_val_t, PervStruct));
 	SAVE_REG(heapHdr.runTimeCompUnit, RunTimeCompUnit);

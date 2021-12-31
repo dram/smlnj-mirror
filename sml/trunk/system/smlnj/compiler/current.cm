@@ -100,21 +100,9 @@ is
 # if defined(ARCH_AMD64)
        $smlnj/compiler/amd64.cm
        amd64.sml
-# elif defined(ARCH_PPC)
-	$smlnj/compiler/ppc.cm
-	ppc.sml
-# elif defined(ARCH_SPARC)
-	$smlnj/compiler/sparc.cm
-	sparc.sml
-# elif defined(ARCH_X86)
-	$smlnj/compiler/x86.cm
-#   if defined(OPSYS_UNIX)
-	x86-ccall.sml
-#   elif defined(OPSYS_WIN32)
-	x86-stdcall.sml
-#   else
-#	error Strange OS (for x86)!
-#   endif
+# elif defined(ARCH_ARM64)
+       $smlnj/compiler/arm64.cm
+       arm64.sml
 # else
 #   error Strange architecture!
 # endif

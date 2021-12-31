@@ -21,6 +21,15 @@ signature CODE_OBJ =
   (* raised by input when there are insufficient bytes *)
     exception FormatError
 
+  (* given the target, source-file name, and a CFG pickle, generate machine
+   * code using the LLVM code generator
+   *)
+    val generate : {
+            target : string,
+            src : string,
+            pkl : Word8Vector.vector
+          } -> code_object
+
   (* Allocate an unintialized code object of the given number of bytes. *)
     val alloc : int -> code_object
 

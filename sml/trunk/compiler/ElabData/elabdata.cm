@@ -82,7 +82,7 @@ Group
 	structure PrimopBind
 	structure PrimopBindings
 	structure CProto
-	structure PrimCTypes
+	structure CTypes
 	structure TKind
 	structure SigPropList
 	structure PPUtil
@@ -163,7 +163,7 @@ is
 	prim/primop-util.sml
 	prim/ppprim.sml
 	prim/cproto.sml
-	prim/prim-c-types.sml
+	prim/c-types.sml
 	prim/primop-bindings.sml
 
 	$smlnj/viscomp/basics.cm

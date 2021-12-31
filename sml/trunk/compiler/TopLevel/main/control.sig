@@ -46,9 +46,13 @@ signature CGCONTROL =
     val newLiterals : bool ref
     val debugRep : bool ref
     val deadup : bool ref
-    val memDisambiguate : bool ref	(* used by MLRISC *)
     val printit : bool ref
     val printClusters : bool ref
+    val printCFG : bool ref
+    val dumpCFG : bool ref
+    val useLLVM : bool ref
+    val debugSpill : bool ref
+    val debugSpillInfo : bool ref
   end (* signature CGCONTROL *)
 
 (* main Control structure *)
@@ -60,7 +64,6 @@ signature CONTROL =
     structure MC : MC_CONTROL  (* match compiler controls *)
     structure FLINT : FLINTCONTROL
     structure CG : CGCONTROL
-    structure MLRISC : MLRISC_CONTROL
     val debugging : bool ref
     val eldebugging : bool ref (* EvalLoopF debugging *)
     val pddebugging : bool ref (* PPDec debugging *)
@@ -95,21 +98,6 @@ signature CONTROL =
     val saveCPSopt : bool ref
     val saveClosure : bool ref
 
-(* obsolete
-    structure LambdaSplitting : sig
-	datatype globalsetting
-	  = Off			      (* completely disabled *)
-	  | Default of int option       (* default aggressiveness; NONE: off *)
-	type localsetting = int option option
-	val UseDefault : localsetting
-	val Suggest : int option -> localsetting
-	val set : globalsetting -> unit
-	val get : unit -> int option
-	val get' : localsetting -> int option
-	val parse : string -> globalsetting option
-	val show : globalsetting -> string
-    end
-*)
     val tdp_instrument : bool ref
 
   end (* signature CONTROL *)

@@ -11,9 +11,11 @@ structure CPSUtil : sig
 
     val combinepaths : CPS.accesspath * CPS.accesspath -> CPS.accesspath
     val lenp : CPS.accesspath -> int
-    val ctyToString : CPS.cty -> string
+
     val hasRCC : CPS.cexp -> bool
-    val sizeOf : CPS.cty -> int   (* size of its representation in bits *)
+
+    val ctyToString : CPS.cty -> string
+    val sizeOfTy : CPS.cty -> int   (* size of its representation in bits *)
     val isFloat : CPS.cty -> bool (* is it a floating point type? *)
     val isTagged : CPS.cty -> bool
 
@@ -22,7 +24,7 @@ structure CPSUtil : sig
     val ctyc  : Lty.tyc -> CPS.cty
     val ctype : Lty.lty -> CPS.cty
 
-end = struct
+  end = struct
 
     structure P = CPS.P
     structure PT = PrimTyc
@@ -79,10 +81,10 @@ end = struct
 	    | CPS.PURE(_, _, _, _, e) => hasRCC e
 	  (* end case *))
 
-    fun sizeOf (CPS.FLTt sz) = sz
-      | sizeOf (CPS.NUMt{tag=false, sz}) = sz
-      | sizeOf (CPS.NUMt _) = Target.mlValueSz
-      | sizeOf (CPS.PTRt _ | CPS.FUNt | CPS.CNTt) = Target.mlValueSz
+    fun sizeOfTy (CPS.FLTt sz) = sz
+      | sizeOfTy (CPS.NUMt{tag=false, sz}) = sz
+      | sizeOfTy (CPS.NUMt _) = Target.mlValueSz
+      | sizeOfTy (CPS.PTRt _ | CPS.FUNt | CPS.CNTt) = Target.mlValueSz
 
     fun isFloat (CPS.FLTt _) = true
       | isFloat _ = false

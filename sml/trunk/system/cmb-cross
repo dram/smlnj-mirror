@@ -4,7 +4,7 @@
 # All rights reserved.
 #
 # usage: cmb-cross [ -32 | -64 ] [ -z ] <TARGET>
-#	<TARGET>	-- one of amd64-unix, ppc-unix, sparc-unix, x86-unix, or x86-win32
+#	<TARGET>	-- one of amd64-unix or arm64-unix
 #
 # cross compile to the specified TARGET
 #
@@ -12,11 +12,9 @@
 usage() {
   echo "usage: cmb-cross [ options ] <target>"
   echo "  Options:"
-  echo "    -32 | -64     -- size option for compiler"
   echo "    -z            -- archive result as gzipped tar file"
   echo "    -C<ctl>=<v>   -- control argument passed to compile command"
-  echo "    <target>      -- one of amd64-unix, ppc-unix, sparc-unix,"
-  echo "                     x86-unix, or x86-win32"
+  echo "    <target>      -- one of amd64-unix or arm64-unix"
   exit 1
 }
 
@@ -26,7 +24,6 @@ cd ../..
 twoup=`pwd`
 cd $here
 
-SIZE_OPT=
 CTL_FLAGS=
 MAKE_TARBALL=no
 TARGET=
@@ -37,11 +34,14 @@ TARGET=
 while [ "$#" != 0 ] ; do
     arg=$1; shift
     case $arg in
-    -32) SIZE_OPT="-32" ;;
-    -64) SIZE_OPT="-64" ;;
+    -32)
+	echo "$this: 32-bits not supported anymore"
+	usage
+	;;
+    -64) ;;
     -z) MAKE_TARBALL=yes ;;
-    -C) CTL_FLAGS="$CTL_FLAGS $arg" ;;
-    amd64-unix|ppc-unix|sparc-unix|x86-unix|x86-win32)
+    -C*) CTL_FLAGS="$CTL_FLAGS $arg" ;;
+    amd64-unix|arm64-unix)
 	TARGET=$arg
 	;;
     *)
@@ -53,14 +53,6 @@ done
 
 if [ x"$TARGET" = x ] ; then
   usage
-fi
-
-# if the size was not specified on the command line, then we use
-# the size from the sml executable.
-#
-if [ x"SIZE_OPT" = x ] ; then
-  SIZE=`../../bin/sml @SMLwordsize`
-  SIZE_OPT="-$SIZE"
 fi
 
 to_lower() {
@@ -80,7 +72,7 @@ fi
 
 # get host ARCH and OPSYS variables
 if [ -f $twoup/bin/.arch-n-opsys ]; then
-    ARCH_N_OPSYS=`$twoup/bin/.arch-n-opsys $SIZE_OPT`
+    ARCH_N_OPSYS=`$twoup/bin/.arch-n-opsys`
     if [ "$?" = "0" ]; then
 	eval $ARCH_N_OPSYS
     fi
@@ -102,32 +94,11 @@ case $TARGET in
     TARGET_SIZE=64
     TARGET_ENDIANESS=LITTLE
     ;;
-  ppc-unix)
-    architecture=ppc
-    TARGET_ARCH=PPC;
+  arm64-unix)
+    architecture=arm64
+    TARGET_ARCH=ARM64;
     TARGET_OPSYS=UNIX
-    TARGET_SIZE=32
-    TARGET_ENDIANESS=BIG
-    ;;
-  sparc-unix)
-    architecture=sparc
-    TARGET_ARCH=SPARC;
-    TARGET_OPSYS=UNIX
-    TARGET_SIZE=32
-    TARGET_ENDIANESS=BIG
-    ;;
-  x86-unix)
-    architecture=x86
-    TARGET_ARCH=X86;
-    TARGET_OPSYS=UNIX
-    TARGET_SIZE=32
-    TARGET_ENDIANESS=LITTLE
-    ;;
-  x86-win32)
-    architecture=x86
-    TARGET_ARCH=X86;
-    TARGET_OPSYS=WIN32
-    TARGET_SIZE=32
+    TARGET_SIZE=64
     TARGET_ENDIANESS=LITTLE
     ;;
   *) echo "cmb-cross: unrecognized TARGET '$TARGET'"
@@ -141,7 +112,7 @@ architecture=$(to_lower $TARGET_ARCH)
 unset VERSIONTOOL_BUMP_RELEASE
 
 echo "$this: build $TARGET-cross bin/boot files"
-../../bin/sml $SIZE_OPT -DNO_PLUGINS \$smlnj/cmb.cm << XXXX
+../../bin/sml -DNO_PLUGINS \$smlnj/cmb.cm << XXXX
 #set (CMB.symval "CMB_CROSS") (SOME 1);
 #set (CMB.symval "ARCH_${HOST_ARCH}") NONE;
 #set (CMB.symval "OPSYS_${HOST_OPSYS}") NONE;
@@ -154,12 +125,12 @@ XXXX
 
 # the following is equivalent to running
 #
-#	./makeml $SIZE_OPT -boot $TARGET-cross.boot.x86-unix -rebuild $architecture
+#	./makeml -boot $TARGET-cross.boot.x86-unix -rebuild $architecture
 #
 echo "$this: cross compile to $TARGET"
 
 if [ $HOST_OPSYS = win32 ] ; then
-    SUFFIX=$(to_lower "${HOST_ARCH}-win32")
+    SUFFIX=$(to_lower "${HOST_ARCH}-win64")
 else
     SUFFIX=$(to_lower "${HOST_ARCH}-unix")
 fi
@@ -173,8 +144,8 @@ export CM_PATHCONFIG
 
 cd $CROSS_BOOT_DIR
 
-echo $this: $LINK $SIZE_OPT @SMLboot=BOOTLIST @SMLheap=sml $MODE $CTL_FLAGS
-if $LINK $SIZE_OPT @SMLboot=BOOTLIST @SMLheap=sml $MODE $CTL_FLAGS ; then
+echo $this: $LINK @SMLboot=BOOTLIST @SMLheap=sml $MODE $CTL_FLAGS
+if $LINK @SMLboot=BOOTLIST @SMLheap=sml $MODE $CTL_FLAGS ; then
     # back to the system directory
     #
     cd $here

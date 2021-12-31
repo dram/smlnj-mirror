@@ -285,12 +285,24 @@ structure Binfile :> BINFILE =
                 val a = trimWS(hdr, 12, 12)
                 val v = trimWS(hdr, 24, 16)
                 in
+(*
+Control_Print.say (concat [
+"readVersionInfo NEW [", String.toString hdr ^ "]\n"
+]);
+Control_Print.say (concat["  a = \"", String.toString a, "\"\n"]);
+Control_Print.say (concat["  v = \"", String.toString v, "\"\n"]);
+*)
                   {bfVersion = bfV, arch = a, smlnjVersion = v}
                 end
               else let (* old format *)
                 val magic = SS.dropr Char.isSpace (SS.full (Byte.bytesToString blk))
                 val (a, v) = SS.splitl (fn #"-" => false | _ => true) magic
                 in
+(*
+Control_Print.say (concat [
+"readVersionInfo OLD [", String.toString(SS.string magic) ^ "]\n"
+]);
+*)
                   {bfVersion = 0w0, arch = SS.string a, smlnjVersion = SS.string(SS.triml 1 v)}
                 end
           end

@@ -18,20 +18,6 @@
 Group
 	signature BACKEND
 
-        (* To make it possible to dynamically link in the optimizer,
-         * we have to export the following to the library.
-         * A.Leung.
-         *)
-        signature MACHINE_GEN
-        signature INVOKE_GC
-        signature CPSREGS
-        signature SMLNJ_PSEUDO_OPS
-
-        structure CPSRegions
-(* deprecated
-        structure SMLGCType
-*)
-
 	(* To be able to separate machine-dependent parts of viscomp-lib.cm
 	 * from machine-independent parts, we must also export the
 	 * the following things.... *)
@@ -39,20 +25,11 @@ Group
 	signature MACH_SPEC
 	functor DefaultMachSpecFn
 
-	structure SMLNJConstant
-	signature SMLNJ_MLTREE_EXT
-	structure SMLNJMLTreeExt
-        functor   SMLNJMLTreeExtComp
-        functor	  SMLNJPseudoOps
-	structure CodeString
+        functor BackendFn
 
-	functor MachineGen
-	functor SpillTable
-	functor BackendFn
-        functor CPSCompFn
+        functor CodeGeneratorFn
+
 	structure FLINTOpt
-
-	structure ClusterAnnotation
 
 	(* stuff that lived (or should have) in Frontend (aka GenericVC) *)
 	structure Control
@@ -148,6 +125,13 @@ Group
 
 	signature TARGET
 	structure Target
+
+(* new codegen structures *)
+	structure CFG
+	structure PPCfg
+(*
+	functor NewMLRiscGenFn
+*)
 
 is
 
@@ -277,56 +261,35 @@ CPS/opt/num64cnv.sml
 CPS/opt/streqlcnv.sml
 CPS/opt/testcnv.sml
 CPS/opt/uncurry.sml
-CPS/main/cluster.sml
+CPS/main/cluster.sml    (* move to NewCodeGen/main? *)
 CPS/main/cps-comp.sml
+CPS/main/feedback.sml
 CPS/main/limit.sml
 CPS/main/literals.sml
 CPS/main/new-literals.sml
+CPS/main/normalize-cluster.sml
+CPS/main/spill-fn.sml
 
-(* The code generator (MLRISC specialized for SML/NJ). *)
-CodeGen/cpscompile/argPassing.sig
-CodeGen/cpscompile/argPassing.sml
-CodeGen/cpscompile/check-gc.sml
-CodeGen/cpscompile/cps-aliasing.sml
-CodeGen/cpscompile/cps-c-calls.sml
-CodeGen/cpscompile/cpsBranchProb.sml
-CodeGen/cpscompile/cpsRegions.sig
-CodeGen/cpscompile/cpsRegions.sml
-CodeGen/cpscompile/cpsRegs.sig
-CodeGen/cpscompile/feedback.sml
-CodeGen/cpscompile/frag.sig
-CodeGen/cpscompile/frag.sml
-CodeGen/cpscompile/invokegc.sig
-CodeGen/cpscompile/invokegc.sml
-(* deprecated
-CodeGen/cpscompile/memAliasing.sml
-CodeGen/cpscompile/memDisambig.sml
-*)
-CodeGen/cpscompile/smlnj-pseudoOps.sig
-CodeGen/cpscompile/smlnj-const.sml
-(* deprecated
-CodeGen/cpscompile/smlnj-gctype.sig
-CodeGen/cpscompile/smlnj-gctype.sml
-*)
-CodeGen/cpscompile/smlnj-mltreeext.sig
-CodeGen/cpscompile/smlnj-mltreeext.sml
-CodeGen/cpscompile/smlnj-pseudoOps.sml
-CodeGen/cpscompile/spill-new.sml
-CodeGen/main/clusterAnnotation.sml    (* temporary hack; see comment in file *)
-CodeGen/main/code-string.sml
-CodeGen/main/machine.sig
-CodeGen/main/machine-gen.sig
-CodeGen/main/machine-gen.sml
-CodeGen/main/machspec.sig
-CodeGen/main/default-machspec-fn.sml
+NewCodeGen/cfg/cfg.sml
+NewCodeGen/cfg/ppcfg.sml
+NewCodeGen/cfg/cfg-util.sml
+NewCodeGen/cfg-pickle/cfg-pickle.sig
+NewCodeGen/cfg-pickle/cfg-pickler.sml
+NewCodeGen/cfg-pickle/cfg-file-pickle.sml
+NewCodeGen/cfg-pickle/cfg-memory-pickle.sml
+NewCodeGen/cfg-pickle/lambda-var-pickle.sml
 (*
-CodeGen/main/mlriscGen.sml
+NewCodeGen/cps-to-cfg/cluster.sml
 *)
-(* new simplified code generator *)
-CodeGen/main/mlrisc-gen-fn.sml
-CodeGen/main/object-desc.sig
-CodeGen/main/object-desc.sml
-CodeGen/main/spill-table.sml
+NewCodeGen/cps-to-cfg/cps-info.sml
+NewCodeGen/cps-to-cfg/invoke-gc.sml
+NewCodeGen/cps-to-cfg/cps-to-cfg-fn.sml
+NewCodeGen/cps-to-cfg/tagged-arith.sml
+NewCodeGen/main/code-gen-fn.sml
+NewCodeGen/main/mach-spec.sig
+NewCodeGen/main/default-machspec-fn.sml
+NewCodeGen/main/object-desc.sig
+NewCodeGen/main/object-desc.sml
 
 (* Miscellaneous utilities. *)
 Library/const-arith/sources.cm
@@ -339,18 +302,11 @@ $smlnj/viscomp/elaborate.cm
 $smlnj/viscomp/debugprof.cm
 $smlnj/viscomp/execute.cm
 
-(* MLRISC libraries. *)
-$smlnj/MLRISC/Lib.cm			(* provides SortedList *)
-$smlnj/MLRISC/Control.cm
-$smlnj/MLRISC/Graphs.cm
-$smlnj/MLRISC/MLRISC.cm
-$smlnj/MLRISC/Visual.cm
-$smlnj/MLRISC/MLTREE.cm
-
 (* Other libaries. *)
 $smlnj/basis/basis.cm
 $smlnj/smlnj-lib/smlnj-lib.cm
 $smlnj/smlnj-lib/controls-lib.cm
+$smlnj/asdl/asdl-lib.cm
 $/pickle-lib.cm
 
 $smlnj/init/init.cmi : cm          (* to gain access at CoreIntInf *)

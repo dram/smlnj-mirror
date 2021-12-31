@@ -16,9 +16,6 @@
 #include "heap.h"
 #include "tags.h"
 #include "copy-loop.h"
-#ifdef MP_SUPPORT
-#include "vproc-state.h"
-#endif
 
 #ifdef GC_STATS
 extern long	numUpdates;
@@ -115,24 +112,6 @@ void MinorGC (ml_state_t *msp, ml_val_t **roots)
     }
 
   /* Scan the store list */
-#ifdef MP_SUPPORT
-    {
-	ml_val_t	stl;
-	int		i;
-	ml_state_t	*msp;
-	vproc_state_t   *vsp;
-
-	for (i = 0; i < MAX_NUM_PROCS; i++) {
-	    vsp = VProc[i];
-	    msp = vsp->vp_state;
-	    if ((vsp->vp_mpState == MP_PROC_RUNNING)
-	    && ((stl = msp->ml_storePtr) != STL_nil)) {
-		MinorGC_ScanStoreList (heap, stl);
-		msp->ml_storePtr = STL_nil;
-	    }
-	}
-    }
-#else
     {
 	ml_val_t	stl = msp->ml_storePtr;
 	if (stl != STL_nil) {
@@ -140,7 +119,6 @@ void MinorGC (ml_state_t *msp, ml_val_t **roots)
 	    msp->ml_storePtr = STL_nil;
 	}
     }
-#endif
 
   /* Sweep the first generation to-space */
     MinorGC_SweepToSpace (gen1);
@@ -329,8 +307,9 @@ PVT ml_val_t MinorGC_ForwardObj (gen_t *gen1, ml_val_t v)
 	    obj[0] = (ml_val_t)(Addr_t)new_obj;
 	    return PTR_CtoML(new_obj);
 	}
-	else
+	else {
 	    arena = gen1->arena[RECORD_INDX];
+        }
 #endif
 	break;
       case DTAG_vec_hdr:

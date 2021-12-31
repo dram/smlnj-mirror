@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+# COPYRIGHT (c) 2021 The Fellowship of SML/NJ (http://www.smlnj.org)
 # All rights reserved.
 #
 # cross compile to all supported targets
@@ -10,8 +10,7 @@ if [ x"$1" != x ] ; then
   SIZE_OPT=$1
 fi
 
-#TARGETS="alpha32-unix hppa-unix ppc-unix sparc-unix x86-unix x86-win32"
-TARGETS="ppc-unix sparc-unix x86-unix x86-win32 amd64-unix"
+TARGETS="amd64-unix arm64-unix"
 
 for target in $TARGETS ; do
   ./cmb-cross $SIZE_OPT -z $target || exit 1

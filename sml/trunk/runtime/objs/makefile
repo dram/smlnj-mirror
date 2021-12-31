@@ -15,6 +15,27 @@ AR =		ar
 ARFLAGS =	rcv
 RANLIB =	ranlib
 
+CXX =           clang++ --std=c++14
+CXX_FLAGS =     -g -O2
+
+#
+# LLVM configuration
+#
+LLVM_DIR =      ../llvm
+LLVM_CONFIG =	$(LLVM_DIR)/bin/llvm-config
+
+# the LLVM target architectures
+#
+TARGETS_BUILT =	$(shell $(LLVM_CONFIG) --targets-built)
+ifeq ($(findstring AArch64,$(TARGETS_BUILT)),AArch64)
+endif
+ifeq ($(findstring X86,$(TARGETS_BUILT)),X86)
+endif
+
+LLVM_LD_FLAGS =	$(shell $(LLVM_CONFIG) --ldflags)
+LLVM_LIBS =	$(shell $(LLVM_CONFIG) --libs $(TARGETS_BUILT)) \
+		$(shell $(LLVM_CONFIG) --system-libs)
+
 #
 # dummy version
 #
@@ -35,11 +56,10 @@ INC_DIR =	$(ROOT_DIR)/include
 KERN_DIR =	$(ROOT_DIR)/kernel
 MACH_DIR =	$(ROOT_DIR)/mach-dep
 MEM_DIR =	$(ROOT_DIR)/memory
-MP_DIR =	$(ROOT_DIR)/mp
 CLIB_DIR =	$(ROOT_DIR)/c-libs
 CONFIG_DIR =	$(ROOT_DIR)/config
 
-CFLAGS =	-O
+CFLAGS =	-O2
 
 INCLUDES =	-I$(OBJS_DIR) -I$(INC_DIR)
 GC_INCLUDES =	$(INCLUDES) -I$(GC_DIR)
@@ -71,17 +91,13 @@ CLIBS =		$(XCLIBS) \
 		$(CLIB_DIR)/posix-sysdb/libposix-sysdb.a \
 		$(CLIB_DIR)/posix-signal/libposix-signal.a \
 		$(CLIB_DIR)/posix-tty/libposix-tty.a \
-		$(CLIB_DIR)/posix-error/libposix-error.a
+		$(CLIB_DIR)/posix-error/libposix-error.a \
+		$(CLIB_DIR)/codegen/libcodegen.a
 
 #
 # The mmap version is the default memory subsystem
 #
 LIBMEM_OBJS =	'OBJS=$$(MMAP_OBJS)'
-
-#
-# The SGI version is the default MP library
-#
-LIBMP_OBJS =	'OBJS=$$(SGI_OBJS)'
 
 #
 # the default GC library
@@ -110,11 +126,10 @@ clean:
 	(cd $(MEM_DIR); $(MAKE) MAKE="$(MAKE)" clean)
 	(cd $(CLIB_DIR); $(MAKE) MAKE="$(MAKE)" clean)
 	(cd $(GC_DIR); $(MAKE) MAKE="$(MAKE)" clean)
-	(cd $(MP_DIR); $(MAKE) MAKE="$(MAKE)" clean)
 
 
 $(RUNTIME):	$(VERSION) main.o $(OBJS) $(ALL_LIBS)
-	$(CC) -o $(RUNTIME) $(CFLAGS) $(LDFLAGS) main.o $(OBJS) $(ALL_LIBS) $(LD_LIBS)
+	$(CXX) -o $(RUNTIME) $(CXX_FLAGS) $(LDFLAGS) $(LLVM_LD_FLAGS) main.o $(OBJS) $(ALL_LIBS) $(LD_LIBS) $(LLVM_LIBS)
 
 $(RUNTIME_A):	$(VERSION) main.o $(OBJS) $(ALL_LIBS)
 	rm -f $(RUNTIME_A)
@@ -170,14 +185,14 @@ boot.o:		$(KERN_DIR)/boot.c \
 
 load-ml.o:	$(KERN_DIR)/load-ml.c \
 		ml-sizes.h system-signals.h \
-		$(INC_DIR)/ml-base.h $(INC_DIR)/ml-roots.h $(INC_DIR)/ml-state.h
+		$(INC_DIR)/ml-base.h $(INC_DIR)/ml-limits.h $(INC_DIR)/ml-state.h
 	$(CC) -c $(CFLAGS) $(DEFS) $(INCLUDES) $(KERN_DIR)/load-ml.c
 #	$(CC) -c $(CFLAGS) $(DEFS) $(GC_INCLUDES) $(KERN_DIR)/load-ml.c
 
 run-ml.o:	$(KERN_DIR)/run-ml.c \
 		ml-sizes.h system-signals.h \
 		$(INC_DIR)/ml-base.h $(INC_DIR)/ml-values.h \
-		$(INC_DIR)/vproc-state.h $(INC_DIR)/ml-roots.h \
+		$(INC_DIR)/vproc-state.h $(INC_DIR)/ml-limits.h \
 		$(INC_DIR)/ml-state.h
 	$(CC) -c $(CFLAGS) $(DEFS) $(INCLUDES) $(KERN_DIR)/run-ml.c
 
@@ -189,7 +204,7 @@ globals.o:	$(KERN_DIR)/globals.c \
 ml-state.o:	$(KERN_DIR)/ml-state.c \
 		ml-sizes.h system-signals.h \
 		$(INC_DIR)/ml-base.h $(INC_DIR)/tags.h \
-		$(INC_DIR)/ml-values.h $(INC_DIR)/ml-roots.h \
+		$(INC_DIR)/ml-values.h $(INC_DIR)/ml-limits.h \
 		$(INC_DIR)/ml-state.h  $(INC_DIR)/vproc-state.h \
 		$(INC_DIR)/ml-globals.h $(INC_DIR)/ml-timer.h $(INC_DIR)/gc.h \
 		$(INC_DIR)/ml-limits.h
@@ -226,7 +241,7 @@ c-libraries.o:	$(CLIB_DIR)/c-libraries.c \
 
 unix-raise-syserr.o:	$(CLIB_DIR)/unix-raise-syserr.c \
 		ml-sizes.h system-signals.h \
-		$(INC_DIR)/ml-base.h $(INC_DIR)/ml-roots.h $(INC_DIR)/ml-state.h \
+		$(INC_DIR)/ml-base.h $(INC_DIR)/ml-limits.h $(INC_DIR)/ml-state.h \
 		$(INC_DIR)/ml-objects.h $(INC_DIR)/ml-globals.h \
 		$(INC_DIR)/ml-unixdep.h
 	$(CC) -c $(CFLAGS) $(DEFS) $(INCLUDES) $(CLIB_DIR)/unix-raise-syserr.c
@@ -237,7 +252,7 @@ unix-raise-syserr.o:	$(CLIB_DIR)/unix-raise-syserr.c \
 unix-fault.o:	$(MACH_DIR)/unix-fault.c \
 		ml-sizes.h system-signals.h \
 		$(INC_DIR)/ml-base.h $(INC_DIR)/ml-unixdep.h \
-		$(INC_DIR)/vproc-state.h $(INC_DIR)/ml-roots.h \
+		$(INC_DIR)/vproc-state.h $(INC_DIR)/ml-limits.h \
 		$(INC_DIR)/ml-state.h $(INC_DIR)/ml-globals.h \
 		$(MACH_DIR)/signal-sysdep.h
 	$(CC) -c $(CFLAGS) $(DEFS) $(INCLUDES) $(MACH_DIR)/unix-fault.c
@@ -245,14 +260,14 @@ unix-fault.o:	$(MACH_DIR)/unix-fault.c \
 signal-util.o:	$(MACH_DIR)/signal-util.c \
 		ml-sizes.h system-signals.h \
 		$(INC_DIR)/ml-base.h $(INC_DIR)/ml-signals.h \
-		$(INC_DIR)/vproc-state.h $(INC_DIR)/ml-roots.h $(INC_DIR)/ml-state.h \
+		$(INC_DIR)/vproc-state.h $(INC_DIR)/ml-limits.h $(INC_DIR)/ml-state.h \
 		$(INC_DIR)/ml-limits.h $(INC_DIR)/ml-objects.h
 	$(CC) -c $(CFLAGS) $(DEFS) $(INCLUDES) $(MACH_DIR)/signal-util.c
 
 unix-signal.o:	$(MACH_DIR)/unix-signal.c \
 		ml-sizes.h unix-sigtbl.c system-signals.h \
 		$(INC_DIR)/ml-base.h $(INC_DIR)/ml-unixdep.h \
-		$(INC_DIR)/ml-signals.h $(INC_DIR)/vproc-state.h $(INC_DIR)/ml-roots.h $(INC_DIR)/ml-state.h \
+		$(INC_DIR)/ml-signals.h $(INC_DIR)/vproc-state.h $(INC_DIR)/ml-limits.h $(INC_DIR)/ml-state.h \
 		$(INC_DIR)/ml-limits.h $(INC_DIR)/ml-objects.h \
 		$(INC_DIR)/ml-globals.h \
 		$(MACH_DIR)/signal-sysdep.h
@@ -284,7 +299,7 @@ prim.o:		$(MACH_DIR)/$(TARGET).prim.asm \
 
 mlstate-offsets.h:	gen-offsets ml-sizes.h system-signals.h \
 		$(INC_DIR)/ml-base.h $(INC_DIR)/vproc-state.h \
-		$(INC_DIR)/ml-roots.h $(INC_DIR)/ml-state.h
+		$(INC_DIR)/ml-limits.h $(INC_DIR)/ml-state.h
 	./gen-offsets
 
 
@@ -319,13 +334,6 @@ $(GC_DIR)/$(GC_LIB):	FORCE
 
 
 #
-# multiprocessor library (optional)
-#
-$(MP_DIR)/libmp.a:	FORCE
-	(cd $(MP_DIR); $(MAKE) $(LIBMP_OBJS) $(MK_ARGS) libmp.a)
-
-
-#
 # to force recursive makes
 #
 FORCE:
@@ -344,7 +352,7 @@ gen-regmask:	$(CONFIG_DIR)/gen-regmask.c gen-common.o $(CONFIG_DIR)/gen.h
 gen-offsets:	$(CONFIG_DIR)/gen-offsets.c gen-common.o $(CONFIG_DIR)/gen.h \
 		ml-sizes.h system-signals.h \
 		$(INC_DIR)/ml-base.h $(INC_DIR)/vproc-state.h \
-		$(INC_DIR)/ml-roots.h $(INC_DIR)/ml-state.h
+		$(INC_DIR)/ml-limits.h $(INC_DIR)/ml-state.h
 	$(CC) $(CFLAGS) $(DEFS) $(GEN_INCLUDES) -o gen-offsets $(CONFIG_DIR)/gen-offsets.c gen-common.o
 
 gen-unix-signals:	$(CONFIG_DIR)/gen-unix-signals.c \
@@ -408,9 +416,6 @@ $(CLIB_DIR)/smlnj-date/libsmlnj-date.a: FORCE
 $(CLIB_DIR)/smlnj-math/libsmlnj-math.a: FORCE
 	(cd $(CLIB_DIR)/smlnj-math; $(MAKE) $(LIB_MK_ARGS) libsmlnj-math.a)
 
-$(CLIB_DIR)/smlnj-mp/libsmlnj-mp.a: FORCE
-	(cd $(CLIB_DIR)/smlnj-mp; $(MAKE) $(LIB_MK_ARGS) libsmlnj-mp.a)
-
 $(CLIB_DIR)/posix-process/libposix-process.a: FORCE
 	(cd $(CLIB_DIR)/posix-process; $(MAKE) $(LIB_MK_ARGS) libposix-process.a)
 
@@ -440,3 +445,14 @@ $(CLIB_DIR)/dl/libunix-dynload.a: FORCE
 
 $(CLIB_DIR)/smlnj-ccalls/libsmlnj-ccalls.a: FORCE
 	(cd $(CLIB_DIR)/smlnj-ccalls; $(MAKE) $(LIB_MK_ARGS) libsmlnj-ccalls.a)
+
+CODEGEN_MK_ARGS =	VERSION="$(VERSION)" \
+			MAKE="$(MAKE)" \
+			CC="$(CC)" CFLAGS="$(CFLAGS)" DEFS="$(DEFS)" \
+			AR="$(AR)" ARFLAGS="$(ARFLAGS)" \
+			RANLIB="$(RANLIB)" \
+			INCLUDES="$(LIB_INCLUDES)" \
+			LLVM_DIR="$(LLVM_DIR)"
+
+$(CLIB_DIR)/codegen/libcodegen.a: FORCE
+	(cd $(CLIB_DIR)/codegen; $(MAKE) $(CODEGEN_MK_ARGS) libcodegen.a)

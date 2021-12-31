@@ -42,7 +42,6 @@ INC_DIR =	$(ROOT_DIR)\include
 KERN_DIR =	$(ROOT_DIR)\kernel
 MACH_DIR =	$(ROOT_DIR)\mach-dep
 MEM_DIR =	$(ROOT_DIR)\memory
-MP_DIR =	$(ROOT_DIR)\mp
 CLIB_DIR =	$(ROOT_DIR)\c-libs
 CONFIG_DIR =	$(ROOT_DIR)\config
 
@@ -85,11 +84,6 @@ CLIBS =		$(XCLIBS) \
 LIBMEM_OBJS =	mem-win32.obj
 
 #
-# The SGI version is the default MP library
-#
-LIBMP_OBJS =	'OBJS=$$(SGI_OBJS)'
-
-#
 # the default GC library
 #
 GC_LIB =	libgc.lib
@@ -123,9 +117,6 @@ clean:
 	$(MAKE) MAKE="$(MAKE)" clean
 
 	cd $(GC_DIR)
-	$(MAKE) MAKE="$(MAKE)" clean
-
-	cd $(MP_DIR)
 	$(MAKE) MAKE="$(MAKE)" clean
 
 
@@ -171,14 +162,14 @@ boot.obj:	$(KERN_DIR)\boot.c \
 load-ml.obj:	$(KERN_DIR)\load-ml.c \
 		ml-sizes.h \
                 system-signals.h \
-		$(INC_DIR)\ml-base.h $(INC_DIR)\ml-roots.h $(INC_DIR)\ml-state.h
+		$(INC_DIR)\ml-base.h $(INC_DIR)\ml-limits.h $(INC_DIR)\ml-state.h
 	$(CC) /c $(CFLAGS) $(DEFS) $(INCLUDES) $(KERN_DIR)\load-ml.c
 
 run-ml.obj:	$(KERN_DIR)\run-ml.c \
 		ml-sizes.h reg-mask.h \
                 system-signals.h \
 		$(INC_DIR)\ml-base.h $(INC_DIR)\ml-values.h \
-		$(INC_DIR)\vproc-state.h $(INC_DIR)\ml-roots.h \
+		$(INC_DIR)\vproc-state.h $(INC_DIR)\ml-limits.h \
 		$(INC_DIR)\ml-state.h
 	$(CC) /c $(CFLAGS) $(DEFS) $(INCLUDES) $(KERN_DIR)\run-ml.c
 
@@ -191,7 +182,7 @@ ml-state.obj:	$(KERN_DIR)\ml-state.c \
 		ml-sizes.h \
                 system-signals.h \
 		$(INC_DIR)\ml-base.h $(INC_DIR)\tags.h \
-		$(INC_DIR)\ml-values.h $(INC_DIR)\ml-roots.h \
+		$(INC_DIR)\ml-values.h $(INC_DIR)\ml-limits.h \
 		$(INC_DIR)\ml-state.h  $(INC_DIR)\vproc-state.h \
 		$(INC_DIR)\ml-globals.h $(INC_DIR)\ml-timer.h $(INC_DIR)\gc.h \
 		$(INC_DIR)\ml-limits.h
@@ -224,7 +215,7 @@ c-libraries.obj:	$(CLIB_DIR)\c-libraries.c \
 win32-raise-syserr.obj:	$(CLIB_DIR)\win32-raise-syserr.c \
 		ml-sizes.h \
 		$(INC_DIR)\ml-base.h \
-                $(INC_DIR)\ml-state.h $(INC_DIR)\ml-roots.h \
+                $(INC_DIR)\ml-state.h $(INC_DIR)\ml-limits.h \
 		$(INC_DIR)\ml-objects.h $(INC_DIR)\ml-globals.h \
 		$(CLIB_DIR)\ml-c.h
 	$(CC) /c $(CFLAGS) $(DEFS) $(INCLUDES) $(CLIB_DIR)\win32-raise-syserr.c
@@ -239,7 +230,7 @@ win32-fault.obj:	$(MACH_DIR)\win32-fault.c $(MACH_DIR)\win32-fault.h \
 		system-signals.h \
 		ml-sizes.h \
 		$(INC_DIR)\ml-base.h \
-		$(INC_DIR)\vproc-state.h $(INC_DIR)\ml-roots.h \
+		$(INC_DIR)\vproc-state.h $(INC_DIR)\ml-limits.h \
 		$(INC_DIR)\ml-state.h $(INC_DIR)\ml-globals.h
 	$(CC) /c $(CFLAGS) $(DEFS) $(INCLUDES) $(MACH_DIR)\win32-fault.c
 
@@ -249,14 +240,14 @@ win32-util.obj:	$(MACH_DIR)\win32-util.c
 signal-util.obj:	$(MACH_DIR)\signal-util.c \
 		ml-sizes.h system-signals.h \
 		$(INC_DIR)\ml-base.h $(INC_DIR)\ml-signals.h \
-		$(INC_DIR)\vproc-state.h $(INC_DIR)\ml-roots.h $(INC_DIR)\ml-state.h \
+		$(INC_DIR)\vproc-state.h $(INC_DIR)\ml-limits.h $(INC_DIR)\ml-state.h \
 		$(INC_DIR)\ml-limits.h $(INC_DIR)\ml-objects.h
 	$(CC) /c $(CFLAGS) $(DEFS) $(INCLUDES) $(MACH_DIR)\signal-util.c
 
 win32-signal.obj:	$(MACH_DIR)\win32-signal.c win32-sigtbl.c \
 		ml-sizes.h \
 		$(INC_DIR)\ml-base.h \
-		$(INC_DIR)\ml-signals.h $(INC_DIR)\vproc-state.h $(INC_DIR)\ml-roots.h $(INC_DIR)\ml-state.h \
+		$(INC_DIR)\ml-signals.h $(INC_DIR)\vproc-state.h $(INC_DIR)\ml-limits.h $(INC_DIR)\ml-state.h \
 		$(INC_DIR)\ml-limits.h $(INC_DIR)\ml-objects.h \
 		$(INC_DIR)\ml-globals.h \
 		$(MACH_DIR)\signal-sysdep.h
@@ -266,7 +257,7 @@ win32-timers.obj:	$(MACH_DIR)\win32-timers.c \
 		ml-sizes.h \
 		$(INC_DIR)\win32-timers.h \
 		$(INC_DIR)\ml-base.h \
-		$(INC_DIR)\ml-roots.h $(INC_DIR)\ml-state.h \
+		$(INC_DIR)\ml-limits.h $(INC_DIR)\ml-state.h \
 		$(INC_DIR)\ml-timer.h
 	$(CC) /c $(CFLAGS) $(DEFS) $(INCLUDES) $(MACH_DIR)\win32-timers.c
 
@@ -294,7 +285,7 @@ prim.obj:	$(MACH_DIR)\$(TARGET).prim.asm \
 mlstate-offsets.h:	gen-offsets.exe ml-sizes.h \
                 system-signals.h \
 		$(INC_DIR)\ml-base.h $(INC_DIR)\vproc-state.h \
-		$(INC_DIR)\ml-roots.h $(INC_DIR)\ml-state.h
+		$(INC_DIR)\ml-limits.h $(INC_DIR)\ml-state.h
 	.\gen-offsets.exe
 
 
@@ -333,14 +324,6 @@ $(GC_DIR)\$(GC_LIB):	FORCE
 	cd $(MAKEDIR)
 
 #
-# multiprocessor library (optional)
-#
-$(MP_DIR)\libmp.lib:	FORCE
-	cd $(MP_DIR)
-	$(MAKE) $(LIBMP_OBJS) $(MK_ARGS) libmp.lib
-	cd $(MAKEDIR)
-
-#
 # to force recursive makes
 #
 FORCE:
@@ -360,7 +343,7 @@ gen-offsets.exe:	$(CONFIG_DIR)\gen-offsets.c gen-common.obj $(CONFIG_DIR)\gen.h 
 		ml-sizes.h \
                 system-signals.h \
 		$(INC_DIR)\ml-base.h $(INC_DIR)\vproc-state.h \
-		$(INC_DIR)\ml-roots.h $(INC_DIR)\ml-state.h
+		$(INC_DIR)\ml-limits.h $(INC_DIR)\ml-state.h
 	$(CC) $(DEFS) $(GEN_INCLUDES) /Fegen-offsets $(CONFIG_DIR)\gen-offsets.c gen-common.obj
 
 gen-win32-signals.exe:	$(CONFIG_DIR)\gen-win32-signals.c $(CONFIG_DIR)\win32-sigtab.h \
@@ -461,9 +444,3 @@ $(CLIB_DIR)\smlnj-ccalls\libsmlnj-ccalls.lib: FORCE
 	cd $(CLIB_DIR)\smlnj-ccalls
 	$(MAKE) $(LIB_MK_ARGS) libsmlnj-ccalls.lib
 	cd $(MAKEDIR)
-
-#$(CLIB_DIR)\smlnj-mp\libsmlnj-mp.lib: FORCE
-#	cd $(CLIB_DIR)\smlnj-mp
-#	$(MAKE) $(LIB_MK_ARGS) libsmlnj-mp.lib
-#	cd $(MAKEDIR)
-

@@ -63,7 +63,6 @@ structure UnpickMod : UNPICKMOD = struct
     structure M = Modules
     structure B = Bindings
     structure POI = PrimopId
-    structure CTypes = PrimCTypes
 
     structure UU = UnpickleUtil
     exception Format = UU.Format

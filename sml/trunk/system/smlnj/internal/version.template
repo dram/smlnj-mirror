@@ -12,7 +12,6 @@ structure SMLNJVersion : sig
             system : string,      	(* the system title *)
 	    version_id : int list,	(* the version number *)
 	    suffix : string,		(* optional suffix; e.g., "rc1" *)
-	    buildDate : string,		(* date that the executable was built *)
 	    releaseDate : string	(* release date of version *)
 	  }
 
@@ -30,14 +29,17 @@ structure SMLNJVersion : sig
     (* generate buildDate string at boot time *)
     val buildDate = Date.toString (Date.fromTimeLocal (Time.now ()))
 
-    val releaseDate = "%D"
+    (* use buildDate (i.e., boot time) if no release date *)
+    val releaseDate = (case "%D"
+           of "" => Date.toString (Date.fromTimeLocal (Time.now ()))
+            | d => d
+          (* end case *))
 
     val version = {
 	    system = "Standard ML of New Jersey",
 	    version_id = [%V],
 	    suffix = "%S",
-	    buildDate = buildDate,
-	    releaseDate = if releaseDate = "" then buildDate else releaseDate
+	    releaseDate = releaseDate
           }
 
     val version' = let
@@ -47,9 +49,9 @@ structure SMLNJVersion : sig
 	  end
 
     val banner = concat [
-	    #system version, " (", size, "-bit)",
-	    " v", String.concatWithMap "." Int.toString (#version_id version),
-	    " [built: ", #buildDate version, "]"
+	    #system version,
+            " [Version ", version', "; ", size, "-bit; ",
+	    releaseDate, "]"
 	  ]
 
   end

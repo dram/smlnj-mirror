@@ -137,7 +137,7 @@ signature PRIMOP =
      * information is for use by the backend, ML information is for
      * use by the CPS converter. *)
       | RAW_CCALL of {
-	    c_proto: PrimCTypes.c_proto,
+	    c_proto: CTypes.c_proto,
 	    ml_args: ccall_type list,
 	    ml_res_opt: ccall_type option,
 	    reentrant: bool

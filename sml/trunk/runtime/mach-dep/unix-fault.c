@@ -30,6 +30,7 @@
 
 
 /* local routines */
+#ifdef SIG_OVERFLOW
 #if defined(HAS_POSIX_SIGS) && defined(HAS_UCONTEXT)
 PVT SigReturn_t FaultHandler (int sig, SigInfo_t code, void *scp);
 #elif (defined(ARCH_PPC) && defined(OPSYS_LINUX))
@@ -37,18 +38,18 @@ PVT SigReturn_t FaultHandler (int sig, SigContext_t *scp);
 #else
 PVT SigReturn_t FaultHandler (int sig, SigInfo_t code, SigContext_t *scp);
 #endif
-
+#endif /* SIG_OVERFLOW */
 
 /* InitFaultHandlers:
  */
 void InitFaultHandlers (ml_state_t *msp)
 {
 
-  /** Set up the Overflow fault(s) **/
+  /** Set up the Overflow fault(s).  Note that on some systems (e.g., arm64),
+   ** we do not use traps to signal overflow.
+   **/
 #ifdef SIG_OVERFLOW
     SIG_SetHandler (SIG_OVERFLOW, FaultHandler);
-#else
-# error now signal for Overflow specified
 #endif
 #ifdef SIG_OVERFLOW2
     SIG_SetHandler (SIG_OVERFLOW2, FaultHandler);
@@ -59,6 +60,8 @@ void InitFaultHandlers (ml_state_t *msp)
 
 } /* end of InitFaultHandlers */
 
+
+#ifdef SIG_OVERFLOW
 
 /* FaultHandler:
  *
@@ -95,16 +98,9 @@ PVT SigReturn_t FaultHandler (int signal, siginfo_t *si, void *uc)
     }
 #endif
 
-   /* Map the signal to Overflow */
-    msp->ml_faultExn = OverflowId;
     msp->ml_faultPC = pc;
 
     SIG_SetPC (scp, request_fault);
-
-  /* I don't think that this call is still necessary, since we are only
-   * dealing with integer overflow here! -- JHR (2019-10-10)
-    SIG_ResetFPE (scp);
-   */
 
 } /* end of FaultHandler */
 
@@ -132,9 +128,6 @@ PVT SigReturn_t FaultHandler (
 	Die ("bogus fault not in ML: sig = %d, code = %#x, pc = %#x)\n",
 	    signal, SIG_GetCode(info, scp), SIG_GetPC(scp));
 
-   /* Map the signal to the appropriate ML exception. */
-   /* Map the signal to Overflow */
-    msp->ml_faultExn = OverflowId;
     msp->ml_faultPC = (Word_t)SIG_GetPC(scp);
 
     SIG_SetPC (scp, request_fault);
@@ -144,6 +137,7 @@ PVT SigReturn_t FaultHandler (
 } /* end of FaultHandler */
 
 #endif
+#endif /* SIG_OVERFLOW */
 
 #if ((defined(ARCH_RS6000) || defined(ARCH_PPC)) && defined(OPSYS_AIX))
 

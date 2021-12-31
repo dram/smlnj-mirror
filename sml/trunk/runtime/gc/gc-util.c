@@ -39,7 +39,7 @@ status_t NewGeneration (gen_t *gen)
 	memobj = gen->cacheObj;
 	gen->cacheObj =  NIL(mem_obj_t *);
     }
-    else if ((memobj = MEM_AllocMemObj(tot_sz)) == NIL(mem_obj_t *)) {
+    else if ((memobj = MEM_AllocMemObj(tot_sz, FALSE)) == NIL(mem_obj_t *)) {
 	/** Eventually we should try to allocate the generation as separate
 	 ** chunks instead of failing.
 	 **/

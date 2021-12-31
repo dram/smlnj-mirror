@@ -122,6 +122,8 @@ functor CompileF (
           val flint = FLINTOpt.optimize (flint, sourceName)
 	(* from optimized FLINT code, generate the machine code.  *)
 	  val csegs = M.compile {prog = flint, source = sourceName}
+	(* Obey the nosplit directive used during bootstrapping.  *)
+	(* val inlineExp = if isSome splitting then inlineExp else NONE *)
 	  val codeSz = (CodeObj.size(#code csegs) + Word8Vector.length(#data csegs))
 	  in
 	    addCode codeSz;

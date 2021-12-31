@@ -1,11 +1,12 @@
-(* backend/amd64-ccall.sml
+(* amd64-ccall.sml
  *
- * (C) 2006 The Fellowship of SML/NJ
+ * COPYRIGHT (c) 2021 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *
+ * AMD64 backend specialized to the "ccall" (default) calling convention.
  *)
+
 structure AMD64CCallBackend =
-          BackendFn (structure M = AMD64MC (structure CCallParams = struct
-					      val frameAlign = 16 (* 4? *)
-					      val returnSmallStructsInRegs = false
-					    end
-                                          val abi_variant = NONE)
-		     val cproto_conv = "ccall")
+    BackendFn (
+      structure M = CodeGeneratorFn (AMD64Spec)
+      val cproto_conv = "ccall")

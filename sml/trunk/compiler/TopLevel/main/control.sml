@@ -86,9 +86,13 @@ structure Control_CG : CGCONTROL =
     val newLiterals = new (b, "new-literals", "use new literal representation", false)
     val debugRep = new (b, "debug-rep", "?", false)
     val deadup = new (b, "deadup", "?", true)
-    val memDisambiguate = new (b, "mem-disambiguate", "?", false)
     val printit = new (b, "printit", "whether to show CPS", false)
     val printClusters = new (b, "print-clusters", "whether to print clusters prior to codegen", false)
+    val printCFG = new (b, "print-cfg", "whether to convert to CFG and print it", false)
+    val dumpCFG = new (b, "dump-cfg", "whether to convert to CFG and pickle it", false)
+    val useLLVM = new (b, "llvm", "whether to use the LLVM code generator", true)
+    val debugSpill = new (b, "debug-cps-spill", "enable CPS spill debugging", false)
+    val debugSpillInfo = new (b, "debug_cps_spill_info", "enable CPS spill info", false)
   end (* structure Control_CG *)
 
 
@@ -148,8 +152,6 @@ structure Control : CONTROL =
 
     (* FLINT controls *)
     structure FLINT = FLINT_Control (* FLINT/main/control.{sml,sig} *)
-
-    structure MLRISC = MLRiscControl
 
     structure CG : CGCONTROL = Control_CG
 

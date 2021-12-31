@@ -19,12 +19,7 @@
 #include "signal-sysdep.h"
 #include "system-signals.h"
 
-#ifndef MP_SUPPORT
 #define SELF_VPROC	(VProc[0])
-#else
-/** for MP_SUPPORT, we'll use SELF_VPROC for now **/
-#define SELF_VPROC	(VProc[0])
-#endif
 
 /* for computing times */
 PVT struct _timeb start_timeb;

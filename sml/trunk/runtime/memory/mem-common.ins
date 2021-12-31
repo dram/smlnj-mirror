@@ -11,7 +11,7 @@ PVT Addr_t	PageSize;	/* the system page size. */
 PVT Addr_t	PageShift;	/* PageSize == (1 << PageShift) */
 PVT Addr_t	VMSizeB;	/* The amount of virtual memory allocated */
 
-PVT status_t MapMemory (mem_obj_t *obj, Addr_t szb);
+PVT status_t MapMemory (mem_obj_t *obj, Addr_t szb, bool_t isExec);
 PVT void UnmapMemory (mem_obj_t *obj);
 
 
@@ -48,7 +48,7 @@ long MEM_GetVMSize ()
  * Get a new memory object from the O.S.  Return NIL on failure, otherwise return
  * a pointer to the object descriptor.
  */
-mem_obj_t *MEM_AllocMemObj (Word_t szb)
+mem_obj_t *MEM_AllocMemObj (Word_t szb, bool_t isExec)
 {
     Word_t	alloc_szb;
     mem_obj_t	*obj;
@@ -60,7 +60,7 @@ mem_obj_t *MEM_AllocMemObj (Word_t szb)
 
     alloc_szb = (szb <= BIBOP_PAGE_SZB) ? BIBOP_PAGE_SZB : RND_MEMOBJ_SZB(szb);
 
-    if (MapMemory (obj, alloc_szb) == FAILURE) {
+    if (MapMemory (obj, alloc_szb, isExec) == FAILURE) {
 	FREE_MEMOBJ (obj);
 	return NIL(mem_obj_t *);
     }

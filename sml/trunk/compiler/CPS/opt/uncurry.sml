@@ -9,7 +9,7 @@ struct
 
 local
   structure LD = LtyDef
-  structure LB = LtyBasic    
+  structure LB = LtyBasic
   structure LV = LambdaVar
   open CPS
 in

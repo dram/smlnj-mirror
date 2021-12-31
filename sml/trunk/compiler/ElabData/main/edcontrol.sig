@@ -44,7 +44,6 @@ sig
   val internals : bool ref
       (* (general) show internal reps *)
 
-(* FIXME: use record types here!!! *)
   val setInternals : unit -> bool * bool * bool * bool * bool
       (* set all internals controls to true, returning "former" values *)
 

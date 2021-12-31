@@ -587,6 +587,7 @@ struct
 			       cleanup = fn _ => () })
 	handle (exn as Format) => (
             error ["file is corrupted (old version?)"];
+            List.app (fn s => error["    ", s, "\n"]) (SMLofNJ.exnHistory exn);
             NONE)
         | IO.Io _ => NONE
     end

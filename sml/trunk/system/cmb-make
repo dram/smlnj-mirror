@@ -11,7 +11,15 @@
 # the path to the SML compiler to use for the build.
 #
 
-set -x
+
+usage() {
+  echo "usage: cmb-make [ options ] [ <sml-cmd> ]"
+  echo "  Options:"
+  echo "    -C<ctl>=<v>   -- control argument passed to compile command"
+  echo "    -D<ctl>=<v>   -- CM define argument passed to compile command"
+  exit 1
+}
+
 SML=sml
 ARGS=""
 # Process command-line arguments
@@ -19,8 +27,11 @@ ARGS=""
 while [ "$#" != "0" ] ; do
     arg=$1; shift
     case $arg in
-    -32) SIZE_OPT=$arg ;;
-    -64) SIZE_OPT=$arg ;;
+    -32)
+	echo "$this: 32-bits not supported anymore"
+	usage
+	;;
+    -64) ;;
     -C*) ARGS="$ARGS $arg" ;;
     -D*) ARGS="$ARGS $arg" ;;
     *)  SML=$arg
@@ -29,14 +40,6 @@ while [ "$#" != "0" ] ; do
     esac
 done
 
-# if the size was not specified on the command line, then we use
-# the size from the sml executable.
-#
-if [ x"SIZE_OPT" = x ] ; then
-  SIZE=`$SML @SMLwordsize`
-  SIZE_OPT="-$SIZE"
-fi
-
-exec $SML $SIZE_OPT $ARGS $@ -DNO_PLUGINS '$smlnj/cmb.cm' <<XXXX
+exec $SML $ARGS $@ -DNO_PLUGINS '$smlnj/cmb.cm' <<XXXX
 CMB.make();
 XXXX

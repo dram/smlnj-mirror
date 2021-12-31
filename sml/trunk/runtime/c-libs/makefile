@@ -21,7 +21,6 @@ LIBS =		posix-os/libposix-os.a \
 		smlnj-time/libsmlnj-time.a \
 		smlnj-date/libsmlnj-date.a \
 		smlnj-math/libsmlnj-math.a \
-		smlnj-mp/libsmlnj-mp.a \
 		posix-error/libposix-error.a \
 		posix-filesys/libposix-filesys.a \
 		posix-io/libposix-io.a \
@@ -31,7 +30,8 @@ LIBS =		posix-os/libposix-os.a \
 		posix-sysdb/libposix-sysdb.a \
 		posix-sysdb/libposix-tty.a \
 		smlnj-ccalls/libsmlnj-ccalls.a \
-		dl/libunix-dynload.a
+		dl/libunix-dynload.a \
+		codegen/libcodegen.a
 
 LIB_DIRS =	posix-os \
 		smlnj-runtime \
@@ -41,7 +41,6 @@ LIB_DIRS =	posix-os \
 		smlnj-time \
 		smlnj-date \
 		smlnj-math \
-		smlnj-mp \
 		posix-error \
 		posix-filesys \
 		posix-io \
@@ -51,7 +50,8 @@ LIB_DIRS =	posix-os \
 		posix-sysdb \
 		posix-tty \
 		smlnj-ccalls \
-		dl
+		dl \
+		codegen
 
 
 # include directories for this level

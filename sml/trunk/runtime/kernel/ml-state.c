@@ -18,7 +18,7 @@
 #include "ml-limits.h"
 
 
-vproc_state_t	*VProc[MAX_NUM_PROCS];
+vproc_state_t	*VProc[1];
 int		NumVProcs;
 
 
@@ -31,58 +31,20 @@ PVT void InitVProcState (vproc_state_t *vsp);
 ml_state_t *AllocMLState (bool_t isBoot, heap_params_t *heapParams)
 {
     ml_state_t	*msp = NIL(ml_state_t *);
-#ifdef MP_SUPPORT
-    int		i;
-#endif
 
-#ifdef MP_SUPPORT
-
-    for (i = 0; i < MAX_NUM_PROCS; i++) {
-	if (((VProc[i] = NEW_OBJ(vproc_state_t)) == NIL(vproc_state_t *))
-	||  ((msp = NEW_OBJ(ml_state_t)) == NIL(ml_state_t *))) {
-	    Die ("unable to allocate ML state vectors");
-	}
-	VProc[i]->vp_state = msp;
-    }
-    msp = VProc[0]->vp_state;
-#else
     if (((VProc[0] = NEW_OBJ(vproc_state_t)) == NIL (vproc_state_t *))
     ||  ((msp = NEW_OBJ(ml_state_t)) == NIL(ml_state_t *))) {
 	Die ("unable to allocate ML state vector");
     }
     VProc[0]->vp_state = msp;
-#endif /* MP_SUPPORT */
 
   /* allocate and initialize the heap data structures */
     InitHeap (msp, isBoot, heapParams);
 
-#ifdef MP_SUPPORT
-  /* partition the allocation arena given by InitHeap among the
-   * MAX_NUM_PROCS processors.
-   */
-    NumVProcs = MAX_NUM_PROCS;
-    PartitionAllocArena(VProc);
-  /* initialize the per-processor ML state */
-    for (i = 0; i < MAX_NUM_PROCS; i++) {
-	int	j;
-
-	InitVProcState (VProc[i]);
-      /* single timers are currently shared among multiple processors */
-	if (i != 0) {
-	    VProc[i]->vp_gcTime0 = VProc[0]->vp_gcTime0;
-	    VProc[i]->vp_gcTime	= VProc[0]->vp_gcTime;
-	}
-    }
-  /* initialize the first processor here */
-    VProc[0]->vp_mpSelf = MP_ProcId ();
-    VProc[0]->vp_mpState = MP_PROC_RUNNING;
-#else
     InitVProcState (VProc[0]);
     NumVProcs = 1;
-#endif /* MP_SUPPORT */
 
   /* initialize the timers */
-  /** MP_SUPPORT note: for now, only proc 0 has timers **/
     ResetTimers (VProc[0]);
 
     return msp;
@@ -143,10 +105,6 @@ PVT void InitVProcState (vproc_state_t *vsp)
 void InitMLState (ml_state_t *msp)
 {
     msp->ml_storePtr		= ML_unit;
-#ifdef SOFT_POLL
-    msp->ml_pollPending		= FALSE;
-    msp->ml_inPollHandler	= FALSE;
-#endif
 
 } /* end of InitMLState. */
 

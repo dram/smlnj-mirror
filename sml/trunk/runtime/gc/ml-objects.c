@@ -15,20 +15,11 @@
 #include "heap.h"
 #include "ml-objects.h"
 #include "ml-limits.h"
-#include "ml-mp.h"
 #include <string.h>
 
-/* A macro to check for necessary GC; on MP systems, this needs to be
- * a loop, since other processors may steal the memory before the
- * checking processor can use it.
- */
-#ifdef MP_SUPPORT
-#define IFGC(ap, szb)	\
-	while ((! isACTIVE(ap)) || (AVAIL_SPACE(ap) <= (szb)))
-#else
+/* A macro to check for necessary GC */
 #define IFGC(ap, szb)	\
 	if ((! isACTIVE(ap)) || (AVAIL_SPACE(ap) <= (szb)))
-#endif
 
 #ifdef COLLECT_STATS
 #define COUNT_ALLOC(msp, nbytes)	{	\
@@ -134,19 +125,15 @@ ml_val_t ML_AllocRaw (ml_state_t *msp, int nwords)
 	arena_t	*ap = msp->ml_heap->gen[0]->arena[STRING_INDX];
 
 	szb = WORD_SZB*(nwords + 1);
-	BEGIN_CRITICAL_SECT(MP_GCGenLock)
-	    IFGC (ap, szb+msp->ml_heap->allocSzB) {
-	      /* we need to do a GC */
-		ap->reqSizeB += szb;
-		RELEASE_LOCK(MP_GCGenLock);
-		    InvokeGC (msp, 1);
-		ACQUIRE_LOCK(MP_GCGenLock);
-		ap->reqSizeB = 0;
-	    }
-	    *(ap->nextw++) = desc;
-	    res = PTR_CtoML(ap->nextw);
-	    ap->nextw += nwords;
-	END_CRITICAL_SECT(MP_GCGenLock)
+        IFGC (ap, szb+msp->ml_heap->allocSzB) {
+          /* we need to do a GC */
+            ap->reqSizeB += szb;
+            InvokeGC (msp, 1);
+            ap->reqSizeB = 0;
+        }
+        *(ap->nextw++) = desc;
+        res = PTR_CtoML(ap->nextw);
+        ap->nextw += nwords;
 	COUNT_ALLOC(msp, szb);
     }
     else {
@@ -203,30 +190,26 @@ ml_val_t ML_AllocRaw64 (ml_state_t *msp, int nelems)
 #ifdef ALIGN_REALDS
 	szb += WORD_SZB;  /* alignment padding */
 #endif
-	BEGIN_CRITICAL_SECT(MP_GCGenLock)
-	    IFGC (ap, szb+msp->ml_heap->allocSzB) {
-	      /* we need to do a GC */
-		ap->reqSizeB += szb;
-		RELEASE_LOCK(MP_GCGenLock);
-		    InvokeGC (msp, 1);
-		ACQUIRE_LOCK(MP_GCGenLock);
-		ap->reqSizeB = 0;
-	    }
+        IFGC (ap, szb+msp->ml_heap->allocSzB) {
+          /* we need to do a GC */
+            ap->reqSizeB += szb;
+            InvokeGC (msp, 1);
+            ap->reqSizeB = 0;
+        }
 #ifdef ALIGN_REALDS
-	  /* Force REALD_SZB alignment (descriptor is off by one word) */
+      /* Force REALD_SZB alignment (descriptor is off by one word) */
 #  ifdef CHECK_HEAP
-	    if (((Addr_t)ap->nextw & WORD_SZB) == 0) {
-		*(ap->nextw) = (ml_val_t)0;
-		ap->nextw++;
-	    }
+        if (((Addr_t)ap->nextw & WORD_SZB) == 0) {
+            *(ap->nextw) = (ml_val_t)0;
+            ap->nextw++;
+        }
 #  else
-	    ap->nextw = (ml_val_t *)(((Addr_t)ap->nextw) | WORD_SZB);
+        ap->nextw = (ml_val_t *)(((Addr_t)ap->nextw) | WORD_SZB);
 #  endif
 #endif
-	    *(ap->nextw++) = desc;
-	    res = PTR_CtoML(ap->nextw);
-	    ap->nextw += nwords;
-	END_CRITICAL_SECT(MP_GCGenLock)
+        *(ap->nextw++) = desc;
+        res = PTR_CtoML(ap->nextw);
+        ap->nextw += nwords;
 	COUNT_ALLOC(msp, szb);
     }
     else {
@@ -255,14 +238,12 @@ ml_val_t ML_AllocCode (ml_state_t *msp, int len)
     gen_t	    *gen = heap->gen[allocGen-1];
     bigobj_desc_t   *dp;
 
-    BEGIN_CRITICAL_SECT(MP_GCGenLock)
-	dp = BO_Alloc (heap, allocGen, len);
-	ASSERT(dp->gen == allocGen);
-	dp->next = gen->bigObjs[CODE_INDX];
-	gen->bigObjs[CODE_INDX] = dp;
-	dp->objc = CODE_INDX;
-	COUNT_ALLOC(msp, len);
-    END_CRITICAL_SECT(MP_GCGenLock)
+    dp = BO_Alloc (heap, allocGen, len);
+    ASSERT(dp->gen == allocGen);
+    dp->next = gen->bigObjs[CODE_INDX];
+    gen->bigObjs[CODE_INDX] = dp;
+    dp->objc = CODE_INDX;
+    COUNT_ALLOC(msp, len);
 
     return PTR_CtoML(dp->obj);
 
@@ -323,34 +304,22 @@ ml_val_t ML_AllocArrayData (ml_state_t *msp, int len, ml_val_t initVal)
 	int	gcLevel = (isBOXED(initVal) ? 0 : -1);
 
 	szb = WORD_SZB*(len + 1);
-	BEGIN_CRITICAL_SECT(MP_GCGenLock)
-#ifdef MP_SUPPORT
-	  checkGC:;	/* the MP version jumps to here to recheck for GC */
-#endif
-	    if (! isACTIVE(ap)
-	    || (AVAIL_SPACE(ap) <= szb+msp->ml_heap->allocSzB))
-		gcLevel = 1;
-	    if (gcLevel >= 0) {
-	      /* we need to do a GC (and preserve initVal) */
-		ml_val_t	root = initVal;
-		ap->reqSizeB += szb;
-		RELEASE_LOCK(MP_GCGenLock);
-		    InvokeGCWithRoots (msp, gcLevel, &root, NIL(ml_val_t *));
-		    initVal = root;
-		ACQUIRE_LOCK(MP_GCGenLock);
-		ap->reqSizeB = 0;
-#ifdef MP_SUPPORT
-	      /* check again to insure that we have sufficient space */
-		gcLevel = -1;
-		goto checkGC;
-#endif
-	    }
-	    ASSERT(ap->nextw == ap->sweep_nextw);
-	    *(ap->nextw++) = desc;
-	    res = PTR_CtoML(ap->nextw);
-	    ap->nextw += len;
-	    ap->sweep_nextw = ap->nextw;
-	END_CRITICAL_SECT(MP_GCGenLock)
+        if (! isACTIVE(ap)
+        || (AVAIL_SPACE(ap) <= szb+msp->ml_heap->allocSzB))
+            gcLevel = 1;
+        if (gcLevel >= 0) {
+          /* we need to do a GC (and preserve initVal) */
+            ml_val_t	root = initVal;
+            ap->reqSizeB += szb;
+            InvokeGCWithRoots (msp, gcLevel, &root, NIL(ml_val_t *));
+            initVal = root;
+            ap->reqSizeB = 0;
+        }
+        ASSERT(ap->nextw == ap->sweep_nextw);
+        *(ap->nextw++) = desc;
+        res = PTR_CtoML(ap->nextw);
+        ap->nextw += len;
+        ap->sweep_nextw = ap->nextw;
 	COUNT_ALLOC(msp, szb);
     }
     else {
@@ -403,30 +372,18 @@ ml_val_t ML_AllocVector (ml_state_t *msp, int len, ml_val_t initVal)
 	Word_t		szb;
 
 	szb = WORD_SZB*(len + 1);
-	BEGIN_CRITICAL_SECT(MP_GCGenLock)
-	    if (! isACTIVE(ap)
-	    || (AVAIL_SPACE(ap) <= szb+msp->ml_heap->allocSzB))
-		gcLevel = 1;
-#ifdef MP_SUPPORT
-	  checkGC:;	/* the MP version jumps to here to redo the GC */
-#endif
-	    ap->reqSizeB += szb;
-	    RELEASE_LOCK(MP_GCGenLock);
-	        InvokeGCWithRoots (msp, gcLevel, &root, NIL(ml_val_t *));
-	        initVal = root;
-	    ACQUIRE_LOCK(MP_GCGenLock);
-	    ap->reqSizeB = 0;
-#ifdef MP_SUPPORT
-	  /* check again to insure that we have sufficient space */
-	    if (AVAIL_SPACE(ap) <= szb+msp->ml_heap->allocSzB)
-		goto checkGC;
-#endif
-	    ASSERT(ap->nextw == ap->sweep_nextw);
-	    *(ap->nextw++) = desc;
-	    res = PTR_CtoML(ap->nextw);
-	    ap->nextw += len;
-	    ap->sweep_nextw = ap->nextw;
-	END_CRITICAL_SECT(MP_GCGenLock)
+        if (! isACTIVE(ap)
+        || (AVAIL_SPACE(ap) <= szb+msp->ml_heap->allocSzB))
+            gcLevel = 1;
+        ap->reqSizeB += szb;
+        InvokeGCWithRoots (msp, gcLevel, &root, NIL(ml_val_t *));
+        initVal = root;
+        ap->reqSizeB = 0;
+        ASSERT(ap->nextw == ap->sweep_nextw);
+        *(ap->nextw++) = desc;
+        res = PTR_CtoML(ap->nextw);
+        ap->nextw += len;
+        ap->sweep_nextw = ap->nextw;
 	COUNT_ALLOC(msp, szb);
     }
     else {

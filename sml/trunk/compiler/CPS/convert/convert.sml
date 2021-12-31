@@ -63,32 +63,6 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
     fun veq (VAR x, VAR y) = (x = y)
       | veq _ = false
 
-    local
-      structure PCT = PrimCTypes
-      structure CT = CTypes
-    in
-    (* convert PrimCTypes.c_proto to MLRISC's CTypes.c_proto *)
-    fun cvtCProto {conv, retTy, paramTys} : CTypes.c_proto = let
-	  fun cvtIntTy PCT.I_char = CT.I_char
-	    | cvtIntTy PCT.I_short = CT.I_short
-	    | cvtIntTy PCT.I_int = CT.I_int
-	    | cvtIntTy PCT.I_long = CT.I_long
-	    | cvtIntTy PCT.I_long_long = CT.I_long_long
-	  fun cvtTy PCT.C_void = CT.C_void
-	    | cvtTy PCT.C_float = CT.C_float
-	    | cvtTy PCT.C_double = CT.C_double
-	    | cvtTy PCT.C_long_double = CT.C_long_double
-	    | cvtTy (PCT.C_unsigned ity) = CT.C_unsigned(cvtIntTy ity)
-	    | cvtTy (PCT.C_signed ity) = CT.C_signed(cvtIntTy ity)
-	    | cvtTy PCT.C_PTR = CT.C_PTR
-	    | cvtTy (PCT.C_ARRAY(ty, n)) = CT.C_ARRAY(cvtTy ty, n)
-	    | cvtTy (PCT.C_STRUCT tys) = CT.C_STRUCT(List.map cvtTy tys)
-	    | cvtTy (PCT.C_UNION tys) = CT.C_UNION(List.map cvtTy tys)
-	  in
-	    {conv = conv, retTy = cvtTy retTy, paramTys = List.map cvtTy paramTys}
-	  end
-    end (* local *)
-
   (***************************************************************************
    *              CONSTANTS AND UTILITY FUNCTIONS                            *
    ***************************************************************************)
@@ -588,7 +562,6 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 
 	      | F.PRIMOP ((_,AP.RAW_CCALL (SOME i),lt,ts),f::a::_::_,v,e) => let
 		    val { c_proto, ml_args, ml_res_opt, reentrant } = i
-		    val c_proto = cvtCProto c_proto
 		    fun cty AP.CCR64 = FLTt 64		(* REAL32: FIXME *)
 		      | cty AP.CCI32 = boxIntTy 32	(* 64BIT: FIXME *)
 		      | cty AP.CCML = CU.BOGt

@@ -9,7 +9,6 @@ ARFLAGS =
 RANLIB =	lib
 
 LIB =		libgc.lib
-MP_LIB =	libmp-gc.lib
 
 GC_OBJS =	init-gc.obj call-gc.obj minor-gc.obj major-gc.obj flip.obj gc-util.obj \
 		big-objects.obj ml-objects.obj obj-info.obj build-literals.obj \
@@ -23,10 +22,7 @@ HEAP_IO_OBJS =	import-heap.obj export-heap.obj \
 		writer.obj mem-writer.obj \
 		addr-hash.obj c-globals-tbl.obj
 
-MP_GC_OBJS =	mp-gc.obj
-
 OBJS =		$(GC_OBJS) $(HEAP_IO_OBJS)
-MP_OBJS =	$(OBJS) $(MP_GC_OBJS)
 
 VERSION =	v-dummy
 
@@ -40,11 +36,6 @@ $(LIB) :	$(VERSION) $(OBJS)
 	$(AR) $(ARFLAGS) /out:$(LIB) $(OBJS)
 	$(RANLIB) /out:$(LIB)
 
-$(MP_LIB) :	$(VERSION) $(MP_OBJS)
-	del /F /Q $(MP_LIB)
-	$(AR) $(ARFLAGS) /out:$(MP_LIB) $(MP_OBJS)
-	$(RANLIB) /out:$(MP_LIB)
-
 $(VERSION) :
 	($(MAKE) MAKE="$(MAKE)" clean)
 	echo "$(VERSION)" > $(VERSION)
@@ -56,7 +47,7 @@ init-gc.obj:	init-gc.c \
 		$(OBJS_DIR)\ml-sizes.h \
 		$(INC_DIR)\ml-base.h $(INC_DIR)\ml-limits.h \
 		$(INC_DIR)\ml-state.h $(INC_DIR)\ml-values.h  $(INC_DIR)\cntr.h \
-		$(INC_DIR)\bibop.h $(INC_DIR)\memory.h $(INC_DIR)\ml-mp.h \
+		$(INC_DIR)\bibop.h $(INC_DIR)\memory.h \
 		heap.h arena-id.h heap-monitor.h \
 		$(INC_DIR)\stats-data.h
 	$(CC) /c $(CFLAGS) $(DEFS) $(INCLUDES) init-gc.c
@@ -65,7 +56,7 @@ call-gc.obj:	call-gc.c \
 		$(OBJS_DIR)\ml-sizes.h \
 		$(INC_DIR)\ml-base.h $(INC_DIR)\ml-limits.h \
 		$(INC_DIR)\ml-state.h $(INC_DIR)\ml-values.h  $(INC_DIR)\cntr.h \
-		$(INC_DIR)\bibop.h $(INC_DIR)\memory.h $(INC_DIR)\ml-mp.h \
+		$(INC_DIR)\bibop.h $(INC_DIR)\memory.h \
 		heap.h arena-id.h heap-monitor.h \
 		$(INC_DIR)\stats-data.h
 	$(CC) /c $(CFLAGS) $(DEFS) $(INCLUDES) call-gc.c
@@ -158,15 +149,6 @@ gc-stats.obj:	gc-stats.c \
 		gc-stats.h
 	$(CC) /c $(CFLAGS) $(DEFS) $(INCLUDES) gc-stats.c
 
-mp-gc.obj:	mp-gc.c \
-		$(OBJS_DIR)\ml-sizes.h \
-		$(INC_DIR)\ml-base.h $(INC_DIR)\ml-limits.h \
-		$(INC_DIR)\ml-state.h $(INC_DIR)\ml-values.h  $(INC_DIR)\cntr.h \
-		$(INC_DIR)\bibop.h $(INC_DIR)\memory.h $(INC_DIR)\ml-mp.h \
-		heap.h arena-id.h heap-monitor.h \
-		$(INC_DIR)\stats-data.h
-	$(CC) /c $(CFLAGS) $(DEFS) $(INCLUDES) mp-gc.c
-
 
 #
 # Heap I/O objects
@@ -217,5 +199,5 @@ addr-hash.obj: addr-hash.c $(DEPENDENTS)
 	$(CC) /c $(CFLAGS) $(DEFS) $(INCLUDES) addr-hash.c
 
 clean :
-	del /Q /F v-* *.obj *.pdb $(LIB) $(MP_LIB)
+	del /Q /F v-* *.obj *.pdb $(LIB)
 

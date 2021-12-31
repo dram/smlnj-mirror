@@ -1,13 +1,13 @@
 /*! \file ml-limits.h
  *
- * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2021 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
  * Various limits and default settings for the SML/NJ run-time system.
  */
 
-#ifndef _ML_DEFAULTS_
-#define _ML_DEFAULTS_
+#ifndef _ML_LIMITS_
+#define _ML_LIMITS_
 
 #include "ml-base.h"
 
@@ -25,16 +25,6 @@
 #ifndef MAX_NUM_BOOT_FILES
 #  define MAX_NUM_BOOT_FILES	1024
 #endif
-
-/** Multiprocessor limits **/
-#ifdef MP_SUPPORT
-#  ifndef MAX_NUM_PROCS
-#    define MAX_NUM_PROCS	8
-#  endif
-#else
-#  define MAX_NUM_PROCS		1
-#endif
-
 
 /** Default heap sizes **/
 #ifndef DFLT_NGENS
@@ -74,6 +64,15 @@
 #define HEAP_BUF_SZ	(1024 + 128)
 #define HEAP_BUF_SZB	(HEAP_BUF_SZ*WORD_SZB)
 
+/* the number of callee-save misc registers */
+#define CALLEESAVE	3
+
+/* the number of SML roots; these are the live registers across a GC invocation
+ * and include stdarg, stdcont, stdclos, exncont, varptr, callee saves, linkreg,
+ * and the pc register.
+ */
+#define NUM_SML_ROOTS   (7 + CALLEESAVE)
+
 /* The maximum number of global C variables that can be roots. */
 #define  MAX_C_ROOTS	8
 
@@ -83,29 +82,6 @@
 /* The number of potential GC roots. This includes space for C global roots,
  * ML roots, and the terminating null pointer.
  */
-#ifdef N_PSEUDO_REGS
-#define N_PSEUDO_ROOTS	N_PSEUDO_REGS
-#else
-#define N_PSEUDO_ROOTS	0
-#endif
-#ifdef MP_SUPPORT
-/*
- * must assume that all other procs are supplying NUM_EXTRA_ROOTS
- * in addition to the standard roots
- */
-#  define NUM_GC_ROOTS							\
-	ROUNDUP(MAX_NUM_PROCS*(MAX_C_ROOTS+NROOTS+N_PSEUDO_ROOTS)+	\
-		(MAX_NUM_PROCS-1)*NUM_EXTRA_ROOTS+1, 8)
-#else
-#  define NUM_GC_ROOTS	\
-	ROUNDUP(MAX_NUM_PROCS*(MAX_C_ROOTS+NROOTS+N_PSEUDO_ROOTS)+1, 8)
-#endif
+#define NUM_GC_ROOTS	(NUM_SML_ROOTS + MAX_C_ROOTS + NUM_EXTRA_ROOTS)
 
-#ifdef SOFT_POLL
-/* limits for polling */
-#define POLL_GRAIN_CPSI 1024     /* power of 2, in cps instructions */
-#define POLL_GRAIN_BITS 10       /* log_2 POLL_GRAIN_CPSI */
-#endif
-
-#endif /* !_ML_DEFAULTS_ */
-
+#endif /* !_ML_LIMITS_ */

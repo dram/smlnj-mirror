@@ -312,7 +312,7 @@ Basic datastructures used in elaboration (including type checking)
   ElabData/prim/
   primop representation and machinery
     cproto.sml
-      An ad-hoc encoding of PrimCTypes.c_proto in ML types.
+      An ad-hoc encoding of CTypes.c_proto in ML types.
       defs: CProto
     arithops.sml
       defs: ArithOps (no sig)
@@ -589,6 +589,11 @@ TopLevel/
   combined static and dynamic environments
     environ.sig,sml
       defs: ENVIRONMENT, Environment: ENVIRONMENT
+    symenv.sig,sml
+      defines SYMENV as a specialization of PIDENV, and SymbolicEnv as
+      an instance of PidEnvFn.
+      see: Basics/mlcomp/pidenv.sig, Basics/mlcomp/pidenv.sml
+      defs: SYMENV, SymbolicEnv: SYMENV
 
   backend/
     backend.sig

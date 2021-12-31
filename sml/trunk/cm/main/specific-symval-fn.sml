@@ -25,10 +25,8 @@ functor SpecificSymValFn (
 
     val (arch, big, size) = (case arch
            of "amd64" => ("AMD64", false, 64)
-            | "ppc" => ("PPC", true, 32)
-            | "sparc" => ("SPARC", true, 32)
-            | "x86" => ("X86", false, 32)
-            | arch => ErrorMsg.impossible ("unknown architecture: " ^ arch)
+             | "arm64" => ("ARM64", false, 64)
+             | arch => ErrorMsg.impossible ("unknown architecture: " ^ arch)
           (* end case *))
 
     val extra_syms = (case abi_variant

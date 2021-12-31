@@ -54,19 +54,19 @@
 
 /* Stack frame offsets are w.r.t. the stack pointer.  See
  *
- *	https://smlnj-gforge.cs.uchicago.edu/svn/smlnj/dev-notes/amd64-stack-frame.numbers
+ *	dev-notes/stack-layout.numbers
  *
  * for details.
  */
 #define negateSignBit	REGOFF(8264,RSP)
 #define signBit		REGOFF(8256,RSP)
-#define overflowExn	REGOFF(8248,RSP)
+#define overflowFn	REGOFF(8248,RSP)
 #define start_gc	REGOFF(8240,RSP)	/* holds address of saveregs */
 #define varptr		REGOFF(8232,RSP)
 #define exncont		REGOFF(8224,RSP)
 #define baseptr		REGOFF(8216,RSP)	/* start address of module */
 #define tempmem0	REGOFF(8192,RSP)
-#define pc		REGOFF(8208,RSP)	/* gcLink */
+#define pc		REGOFF(8208,RSP)	/* aka gcLink */
 #define mlStatePtr	REGOFF(8200,RSP)
 
 /* space reserved for spilling registers */
@@ -149,6 +149,14 @@ ALIGNED_ENTRY(request_fault)
 	MOVE	(stdlink,temp,pc)
 	JMP	(CSYM(set_request))
 
+/* Raise the Overflow exception; note that the top of the stack contains an
+ * address in the code object containing the raising code.
+ */
+ALIGNED_ENTRY(raise_overflow)
+	POP	(pc)
+	MOV	(IM(REQ_RAISE_OVERFLOW), request_w)
+	JMP	(CSYM(set_request))
+
 /* bind_cfun : (string * string) -> c_function
  */
 ALIGNED_ENTRY(bind_cfun_a)
@@ -184,8 +192,9 @@ ALIGNED_ENTRY(saveregs)
  * code will be in `tempmem` (on the stack).
  */
 ENTRY(set_request)
-	/* temp holds mlStatePtr, valid request in request_w  */
-	/* Save registers */
+        /* here the request is in request_w */
+
+	/* Save registers in MLState struct (temp is pointer to struct) */
 	MOV	(mlStatePtr, temp)
 	MOV	(allocptr, REGOFF(AllocPtrOffMSP,temp))
 	MOV	(stdarg, REGOFF(StdArgOffMSP,temp))
@@ -258,20 +267,11 @@ ALIGNED_ENTRY(restoreregs)
 	MOVE	(REGOFF(ExnPtrOffMSP, temp), temp2, exncont)
 	MOVE	(REGOFF(VarPtrOffMSP, temp), temp2, varptr)
 	MOVE    (REGOFF(PCOffMSP, temp),     temp2, pc)
+      /* Store address of code to raise the "Overflow" exception in stack */
 	LEA	(CODEADDR(CSYM(saveregs)), temp2)
 	MOV	(temp2, start_gc)
-	MOV	(temp, mlStatePtr)
-      /* Store address of "Overflow" exception in stack */
-#if defined(OPSYS_DARWIN)
-	MOV	(CSYM(_Overflow_id0)@GOTPCREL(%rip), temp2)
-	ADD	(IM(8), temp2)
-	MOV	(temp2, overflowExn)
-#elif defined(OPSYS_LINUX)
-	LEA	(CODEADDR(8+CSYM(_Overflow_id0)), temp2)
-	MOV	(temp2, overflowExn)
-#else
-    /* for now we do nothing, since we do not have LLVM support for this system */
-#endif
+	LEA	(CODEADDR(CSYM(raise_overflow)),temp2)
+	MOV	(temp2, overflowFn)
       /* Store bitmasks to support floating-point "neg" and "abs" in stack */
 	MOV	($0x8000000000000000, temp2)
 	MOV	(temp2, signBit)
@@ -280,6 +280,7 @@ ALIGNED_ENTRY(restoreregs)
 #undef	temp2
 
 	/* Load ML registers. */
+	MOV	(temp, mlStatePtr)
 	MOV	(REGOFF(AllocPtrOffMSP, temp), allocptr)
 	MOV	(REGOFF(LimitPtrOffMSP, temp), limitptr)
 	MOV	(REGOFF(StorePtrOffMSP, temp), storeptr)
@@ -313,11 +314,10 @@ restore_and_jmp_ml:
 	POP	(misc2)
 
 jmp_ml:
+/* FIXME: we may be able to get rid of this CMP with the LLVM code generator */
 	CMP	(limitptr, allocptr)
 	JMP	(CODEPTR(REGOFF(PCOffMSP,temp)))	/* Jump to ML code. */
 
-
-/* QUESTION: are these fields 32-bits? */
 pending:
 					/* Currently handling signal? */
 	CMP	(IM(0), REGOFF(InSigHandlerOffVSP,vsp))
@@ -388,8 +388,7 @@ ALIGNED_ENTRY(create_r_a)
 	CMP	(IM(SMALL_OBJ_SZW),temp)
 	JGE	(L_create_r_large)
 
-#define temp1 misc0
-	PUSH	(misc0)			/* use misc0 as temp1 */
+#define temp1 misc3
 
 	/* allocate the data object */
 	MOV	(temp,temp1)
@@ -409,7 +408,6 @@ ALIGNED_ENTRY(create_r_a)
 	MOV	(allocptr,stdarg)		/* stdarg := header obj */
 	ADD	(IM(16),allocptr)		/* allocptr += 2 */
 
-	POP	(misc0)
 	CONTINUE
 #undef temp1
 
@@ -429,8 +427,7 @@ ALIGNED_ENTRY(create_b_a)
 	CMP	(IM(SMALL_OBJ_SZW),temp)
 	JGE	(L_create_b_large)
 
-#define temp1 misc0
-	PUSH	(misc0)
+#define temp1 misc3
 
 	/* allocate the data object */
 	MOV	(temp,temp1)
@@ -449,7 +446,6 @@ ALIGNED_ENTRY(create_b_a)
 	MOV	(stdarg,REGOFF(8,allocptr))
 	MOV	(allocptr,stdarg)		/* stdarg := header */
 	ADD	(IM(16),allocptr)		/* allocptr += 2 */
-	POP	(misc0)
 	CONTINUE
 #undef temp1
 
@@ -469,8 +465,7 @@ ALIGNED_ENTRY(create_s_a)
 	CMP	(IM(SMALL_OBJ_SZW),temp)
 	JGE	(L_create_s_large)
 
-	PUSH	(misc0)
-#define temp1 misc0
+#define temp1 misc3
 
 	MOV	(temp,temp1)
 	SAL	(IM(TAG_SHIFTW),temp1)
@@ -492,7 +487,6 @@ ALIGNED_ENTRY(create_s_a)
 	MOV	(allocptr, stdarg)		/* stdarg is hdr obj */
 	ADD	(IM(16),allocptr)		/* allocptr += 2 */
 
-	POP	(misc0)
 #undef temp1
 	CONTINUE
 
@@ -508,16 +502,13 @@ LABEL(L_create_s_large)
 ALIGNED_ENTRY(create_v_a)
 	CHECKLIMIT
 	MOV	(REGIND(stdarg),temp)		/* temp = len tagged */
-	PUSH	(misc0)
-#define temp1 misc0
+#define temp1 misc3
+#define temp2 misc4
 
 	MOV	(temp,temp1)
 	SAR	(IM(1),temp1)			/* temp1 = untagged len */
 	CMP	(IM(SMALL_OBJ_SZW),temp1)
 	JGE	(L_create_v_large)
-
-	PUSH	(misc1)
-#define temp2 misc1
 
 	SAL	(IM(TAG_SHIFTW),temp1)
 	OR	(IM(MAKE_TAG(DTAG_vec_data)),temp1)
@@ -543,42 +534,19 @@ LABEL(L_create_v_lp)
 	MOV	(allocptr,stdarg)		/* result */
 	ADD	(IM(16),allocptr)		/* allocptr += 2 */
 
-	POP	(misc1)
-	POP	(misc0)
 	CONTINUE
 #undef temp1
 #undef temp2
 
 LABEL(L_create_v_large)
-	POP	(misc0)				/* restore misc0 */
 	MOVE	(stdlink, temp, pc)
 	MOV	(IM(REQ_ALLOC_VECTOR),request_w)
 	JMP	(CSYM(set_request))
 
-/* try_lock: spin_lock -> bool.
- * low-level test-and-set style primitive for mutual-exclusion among
- * processors.	For now, we only provide a uni-processor trivial version.
- */
+/* MP support is deprecated, but we need to these global symbols for linking */
 ALIGNED_ENTRY(try_lock_a)
-#if (MAX_PROCS > 1)
-#  error multiple processors not supported
-#else /* (MAX_PROCS == 1) */
-	MOV	(REGIND(stdarg), temp)		/* Get old value of lock. */
-	MOV	(IM(1), REGIND(stdarg))	/* Set the lock to ML_false. */
-	MOV	(temp, stdarg)			/* Return old value of lock. */
-	CONTINUE
-#endif
-
-/* unlock : releases a spin lock
- */
 ALIGNED_ENTRY(unlock_a)
-#if (MAX_PROCS > 1)
-#  error multiple processors not supported
-#else /* (MAX_PROCS == 1) */
-	MOV	(IM(3), REGIND(stdarg))	/* Store ML_true into lock. */
-	MOV	(IM(1), stdarg)		/* Return unit. */
 	CONTINUE
-#endif
 
 
 /********************* Floating point functions. *********************/
@@ -589,7 +557,6 @@ ALIGNED_ENTRY(unlock_a)
 #define RND_TO_ZERO	IM(11)
 
 	TEXT
-	.align 8
 
 /* floor : real -> int
  * Return the nearest integer that is less or equal to the argument.
@@ -603,14 +570,11 @@ ALIGNED_ENTRY(floor_a)
 	INC		(stdarg)
 	CONTINUE
 
-/* logb : real -> int
- * Extract the unbiased exponent pointed to by stdarg.
- * Note: Using fxtract, and fistl does not work for inf's and nan's.
- */
+/* DEPRECATED, but required for linking */
 ALIGNED_ENTRY(logb_a)
-	/* DEPRECATED */
 	CONTINUE
 
+#define SIGN_MASK	IM(0x8000000000000000)
 #define EXP_MASK	IM(0x7ff0000000000000)
 #define NOT_EXP_MASK	IM(0x800fffffffffffff)
 
@@ -625,14 +589,13 @@ ALIGNED_ENTRY(scalb_a)
 	MOV	(REGOFF(8,stdarg), temp)	/* get second arg */
 	SAR	(IM(1), temp)			/* untag second arg */
 	MOV	(REGIND(stdarg), stdarg)	/* put pointer to real in stdarg */
-	PUSH	(misc0)
-	PUSH	(misc1)
-#define temp1 misc0
-#define temp2 misc1
+#define temp1 misc3
+#define temp2 misc4
+#define temp3 misc5
 	MOV	(REGIND(stdarg), temp1)		/* put bits in temp1 */
-	MOV	(EXP_MASK, temp2)
+	MOV	(EXP_MASK, temp3)               /* temp3 := EXP_MASK */
+        MOV     (temp3, temp2)                  /* temp2 := temp3 */
 	AND	(temp1, temp2)			/* temp2 has shifted exponent */
-	TEST	(temp2, temp2)
 	JE	(L_scalb_return)		/* if temp2 == 0 then return first arg */
 	SAR	(IM(52), temp2)
 	ADD	(temp, temp2)			/* temp2 = exponent + scale */
@@ -653,8 +616,6 @@ L_scalb_alloc:
 	ADD	(WORD_SZB_IM,allocptr)		/* allocptr += 1 */
 
 L_scalb_return:
-	POP	(misc1)
-	POP	(misc0)
 	CONTINUE
 
 L_scalb_under:
@@ -662,9 +623,15 @@ L_scalb_under:
 	JMP	(L_scalb_alloc)
 
 L_scalb_over:
-	INT4					/* signal Overflow */
+        /* here we have an overflow; temp1 contains the bits */
+        MOV     (SIGN_MASK, temp2)              /* temp2 := bits & SIGN_MASK */
+
+        AND     (temp2, temp1)                  /* temp1 := sign(bits) */
+        OR      (temp3, temp1)                  /* temp1 := temp1 | exponent(2047) */
+        JMP	(L_scalb_alloc)
 #undef temp1
 #undef temp2
+#undef temp3
 
 END
 
