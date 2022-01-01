@@ -96,7 +96,29 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 == Recent updates
 
 //====================================================================
-//== Version 2021.1; 2021/??/??
+== Version 2021.1; 2021/12/31
+
+//--------------------------------------------------------------------
+[2021/12/31]::
++
+Switched over to the *LLVM* version of the compiler.  Doing so has
+two major consequences:
+--
+* The **MLRISC** code generator that we have used for over 25 years
+  has been replaced with one based on the https:llvm.org[**LLVM Libraries**].
+* We have dropped support for 32-bit systems.  Since we do not
+  have a 64-bit Windows port yet, this version only supports "Unix"
+  systems on the *AMD64* processor (we have tested *Linux* and
+  *macOS).
+  A 64-bit Windows version is a high priority and we hope to include
+  it in the next release.
+--
++
+In addition, we have changed the version numbering scheme to a
+`YYYY.NN` scheme, where `YYYY` is the year of the release and
+`NN` is the release number for the year.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
 
 //--------------------------------------------------------------------
 [2021/12/07]::
@@ -131,7 +153,8 @@ owner:cs.uchicago.edu/~jhr[John Reppy]
 //--------------------------------------------------------------------
 [2021/11/07]::
 +
-Committed changes to fix bug bugref:281[].  Revision r7357.
+Committed changes to fix bug bugref:281[] (Redundant error messages for when a constructor
+name is misspelled).  Revision r7357.
 --
 * Modified `Absyn.value` datatype by adding an error constructor
   `ERRORid`.
@@ -164,17 +187,18 @@ The changes include:
   `base/compiler/Elaborator/matchcomp`. `FLINT/trans/translate.sml` and
   related files were also extensively revised to work with the new
   match compiler.
-* PLAMBDA/FLINT types modules in FLINT/kernel have been revised so
+* PLAMBDA/FLINT types modules in `FLINT/kernel` have been revised so
   that the signatures of the main modules (`Lty`, `LtyKernel`, `LtyDef`,
   `LtyBasic`, `LtyExtern`) are all disjoint. Function and record metadata
   stuctures that were in the FLINT structure (`FLINT/flint/flint.sml`)
   have been moved to `kernel/funrecmeta.{sig,sml}`. This involved minor
   edits to virtually all files in FLINT and a few in CPS.
   See `dev-notes/FLINT` for further documentation.
-* Bug bugref:294[] has been fixed by deleting a few lines of code in
-  FLINT/opt/fcontract.sml. Files opt/collect.sml and opt/fcontract.sml
-  have been "clarified" to make them somewhat easier to maintain/debug.
-* The VarCon: VARCON structure defined in `ElabData/syntax/varcon.{sig,sml}`
+* Bug bugref:294[] (Compiler bug: Recover) has been fixed by deleting a
+  few lines of code in `FLINT/opt/fcontract.sml`. Files `opt/collect.sml`
+  and `opt/fcontract.sml`  been "clarified" to make them somewhat
+  easier to maintain/debug.
+* The `VarCon:VARCON` structure defined in `ElabData/syntax/varcon.{sig,sml}`
   has been renamed Variable: VARIABLE (`ElabData/syntax/variable.{sig,sml}`),
   since it no longer contains functionality relating to data constructors.
 * The regression tests (`$smlnj/tests`) were run and a few true
