@@ -34,7 +34,7 @@ case `uname -s` in
       # actual cores, so we will divide by two.
       NPROCS=$(/bin/nproc --all)
       if [ $NPROCS -gt 4 ] ; then
-         NPROCS=$(($NPROCS / 4))
+         NPROCS=$(($NPROCS / 2))
       fi
     fi
   ;;
@@ -75,6 +75,14 @@ if [ $BUILD_TYPE = "Debug" ] ; then
   PRESET=smlnj-llvm-debug
 else
   PRESET=smlnj-llvm-release
+fi
+
+# check that we have a version of CMake that understands presets
+#
+cmake src --list-presets > /dev/null 2>&1
+if [ $? != 0 ] ; then
+  echo "Installation of SML/NJ requires CMake version 3.19 or later"
+  exit 1
 fi
 
 # most of the definitions are specified in the CMakePresets.json file

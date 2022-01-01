@@ -23,6 +23,7 @@ static code_buffer *CodeBuf = nullptr;
 // These are just for testing purposes
 bool disableGC = false;
 
+#if defined(TIME_CODEGEN)
 // timer support
 #include <time.h>
 
@@ -57,61 +58,95 @@ class Timer {
     }
     Timer (uint64_t t) : _ns100(t) { }
 };
+#endif // defined(TIME_CODEGEN)
+
 
 ml_val_t llvm_codegen (ml_state_t *msp, const char *src, const char *pkl, size_t pklSzb)
 {
+#if defined(TIME_CODEGEN)
     Timer totalTimer = Timer::start();
+#endif // defined(TIME_CODEGEN)
 
+#if defined(TIME_CODEGEN)
     Timer initTimer = Timer::start();
+#endif // defined(TIME_CODEGEN)
     if (CodeBuf == nullptr) {
 	if (llvm_setTarget(nullptr) == ML_true) {
 	    llvm::report_fatal_error ("initialization failure", true);
 	}
     }
+#if defined(TIME_CODEGEN)
     double initT = initTimer.msec();
+#endif // defined(TIME_CODEGEN)
 
   // unpickle the CFG
+#if defined(TIME_CODEGEN)
     Timer unpklTimer = Timer::start();
+#endif // defined(TIME_CODEGEN)
 /* FIXME: using a std::string here probably results in extra data copying */
     asdl::memory_instream inS (std::string (pkl, pklSzb));
     CFG::comp_unit *cu = CFG::comp_unit::read (inS);
     if (cu == nullptr) {
 	llvm::report_fatal_error ("unable to unpickle code", true);
     }
+#if defined(TIME_CODEGEN)
     double unpklT = unpklTimer.msec();
+#endif // defined(TIME_CODEGEN)
 
   // generate LLVM
+#if defined(TIME_CODEGEN)
     Timer genTimer = Timer::start();
+#endif // defined(TIME_CODEGEN)
     cu->codegen (CodeBuf);
+#if defined(TIME_CODEGEN)
     double genT = genTimer.msec();
+#endif // defined(TIME_CODEGEN)
 
 #ifdef VERIFY_LLVM
+#if defined(TIME_CODEGEN)
     Timer verifyTimer = Timer::start();
+#endif // defined(TIME_CODEGEN)
     if (CodeBuf->verify ()) {
 	llvm::report_fatal_error ("LLVM verification error", true);
     }
+#if defined(TIME_CODEGEN)
     double verifyT = verifyTimer.msec();
+#endif // defined(TIME_CODEGEN)
 #else
+#if defined(TIME_CODEGEN)
     double verifyT = 0.0;
+#endif // defined(TIME_CODEGEN)
 #endif
 
   // optimize the LLVM code
+#if defined(TIME_CODEGEN)
     Timer optTimer = Timer::start();
+#endif // defined(TIME_CODEGEN)
     CodeBuf->optimize ();
+#if defined(TIME_CODEGEN)
     double optT = optTimer.msec();
+#endif // defined(TIME_CODEGEN)
 
 #ifdef VERIFY_LLVM
+#if defined(TIME_CODEGEN)
     verifyTimer.restart();
+#endif // defined(TIME_CODEGEN)
     if (CodeBuf->verify ()) {
 	llvm::report_fatal_error ("LLVM verification error after optimization", true);
     }
+#if defined(TIME_CODEGEN)
     verifyT += optTimer.msec();
+#endif // defined(TIME_CODEGEN)
 #endif
 
   // generate the in-memory object file
+#if defined(TIME_CODEGEN)
     Timer objGenTimer = Timer::start();
+#endif // defined(TIME_CODEGEN)
     auto obj = CodeBuf->compile ();
+#if defined(TIME_CODEGEN)
     double objGenT = objGenTimer.msec();
+#endif // defined(TIME_CODEGEN)
 
 /* TODO: use arena allocation for the unpickler */
   // deallocate the unpickled CFG IR
@@ -129,7 +164,9 @@ ml_val_t llvm_codegen (ml_state_t *msp, const char *src, const char *pkl, size_t
 //   compiler/CodeGen/cpscompile/smlnj-pseudoOps.sml and with the BO_GetCodeObjTag
 //   runtime function.
 
+#if defined(TIME_CODEGEN)
 	Timer relocTimer = Timer::start();
+#endif // defined(TIME_CODEGEN)
 
 	size_t codeSzb = obj->size();
         // first we round the code size up to a multiple of the word size
@@ -157,14 +194,14 @@ ml_val_t llvm_codegen (ml_state_t *msp, const char *src, const char *pkl, size_t
             (paddedSrcFileLen / CodeBuf->wordSzInBytes());
 	DISABLE_CODE_WRITE
 
+#if defined(TIME_CODEGEN)
 	double relocT = relocTimer.msec();
 
-#ifdef NDEBUG
   /* report stats */
 llvm::dbgs() << "\"" << src << "\"," << pklSzb << "," << codeSzb << ","
     << initT << "," << unpklT << "," << genT << "," << optT << "," << verifyT << "," << relocT
     << "," << totalTimer.msec() << "\n";
-#endif
+#endif // defined(TIME_CODEGEN)
 
       /* create a pair of the code object and entry-point offset */
 	ml_val_t arr, res;
