@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 2.0.10">
+<title>Standard ML of New Jersey Release Notes</title>
+<style>
+body {
+  font-size: 14pt;
+}
+div.smlnj-banner {
+  font-weight: bold;
+  text-align: center;
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.smlnj-banner span.title {
+  font-size: 200%;
+}
+div.smlnj-banner span.subtitle {
+  font-size: 150%;
+}
+h2 {
+  font-size: 140%;
+}
+h3 {
+  font-size: 120%;
+}
+dd {
+  margin-left: 2em;
+  margin-bottom: 0.5em;
+}
+li {
+  margin-bottom: 0.5em;
+}
+span.important {
+  color: red;
+  text-weight: bold;
+}
+span.tt {
+  font-family: "Courier", monospace;
+}
+code {
+  font-family: "Courier", monospace;
+  white-space: pre;
+  color: darkblue;
+}
+.code {
+  font-family: "Courier", monospace;
+  white-space: pre;
+  color: darkblue;
+}
+span.kw {
+  font-family: "Courier", monospace;
+  font-weight: bold;
+  color: darkgreen;
+}
+span.com {
+  font-style: italic;
+  color: indianred;
+}
+span.exe {
+  font-weight: bold;
+}
+table.buglist {
+  margin-left: 2em;
+  font-size: 100%;
+}
+table.buglist span.bugid {
+  padding-right: 1em;
+  padding-left: 0px;
+  margin-left: 0px;
+}
+span.bugid {
+  font-weight: bold;
+}
+p.compact {
+  margin-top: 0pt;
+  margin-bottom: 0pt;
+}
+.support-table {
+  margin-left: 2em;
+  font-size: 100%;
+}
+.support-table th {
+  text-align: left;
+  padding-right: 1em;
+  border-bottom: 2px solid black;
+}
+.support-table td {
+  padding-right: 1em;
+}
+p.tableblock {
+  padding-right: 1em;
+  margin-top: 0pt;
+  margin-bottom: 0pt;
+}
+
+</style>
+</head>
+<body class="article">
+<div id="header">
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="smlnj-banner">
+  <span class="title"> Standard ML of New Jersey <br/> Release Notes </span>
+  <br/> <br/>
+  <span class="subtitle"> Version 2021.1 <br/> December 32, 2021 </span>
+</div>
+<hr>
+<div class="openblock">
+<div class="content">
+<div class="dlist">
+<dl>
+<dt class="hdlist1">SML/NJ HOME</dt>
+<dd>
+<p><a href="https://www.smlnj.org/index.html"><span class="tt">https://smlnj.org</span></a></p>
+</dd>
+<dt class="hdlist1">FILES</dt>
+<dd>
+<p><a href="https://smlnj.org/dist/working/2021.1/index.html"><span class="tt">https://smlnj.org/dist/working/2021.1/</span></a></p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<hr>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_summary">Summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This release contains significant changes to the <strong>SML/NJ</strong> system.  As such, it should
+be viewed as <strong>beta</strong> software.  The major changes are</p>
+</div>
+<div class="openblock">
+<div class="content">
+<div class="ulist">
+<ul>
+<li>
+<p>The version numbering scheme has changed to a <code>YYYY.NN</code> scheme, where <code>YYYY</code> is the
+year of the release and <code>NN</code> is the release number for the year.</p>
+</li>
+<li>
+<p>The <strong>MLRISC</strong> code generator that we have used for over 25 years has been replaced
+with one based on the https:llvm.org[<strong>LLVM Libraries</strong>]</p>
+</li>
+<li>
+<p>We have dropped support for 32-bit systems.  Since we do not
+have a 64-bit Windows port yet, this version only supports "Unix"
+systems on the <strong>AMD64</strong> processor (we have tested <strong>Linux</strong> and
+<strong>macOS).  For other systems, we recommend using the <em>legacy</em> 110.99.2 version
+of *SML/NJ</strong>.
+A 64-bit Windows version is a high priority and we hope to include
+it in the next release.</p>
+</li>
+<li>
+<p>The pattern-match compiler has been completely rewritten.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>While we hope that people will experiment with this version (and report any problems),
+we recommend sticking with the "legacy" releases of the system (currently
+<a href="https://smlnj.org/dist/working/110.99.2/110.99.2-README.html">110.99.2</a>) for
+production work.</p>
+</div>
+<div class="paragraph">
+<p>Using the new backend, we have added code generation support for the 64-bit <strong>ARM</strong> processor
+(currently for <strong>macOS</strong> only).  Unfortunately, we have not been able to finish
+debugging this port, but we hope to have a release early in 2022 that adds both native
+ARM support and 64-bit Windows support.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_details">Details</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_compiler">Compiler</h3>
+<div class="paragraph">
+<p>The compiler has a new implementation of pattern-match compilation (see the
+<a href="https://smlnj.org/dist/working/2021.1/HISTORY.html/">change log</a> for details).</p>
+</div>
+<div class="paragraph">
+<p>The <strong>CPS</strong> to <strong>MLRISC</strong> code generator has been replaced by a new backend with
+a new IR (<strong>CFG</strong>).  After optimization and closure-conversion, we now translate
+the first-order <strong>CPS</strong> IR to <strong>CFG</strong>.  The <strong>CFG</strong> IR is then serialized and passed
+to the runtime system, where a <strong>LLVM</strong>-based code generator translates it to
+machine code.  This new backend is described in the paper</p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p><a href="https://dl.acm.org/doi/10.1145/3462172.3462191">A New Backend for Standard ML of New Jersey</a>,
+by Kavon Farvardin and John Reppy.<br>
+<em>Proceedings of the 32nd Symposium on Implementation and Application of
+Functional Languages (IFL 2020)</em>, September 2020.</p>
+</div>
+</blockquote>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_mlrisc">MLRISC</h3>
+<div class="paragraph">
+<p>The <strong>MLRISC</strong> library has been removed from the core part of <strong>SML/NJ</strong> and is no
+longer an enabled target in the build.  We plan to restore it as a target in the
+next release (there is some installation-script issues that have to be resolved
+first).</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_runtime_system">Runtime System</h3>
+<div class="paragraph">
+<p>The runtime system now includes much of the <strong>LLVM</strong> source tree in the directory
+<code>base/runtime/llvm</code>.  If you are building from source code, the installation
+script will compile <strong>LLVM</strong> before building the runtime system.  Be warned that
+compiling <strong>LLVM</strong> can take significant time on slower systems.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_smlnj_library">SML/NJ Library</h3>
+<div class="paragraph">
+<p>Several improvements to the <strong>JSON</strong> library:</p>
+</div>
+<div class="openblock">
+<div class="content">
+<div class="ulist">
+<ul>
+<li>
+<p>Added convenience function <code>int</code> to the <code>JSON_STREAM_OUTPUT</code> interface.</p>
+</li>
+<li>
+<p>Refactored the output modules in the <strong>JSON</strong> library.  These changes should
+not affect current clients of the library, but allow the addition of
+printing <strong>JSON</strong> to a <code>CharBuffer.buf</code>.</p>
+</li>
+<li>
+<p>Bug fix to <code>JSONUtil</code> module; the <code>FIND</code> path arc was not getting
+handled for the update functions (<em>i.e.</em>, <code>replace</code>, <code>insert</code>, and <code>append</code>).</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_installation">Installation</h3>
+<div class="paragraph">
+<p>The <code>config/install.sh</code> script continues to work as before.  We have added a <code>-dev</code>
+command-line option to enable cross compilation (<em>i.e.</em>, it compiles <strong>LLVM</strong>
+for all of the supported target architectures).</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_bugs">Bugs</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Here is a list of tracked bugs fixed (or closed) with this release, please see the
+<a href="https://smlnj-gforge.cs.uchicago.edu/projects/smlnj-bugs">bug tracker</a>
+for more details.
+Note that this list is relative to Version 110.99 and includes fixes that were
+part of the 110.99.* patch releases.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch buglist">
+<colgroup>
+<col style="width: 6.25%;">
+<col style="width: 93.75%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><span class="bugid">278</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ListMergeSort</code> is documented as stable, but is not (esp. since 110.78 rewrite!)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><span class="bugid">279</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Real.toLargeInt</code> returns zero for anything in range <code>[-512,512]</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><span class="bugid">280</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">110.99 <code>config/install.sh -64</code> fails on macOS 10.15.7</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><span class="bugid">281</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Redundant error messages for when a constructor name is misspelled</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><span class="bugid">286</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Installation of <strong>SML/NJ</strong> v110.99.1 fails in fresh <strong>Ubuntu</strong> 20.04/<strong>macOS</strong> 10.15</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><span class="bugid">287</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Install errors with <code>request asdl</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><span class="bugid">293</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SMLNJ Incompatibility with <strong>macOS</strong> 12 Beta</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><span class="bugid">294</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Compiler bug: Recover</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following unnumbered bug was also fixed:</p>
+</div>
+<div class="openblock">
+<div class="content">
+<div class="ulist">
+<ul>
+<li>
+<p>Floating-point spill records were twice as large as necessary on 64-bit
+systems.</p>
+</li>
+<li>
+<p>Fixed a bug in the printing of <code>char</code> values in the REPL.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_supported_systems">Supported systems</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>We believe that SML/NJ will build and run on the following systems, but have only
+tested some of them:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch support-table">
+<colgroup>
+<col style="width: 22.2222%;">
+<col style="width: 44.4444%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-center valign-top">Architecture</th>
+<th class="tableblock halign-center valign-top">Operating System</th>
+<th class="tableblock halign-center valign-top">Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><strong>AMD64</strong></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">FreeBSD</p></td>
+<td class="tableblock halign-center valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">macOS 11 (Big Sur)</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Tested</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">macOS 12 (Monterey)</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Tested</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Ubuntu 20.04</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Tested</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Last updated 2021-12-31 18:00:53 -0600
+</div>
+</div>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  messageStyle: "none",
+  tex2jax: {
+    inlineMath: [["\\(", "\\)"]],
+    displayMath: [["\\[", "\\]"]],
+    ignoreClass: "nostem|nolatexmath"
+  },
+  asciimath2jax: {
+    delimiters: [["\\$", "\\$"]],
+    ignoreClass: "nostem|noasciimath"
+  },
+  TeX: { equationNumbers: { autoNumber: "none" } }
+})
+MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+  MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+    if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+      data.math.root.display = "block"
+    }
+    return data
+  })
+})
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</body>
+</html>
