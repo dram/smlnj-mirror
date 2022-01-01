@@ -8,8 +8,8 @@
 
 CMD="build-pkg.sh"
 
-SIZE="32"
-ARCH="x86"
+SIZE="64"
+ARCH="amd64"
 if [ x"$1" = x-32 ] ; then
   SIZE=32
   ARCH="x86"
