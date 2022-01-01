@@ -1,0 +1,175 @@
+<!-- Copyright (c) 2021 The Fellowship of SML/NJ -->
+
+<!DOCTYPE html>
+<HTML>
+<head>
+  <meta charset="utf-8" />
+  <title>SML/NJ 2021.1 Distribution</title>
+  <style>
+    body {
+      background-color: white;
+    }
+    dd {
+      margin-bottom: 0.5em;
+    }
+    .file-list a {
+      font-family: "Courier", monospace;
+    }
+    span.tt {
+      font-family: "Courier", monospace;
+    }
+  </style>
+</head>
+<body>
+<h1>SML/NJ 2021.1 Distribution Files</h1>
+
+<hr />
+
+<h3>Downloads</h3>
+
+<dl>
+  <dt><b>Linux (64 bits)</b></dt>
+  <dd>
+    <p>
+    Download the file
+    <a href="http://smlnj.cs.uchicago.edu/dist/working/2021.1/config.tgz">config.tgz</a>.
+    Unpack, configure by editing <span class="tt">config/targets</span>, and install
+    by running <span class="tt">config/install.sh</span>.
+    The installer automatically downloads any additional files it might need.
+    For more information, see the <a href="install.html">install.html</a> file.
+    </p>
+  </dd>
+  <dt><b>macOS (nèe Mac OS X) on 64-bit Intel hardware</b></dt>
+  <dd>
+    <p>
+    You can either use the "generic Unix" procedure above or you can install
+    a pre-built system using an installer package.
+    We provide a 64-bit installer for Intel Macs:
+    </p>
+    <ul>
+      <li>
+        <a href="http://smlnj.cs.uchicago.edu/dist/working/2021.1/smlnj-amd64-2021.1.pkg">
+        smlnj-amd64-2021.1.pkg</a>.
+      </li>
+    </ul>
+    <p>
+    The macOS installer (on Intel) puts SML/NJ in the directory
+    <span class="tt">/usr/local/smlnj</span>; if you have a previous version
+    installed, then it will be updated in place.
+    If you wish to install at a different location, you should use the build procedure
+    for Unix systems.
+    </p>
+    <p>
+    The installer works on macOS Catalina and later, but you will need to
+    right-click on the installer to launch it, since it is not a notarized installer.
+    </p>
+   </dd>
+  <dt><b>macOS on Apple Silicon</b></dt>
+  <dd>
+    <p>
+    We are currently working on a native port of <strong>SML/NJ</strong> for Apple's
+    new Arm-based hardware.
+    Meanwhile, version <a href="http://smlnj.cs.uchicago.edu/dist/working/110.99.2">110.99.2</a>
+    is known to run on M1 Macs using the Rosetta2 emulation system.
+    </p>
+  </dd>
+  <dt><b>Microsoft Windows</b></dt>
+  <dd>
+    <p>
+    This version does not support Windows.
+    </p>
+  </dd>
+  <dt><b>Direct access to subversion repository</b></dt>
+  <dd>
+    <p>
+    For information on how to use access the subversion repository,
+    refer to our <a href="../../../svn.html">subversion recipe page</a>.
+    <br />
+    <b>Warning:</b>  When pulling the latest sources via subversion,
+    there is no guarantee that <span class="tt">config/install.sh</span> will operate
+    successfully due to a lack of usable bootfiles.
+    In this case you might be able to
+    generate new bootfiles using the bootstrap compiler (of an older
+    version).  Even that can be very difficult or even impossible, however,
+    in which case you will have to wait for the next working version to
+    be released.
+    </p>
+  </dd>
+</dl>
+
+<h3>Documentation</h3>
+<ul class="file-list">
+<li><a href="2021.1-README.html">Release Noted</a></li>
+<li><a href="HISTORY.html">Change Log</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/2021.1/doc.tgz">Documentation (<tt>doc.tgz</tt>)</a></li>
+</ul>
+
+<h3>Binary Files</h3>
+<ul class="file-list">
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/2021.1/boot.amd64-unix.tgz">boot.amd64-unix.tgz</a></li>
+</ul>
+
+<h3>Source files</h3>
+<ul class="file-list">
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/2021.1/config.tgz">config.tgz</a></li>
+</ul>
+
+<ul class="file-list">
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/2021.1/cm.tgz">cm.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/2021.1/compiler.tgz">compiler.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/2021.1/runtime.tgz">runtime.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/2021.1/system.tgz">system.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/2021.1/MLRISC.tgz">MLRISC.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/2021.1/smlnj-lib.tgz">smlnj-lib.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/2021.1/old-basis.tgz">old-basis.tgz</a></li>
+</ul>
+
+<ul class="file-list">
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/2021.1/ckit.tgz">ckit.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/2021.1/nlffi.tgz">nlffi.tgz</a></li>
+</ul>
+
+<ul class="file-list">
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/2021.1/cml.tgz">cml.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/2021.1/eXene.tgz">eXene.tgz</a></li>
+</ul>
+
+<ul class="file-list">
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/2021.1/ml-lpt.tgz">ml-lpt.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/2021.1/ml-lex.tgz">ml-lex.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/2021.1/ml-yacc.tgz">ml-yacc.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/2021.1/ml-burg.tgz">ml-burg.tgz</a></li>
+</ul>
+
+<ul class="file-list">
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/2021.1/pgraph.tgz">pgraph.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/2021.1/trace-debug-profile.tgz">trace-debug-profile.tgz</a></li>
+</ul>
+
+<ul class="file-list">
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/2021.1/heap2asm.tgz">heap2asm.tgz</a></li>
+</ul>
+
+<ul class="file-list">
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/2021.1/smlnj-c.tgz">smlnj-c.tgz</a></li>
+</ul>
+
+<!--
+<h3>RPM Packages</h3>
+<ul class="file-list">
+<li>Coming soon.
+</ul>
+-->
+
+<hr />
+<div style="text-align:center;"><STRONG>
+| <A HREF="../../../index.html">Home</A>
+| <A HREF="../index.html">Downloads</A>
+|
+</STRONG></div>
+<hr />
+
+Send comments to <img src="../../../images/smlnj-list-logo.png" alt="smlnj-dev-list" style="vertical-align: middle;"><br />
+<span style="font-size: small">Copyright &#169; 2021, SML/NJ Fellowship.</span><br />
+</body>
+</html>
