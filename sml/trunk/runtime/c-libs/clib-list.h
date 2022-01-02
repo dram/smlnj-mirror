@@ -46,7 +46,4 @@ C_LIBRARY(SMLNJ_CCalls_Library)
 C_LIBRARY(UNIX_Dynload_Library)
 #endif
 
-#ifdef LLVM_CODEGEN
 C_LIBRARY(CodeGen_Library)
-#endif
-
