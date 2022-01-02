@@ -153,7 +153,7 @@ void RunML (ml_state_t *msp)
 		    ml_val_t	loc, traceStk, exn;
 		    char *namestring;
 		    SayDebug("RunML: raise Overflow request: pc = %p\n", msp->ml_pc);
-		    if ((namestring = (char *)BO_AddrToCodeObjTag(msp->ml_pc)) != NIL(char *))
+		    if ((namestring = (char *)BO_AddrToCodeObjTag((Word_t)(msp->ml_pc))) != NIL(char *))
 		    {
 			char	buf2[192];
 			sprintf(buf2, "<file %.184s>", namestring);
