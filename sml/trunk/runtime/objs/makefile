@@ -1,22 +1,17 @@
 # makefile
 #
-# COPYRIGHT (c) 2019 The SML/NJ Fellowship
+# COPYRIGHT (c) 2021 The SML/NJ Fellowship
 #
 # this is the main makefile for the SML/NJ runtime system on Unix systems
 #
 
 SHELL =		/bin/sh
 MAKE =		make
-CC =		cc
-CPP =		/lib/cpp
 LD_LIBS =
 AS =		as
 AR =		ar
 ARFLAGS =	rcv
 RANLIB =	ranlib
-
-CXX =           clang++ --std=c++14
-CXX_FLAGS =     -g -O2
 
 #
 # LLVM configuration
