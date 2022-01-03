@@ -20,25 +20,31 @@ this=$0
 
 usage() {
   echo "usage: config/install.sh [-nolib] [-dev]"
-  echo "        -nolib      skip building libraries/tools"
-  echo "        -dev        developer install (includes cross compiler)"
-  echo "        -quiet      suppress feedback messages"
-  echo "        -debug      debug installation"
+  echo "        -nolib        skip building libraries/tools"
+  echo "        -quiet        suppress feedback messages"
+  echo "        -debug        debug installation"
+  echo "        -dev          developer install (includes cross compiler)"
+  echo "        -debug-llvm   build a debug version of the LLVM libraries"
   exit 1
 }
 
 # process options
 NOLIB=false
-INSTALL_DEV=false
 INSTALL_QUIETLY=false
 INSTALL_DEBUG=false
+INSTALL_DEV=false
+BUILD_LLVM_FLAGS=""
 while [ "$#" != "0" ] ; do
   arg=$1; shift
   case $arg in
     -nolib) NOLIB=true ;;
-    -dev) INSTALL_DEV=true ;;
     -quiet) INSTALL_QUIETLY=true ;;
     -debug) INSTALL_DEBUG=true ;;
+    -dev)
+      INSTALL_DEV=true;
+      BUILD_LLVM_FLAGS="--all-targets $BUILD_LLVM_FLAGS"
+    ;;
+    -debug-llvm) BUILD_LLVM_FLAGS="--debug $BUILD_LLVM_FLAGS" ;;
     *) usage ;;
   esac
 done
@@ -343,11 +349,11 @@ else
     if [ x"$INSTALL_DEV" = xtrue ] ; then
         vsay $this: Building LLVM for all targets
         cd $BASEDIR/runtime/llvm
-        ./build-llvm.sh --all-targets || complain "unable to build LLVM"
+        ./build-llvm.sh $BUILD_LLVM_FLAGS || complain "unable to build LLVM"
     elif [ ! -x "$BASEDIR"/runtime/llvm/bin/llvm-config ] ; then
         vsay $this: Building LLVM
         cd $BASEDIR/runtime/llvm
-        ./build-llvm.sh || complain "unable to build LLVM"
+        ./build-llvm.sh $BUILD_LLVM_FLAGS || complain "unable to build LLVM"
     fi
     cd "$BASEDIR"/runtime/objs
     echo $this: Compiling the run-time system.
