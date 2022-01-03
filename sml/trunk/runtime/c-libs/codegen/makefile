@@ -36,8 +36,6 @@ LLVM_CXX_FLAGS = $(shell $(LLVM_CONFIG) --cxxflags)
 #LLVM_CPP_FLAGS = -Iinclude $(INCLUDES)
 LLVM_CPP_FLAGS = -DNDEBUG -Iinclude $(INCLUDES) $(ARCH_DEFS)
 
-CXX =           clang++ -g -O2 $(LLVM_CXX_FLAGS)
-
 LIBRARY =	libcodegen.a
 
 VERSION =	v-dummy
@@ -64,7 +62,7 @@ $(VERSION) :
 	$(CC) $(CFLAGS) $(DEFS) $(INCLUDES) -Iinclude -c $<
 
 %.o: src/%.cxx $(INCLS)
-	$(CXX) -c $(CXX_FLAGS) $(LLVM_CPP_FLAGS) $(DEFS) $<
+	$(CXX) -c $(CXX_FLAGS) $(LLVM_CXX_FLAGS) $(LLVM_CPP_FLAGS) $(DEFS) $<
 
 clean :
 	rm -f v-* *.o $(LIBRARY)
