@@ -80,7 +80,7 @@ fi
 
 # build the distribution (note that this assumes that config/targets is what we want!)
 #
-config/install.sh -default $SIZE
+config/install.sh
 if [ "$?" != 0 ] ; then
   echo "$CMD [Error]: problem building SML/NJ"
   exit 1
