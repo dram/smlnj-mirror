@@ -87,6 +87,10 @@ if [ x"$VERSION" != x"$CONFIG_VERSION" ] ; then
   complain "version in config/version is $CONFIG_VERSION"
 fi
 
+# customize the smlnj.wxs file with the SML/NJ version number
+#
+sed -e "s,@SMLNJ_VERSION@,$VERSION,g" $ROOT/wix/smlnj_wxs.in > $CONFIGDIR/WinSetup/smlnj.wxs
+
 #
 # create the base source subdirectory
 #
