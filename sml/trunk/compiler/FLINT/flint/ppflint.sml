@@ -9,6 +9,7 @@
 structure PPFlint :> PPFLINT =
 struct
 
+local
   (** frequently used structures *)
   structure S = Symbol
   structure LV = LambdaVar
@@ -25,7 +26,7 @@ struct
   structure PU = PrintUtil
   structure PP = PrettyPrint
   structure PPU = PPUtil
-  structure CTRL = Control.FLINT
+in
 
     (* fflagToString : F.fflag -> string *)
     fun fflagToString ff =
@@ -370,7 +371,7 @@ struct
 	      | ppargs ((lvar,lty)::rest) =
 		  (PP.openVBox ppstrm (PP.Abs 0);
 		    ppVar ppstrm lvar; PP.string ppstrm " : ";
-		    if !CTRL.printFctTypes orelse cconv <> FR.CC_FCT
+		    if !Control.FLINT.printFctTypes orelse cconv <> FR.CC_FCT
 		    then ppLty ppstrm lty
 		    else PP.string ppstrm "???";
 		    if null rest
@@ -411,19 +412,20 @@ struct
 	 PP.closeBox ppstrm)
 
     fun printLexp lexp =
-	PP.with_pp (PP.mkDevice (!CTRL.lineWidth))
-	  (fn ppstrm => (ppLexp ppstrm (lexp, !CTRL.printDepth)))
+	PP.with_pp (PP.mkDevice (!Control.Print.lineWidth))
+	  (fn ppstrm => (ppLexp ppstrm (lexp, !Control.Print.printDepth)))
 
     fun printLexpLimited (lexp, printDepth) =
-	PP.with_pp (PP.mkDevice (!CTRL.lineWidth))
+	PP.with_pp (PP.mkDevice (!Control.Print.lineWidth))
 		   (fn ppstrm => (ppLexp ppstrm (lexp, printDepth)))
 
     fun printProg prog =
-	PP.with_pp (PP.mkDevice (!CTRL.lineWidth))
-		   (fn ppstrm => (ppFundec (!CTRL.printDepth) ppstrm prog))
+	PP.with_pp (PP.mkDevice (!Control.Print.lineWidth))
+		   (fn ppstrm => (ppFundec (!Control.Print.printDepth) ppstrm prog))
 
     fun printProgLimited (prog, printDepth) =
-	PP.with_pp (PP.mkDevice (!CTRL.lineWidth))
+	PP.with_pp (PP.mkDevice (!Control.Print.lineWidth))
 		   (fn ppstrm => (ppFundec printDepth ppstrm prog))
 
+end (* top local *)
 end (* structure PPFlint *)

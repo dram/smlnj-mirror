@@ -20,29 +20,9 @@ local
 
   val with_pp = PP.with_default_pp
   val debugging : bool ref = ref false
-  val dp : int ref = FLINT_Control.printDepth
+  val dp : int ref = Control_Print.printDepth
 
 in
-
-(*
- * FLINT tkind is roughly equivalent to the following ML datatype
- *
- *    datatype tkind
- *      = TK_MONO
- *      | TK_BOX
- *      | TK_SEQ of tkind list
- *      | TK_FUN of tkind list * tkind
- *
- * We treat tkind as an abstract type so we can no longer use
- * pattern matching.
- *)
-
-(** tkind constructors *)
-val tkc_mono   : LT.tkind = LT.tk_inj (LT.TK_MONO)
-val tkc_box    : LT.tkind = LT.tk_inj (LT.TK_BOX)
-val tkc_seq    : LT.tkind list -> LT.tkind = LT.tk_inj o LT.TK_SEQ
-val tkc_fun    : LT.tkind list * LT.tkind -> LT.tkind = LT.tk_inj o LT.TK_FUN
-
 
 (*
  * FLINT fflag is used to classify different kinds of monomorphic
@@ -79,6 +59,49 @@ fun ffw_var (ff, f, g) =
       (case ff of LT.FF_VAR x => f x | _ => g ff)
 fun ffw_fixed (ff, f, g) =
       (case ff of LT.FF_FIXED => f () | _ => g ff)
+
+
+(** utility functions for tkinds. Moved from Lty to LtyDef. **)
+
+(* tkSubkind returns true if k1 is a subkind of k2, or if they are
+ * equivalent kinds.  it is NOT commutative.  tksSubkind is the same
+ * thing, component-wise on lists of kinds.
+ * NOTE: TK_MONO and TK_BOX cannot be distinguished -- they are each a
+ *   subkind of the other.  [Is TK_BOX superfluous?]
+ *)
+fun tksSubkind (ks1, ks2) =
+    ListPair.all tkSubkind (ks1, ks2)   (* component-wise *)
+
+and tkSubkind (k1, k2) =
+    LT.tk_eq (k1, k2) orelse              (* reflexive *)
+    case (LT.tk_out k1, LT.tk_out k2) of
+        (LT.TK_BOX, LT.TK_MONO) => true (* ground kinds (base case) *)
+      (* this next case is WRONG, but necessary until the
+       * infrastructure is there to give proper boxed kinds to
+       * certain tycons (e.g., ref : Omega -> Omega_b)
+       *)
+      | (LT.TK_MONO, LT.TK_BOX) => true
+      | (LT.TK_SEQ ks1, LT.TK_SEQ ks2) =>
+          tksSubkind (ks1, ks2)
+      | (LT.TK_FUN (ks1, k1'), LT.TK_FUN (ks2, k2')) =>
+          tksSubkind (ks2, ks1) andalso (* contravariant *)
+          tkSubkind (k1', k2')
+      | _ => false
+
+(** tkind constructors *)
+val tkc_mono   : LT.tkind = LT.tk_inj (LT.TK_MONO)
+val tkc_box    : LT.tkind = LT.tk_inj (LT.TK_BOX)  (* only appears in opt/specialize.sml *)
+val tkc_seq    : LT.tkind list -> LT.tkind = LT.tk_inj o LT.TK_SEQ
+val tkc_fun    : LT.tkind list * LT.tkind -> LT.tkind = LT.tk_inj o LT.TK_FUN
+
+(** utility functions for constructing tkinds *)
+fun tkc_arg n = List.tabulate (n, (fn _ => tkc_mono))
+
+fun tkc_int 0 = tkc_mono
+  | tkc_int i = tkc_fun(tkc_arg i, tkc_mono)
+
+(* is a kind monomorphic? True only for TK_MONO and TK_BOX*)
+fun tkIsMono k = tkSubkind (k, tkc_mono)
 
 (*
  * FLINT tyc is roughly equivalent to the following ML datatype

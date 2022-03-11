@@ -1,67 +1,52 @@
+(* Elaborator/modules/sigmatch.sig *)
 
 signature SIGMATCH =
 sig
-
-  structure EvalEntity : EVALENTITY
 
   (*** these four functions are only called inside elabmod.sml ***)
   val matchStr : 
        {sign     : Modules.Signature, 
         str      : Modules.Structure,
-        strExp   : Modules.strExp,
+        strExp   : Modules.strExp,     (* entity exp for str *)
         evOp     : EntPath.entVar option,
-        depth    : DebIndex.depth,
+        tdepth   : DebIndex.depth,
         entEnv   : Modules.entityEnv,
-        rpath    : InvPath.path,
         statenv  : StaticEnv.staticEnv,
+        rpath    : InvPath.path,
         region   : SourceMap.region,
-        compInfo : ElabUtil.compInfo} -> {resDec : Absyn.dec,
-                                          resStr : Modules.Structure,
-                                          resExp : Modules.strExp}
+        compInfo : ElabUtil.compInfo}
+    -> {resDec : Absyn.dec,
+        resStr : Modules.Structure,
+        resExp : Modules.strExp}
 
   val matchFct : 
        {sign     : Modules.fctSig,
         fct      : Modules.Functor,
-        fctExp   : Modules.fctExp,
-        depth    : DebIndex.depth,
+        fctExp   : Modules.fctExp,   (* entity exp for fct *)
+        tdepth   : DebIndex.depth,
         entEnv   : Modules.entityEnv,
-        rpath    : InvPath.path,
         statenv  : StaticEnv.staticEnv,
-        region   : SourceMap.region,
-        compInfo : ElabUtil.compInfo} -> {resDec : Absyn.dec,
-                                          resFct : Modules.Functor,
-                                          resExp : Modules.fctExp}
-
-  val packStr : 
-       {sign     : Modules.Signature, 
-        str      : Modules.Structure,
-        strExp   : Modules.strExp,
-        depth    : DebIndex.depth,
-        entEnv   : Modules.entityEnv,
         rpath    : InvPath.path,
-        statenv  : StaticEnv.staticEnv,
         region   : SourceMap.region,
-        compInfo : ElabUtil.compInfo} -> {resDec : Absyn.dec,
-                                          resStr : Modules.Structure,
-                                          resExp : Modules.strExp}
+        compInfo : ElabUtil.compInfo}
+    -> {resDec : Absyn.dec,
+        resFct : Modules.Functor,
+        resExp : Modules.fctExp}
 
   val applyFct : 
        {fct      : Modules.Functor,
         fctExp   : Modules.fctExp,
         argStr   : Modules.Structure, 
-        argExp   : Modules.strExp,
+        argExp   : Modules.strExp,   (* entity exp for argStr *)
         evOp     : EntPath.entVar option,
-        depth    : DebIndex.depth,
+        tdepth   : DebIndex.depth,
         epc      : EntPathContext.context,                                
         statenv  : StaticEnv.staticEnv,
 	rpath    : InvPath.path,
         region   : SourceMap.region,
-        compInfo : ElabUtil.compInfo} -> {resDec : Absyn.dec,
-                                          resStr : Modules.Structure,
-                                          resExp : Modules.strExp}
-
-
-  val debugging : bool ref
-  val showsigs : bool ref
+        compInfo : ElabUtil.compInfo}
+    -> {resDec : Absyn.dec,
+        resStr : Modules.Structure,
+        resExp : Modules.strExp}
 
 end (* signature SIGMATCH *)

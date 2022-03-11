@@ -694,7 +694,7 @@ functor LinkCM (structure HostBackend : BACKEND) = struct
 						[getarg ci] path)
 			val value = getval ci
 			val sz = size value
-			val lw = !Control_Print.linewidth
+			val lw = !Control_Print.lineWidth
 			val padsz = lw - 6 - size arg - indent
 		    in
 			if padsz < sz then

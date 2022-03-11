@@ -75,11 +75,6 @@ structure EvDict =
                        val compare = cmpEntVar
                 end)
 
-(* ListPair.all didn't cut it because it doesn't require lists of equal length
-    length ep1 = length ep2 andalso
-    ListPair.all eqEntVar (ep1, ep2)
-*)
-
 fun nullEntPath(ep: entPath) = List.null ep
 
 fun entVarToString (v: entVar) = ST.toShortString v

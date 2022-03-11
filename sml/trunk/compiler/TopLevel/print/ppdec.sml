@@ -275,7 +275,7 @@ fun ppDec ({static,dynamic}: Environment.environment)
 	       (case str
 		 of M.STR{sign=M.SIG{name=SOME name',...},...} =>
 		    PU.ppSym ppstrm name'
-		 | _ => PPModules.ppStructure ppstrm (str,static,!signatures));
+		  | _ => PPModules.ppStructure ppstrm static (str, !signatures));
 	      PP.closeBox ppstrm;
 	      PP.newline ppstrm;
 	     PP.closeBox ppstrm)
@@ -299,7 +299,7 @@ fun ppDec ({static,dynamic}: Environment.environment)
 	      PU.ppSym ppstrm name;
 	      case fct of
 		  M.FCT { sign, ... } =>
-		    PPModules.ppFunsig ppstrm (sign, static, !signatures)
+		    PPModules.ppFunsig ppstrm static (sign, !signatures)
 		| _ => pps " : <sig>";  (* blume: cannot (?) happen *)
 	      PP.newline ppstrm;
 	    PP.closeBox ppstrm)
@@ -316,7 +316,7 @@ fun ppDec ({static,dynamic}: Environment.environment)
 		       PP.string ppstrm "="; PP.space ppstrm 1;
 		     PP.closeBox ppstrm;
 (*	           PP.break ppstrm {nsp=1,offset=2}; *)
-	           PPModules.ppSignature ppstrm (sign,static,!signatures);
+	           PPModules.ppSignature ppstrm static (sign, !signatures);
 	          PP.closeBox ppstrm;
 	         PP.newline ppstrm;
 	         PP.closeBox ppstrm)
@@ -329,7 +329,7 @@ fun ppDec ({static,dynamic}: Environment.environment)
 
 	     in (PP.openHVBox ppstrm (PP.Abs 0);
 	         pps "funsig "; PU.ppSym ppstrm name;
-	         PPModules.ppFunsig ppstrm (fsig,static,!signatures);
+	         PPModules.ppFunsig ppstrm static (fsig, !signatures);
 	         PP.newline ppstrm;
 	         PP.closeBox ppstrm)
             end
@@ -350,7 +350,7 @@ fun ppDec ({static,dynamic}: Environment.environment)
 	    if !printOpens
 	    then (PP.openHVBox ppstrm (PP.Rel 0);
 		   app (fn (path,str) =>
-			 PPModules.ppOpen ppstrm (path,str,static,!signatures))
+			 PPModules.ppOpen ppstrm static (path, str, !signatures))
 		       pathStrs;
 		  PP.closeBox ppstrm)
 	    else (PP.openHVBox ppstrm (PP.Rel 0);

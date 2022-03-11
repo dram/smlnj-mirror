@@ -3,17 +3,17 @@
  * (C) 2001 Lucent Technologies, Bell Labs
  *)
 signature PRINTCONTROL = sig
-    val printDepth : int ref
+    val printDepth  : int ref
     val printLength : int ref
     val stringDepth : int ref
     val intinfDepth : int ref
-    val printLoop : bool ref
-    val signatures : int ref
-    val printOpens : bool ref
+    val lineWidth   : int ref
+    val printLoop   : bool ref
+    val signatures  : int ref
+    val printOpens  : bool ref
     val out : {say : string -> unit, flush : unit -> unit} ref
-    val linewidth : int ref
     val say : string -> unit
-    val flush: unit -> unit
+    val flush : unit -> unit
 end
 
 structure Control_Print : PRINTCONTROL = struct
@@ -54,6 +54,9 @@ structure Control_Print : PRINTCONTROL = struct
 	new (int_cvt, "string-depth", "max string print depth", 70)
     val intinfDepth =
 	new (int_cvt, "intinf-depth", "max IntInf.int print depth", 70)
+    val lineWidth =
+	new (int_cvt, "lineWidth", "line-width hint for pretty printer", 79)
+
     val printLoop = new (bool_cvt, "loop", "print loop", true) (* ? *)
     val signatures =
 	new (int_cvt, "signatures", "max signature expansion depth", 2) (* ? *)
@@ -62,8 +65,6 @@ structure Control_Print : PRINTCONTROL = struct
 		  say = fn s => TextIO.output(TextIO.stdOut,s),
 		  flush = fn () => TextIO.flushOut TextIO.stdOut
 		  }
-    val linewidth =
-	new (int_cvt, "linewidth", "line-width hint for pretty printer", 79)
     fun say s = #say (!out) s
     fun flush() = #flush (!out) ()
 end

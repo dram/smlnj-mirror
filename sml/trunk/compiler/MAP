@@ -70,20 +70,20 @@ Basics/
   Basics/symbol/
   Symbol types involved in absyn and statenv and elaboration process
     symbol.sig/sml
-      symbols (should be in ElabData)
+      symbols (should be in ElabData/basics)
       defs: Symbol: SYMBOL
     fastsymbol.sig/sml
-      fast symbols (should be in ElabData)
+      fast symbols (should be in ElabData/basics)
       defs: FastSymbol: FASTSYMBOL
     fixity.sml
-      fixity properties (should be in ElabData)
+      fixity properties (should be in ElabData/syntax?)
       defs: Fixity: FIXITY
     symbol-hashtable.sml
-      Hashtables with symbol as key
+      Hashtables with symbol as key (should be in ElabData/basics w. symbol* )
       defs: SymbolHashTable
     specialsyms.sml
       definition of special symbols for internal use during elaboration
-      defs: SpecialSymbols
+      defs: SpecialSymbols  (should be in ElabData/? )
 
   Basics/pid
     persistent stamps and persistent identifiers (pids)
@@ -214,6 +214,9 @@ Basic datastructures used in elaboration (including type checking)
       defines the special structure symbol "_Core" used to access certain
       special bindings (e.g Match and Bind exceptions)
       defs: CoreSym
+    tkind.sml
+      TKind.tkind -- front-end version of PlambdaType tkinds (FLINT) 
+      defs: TKind
 
   ElabData/syntax/
   (typed) abstract syntax
@@ -312,7 +315,7 @@ Basic datastructures used in elaboration (including type checking)
   ElabData/prim/
   primop representation and machinery
     cproto.sml
-      An ad-hoc encoding of CTypes.c_proto in ML types.
+      An ad-hoc encoding of PrimCTypes.c_proto in ML types.
       defs: CProto
     arithops.sml
       defs: ArithOps (no sig)
@@ -399,21 +402,18 @@ Elaborator/
   Elaborator/modules/
   support modules for elaborating modules
     evalent.sml
-      evaluate "entities" (module and type realizations). Defines EvalEntityFn
-      which is called to define EvalEntity structure in Semant/modules/evalent.sml
-      see: Semant/modules/evalent.sml
-      defs: EVALENTITY, EvalEntityFn : INSTANTIATE => EVALENTITY
+      evaluate "entities" (module and type realizations).
+      defs: signature EVALENTITY,
+            structure EvalEntity : EVALENTITY
     instantiate.sml
-      free instantiation of signatures. defines InstantiateFn which is applied
-      to define structure Instantiate in Semant/modules/instantiate.sml
-      see: Semant/modules/instantiate.sml
-      defs: INSTANTIATE_PARAM, INSTANTIATE,
-            InstantiateFn: INSTANTIATE_PARAM => INSTANTIATE
+      free instantiation of signatures.
+      defs: signature INSTANTIATE,
+            structure Instantiate: INSTANTIATE
+    sigmatch.sig
     sigmatch.sml
-      signature matching. defines SigMatchFn, which is applied to define
-      SigMatch structure in Semant/modules/sigmatch.sml
-      see: Semant/modules/sigmatch.sml
-      defs: SIGMATCH, SigMatchFn: EVALENTITY => SIGMATCH
+      signature matching
+      defs: signature SIGMATCH,
+            structure SigMatch: SIGMATCH
 
   Elaborator/elaborate/
   main elaboration modules, plus some supporting modules
@@ -589,11 +589,6 @@ TopLevel/
   combined static and dynamic environments
     environ.sig,sml
       defs: ENVIRONMENT, Environment: ENVIRONMENT
-    symenv.sig,sml
-      defines SYMENV as a specialization of PIDENV, and SymbolicEnv as
-      an instance of PidEnvFn.
-      see: Basics/mlcomp/pidenv.sig, Basics/mlcomp/pidenv.sml
-      defs: SYMENV, SymbolicEnv: SYMENV
 
   backend/
     backend.sig
@@ -689,6 +684,7 @@ types (internal representation of types)
  representations
   Types          (ElabData/types/types.sig,sml)
   ConRep         (Elaborator/basics/conrep.sml)
+  TKind          (ElabData/basics/tkind.sml) FLINT!
 
  utilities, manipulating and comparing types
   TypesUtil      (ElabData/types/typesutil.sig,sml)

@@ -17,16 +17,16 @@
  *	  subtraction, negation, and the bit-wise operations.
  *)
 
-structure TransPrim : sig
-
+structure TransPrim :
+  sig
     val trans : {
 	    coreAcc : string -> PLambda.lexp,
 	    coreExn : string list -> PLambda.lexp option,
 	    mkv : unit -> LambdaVar.lvar,
 	    mkRaise : PLambda.lexp * Lty.lty -> PLambda.lexp
 	  } -> Primop.primop * Lty.lty * Lty.tyc list -> PLambda.lexp
-
-  end = struct
+  end =
+struct
 
     structure PO = Primop
     structure PL = PLambda
@@ -70,11 +70,11 @@ structure TransPrim : sig
   (* unsigned comparison on tagged integers used for bounds checking *)
     val LESSU = PL.PRIM(PO.CMP{oper=PO.LT, kind=PO.UINT Tgt.defaultIntSz}, lt_icmp, [])
 
-    val lt_len = LD.ltc_poly([LT.tkc_mono], [lt_arw(LB.ltc_tv 0, lt_int)])
+    val lt_len = LD.ltc_poly([LD.tkc_mono], [lt_arw(LB.ltc_tv 0, lt_int)])
     val lt_upd = let
 	  val x = LB.ltc_ref (LB.ltc_tv 0)
           in
-	    LD.ltc_poly([LT.tkc_mono], [lt_arw(lt_tup [x, lt_int, LB.ltc_tv 0], LB.ltc_unit)])
+	    LD.ltc_poly([LD.tkc_mono], [lt_arw(lt_tup [x, lt_int, LB.ltc_tv 0], LB.ltc_unit)])
           end
 
   (* get length of sequence *)
@@ -207,7 +207,7 @@ structure TransPrim : sig
     local
       fun pickName (cvt32, cvt64) sz =
 	    if (sz = 64) then cvt64
-	    else if (sz = Tgt.mlValueSz) then cvt32 (* NOTE: sz must be 32 here! *)
+	    else if (sz = Tgt.mlValueSz) then cvt32
 	    else if (sz > Tgt.defaultIntSz)
 	      then bug(concat["bogus size ", Int.toString sz, " for intinf conversion"])
 	    else if Tgt.is64

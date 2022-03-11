@@ -6,7 +6,7 @@
 
 (* Lty: definition of "raw" (or internal) types ltyI and tycI and their
  * hash-consed version lty and tyc -- the basic types and "contstructors"
- * for PLambda/FLINT types.
+ * for PLambda/FLINT types. 
  * Hash-consing machinery for lty and tyc.
  * Nadathur closure machinery for type functions.
  * [DBM, 2021.10] *)
@@ -121,11 +121,11 @@ end (* local of hashconsing implementation basics *)
 
 (** definition of kinds for all the lambda tycs *)
 (* [KM???] TK_BOX does not appear to be used. TK_BOX and TK_MONO are "subkinds"
- * of one another, according to tkSubkind, defined below. Does this mean that
+ * of one another, according to tkSubkind, defined below. Does this mean that 
  * any tyc of kind TK_BOX is also of kind TK_MONO, and vice versa? *)
 datatype tkindI
   = TK_MONO                                    (* ground mono tycon *)
-  | TK_BOX                                     (* boxed/tagged tycon *)
+  | TK_BOX                                     (* boxed/tagged tycon -- not used? *)
   | TK_SEQ of tkind list                       (* sequence of tycons *)
   | TK_FUN of tkind list * tkind               (* n-ary tycon function *)
 
@@ -414,7 +414,7 @@ local (* hashconsing impl *)
         | (TC_BOX t) => getAux t
         | (TC_TUPLE ts) => fsmerge ts
         | (TC_ARROW(_, ts1, ts2)) => fsmerge (ts1@ts2)
-        | (TC_PARROW(t1, t2)) => fsmerge [t1, t2]
+        | (TC_PARROW(t1, t2)) => fsmerge [t1, t2] 
         | (TC_WRAP (ref(_, t, AX_NO))) => AX_NO
         | (TC_WRAP (tyc as ref(_, t, AX_REG(b,vs,nvs)))) =>
               AX_REG (wrap_is_whnm tyc andalso b, vs, nvs)
@@ -449,10 +449,6 @@ fun hc_out (hc: 'a hash_cell) : 'a = #2(!hc)
 fun tk_out (tk: tkind) = hc_out tk
 fun tc_out (tc: tyc) = hc_out tc
 fun lt_out (lt: lty) = hc_out lt
-(*fun tk_out (ref(_ : int, tk : tkindI, _ : aux_info)) = tk
-  fun tc_out (ref(_ : int, tc : tycI, _ : aux_info)) = tc
-  fun lt_out (ref(_ : int, lt : ltyI, _ : aux_info)) = lt
-*)
 
 (** converting from the standard reps to the hash-consing reps *)
 fun tk_inj t = look(tk_table, wtoi(tk_hash t), t, tkI_eq, tk_mk)
@@ -647,83 +643,5 @@ fun lty_upd (tgt as ref(i : int, old : ltyI, AX_NO), nt) =
   | lty_upd (tgt as ref(i : int, old : ltyI, x as (AX_REG(false,_,_))), nt) =
       (tgt := (i, LT_IND (nt, old), x))
   | lty_upd _ = bug "unexpected lty_upd on already normalized lty"
-
-
-(* tkSubkind returns true if k1 is a subkind of k2, or if they are
- * equivalent kinds.  it is NOT commutative.  tksSubkind is the same
- * thing, component-wise on lists of kinds.
- *)
-fun tksSubkind (ks1, ks2) =
-    ListPair.all tkSubkind (ks1, ks2)   (* component-wise *)
-
-and tkSubkind (k1, k2) =
-    tk_eq (k1, k2) orelse              (* reflexive *)
-    case (tk_out k1, tk_out k2) of
-        (TK_BOX, TK_MONO) => true (* ground kinds (base case) *)
-      (* this next case is WRONG, but necessary until the
-       * infrastructure is there to give proper boxed kinds to
-       * certain tycons (e.g., ref : Omega -> Omega_b)
-       *)
-      | (TK_MONO, TK_BOX) => true
-      | (TK_SEQ ks1, TK_SEQ ks2) =>
-          tksSubkind (ks1, ks2)
-      | (TK_FUN (ks1, k1'), TK_FUN (ks2, k2')) =>
-          tksSubkind (ks2, ks1) andalso (* contravariant *)
-          tkSubkind (k1', k2')
-      | _ => false
-
-(* TODO
- * There must be a better factoring of the dependencies
- * These functions are in either ltydefs or ltybasic *)
-(** tkind constructors *)
-val tkc_mono   : tkind = tk_inj (TK_MONO)
-val tkc_box    : tkind = tk_inj (TK_BOX)
-val tkc_seq    : tkind list -> tkind = tk_inj o TK_SEQ
-val tkc_fun    : tkind list * tkind -> tkind = tk_inj o TK_FUN
-
-(** tkind deconstructors *)
-val tkd_mono   : tkind -> unit = fn _ => ()
-val tkd_box    : tkind -> unit = fn _ => ()
-val tkd_seq    : tkind -> tkind list = fn tk =>
-      (case tk_out tk of TK_SEQ x => x
-                       | _ => bug "unexpected tkind in tkd_seq")
-val tkd_fun    : tkind -> tkind list * tkind = fn tk =>
-      (case tk_out tk of TK_FUN x => x
-                       | _ => bug "unexpected tkind in tkd_fun")
-
-(** tkind predicates *)
-val tkp_mono   : tkind -> bool = fn tk => tk_eq(tk, tkc_mono)
-val tkp_box    : tkind -> bool = fn tk => tk_eq(tk, tkc_box)
-val tkp_seq    : tkind -> bool = fn tk =>
-      (case tk_out tk of TK_SEQ _ => true | _ => false)
-val tkp_fun    : tkind -> bool = fn tk =>
-      (case tk_out tk of TK_FUN _ => true | _ => false)
-
-(** tkind one-arm switches *)
-fun tkw_mono (tk, f, g) = if tk_eq(tk, tkc_mono) then f () else g tk
-fun tkw_box (tk, f, g) = if tk_eq(tk, tkc_box) then f () else g tk
-fun tkw_seq (tk, f, g) =
-      (case tk_out tk of TK_SEQ x => f x | _ => g tk)
-fun tkw_fun (tk, f, g) =
-      (case tk_out tk of TK_FUN x => f x | _ => g tk)
-
-(** utility functions for constructing tkinds *)
-fun tkc_arg n =
-  let fun h (n, r) = if n < 1 then r else h(n-1, tkc_mono::r)
-   in h(n, [])
-  end
-
-val tkc_fn1 = tkc_fun(tkc_arg 1, tkc_mono)
-val tkc_fn2 = tkc_fun(tkc_arg 2, tkc_mono)
-val tkc_fn3 = tkc_fun(tkc_arg 3, tkc_mono)
-
-fun tkc_int 0 = tkc_mono
-  | tkc_int 1 = tkc_fn1
-  | tkc_int 2 = tkc_fn2
-  | tkc_int 3 = tkc_fn3
-  | tkc_int i = tkc_fun(tkc_arg i, tkc_mono)
-
-(* is a kind monomorphic? *)
-fun tkIsMono k = tkSubkind (k, tkc_mono)
 
 end (* structure Lty *)

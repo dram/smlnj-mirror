@@ -74,7 +74,8 @@ fun stampOf(B.VALbind (V.VALvar {access=a, ...})) = root a
  * calls consolidateStatic, therefore we don't have duplicate bindings
  * of the same symbol.
  *)
-fun stalePids (deltaEnv, baseEnv) = let
+fun stalePids (deltaEnv, baseEnv) =
+  let
 
       (* any rebindings? *)
       val anyrebound = ref false
@@ -181,8 +182,8 @@ fun describe static (s: symbol) : unit =
       PP.with_default_pp
 	  (fn ppstrm =>
 	    (PP.openHVBox ppstrm (PP.Rel 0);
-	      PPModules.ppBinding ppstrm
-	        (s, SE.look(static,s), static, !Control.Print.printDepth);
+	      PPModules.ppBinding ppstrm static
+	        (s, SE.look(static,s), !Control.Print.printDepth);
 	      PP.newline ppstrm;
 	     PP.closeBox ppstrm))
       handle SE.Unbound => print (S.name s ^ " not found\n")

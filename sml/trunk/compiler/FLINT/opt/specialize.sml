@@ -47,8 +47,6 @@ fun pp_lty (lty : LT.lty) =
 fun mkv _ = LV.mkLvar()
 val ident = fn le : FLINT.lexp => le
 
-val tk_tbx = LT.tkc_box (* the special boxed tkind *)
-val tk_tmn = LT.tkc_mono
 val tk_eqv = LK.tk_eqv
 val tc_eqv = LK.tc_eqv
 
@@ -125,7 +123,7 @@ fun kBnd kenv tc =
 		List.nth(ks, j)
 		handle Subscript =>
 		       bug ("kBnd: db tyvar index: " ^ Int.toString j)
-	in if tk_eqv(tk_tbx, k) then KBOX else KTOP
+	in if tk_eqv(LD.tkc_box, k) then KBOX else KTOP
 	end
     else if LD.tcp_nvar tc then KTOP	(* FIXME: check the kenv for KBOX ??? *)
     else if LD.tcp_prim tc then
@@ -197,13 +195,12 @@ fun bndGen(oks, bnds, d, info) =
         | h((ok as (tv,_))::oks, KTOP::bs, i, ks, ts, b) =
              h(oks, bs, i+1, ok::ks, (LD.tcc_nvar tv)::ts, b)
         | h((tv,ok)::oks, KBOX::bs, i, ks, ts, b) =
-             let (* val nk = if tk_eqv(tk_tbx, ok) then ok else tk_tbx *)
+             let (* val nk = if tk_eqv(LD.tkc_box, ok) then ok else LD.tkc_box *)
                  val (nk, b) =
-                   if tk_eqv(tk_tmn, ok) then (tk_tbx, false) else (ok, b)
+                   if tk_eqv(LD.tkc_mono, ok) then (LD.tkc_box, false) else (ok, b)
               in h(oks, bs, i+1, (tv,nk)::ks, (LD.tcc_nvar tv)::ts, b)
              end
         | h _ = bug "unexpected cases 2 in bndGen"
-
 
    in h(oks, bnds, 0, [], [], true)
   end

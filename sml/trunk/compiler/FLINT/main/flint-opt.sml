@@ -6,6 +6,9 @@
 
 structure FLINTOpt : sig
 
+  (* [OBS, deleted] the int option (splitting) gets passed to lambda-split phases (if any).
+   * The "split" phase has been eliminated  *)
+
     val optimize : FLINT.prog * string -> FLINT.prog
 
 end = struct
@@ -80,7 +83,7 @@ end = struct
     (* printProg : string * F.prog -> F.prog *)
     (** pretty printing FLINT code *)
     fun printProg (phaseName: string, prog: F.prog) : F.prog =
-	if !CTRL.print
+	if !CTRL.printAllIR
 	then (say (concat["\n[After ", phaseName, " ...]\n\n"]);
 	      PrintFlint.printProg prog; say "\n";
 	      prog)
@@ -137,8 +140,9 @@ end = struct
 	  * fk: flintkind      the flint "variant" for f
 	  * l: string          name of the (previous) phase that produced f
 	  *)
-	  fun runphase (phase: string, pdata as (f, fk, l): phaseData) : phaseData = (
-                case (phase, fk)
+	  fun runphase (phase: string, pdata as (f, fk, l): phaseData) : phaseData =
+	      (FLINT_Control.currentPhase := phase;
+	       case (phase, fk)
 		 of (("fcontract" | "lcontract"), FK_DEBRUIJN) =>
 		      (say ("\n!! " ^ phase ^ " cannot be applied to the DeBruijn form !!\n");
 		       pdata)
@@ -176,6 +180,7 @@ end = struct
 		       in if !CTRL.check then wff(f, phase) else ();
 			  (f', fk, phase)
 		      end
+
 		  (* pseudo FLINT phases *)
 		  | ("dump", _) =>
 		      (dump (l, f, fk); pdata)

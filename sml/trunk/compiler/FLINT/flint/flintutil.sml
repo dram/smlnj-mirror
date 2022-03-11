@@ -73,7 +73,7 @@ val rk_tuple : FR.rkind = FR.RK_TUPLE
 val tv0 = LB.ltc_tv 0
 val btv0 = LD.ltc_tyc (LD.tcc_box (LB.tcc_tv 0))
 val etag_lty =
-  LD.ltc_ppoly ([LT.tkc_mono],
+  LD.ltc_ppoly ([LD.tkc_mono],
                  LD.ltc_arrow(LB.ffc_rrflint, [LB.ltc_string],
                                               [LB.ltc_etag tv0]))
 fun wrap_lty tc =

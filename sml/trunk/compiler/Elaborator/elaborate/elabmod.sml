@@ -84,14 +84,14 @@ fun showStr(msg,str,env) =
     ED.withInternals(fn () =>
       debugPrint(msg,
 		 (fn pps => fn str =>
-		   PPModules.ppStructure pps (str, env, 100)),
+		    PPModules.ppStructure pps env (str, 100)),
 		 str))
 
 fun showFct(msg,fct,env) =
     ED.withInternals(fn () =>
       debugPrint(msg,
 		 (fn pps => fn fct' =>
-		   PPModules.ppFunctor pps (fct', env, 100)),
+		    PPModules_DB.ppFunctor pps env (fct', 100)),
 		 fct))
 
 fun showDec (msg, dec, env) =
@@ -624,28 +624,36 @@ fun extractSig (env, epContext, context,
 
 
 (****************************************************************************
- *                                                                          *
- * The constrStr function is used to carry out the signature matching       *
- * on structure declarations with signature constraints. The first argument *
- * "transp" is a boolean flag; it is used to indicate whether the signature *
- * matching should be done transparently (true) or opaquely (false).        *
- *                                                                          *
+ * The constrStr function is used to carry out the signature matching
+ * on structure declarations with signature constraints. The first argument
+ * "transp" is a boolean flag used to indicate whether the signature
+ * matching should be done transparently (true) or opaquely (false).
+ * (called 3 times within this module).
  ****************************************************************************)
 fun constrStr(transp, sign, str, strDec, strExp, evOp, tdepth, entEnv, rpath,
               env, region, compInfo) : A.dec * M.Structure * M.strExp =
-  let val {resDec=resDec1, resStr=resStr1, resExp=resExp1} =
-        SM.matchStr{sign=sign, str=str, strExp=strExp, evOp=evOp,
-                    tdepth=tdepth, entEnv=entEnv, rpath=rpath, statenv=env,
-                    region=region, compInfo=compInfo}
-
-   in if transp then (A.SEQdec[strDec, resDec1], resStr1, resExp1)
-      else let val {resDec=resDec2, resStr=resStr2, resExp=resExp2} =
-		   SM.packStr{sign=sign, str=resStr1, strExp=resExp1,
-                              tdepth=tdepth, entEnv=entEnv, rpath=rpath,
-                              statenv=env, region=region, compInfo=compInfo}
-            in (A.SEQdec[strDec, resDec1, resDec2], resStr2, resExp2)
-           end
-  end
+  let val _ = debugmsg ">>> constrStr"
+      val {resDec=matchedDec, resStr=matchedStr, resExp=matchedExp} =
+          SM.matchStr{sign=sign, str=str, strExp=strExp, evOp=evOp,
+                      tdepth=tdepth, entEnv=entEnv, statenv=env, rpath=rpath,
+                      region=region, compInfo=compInfo}
+   in if transp
+      then (A.SEQdec[strDec, matchedDec], matchedStr, matchedExp)
+      else (* instantiate the signature (opaque match) *)
+	   let val STR {rlzn=matchedRlzn, access, prim, ...} = matchedStr
+	       val {rlzn=abstractRlzn, ...} =
+		   let val srcRlzn =
+			   case str
+			     of M.STR { rlzn, ... } => rlzn
+			      | _ => bug "constrStr[transp=false]"
+		    in INS.instAbstr {sign=sign, entEnv=entEnv, rlzn=matchedRlzn,
+				      rpath=rpath, region=region, compInfo=compInfo}
+		   end
+	       val abstractStr = STR {sign=sign, rlzn=abstractRlzn, access=access, prim=prim}
+	       val _ = debugmsg "<<< constrStr[transp=false]"
+            in (A.SEQdec[strDec, matchedDec], abstractStr, matchedExp)
+	   end
+  end (* fun constrStr *)
 
 
 (*** elabStr: elaborate the raw structure, without signature constraint ***)
@@ -685,7 +693,7 @@ val depth : int =
 
 val _ = dbsaynl (">>> elabStr: " ^ sname)
 val _ = showStrExpAst ("### elabStr: strexp = ", strexp, env)
-
+		   
 (* elab: Ast.strexp * staticEnv * entityEnv * region
  *        -> A.dec * M.Structure * M.strExp * EE.entityEnv
  *  subsidiary function for elaborating strexps *)
@@ -1331,10 +1339,10 @@ fun loop([], decls, entDecls, env, entEnv) =
 
           val _ = debugmsg "--elabStrbs: constrain done"
 
-          val _ = showStr("--elabStrbs: resStr: ",resStr,env)
+          val _ = showStr ("--elabStrbs: resStr: ", resStr, env)
           (*
            * WARNING: bindStr modifies the access field of resStr; this
-           * may create structures with same modIds but different dynamic
+           * may create structures with the same modIds but different dynamic
            * accesses --- BUT, we assume that before or during the pickling,
            * both the dynamic access and the [inl_info: obsolete] will be updated
            * completely and replaced with proper persistent accesses (ZHONG)

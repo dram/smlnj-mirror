@@ -1146,11 +1146,11 @@ let val region0 = region
 	elabWhere(sigexp,env,epContext,mkStamp,error,region)
     val sign =
       case sigexp
-	of VarSig name' =>
+	of VarSig name' => 
 	     let val SIG{stamp,name,closed,fctflag,elements,properties,typsharing,strsharing,stub}
 			 = LU.lookSig(env,name',error region)
 	     in SIG{stamp = stamp,
-		    name = (case nameOp of NONE => name
+		    name = (case nameOp of NONE => name 
 					|  SOME _ => nameOp),  (* update the name field *)
 		    closed = closed,
 		    fctflag = fctflag,
@@ -1182,7 +1182,7 @@ let val region0 = region
 			      stub = NONE}
 
 	      in debugPrint("--elabSig: returned signature:",
-		   (fn pps => fn s => PPModules.ppSignature pps (s,env,6)),sign);
+		   (fn pps => fn s => PPModules.ppSignature pps env (s, 6)),sign);
 		 debugmsg "--elabSig: << BaseSig";
 		 sign
 	     end

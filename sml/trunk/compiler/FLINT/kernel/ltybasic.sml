@@ -16,7 +16,7 @@ local
   structure LD = LtyDef
 
       (** common utility functions *)
-
+		   
   fun bug msg = ErrorMsg.impossible("LtyExtern: "^msg)
   val say = Control.Print.say
 
@@ -37,22 +37,6 @@ local
 (*  open Lty LtyDef *)
 
 in
-
-(** utility functions for constructing tkinds *)
-fun tkc_arg n =
-  let fun h (n, r) = if n < 1 then r else h(n-1, LT.tkc_mono::r)
-   in h(n, [])
-  end
-
-val tkc_fn1 = LT.tkc_fun(LT.tkc_arg 1, LT.tkc_mono)
-val tkc_fn2 = LT.tkc_fun(LT.tkc_arg 2, LT.tkc_mono)
-val tkc_fn3 = LT.tkc_fun(LT.tkc_arg 3, LT.tkc_mono)
-
-fun tkc_int 0 = LT.tkc_mono
-  | tkc_int 1 = LT.tkc_fn1
-  | tkc_int 2 = LT.tkc_fn2
-  | tkc_int 3 = LT.tkc_fn3
-  | tkc_int i = LT.tkc_fun(LT.tkc_arg i, LT.tkc_mono)
 
 (** primitive fflags *)
 val ffc_plambda = LD.ffc_var (false, false)
@@ -75,7 +59,7 @@ val tcc_void   = LD.tcc_prim PT.ptc_void
 val tcc_unit   = LD.tcc_tuple []
 val tcc_bool   =
   let val tbool = LD.tcc_sum [tcc_unit, tcc_unit]
-      val tsig_bool = LD.tcc_fn ([LT.tkc_mono], tbool)
+      val tsig_bool = LD.tcc_fn ([LD.tkc_mono], tbool)
    in LD.tcc_fix((1, #["bool"], tsig_bool, []), 0)
   end
 
@@ -84,10 +68,10 @@ val tcc_list   =  (* not exported, used for printing *)
       val tlist = LD.tcc_var (2, 0)  (* next to innermost type abstraction *)
       val alist = LD.tcc_app (tlist, [alpha])
       val tcc_cons = LD.tcc_tuple [alpha, alist]
-      val tlist = LD.tcc_fn ([LT.tkc_mono], LD.tcc_sum [tcc_cons, tcc_unit])
+      val tlist = LD.tcc_fn ([LD.tkc_mono], LD.tcc_sum [tcc_cons, tcc_unit])
                             (** the order here should be consistent with
                                 that in basics/basictypes.sml **)
-      val tsig_list = LD.tcc_fn ([tkc_int 1], tlist)
+      val tsig_list = LD.tcc_fn ([LD.tkc_int 1], tlist)
    in LD.tcc_fix((1, #["list"], tsig_list, []), 0)
   end
 
@@ -121,7 +105,7 @@ fun ltc_vector x = LD.ltc_tyc (tcc_vector (LD.ltd_tyc x))
 fun ltc_etag x = LD.ltc_tyc (tcc_etag (LD.ltd_tyc x))
 		 handle DeconExn => bug "ltc_etag on Poly"
 
-val ltc_top = LD.ltc_ppoly([LT.tkc_mono], ltc_tv 0)
+val ltc_top = LD.ltc_ppoly([LD.tkc_mono], ltc_tv 0)
 
 (***************************************************************************
  *            UTILITY FUNCTIONS FOR [[PRETTY]] PRINTING (to strings)       *

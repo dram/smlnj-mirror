@@ -102,28 +102,31 @@ and tycExp (* expression evaluating to a TYCentity *)
   | CONSTtyc of T.tycon     (* actual tycon *)
   | FORMtyc of T.tycon      (* formal tycon *)
 
+(* entity expressions for structures *)
 and strExp
-  = VARstr of EP.entPath       (* selection from current entityEnv *)
-  | CONSTstr of strEntity
+  = VARstr of EP.entPath       (* variable (assumed bound in current entityEnv) *)
+  | CONSTstr of strEntity      (* an existing strEntity as "constant" *)
   | STRUCTURE of {stamp : stampExp, entDec : entityDec}
-  | APPLY of fctExp * strExp
+  | APPLY of fctExp * strExp   (* entity-level functor application *)
       (* the arg strExp contains coercions to match the fct param sig *)
-  | LETstr of entityDec * strExp
-  | ABSstr of Signature * strExp    (* shortcut for abstraction matching *)
-  | FORMstr of fctSig               (* formal functor body structure *)
+  | LETstr of entityDec * strExp  (* entity-level let *)
+  | ABSstr of Signature * strExp  (* shortcut for abstraction matching (explain?) *)
+  | FORMstr of fctSig             (* formal functor _body_ structure *)
   | CONSTRAINstr of {boundvar : EP.entVar, raw : strExp, coercion: strExp}
       (* similar to LETstr(M.STRdec(boundvar, strExp), coercion),
        * but with special treatment of rpath propagation to support
        * accurate type names in functor results where the functor has
        * a result signature constraint. *)
 
+(* entity expressions for functors *)
 and fctExp
-  = VARfct of EP.entPath (* selection from current entityEnv *)
-  | CONSTfct of fctEntity
-  | LAMBDA of {param : EP.entVar, body : strExp}
-  | LAMBDA_TP of {param : EP.entVar, body : strExp, sign : fctSig}
-  | LETfct of entityDec * fctExp
+  = VARfct of EP.entPath   (* variable (assumed bound in current entityEnv) *)
+  | CONSTfct of fctEntity  (* an existing functor entity as "constant" *)
+  | LAMBDA of {param : EP.entVar, body : strExp}  (* base form of functor abstraction *)
+  | LAMBDA_TP of {param : EP.entVar, body : strExp, sign : fctSig} (* _TP ??? *)
+  | LETfct of entityDec * fctExp  (* entity-level let expression for functor entity *)
 
+(* general entity expressions *)
 and entityExp
   = TYCexp of tycExp
   | STRexp of strExp
@@ -131,6 +134,7 @@ and entityExp
   | DUMMYexp
   | ERRORexp
 
+(* entity declarations *)
 and entityDec
   = TYCdec of EP.entVar * tycExp
   | STRdec of EP.entVar * strExp * S.symbol
@@ -146,6 +150,7 @@ and entityEnv
   | NILeenv
   | ERReenv
 
+(* linkage information for compilation units (pickling) *)
 and modtree
   = TYCNODE of Types.gtrec
   | SIGNODE of sigrec

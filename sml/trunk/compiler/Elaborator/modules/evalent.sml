@@ -4,14 +4,10 @@
 signature EVALENTITY =
 sig
 
-(*  structure Instantiate : INSTANTIATE *)
-
   val evalApp : Modules.fctEntity * Modules.strEntity
                 * DebIndex.depth * EntPathContext.context
                 * InvPath.path * ElabUtil.compInfo
                 -> Modules.strEntity
-
-  val debugging : bool ref
 
 end (* signature EVALENTITY *)
 
@@ -33,8 +29,6 @@ local (* structure DI = DebIndex *)
       structure I = Instantiate
       open Modules
 in
-
-(* structure Instantiate = I *)
 
 (* debugging *)
 val say = Control_Print.say
@@ -161,7 +155,7 @@ and evalStr(strExp, depth, epc, entsv, entEnv, rpath,
 	    let val (srcRlzn, entEnv1) =
                   evalStr(strExp, depth, epc, entsv, entEnv, rpath, compInfo)
                 val {rlzn=rlzn, abstycs=abstycs, tyceps=tyceps} =
-                  I.instAbstr{sign=sign, entEnv=entEnv, srcRlzn=srcRlzn,
+                  I.instAbstr{sign=sign, entEnv=entEnv, rlzn=srcRlzn,
                               rpath=rpath,
                               region=S.nullRegion, compInfo=compInfo}
 
@@ -169,10 +163,10 @@ and evalStr(strExp, depth, epc, entsv, entEnv, rpath,
                    we have to bind them to the epcontext.
                  *)
                 val epc = EPC.enterOpen(epc, entsv)
-                fun h (T.GENtyc gt, ep) =
+                fun bind (T.GENtyc gt, ep) =
 		    EPC.bindTycLongPath (epc, MI.tycId gt, ep)
-                  | h _ = ()
-                val _ = ListPair.app h (abstycs, tyceps)
+                  | bind _ = ()
+                val _ = ListPair.app bind (abstycs, tyceps)
 	     in (rlzn, entEnv1)
 	    end
 

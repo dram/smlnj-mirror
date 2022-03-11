@@ -4,111 +4,42 @@
  * All rights reserved.
  *)
 
-signature SIGMATCH =
-sig
-
-(*  structure EvalEntity : EVALENTITY *)
-
-  (*** these four functions are only called inside elabmod.sml ***)
-  val matchStr :
-       {sign     : Modules.Signature,
-        str      : Modules.Structure,
-        strExp   : Modules.strExp,
-        evOp     : EntPath.entVar option,
-        tdepth   : DebIndex.depth,
-        entEnv   : Modules.entityEnv,
-        rpath    : InvPath.path,
-        statenv  : StaticEnv.staticEnv,
-        region   : SourceMap.region,
-        compInfo : ElabUtil.compInfo} -> {resDec : Absyn.dec,
-                                          resStr : Modules.Structure,
-                                          resExp : Modules.strExp}
-
-  val matchFct :
-       {sign     : Modules.fctSig,
-        fct      : Modules.Functor,
-        fctExp   : Modules.fctExp,
-        tdepth   : DebIndex.depth,
-        entEnv   : Modules.entityEnv,
-        rpath    : InvPath.path,
-        statenv  : StaticEnv.staticEnv,
-        region   : SourceMap.region,
-        compInfo : ElabUtil.compInfo} -> {resDec : Absyn.dec,
-                                          resFct : Modules.Functor,
-                                          resExp : Modules.fctExp}
-
-  val packStr :
-       {sign     : Modules.Signature,
-        str      : Modules.Structure,
-        strExp   : Modules.strExp,
-        tdepth   : DebIndex.depth,
-        entEnv   : Modules.entityEnv,
-        rpath    : InvPath.path,
-        statenv  : StaticEnv.staticEnv,
-        region   : SourceMap.region,
-        compInfo : ElabUtil.compInfo} -> {resDec : Absyn.dec,
-                                          resStr : Modules.Structure,
-                                          resExp : Modules.strExp}
-
-  val applyFct :
-       {fct      : Modules.Functor,
-        fctExp   : Modules.fctExp,
-        argStr   : Modules.Structure,
-        argExp   : Modules.strExp,
-        evOp     : EntPath.entVar option,
-        tdepth   : DebIndex.depth,
-        epc      : EntPathContext.context,
-        statenv  : StaticEnv.staticEnv,
-	rpath    : InvPath.path,
-        region   : SourceMap.region,
-        compInfo : ElabUtil.compInfo} -> {resDec : Absyn.dec,
-                                          resStr : Modules.Structure,
-                                          resExp : Modules.strExp}
-
-
-  val debugging : bool ref
-  val showsigs : bool ref
-
-end (* signature SIGMATCH *)
-
-
 structure SigMatch : SIGMATCH =
 struct
 
-local structure A  = Absyn
-      structure B  = Bindings
-      structure DA = Access
-      structure EE = EntityEnv
-      structure EM = ErrorMsg
-      structure EP = EntPath
-      structure EPC = EntPathContext
-      structure EU = ElabUtil
-      structure EV = EvalEntity
-      structure INS = Instantiate
-      structure IP = InvPath
-      structure M  = Modules
-      structure MU = ModuleUtil
-      structure PP = PrettyPrint
-      structure PU = PPUtil
-      structure S  = Symbol
-      structure SE = StaticEnv
-      structure SP = SymPath
-      structure ST = Stamps
-      structure T  = Types
-      structure TU = TypesUtil
-      structure V  = Variable
+local
+  structure S  = Symbol
+  structure DI = DebIndex
+  structure DA = Access
+  structure SP = SymPath
+  structure IP = InvPath
+  structure ST = Stamps
+  structure T  = Types
+  structure V  = Variable
+  structure A  = Absyn
+  structure B  = Bindings
+  structure SE = StaticEnv
+  structure EE = EntityEnv
+  structure EP = EntPath
+  structure EPC = EntPathContext
+  structure EU = ElabUtil
+  structure EV = EvalEntity
+  structure INS = Instantiate
+  structure M  = Modules
+  structure MU = ModuleUtil
+  structure TU = TypesUtil
+  structure SM = SourceMap
+  structure EM = ErrorMsg
+  structure PP = PrettyPrint
+  structure PU = PPUtil
 
-      open Types Modules Variable ElabDebug
+  open Types Modules Variable ElabDebug
 
 in
-
-(* structure EvalEntity = EV *)
 
 exception BadBinding
 
 val debugging = ElabControl.smdebugging
-val showsigs = ref false
-
 val say = Control_Print.say
 fun debugmsg (msg: string) =
       if !debugging then (say msg; say "\n") else ()
@@ -141,7 +72,7 @@ fun showStr (msg,str) =
       debugPrint debugging
        (msg,
 	(fn pps => fn str =>
-	    PPModules.ppStructure pps (str, SE.empty, 100)),
+	    PPModules.ppStructure pps SE.empty (str, 100)),
 	str))
 
 fun exnRep (DA.EXN _, dacc) = DA.EXN dacc
@@ -163,150 +94,53 @@ val anonSym = S.strSymbol "<anonymousStr>"
 val anonFsym = S.fctSymbol "<anonymousFct>"
 val paramSym = S.strSymbol "<FsigParamInst>"
 
-fun ident _ = ()
-
-(* returns true and the new instantiations if actual type > spec type *)
-(* matches an abstract version of a type with its actual version *)
-(**
-fun absEqvTy (spec, actual, dinfo) : (ty list * tyvar list * ty * bool) =
-  let val actual = TU.prune actual
-      val spec = TU.prune spec
-      val (actinst, insttys0) = TU.instantiatePoly actual
-      val (specinst, stys) = TU.instantiatePoly spec
-      val _ = ListPair.app Unify.unifyTy (insttys0, stys)
-
-      (*
-       * This is a gross hack. Inlining-information such as primops
-       * (or inline-able expressions) are propagated through signature
-       * matching. However, their types may change. The following code
-       * is to figure out the proper type application arguments, insttys.
-       * The typechecker does similar hack. We will clean this up in the
-       * future (ZHONG).
-       *
-       * Change: The hack is gone, but I am not sure whether the code
-       * below could be further simplified.  (INL_PRIM now has mandatory
-       * type information, and this type information is always correctly
-       * provided by prim.sml.)  (Blume, 1/2001)
-       *)
-(*
-      val insttys =
-       (case dinfo
-         of II.INL_PRIM(_, st) =>
-              (let val (actinst', insttys') = TU.instantiatePoly st
-                in Unify.unifyTy(actinst', actinst) handle _ => ();
-                   insttys'
-               end)
-          | _ =>insttys0)
-*)
-      val insttys =
-	  case InlInfo.primopTy dinfo of
-	      SOME st =>
-              (let val (actinst', insttys') = TU.instantiatePoly st
-               in
-		   Unify.unifyTy(actinst', actinst) handle _ => ();
-		   insttys'
-               end)
-            | NONE =>insttys0
-
-      val res = (Unify.unifyTy(actinst, specinst); true) handle _ => false
-      (* dbm: shouldn't this unifyTy always succeed, because when called
-       * in packElems, the structure will already have been matched against
-       * the signature (according to the comment before packStr)  [KM ???]*)
-
-      val instbtvs = map TU.tyvarType insttys0
-      (* should I use stys here instead?, why insttys0? *)
-
-   in (insttys, instbtvs, specinst, res)
-  end
-**)
-
-(* dbm: obsolete!
-fun eqvTnspTy (spec, actual, dinfo) : (ty list * tyvar list) =
-  let val actual = TU.prune actual
-      val (actinst, insttys) = TU.instantiatePoly actual
-
-      (*
-       * This is a gross hack. Inlining-information such as primops
-       * (or inline-able expressions) are propagated through signature
-       * matching. However, their types may change. The following code
-       * is to figure out the proper type application arguments, insttys.
-       * The typechecker does similar hack. We will clean this up in the
-       * future (ZHONG).
-       *
-       * Change: The hack is gone, but I am not sure whether the code
-       * below could be further simplified.  (INL_PRIM now has mandatory
-       * type information, and this type information is always correctly
-       * provided by prim.sml.)  (Blume, 1/2001)
-       *)
-(*
-      val insttys =
-       (case dinfo
-         of II.INL_PRIM(_, st) =>
-              (let val (actinst', insttys') = TU.instantiatePoly st
-                in Unify.unifyTy(actinst', actinst) handle _ => ();
-                   insttys'
-               end)
-          | _ =>insttys)
-*)
-      val insttys =
-	  case InlInfo.primopTy dinfo of
-	      SOME st =>
-              (let val (actinst', insttys') = TU.instantiatePoly st
-               in
-		   Unify.unifyTy(actinst', actinst) handle _ => ();
-		   insttys'
-               end)
-            | NONE =>insttys
-
-      val (specinst, stys) = TU.instantiatePoly spec
-      val _ = ((Unify.unifyTy(actinst, specinst))
-               handle _ => bug "unexpected types in eqvTnspTy")
-      val btvs = map TU.tyvarType stys
-
-   in (insttys, btvs)
-  end
-*)
-
 (**************************************************************************
- *                                                                        *
- * Matching a structure against a signature:                              *
- *                                                                        *
- *  val matchStr1 : Signature * Structure * S.symbol * DI.depth *         *
- *                  entityEnv * EP.entPath * IP.path * staticEnv *        *
- *                  region * EU.compInfo                                  *
- *                   -> A.dec * M.Structure * M.strExp                    *
- *                                                                        *
- * WARNING: epath is an inverse entPath, so it has to be reversed to      *
- *          produce an entPath.                                           *
- *                                                                        *
+ * Matching a structure against a signature:
+ *
+ *  val matchStr1 :
+ *      specSig: Signature *
+ *      str: Structure *
+ *      strName: S.symbol *
+ *      tdepth: int *
+ *      matchEntEnv: entityEnv *
+ *      epath: EP.entPath *
+ *      rpath: IP.path *
+ *      statenv: staticEnv *
+ *      region: SM.region *
+ *      EU.compInfo
+ *   -> A.dec *
+ *      M.Structure
+ *      M.strExp
+ *
+ * WARNING: epath is an inverse entPath, so it has to be reversed to
+ *          produce an entPath.
  **************************************************************************)
-fun matchStr1(specSig as SIG{stamp=sigStamp,closed,fctflag,
-			     elements=sigElements,...},
-              str as STR { sign = SIG{stamp=strSigStamp,
-				      elements=strElements,...},
-			   rlzn as {stamp=strStamp,entities=strEntEnv,...},
-			   access = rootAcc, prim = rootPrim },
+fun matchStr1(specSig as SIG {stamp=sigStamp,closed,fctflag,
+			      elements=sigElements,...},
+              str as STR {sign = SIG{stamp=strSigStamp, elements=strElements,...},
+			  rlzn as {stamp=strStamp, entities=strEntEnv,...},
+			  access = rootAcc, prim = rootPrim},
               strName : S.symbol,
               tdepth: int,  (* DI.depth *)
-              matchEntEnv,
+              matchEntEnv: EE.entityEnv,
               epath: EP.entVar list,
               rpath: IP.path,
-              statenv,
-              region,
+              statenv: SE.staticEnv,
+              region: SM.region,
 	      compInfo as {mkStamp, mkLvar=mkv, error, ...}: EU.compInfo) =
 let
 
   val err = error region
-  val _ = let fun h pps sign =PPModules.ppSignature pps (sign,statenv,6)
+  val _ = let fun h ppstrm sign = PPModules.ppSignature ppstrm statenv (sign, 6)
               val s = ">>matchStr1 - specSig :"
-           in debugPrint (showsigs) (s, h, specSig)
+           in debugPrint debugging (s, h, specSig)
           end
 
   (* matchTypes checks whether the spec type is a generic instance of
    * the actual type, and if so it returns two lists of type metavariables
    * (tyvars):
-   *  (1) the spec type generic instantiation metavariables (btvs),
-   *  (2) the actual type generic instantiation metavariables (ptvs).
+   *   (1) the spec type generic instantiation metavariables (btvs),
+   *   (2) the actual type generic instantiation metavariables (ptvs).
    * In the matching, the btvs variables are not instantiated, while the
    * ptvs are always instantiated, and their instantiations constitute the
    * "parameters of instantiatiation" that make the actual type agree with
@@ -734,8 +568,8 @@ let
     | matchDefStr((_, ERRORstr, _) | (_, _, ERRORstr)) = true
     | matchDefStr _ = bug "matchDefStr (2)"
 
-  fun matchElems ([], entEnv, entDecs, decs, bindings, succeed) =
-        (entEnv, rev entDecs, rev decs, rev bindings, succeed)
+  fun matchElems ([], entEnv, entDecs, absynDecs, bindings, succeed) =
+        (entEnv, rev entDecs, rev absynDecs, rev bindings, succeed)
 
     | matchElems ((sym, spec) :: elems, entEnv, entDecs, decs, bindings, succeed) =
 
@@ -782,9 +616,10 @@ let
                             MU.getTyc(strElements, strEntEnv, sym)
                             handle EE.Unbound =>
                               (debugPrint(debugging) ("strEntEnv: ",
-                                (fn pps => fn ee =>
-                                   PPModules.ppEntityEnv pps (ee,statenv,6)),
-                                strEntEnv); raise EE.Unbound)
+                                (fn ppstrm => fn ee =>
+                                   PPModules_DB.ppEntityEnv ppstrm statenv (ee, 6)),
+                                strEntEnv);
+			       raise EE.Unbound)
 
                      val _ = debugmsg ("--matchElems TYCspec - strEntVar: "^
                                        ST.toString strEntVar)
@@ -843,8 +678,8 @@ let
                      val epath' = strEntVar::epath
                      val rpath' = IP.extend(rpath, sym)
                      val (thinDec, thinStr, strExp) =
-                       matchStr1(thisSpecSig, strStr, sym, tdepth, entEnv, epath',
-                                 rpath', statenv, region, compInfo)
+			 matchStr1(thisSpecSig, strStr, sym, tdepth, entEnv, epath',
+                                   rpath', statenv, region, compInfo)
 
                      val entEnv' =
                        let val strEnt =
@@ -1059,54 +894,50 @@ let
        end (* function matchElems *)
 
   fun matchIt entEnv =
-    let val _ = debugmsg ">>matchIt"
+      let val _ = debugmsg ">>matchIt"
+	  val (resultEntEnv, elemEntDecs, elemAbsDecs, bindings, succeed) =
+	      matchElems(sigElements, entEnv, [], [], [], true)
+	      handle EE.Unbound => (debugmsg "$matchIt 1"; raise EE.Unbound)
+       in if succeed then
+	    let val resultEntEnv = EE.mark(mkStamp, resultEntEnv)
+		val _ = debugmsg "--matchIt: elements matched successfully"
 
-        val (resultEntEnv, entDecs, absDecs, bindings, succeed) =
-            matchElems(sigElements, entEnv, [], [], [], true)
-            handle EE.Unbound => (debugmsg "$matchIt 1"; raise EE.Unbound)
-     in if succeed then
-          let val resultEntEnv = EE.mark(mkStamp, resultEntEnv)
-              val _ = debugmsg "--matchIt: elements matched successfully"
+		val _ = checkSharing(specSig, resultEntEnv)
+			handle EE.Unbound => (debugmsg "$matchIt 3"; raise EE.Unbound)
+		val _ = debugmsg "--matchIt: sharing checked"
 
-              val _ = checkSharing(specSig, resultEntEnv)
-                      handle EE.Unbound => (debugmsg "$matchIt 3"; raise EE.Unbound)
-              val _ = debugmsg "--matchIt: sharing checked"
+		val resStr =
+		    let val strEnt = {stamp = strStamp,
+				      entities = resultEntEnv,
+				      properties = PropList.newHolder (),
+				      rpath=rpath,
+				      stub = NONE}
+			val access = DA.newAcc(mkv)
+			val prim = MU.strPrimElemInBinds bindings
+		     in M.STR {sign=specSig, rlzn=strEnt, access=access, prim=prim}
+		    end
 
-              val resStr =
-                let val strEnt = {stamp = strStamp,
-                                  entities = resultEntEnv,
-                                  properties = PropList.newHolder (),
-                                  (* lambdaty = ref NONE, *)
-                                  rpath=rpath,
-                                  stub = NONE}
-                    val dacc = DA.newAcc(mkv)
-                    val dinfo = MU.strPrimElemInBinds bindings
-                in M.STR {sign=specSig, rlzn=strEnt, access=dacc,
-                          prim=dinfo}
-                end
+		val resDec =
+		  let val body = A.LETstr(A.SEQdec elemAbsDecs, A.STRstr bindings)
+		   in A.STRdec [A.STRB{name=strName, str=resStr, def=body}]
+		  end
 
-              val resDec =
-                let val body = A.LETstr(A.SEQdec absDecs, A.STRstr bindings)
-                 in A.STRdec [A.STRB{name=strName, str=resStr, def=body}]
-                end
+		val resExp = M.STRUCTURE{stamp = GETSTAMP(M.VARstr(rev epath)),
+					 entDec = SEQdec(elemEntDecs)}
 
-              val resExp = M.STRUCTURE{stamp = GETSTAMP(M.VARstr(rev epath)),
-                                       entDec = SEQdec(entDecs)}
-
-              val _ = debugmsg "<<matchIt"
-           in (resDec, resStr, resExp)
-          end
-        else (A.SEQdec[],ERRORstr,M.CONSTstr(M.bogusStrEntity))
-    end
+		val _ = debugmsg "<<matchIt"
+	     in (resDec, resStr, resExp)
+	    end
+	  else (A.SEQdec[],ERRORstr,M.CONSTstr(M.bogusStrEntity))
+      end
 
 in
+    (* we should not do short-cut matching because we need to
+     * recalculuate the tycpath information for functor components.
+     * But completely turning this off is a bit too expensive, so
+     * we add a fctflag to indicate whether the signature
+     * contains functor components. *)
 
-(* we should not do such short-cut matching because we need to
-   recalculuate the tycpath information for functor components.
-   But completely turning this off is a bit too expensive, so
-   we add a fctflag in the signature to indicate whether it
-   contains functor components.
-*)
     if (ST.eq(sigStamp, strSigStamp)) andalso closed andalso (not fctflag)
     then (A.SEQdec [], str, M.VARstr (rev epath))    (* short-cut matching *)
     else matchIt (if closed then EE.empty else matchEntEnv)
@@ -1116,21 +947,20 @@ end
 
 
 (***************************************************************************
- * val matchStr :                                                          *
- *                                                                         *
- *     {sign     : Modules.Signature,                                      *
- *      str      : Modules.Structure,                                      *
- *      strExp   : Modules.strExp,                                         *
- *      evOp     : EntPath.entVar,                                         *
- *      tdepth   : DebIndex.depth,                                         *
- *      entEnv   : Modules.entityEnv,                                      *
- *      rpath    : InvPath.path,                                           *
- *      statenv  : StaticEnv.staticEnv,                                    *
- *      region   : SourceMap.region,                                       *
- *      compInfo : ElabUtil.compInfo} -> {resDec : Absyn.dec,              *
- *                                        resStr : Modules.Structure,      *
- *                                        resExp : Modules.strExp}         *
- *                                                                         *
+ * val matchStr :
+ *     {sign     : Modules.Signature,
+ *      str      : Modules.Structure,
+ *      strExp   : Modules.strExp,
+ *      evOp     : EntPath.entVar option,
+ *      tdepth   : DebIndex.depth,
+ *      entEnv   : Modules.entityEnv,
+ *      rpath    : InvPath.path,
+ *      statenv  : StaticEnv.staticEnv,
+ *      region   : SourceMap.region,
+ *      compInfo : ElabUtil.compInfo}
+ *  -> {resDec : Absyn.dec,
+ *      resStr : Modules.Structure,
+ *      resExp : Modules.strExp}
  ***************************************************************************)
 and matchStr {sign, str, strExp, evOp, tdepth, entEnv, rpath, statenv, region,
               compInfo=compInfo as {mkStamp,...}: EU.compInfo} =
@@ -1139,33 +969,41 @@ and matchStr {sign, str, strExp, evOp, tdepth, entEnv, rpath, statenv, region,
 
       val uncoerced = case evOp of SOME x => x | NONE => mkStamp()
       val (resDec, resStr, exp) =
-        matchStr1 (sign, str, anonSym, tdepth, entEnv, [uncoerced], rpath,
-                   statenv, region, compInfo)
+          matchStr1 (sign, str, anonSym, tdepth, entEnv, [uncoerced], rpath,
+                     statenv, region, compInfo)
 
       val resExp = M.CONSTRAINstr{boundvar=uncoerced, raw=strExp, coercion=exp}
-(*    val resExp = M.LETstr(M.STRdec(uncoerced, strExp), exp) *)
-(*    val resExp = M.APPLY(M.LAMBDA{param=uncoerced, body=exp}, strExp) *)
+(*    val resExp = M.LETstr(M.STRdec(uncoerced, strExp), exp)
+ *    val resExp = M.APPLY(M.LAMBDA{param=uncoerced, body=exp}, strExp) *)
       val _ = debugmsg "<<matchStr"
 
    in {resDec=resDec, resStr=resStr, resExp=resExp}
   end
-  handle EE.Unbound => (debugmsg "$matchStr"; raise EE.Unbound)
+  handle EE.Unbound => (debugmsg "^matchStr[EE.Unbound]"; raise EE.Unbound)
 
 
 (***************************************************************************
- *                                                                         *
- * Matching a functor against a functor signature:                         *
- *                                                                         *
- *  val matchFct1 : fctSig * Functor * S.symbol * DI.depth *               *
- *                  entityEnv * M.fctExp * IP.path * staticEnv *           *
- *                  region * EU.compInfo                                   *
- *                  -> A.dec * M.Functor * M.fctExp                        *
- *                                                                         *
- *  Arguments: funsig  F(fsigParVar : fsigParSig) = fsigBodySig            *
- *             functor F(fctParVar : fctParSig) : fctBodySig = bodyExp     *
- *                                                                         *
- *  Result:    functor F(fctParVar : fctParSig) : fctBodySig = resBodyExp  *
- *                                                                         *
+ * Matching a functor against a functor signature:
+ *
+ *  val matchFct1 :
+ *      specSig:      M.fctSig *
+ *      fct:          M.Functor *
+ *      fctName:      S.symbol *
+ *      tdepth:       DI.depth *
+ *      entEnv:       EE.entityEnv *
+ *      uncoercedFct: M.fctExp *
+ *      rpath:        IP.path *
+ *      statenv:      SE.staticEnv *
+ *      region:       SM.region *
+ *      compInfo:     EU.compInfo
+ *   -> A.dec *       -- abstract syntax for functor declaration
+ *      M.Functor *   -- static functor
+ *      M.fctExp *    -- entity expression for functor
+ *
+ *  Arguments: funsig  F(fsigParVar : fsigParSig) = fsigBodySig
+ *             functor F(fctParVar : fctParSig) : fctBodySig = bodyExp
+ *
+ *  Result:    functor F(fctParVar : fctParSig) : fctBodySig = resBodyExp
  ***************************************************************************)
 and matchFct1(specSig as FSIG{paramsig=fsigParamSig,paramvar=fsigParamVar,
                               paramsym,bodysig=fsigBodySig,...},
@@ -1265,21 +1103,19 @@ end handle Match => (A.SEQdec [], ERRORfct, bogusFctExp))
 
 
 (***************************************************************************
- *                                                                         *
- * val matchFct :                                                          *
- *                                                                         *
- *     {sign     : Modules.fctSig,                                         *
- *      fct      : Modules.Functor,                                        *
- *      fctExp   : Modules.fctExp,                                         *
- *      tdepth   : DebIndex.depth,                                         *
- *      entEnv   : Modules.entityEnv,                                      *
- *      rpath    : InvPath.path,                                           *
- *      statenv  : StaticEnv.staticEnv,                                    *
- *      region   : SourceMap.region,                                       *
- *      compInfo : ElabUtil.compInfo} -> {resDec : Absyn.dec,              *
- *                                        resFct : Modules.Functor,        *
- *                                        resExp : Modules.fctExp}         *
- *                                                                         *
+ * val matchFct :
+ *     {sign     : Modules.fctSig,
+ *      fct      : Modules.Functor,
+ *      fctExp   : Modules.fctExp,
+ *      tdepth   : DebIndex.depth,
+ *      entEnv   : Modules.entityEnv,
+ *      rpath    : InvPath.path,
+ *      statenv  : StaticEnv.staticEnv,
+ *      region   : SourceMap.region,
+ *      compInfo : ElabUtil.compInfo}
+ *  -> {resDec : Absyn.dec,
+ *      resFct : Modules.Functor,
+ *      resExp : Modules.fctExp}
  ***************************************************************************)
 and matchFct{sign, fct, fctExp, tdepth, entEnv, rpath,
              statenv, region, compInfo} =
@@ -1296,307 +1132,29 @@ and matchFct{sign, fct, fctExp, tdepth, entEnv, rpath,
   handle EE.Unbound => (debugmsg "$matchFct"; raise EE.Unbound)
 
 
-(**************************************************************************
- *                                                                        *
- * Packing a structure against a signature:                               *
- *                                                                        *
- *  val packStr1 : Signature * strEntity * Structure * TU.tycset *        *
- *                 S.symbol * int * entityEnv * IP.path * staticEnv *     *
- *                 region * EU.compInfo -> A.dec * M.Structure            *
- *                                                                        *
- **************************************************************************)
-and packStr1(specSig as M.SIG {elements=sigElements,...},
-	     resRlzn as {entities=resEntEnv,...},
-	     str as M.STR {access=rootAcc,
-			   rlzn=srcRlzn as {entities=srcEntEnv,...},
-			   prim=rootPrim, ... },
-             abstycs, strName, tdepth, entEnv, rpath, statenv, region,
-             compInfo as {mkLvar=mkv, error, ...}: EU.compInfo)
-             : Absyn.dec * M.Structure =
-let
-
-fun typeInRes (kind,typ) =
-      (MU.transType resEntEnv typ)
-         handle EE.Unbound =>
-           (debugPrint (debugging) (kind, PPType.ppType statenv, typ);
-            raise EE.Unbound)
-
-fun typeInSrc (kind,typ) =
-      (MU.transType srcEntEnv typ)
-         handle EE.Unbound =>
-           (debugPrint (debugging) (kind, PPType.ppType statenv, typ);
-            raise EE.Unbound)
-
-fun packElems ([], entEnv, decs, bindings) = (rev decs, rev bindings)
-  | packElems ((sym, spec) :: elems, entEnv, decs, bindings) =
-     let val _ = debugmsg ">>packElems"
-      in case spec
-          of STRspec{sign=thisSpecsig, entVar=ev, slot=s,...} =>
-              (case (EE.look(resEntEnv, ev), EE.look(srcEntEnv, ev))
-                 of (M.STRent resStrRlzn, M.STRent srcStrRlzn) =>
-		     let val srcStr =
-			     M.STR{sign=thisSpecsig, rlzn=srcStrRlzn,
-				   access=DA.selAcc(rootAcc,s),
-				    prim=PrimopId.selStrPrimId(rootPrim,s)}
-			 val rpath' = IP.extend(rpath, sym)
-			 val (thinDec, thinStr) =
-			   packStr1(thisSpecsig, resStrRlzn, srcStr, abstycs,
-				    sym, tdepth, entEnv, rpath', statenv,
-				    region, compInfo)
-
-                         val entEnv' =
-                           let val strEnt =
-                                case thinStr of M.STR { rlzn, ... } => rlzn
-                                              | _ => M.bogusStrEntity
-                            in EE.bind(ev, M.STRent strEnt, entEnv)
-                           end
-
-			 val decs' = thinDec :: decs
-			 val bindings' = (B.STRbind thinStr) :: bindings
-
-		      in packElems(elems, entEnv', decs', bindings')
-		     end
-	          | _ => (* missing element, error has occurred - do nothing *)
-		    packElems(elems, entEnv, decs, bindings))
-
-           | FCTspec{sign=thisSpecsig, entVar=ev, slot=s} =>
-              (case (EE.look(resEntEnv, ev), EE.look(srcEntEnv, ev))
-		 of (M.FCTent resFctRlzn, M.FCTent srcFctRlzn) =>
-		     let val srcFct =
-			     M.FCT {sign=thisSpecsig, rlzn=srcFctRlzn,
-				    access=DA.selAcc(rootAcc,s),
-				    prim=PrimopId.selStrPrimId(rootPrim,s)}
-
-			 val rpath' = IP.extend(rpath, sym)
-
-			 val (thinDec, thinFct) =
-			   packFct1(thisSpecsig, resFctRlzn, srcFct, abstycs,
-				    sym, tdepth, entEnv, rpath', statenv,
-				    region, compInfo)
-
-                         val entEnv' =
-                           let val fctEnt =
-                                 case thinFct of M.FCT { rlzn, ... } => rlzn
-                                               | _ => M.bogusFctEntity
-                            in EE.bind(ev, M.FCTent fctEnt, entEnv)
-                           end
-
-			 val decs' = thinDec :: decs
-			 val bindings' = (B.FCTbind thinFct) :: bindings
-
-		      in packElems(elems, entEnv', decs', bindings')
-		     end
-		  | _ => packElems(elems, entEnv, decs, bindings))
-
-           | VALspec{spec=spectyp, slot=s} =>
-              (let val restyp = typeInRes("$spec-resty(packStr-val)", spectyp)
-                   val srctyp = typeInSrc("$spec-srcty(packStr-val)", spectyp)
-                   val dacc = DA.selAcc(rootAcc, s)
-                   val prim = PrimopId.selValPrimFromStrPrim(rootPrim, s)
-(* dbm: assume that eqflag will always be true because of prior successful
- * sigmatch, therefore this does nothing ---
-                   val (instys, btvs, resinst, eqflag) =
-                       absEqvTy(restyp, srctyp, prim)
-*)
-                   val spath = SP.SPATH[sym]
-                   val srcvar = VALvar{path=spath, typ=ref srctyp,
-		   		       btvs = ref[], access=dacc, prim=prim}
-
-(* does nothing -- just use decs and srcvar below
-                   val (decs', nv) = (decs, srcvar)
-*)
-
-                   val bindings' = (B.VALbind srcvar)::bindings
-                in packElems(elems, entEnv, decs, bindings')
-               end)
-
-           | CONspec{spec=DATACON{name, typ, rep, const, sign, lazyp}, slot} =>
-              (let val bindings' =
-                     case slot
-                      of NONE => bindings
-                       | SOME s =>
-                           let val restyp =
-                                 typeInRes("$spec-resty(packStr-con)", typ)
-                               val dacc = DA.selAcc(rootAcc, s)
-                               val nrep = exnRep(rep, dacc)
-                               val con = DATACON{typ=restyp, name=name, lazyp=lazyp,
-                                           const=const, rep=nrep, sign=sign}
-                            in (B.CONbind(con)) :: bindings
-                           end
-
-                in packElems(elems, entEnv, decs, bindings')
-               end)
-
-           | TYCspec{entVar=ev,info=RegTycSpec{spec=specTycon,repl,scope}} =>
-              (let val entEnv' = EE.bind(ev, EE.look(resEntEnv, ev), entEnv)
-                in packElems(elems, entEnv', decs, bindings)
-               end)
-
-           | _ => bug "packElems"
-     end (* function packElems *)
-
-
-val (absDecs, bindings) = packElems(sigElements, entEnv, [], [])
-
-val resStr =
-  let val dacc = DA.newAcc(mkv)
-      val dprim = MU.strPrimElemInBinds bindings
-   in M.STR{sign=specSig, rlzn=resRlzn, access=dacc, prim=dprim}
-  end
-
-val resDec =
-  let val body = A.LETstr(A.SEQdec absDecs, A.STRstr bindings)
-   in A.STRdec [A.STRB{name=strName, str=resStr, def=body}]
-  end
-
-in (resDec, resStr)
-end
-
-| packStr1 _ = (A.SEQdec [], ERRORstr)
-
-
 (***************************************************************************
- * Abstraction matching of a structure against a signature:                *
- *                                                                         *
- * val packStr :                                                           *
- *     {sign     : Modules.Signature,                                      *
- *      str      : Modules.Structure,                                      *
- *      strExp   : Modules.strExp,                                         *
- *      tdepth   : DebIndex.depth,                                         *
- *      entEnv   : Modules.entityEnv,                                      *
- *      rpath    : InvPath.path,                                           *
- *      statenv  : StaticEnv.staticEnv,                                    *
- *      region   : SourceMap.region,                                       *
- *      compInfo : ElabUtil.compInfo} -> {resDec : Absyn.dec,              *
- *                                        resStr : Modules.Structure,      *
- *                                        resExp : Modules.strExp}         *
- *                                                                         *
- * INVARIANT: the base signature for str should be exactly sign; in other  *
- *            words, str should have been matched against sign before it   *
- *            being packed against sign.                                   *
- ***************************************************************************)
-and packStr {sign, str, strExp, tdepth, entEnv, rpath,
-             statenv, region, compInfo} =
-  let val _ = debugmsg ">>>packStr"
-
-      val {rlzn=resRlzn, abstycs=abstycs, tyceps=_} =
-        let val srcRlzn = case str of M.STR { rlzn, ... } => rlzn
-                                    | _ => M.bogusStrEntity
-         in INS.instAbstr {sign=sign, entEnv=entEnv, srcRlzn=srcRlzn,
-                           rpath=rpath, region=region, compInfo=compInfo}
-        end
-      val _ = debugmsg "packStr - instantiate done"
-
-      val abstycs' = foldr TU.addTycSet (TU.mkTycSet()) abstycs
-
-      val (resDec, resStr) =
-        packStr1 (sign, resRlzn, str, abstycs', anonSym, tdepth,
-                  entEnv, rpath, statenv, region, compInfo)
-      val _ = debugmsg "packStr - packStr1 done"
-
-      val resExp = M.ABSstr(sign, strExp)
-      val _ = debugmsg "<<<packStr"
-
-   in {resDec=resDec, resStr=resStr, resExp=resExp}
-  end
-
-
-(***************************************************************************
- *                                                                         *
- * Packing a functor against a functor signature:                          *
- *                                                                         *
- *  val packFct1 : fctSig * fctEntity * Functor * tycon list *             *
- *                 S.symbol * DI.depth * entityEnv * IP.path * staticEnv * *
- *                 region * EU.compInfo -> A.dec * M.Functor               *
- *                                                                         *
- ***************************************************************************)
-and packFct1(specSig as FSIG{paramsig, paramvar, bodysig, ...}, resFctRlzn,
-             srcFct as FCT { rlzn = srcFctRlzn, ... },
-             abstycs1, fctName, tdepth, entEnv, rpath, statenv, region,
-             compInfo as {mkStamp, mkLvar=mkv, error, ...}: EU.compInfo)
-             : Absyn.dec * M.Functor =
-
-let
-
-val {rlzn=paramEnt, tycpaths=paramTps} =
-  INS.instParam{sign=paramsig, entEnv=entEnv, tdepth=tdepth,
-                rpath=IP.IPATH[paramSym], region=region, compInfo=compInfo}
-
-val tdepth'= DebIndex.next tdepth
-val paramStr =
-  let val paramDacc = DA.newAcc(mkv)
-   in M.STR{sign=paramsig, rlzn=paramEnt, access=paramDacc,
-	    prim=[]}
-  end
-
-val {resDec=rdec1, resStr=bodyStr, resExp=_} =
-  applyFct{fct=srcFct, fctExp=CONSTfct srcFctRlzn, argStr=paramStr,
-           argExp=CONSTstr paramEnt, evOp=NONE, tdepth=tdepth',
-           epc=EPC.initContext (* ? ZHONG *), statenv=statenv,
-           rpath=IP.empty, region=region, compInfo=compInfo}
-
-(* val bodyRlzn = EV.evalApp(srcFctRlzn, paramEnt, tdepth', epc, compInfo) *)
-val bodyRlzn =
-  case bodyStr of M.STR { rlzn, ... } => rlzn
-                | _ => M.bogusStrEntity
-
-val {rlzn=resRlzn, abstycs=abstycs2, tyceps=_} =
-  let val entEnv' =
-        EE.mark(mkStamp, EE.bind(paramvar, STRent paramEnt, entEnv))
-   in INS.instAbstr {sign=bodysig, entEnv=entEnv', srcRlzn=bodyRlzn,
-                     rpath=rpath, region=region, compInfo=compInfo}
-  end
-
-val abstycs = foldr TU.addTycSet abstycs1 abstycs2
-
-val (rdec2, resStr) =
-  let val rpath' = IP.IPATH[S.strSymbol "<FctResult>"]
-   in packStr1(bodysig, resRlzn, bodyStr, abstycs, anonSym,
-               tdepth', entEnv, rpath', statenv, region, compInfo)
-  end
-
-val resFct =
-  let val resDacc = DA.newAcc(mkv)
-   in M.FCT{sign=specSig, rlzn=resFctRlzn, access=resDacc, prim=[]}
-  end
-
-val resDec =
-  let val body = A.LETstr(rdec1, A.LETstr(rdec2, A.VARstr resStr))
-      val fctexp = A.FCTfct{param=paramStr, argtycs=paramTps, def=body}
-   in A.FCTdec [A.FCTB {name=fctName, fct=resFct, def=fctexp}]
-  end
-
-in (resDec, resFct)
-
-end (* function packFct1 *)
-
-| packFct1 _ =  (A.SEQdec [], ERRORfct)
-
-
-(***************************************************************************
- * val applyFct :                                                          *
- *                                                                         *
- *     {fct      : Modules.Functor,                                        *
- *      fctExp   : Modules.fctExp,                                         *
- *      argStr   : Modules.Structure,                                      *
- *      argExp   : Modules.strExp,                                         *
- *      evOp     : EntPath.entVar option,                                  *
- *      tdepth   : DebIndex.depth,                                         *
- *      epc      : EntPathContext.context,                                 *
- *      statenv  : StaticEnv.staticEnv,                                    *
- *      rpath    : InvPath.path,                                           *
- *      region   : SourceMap.region,                                       *
- *      compInfo : ElabUtil.compInfo} -> {resDec : Absyn.dec,              *
- *                                        resStr : Modules.Structure,      *
- *                                        resExp : Modules.strExp}         *
- *                                                                         *
- * Match and coerce the argument and then do the functor application.      *
- * Returns the result structure, the result entity expression, and the     *
- * result abstract syntax declaration of resStr.                           *
- *                                                                         *
- * The argument matching takes place in the entityEnv stored in the        *
- * functor closure; this is where the paramsig must be interpreted.        *
- *                                                                         *
+ * val applyFct :
+ *     {fct      : Modules.Functor,
+ *      fctExp   : Modules.fctExp,
+ *      argStr   : Modules.Structure,
+ *      argExp   : Modules.strExp,
+ *      evOp     : EntPath.entVar option,
+ *      tdepth   : DebIndex.depth,
+ *      epc      : EntPathContext.context,
+ *      statenv  : StaticEnv.staticEnv,
+ *      rpath    : InvPath.path,
+ *      region   : SourceMap.region,
+ *      compInfo : ElabUtil.compInfo}
+ *  -> {resDec : Absyn.dec,
+ *      resStr : Modules.Structure,
+ *      resExp : Modules.strExp}
+ *
+ * Match and coerce the argument and then do the functor application.
+ * Returns the result structure, the result entity expression, and the
+ * result abstract syntax declaration of resStr.
+ *
+ * The argument matching takes place in the entityEnv stored in the
+ * functor closure; this is where the paramsig must be interpreted.
  ***************************************************************************)
 and applyFct{fct as FCT {sign=FSIG{paramsig, bodysig, ...},
 			 rlzn = fctRlzn, ... },

@@ -15,7 +15,7 @@ local
   open Lty
 
   val debugging : bool ref = FLINT_Control.lkdebugging
-  val dp : int ref = FLINT_Control.printDepth
+  val dp : int ref = Control_Print.printDepth
 
   val say = Control_Print.say
   fun newline () = say "\n"
@@ -303,7 +303,7 @@ and tcc_arrow (x as (FF_FIXED, _, _)) = tc_inj (TC_ARROW x)
 		   in (flag, ntycs)
 		   end
 		 | _ => bug "tcc_arrow - multiple tycs")
-	  val (argflag, argtycs) =
+	  val (argflag, argtycs) = 
 	      if argflag then (argflag, argtycs)   (* known argty rep *)
 	      else tcs_autoflat ("argtycs", argtycs)
           val (resflag, restycs) =
@@ -440,7 +440,7 @@ and lt_lzrd t =
    in if ltp_norm(t) then t else g t
   end (* function lt_lzrd *)
 
-(* wrap_reduce : tyc -> tyc
+(* wrap_reduce : tyc -> tyc 
  *  used in TC_WRAP case of tc_whnm
  *  INVARIANT: tc itself is in whnm but wrap_is_whnm tc = false (why ???) *)
 and wrap_reduce tc =

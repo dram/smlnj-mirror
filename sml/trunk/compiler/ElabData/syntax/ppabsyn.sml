@@ -129,7 +129,7 @@ fun ppPat env ppstrm =
 	  | ppPat' (WILDpat,_) = pps "_"
           | ppPat' (NUMpat(src, _), _) = pps src
 	  | ppPat' (STRINGpat s,_) = PU.ppString ppstrm s
-	  | ppPat' (CHARpat c,_) = pps (concat["#\"", Char.toString c, "\""])
+	  | ppPat' (CHARpat c,_) = (pps "#"; PU.ppString ppstrm (Char.toString c))
 	  | ppPat' (LAYEREDpat (v,p),d) =
 	      (openHVBox 0;
 	       ppPat'(v,d); pps " as "; ppPat'(p,d-1);
@@ -262,7 +262,7 @@ fun ppExp (context as (env,source_opt)) ppstrm =
           | ppExp' (NUMexp(src, _), _, _) = pps src
 	  | ppExp' (REALexp(src, _),_,_) = pps src
 	  | ppExp' (STRINGexp s,_,_) = PU.ppString ppstrm s
-	  | ppExp' (CHARexp c,_,_) = pps (concat["#\"", Char.toString c, "\""])
+	  | ppExp' (CHARexp c,_,_) = (pps "#"; PU.ppString ppstrm (Char.toString c))
 	  | ppExp' (r as RECORDexp fields,_,d) =
 	      if isTUPLEexp r
 	      then PU.ppClosedSequence ppstrm
@@ -627,23 +627,22 @@ and ppDec (context as (env,source_opt)) ppstrm =
 	   pps "do";
 	   PP.break ppstrm {nsp=1,offset=2}; ppExp context ppstrm (exp,d-1);
 	   closeBox ())
-        | ppDec'(TYPEdec tycs,d) = let
-	      fun f ppstrm (DEFtyc{path, tyfun=TYFUN{arity,body},...}) =
-		  (case arity
-		    of 0 => ()
-		     | 1 => (pps "'a ")
-		     | n => (PU.ppTuple ppstrm PP.string (typeFormals n);
-                             pps " ");
-		   PU.ppSym ppstrm (InvPath.last path);
-		   pps " = "; ppType env ppstrm body)
-		| f _ _ = bug "ppDec'(TYPEdec)"
-	  in
-	      openHVBox 0;
-	      PU.ppvlist ppstrm ("type "," and ", f, tycs);
-	      closeBox ()
-	  end
-        | ppDec'(DATATYPEdec{datatycs,withtycs},d) = let
-	      fun ppDATA ppstrm (GENtyc { path, arity, kind, ... }) =
+        | ppDec'(TYPEdec tycs,d) =
+	    let fun f ppstrm (DEFtyc{path, tyfun=TYFUN{arity,body},...}) =
+		    (case arity
+		      of 0 => ()
+		       | 1 => (pps "'a ")
+		       | n => (PU.ppTuple ppstrm PP.string (typeFormals n);
+			       pps " ");
+		     PU.ppSym ppstrm (InvPath.last path);
+		     pps " = "; ppType env ppstrm body)
+		  | f _ _ = bug "ppDec'(TYPEdec)"
+	     in openHVBox 0;
+		PU.ppvlist ppstrm ("type "," and ", f, tycs);
+		closeBox ()
+	    end
+        | ppDec'(DATATYPEdec{datatycs,withtycs},d) =
+	    let fun ppDATA ppstrm (GENtyc { path, arity, kind, ... }) =
 		  (case kind
 		     of DATATYPE(_) =>
 		       (case arity
@@ -660,8 +659,8 @@ and ppDec (context as (env,source_opt)) ppstrm =
 			 style=PU.INCONSISTENT}
 			dcons*))
 		     | _ => bug "ppDec'(DATATYPEdec) 1.1")
-		| ppDATA _ _ = bug "ppDec'(DATATYPEdec) 1.2"
-	      fun ppWITH ppstrm (DEFtyc{path, tyfun=TYFUN{arity,body},...}) =
+		  | ppDATA _ _ = bug "ppDec'(DATATYPEdec) 1.2"
+		fun ppWITH ppstrm (DEFtyc{path, tyfun=TYFUN{arity,body},...}) =
 		  (case arity
 		    of 0 => ()
 		     | 1 => (pps "'a ")
@@ -670,14 +669,14 @@ and ppDec (context as (env,source_opt)) ppstrm =
 		   PU.ppSym ppstrm (InvPath.last path);
 		   pps " = "; ppType env ppstrm body)
 		| ppWITH _ _ = bug "ppDec'(DATATYPEdec) 2"
-	  in
+	    in
 	      (* could call PPDec.ppDec here *)
 	      openHVBox 0;
 	      PU.ppvlist ppstrm ("datatype ","and ", ppDATA, datatycs);
 	      PP.newline ppstrm;
 	      PU.ppvlist ppstrm ("withtype ","and ", ppWITH, withtycs);
 	      closeBox ()
-	  end
+	    end
         | ppDec'(ABSTYPEdec _,d) = pps "ppDec'[ABSTYPEdec]"
 
         | ppDec'(EXCEPTIONdec ebs,d) =
@@ -821,8 +820,8 @@ and ppStrexp (context as (statenv,source_opt)) ppstrm =
 	       pps "struct";
 	       PU.ppvseq ppstrm 2 ""
 		 (fn ppstrm => fn binding =>
-		     PPModules.ppBinding ppstrm
-			(Bindings.bindingSymbol binding,binding,statenv,d-1))
+		     PPModules.ppBinding ppstrm statenv
+			(Bindings.bindingSymbol binding, binding, d-1))
 		 bindings;
 	       pps "end";
                PP.closeBox ppstrm)

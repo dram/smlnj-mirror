@@ -5,18 +5,17 @@
  *)
 
 signature TRANSTYPES =
-  sig
-
-    val genTT  : unit -> {
-	    tpsKnd : Types.tycpath -> Lty.tkind,
-	    tpsTyc : DebIndex.depth -> Types.tycpath -> Lty.tyc,
-	    toTyc  : DebIndex.depth -> Types.ty -> Lty.tyc,
-	    toLty  : DebIndex.depth -> Types.ty -> Lty.lty,
-	    strLty : Modules.Structure * DebIndex.depth * ElabUtil.compInfo -> Lty.lty,
-	    fctLty : Modules.Functor * DebIndex.depth * ElabUtil.compInfo -> Lty.lty
-	  }
-
-  end (* signature TRANSTYPES *)
+sig
+  val genTT  : unit -> {tpsKnd : Types.tycpath -> Lty.tkind,
+                        tpsTyc : DebIndex.depth -> Types.tycpath
+                                 -> Lty.tyc,
+                        toTyc  : DebIndex.depth -> Types.ty -> Lty.tyc,
+                        toLty  : DebIndex.depth -> Types.ty -> Lty.lty,
+                        strLty : Modules.Structure * DebIndex.depth
+                                 * ElabUtil.compInfo -> Lty.lty,
+                        fctLty : Modules.Functor * DebIndex.depth
+                                 * ElabUtil.compInfo -> Lty.lty}
+end (* signature TRANSTYPES *)
 
 structure TransTypes : TRANSTYPES =
   struct
@@ -144,10 +143,10 @@ and tycTyc (tc, d) =
                 val _ = exitRecTy()
 
                 val resTyc = if i=0 then core
-                             else (let val ks = LT.tkc_arg i
+                             else (let val ks = LD.tkc_arg i
                                     in LD.tcc_fn(ks, core)
                                    end)
-             in (LT.tkc_int i, resTyc)
+             in (LD.tkc_int i, resTyc)
             end
 
       fun dtsFam (freetycs, fam as { members, ... } : dtypeFamily) =
@@ -156,9 +155,9 @@ and tycTyc (tc, d) =
               LB.tc_adj(tc, od, d) (* invariant: tc contains no free variables
 				    * so tc_adj should have no effects *)
 	    | NONE =>
-              let fun ttk (GENtyc { arity, ... }) = LT.tkc_int arity
+              let fun ttk (GENtyc { arity, ... }) = LD.tkc_int arity
                     | ttk (DEFtyc{tyfun=TYFUN{arity=i, ...},...}) =
-		      LT.tkc_int i
+		      LD.tkc_int i
                     | ttk _ = bug "unexpected ttk in dtsFam"
                   val ks = map ttk freetycs
                   val (nd, hdr) =
@@ -201,7 +200,7 @@ and tycTyc (tc, d) =
                say " in translate: ";
                say (EntPath.entPathToString entPath);
                say "\n"; *)
-               if arity > 0 then LD.tcc_fn(LT.tkc_arg arity, LB.tcc_void)
+               if arity > 0 then LD.tcc_fn(LD.tkc_arg arity, LB.tcc_void)
                else LB.tcc_void)
         | g (ERRORtyc) = bug "unexpected tycon in tycTyc-g"
 
@@ -210,7 +209,7 @@ and tycTyc (tc, d) =
 
 and tfTyc (TYFUN{arity=0, body}, d) = toTyc d body
   | tfTyc (TYFUN{arity, body}, d) =
-      let val ks = LT.tkc_arg arity
+      let val ks = LD.tkc_arg arity
        in LD.tcc_fn(ks, toTyc (DI.next d) body)
       end
 
@@ -280,7 +279,7 @@ and toTyc d t =
 
 and toLty d (POLYty {tyfun=TYFUN{arity=0, body}, ...}) = toLty d body
   | toLty d (POLYty {tyfun=TYFUN{arity, body},...}) =
-      let val ks = LT.tkc_arg arity
+      let val ks = LD.tkc_arg arity
        in LD.ltc_poly(ks, [toLty (DI.next d) body])
       end
   | toLty d x = LD.ltc_tyc (toTyc d x)
@@ -312,8 +311,8 @@ fun specLty (elements, entEnv, depth, compInfo) =
                           withInternals(fn () =>
                            debugPrint("entEnv: ",
                                  (fn pps => fn ee =>
-                                  PPModules.ppEntityEnv pps (ee,SE.empty,12)),
-                                  entEnv));
+                                    PPModules_DB.ppEntityEnv pps SE.empty (ee, 12)),
+                                 entEnv));
                           dbsaynl ("$specLty: should have printed entEnv");
                           raise EE.Unbound))
 

@@ -72,8 +72,7 @@ struct
     val printValue = say o valueToString
     fun printVar v = say (!lvarToStringRef v)
 
-    val with_pp = PP.with_default_pp_sans (!FLINT_Control.lineWidth)
-(*    val ppToString = PP.pp_to_string_sans (!FLINT_Control.lineWidth) *)
+    val with_pp = PP.with_default_pp_sans (!Control.Print.lineWidth)
     
     fun printTyc tyc = (* say o LB.tc_print *)
 	with_pp
@@ -369,7 +368,7 @@ struct
 	    of [] => ()
 	     | ((lvar,lty)::L) =>
 		  (printVar lvar; say " : ";
-		   if !CTRL.printFctTypes orelse cconv <> FR.CC_FCT
+		   if !Control.FLINT.printFctTypes orelse cconv <> FR.CC_FCT
 		   then printLty lty else say "???";
 		   app (fn (lvar,lty) =>
 			(say ","; newline(); dent();

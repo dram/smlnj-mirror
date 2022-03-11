@@ -33,6 +33,7 @@ Group
 	signature PPTYPE
 	signature PPABSYN
 	signature PPMOD
+	signature PPMOD_DB
 	signature PPVAL
 	signature EQTYPES
 	signature EXPAND_TYCON
@@ -60,6 +61,7 @@ Group
 	structure Modules
 	structure ModuleUtil
 	structure PPModules
+	structure PPModules_DB
 	structure ModuleId
 	structure EntityEnv
 	structure EntPathContext
@@ -134,6 +136,7 @@ is
 	modules/modules.sig
 	modules/modules.sml
 	modules/ppmod.sml
+	modules/ppmod-db.sml
 	modules/entpath.sml
 	modules/epcontext.sml
 	modules/moduleutil.sig

@@ -11,40 +11,40 @@ struct
        val obscurity = 5
        val prefix = "flint"
 
-       val registry = ControlRegistry.new { help = "FLINT optimizer settings" }
+       val registry = ControlRegistry.new
+			  { help = "FLINT optimizer settings" }
 
        val _ = BasicControl.nest (prefix, registry, priority)
 
        val flag_cvt = ControlUtil.Cvt.bool
        val int_cvt = ControlUtil.Cvt.int
+       val string_cvt = ControlUtil.Cvt.string
        val sl_cvt = ControlUtil.Cvt.stringList
 
        val nextpri = ref 0
 
-       fun new (cvtFn, name: string, help: string, default) = let
-	   val r = ref default
-           val p = !nextpri
-           val ctl = Controls.control { name = name,
-                                        pri = [p],
-                                        obscurity = obscurity,
-                                        help = help,
-                                        ctl = r }
-	   in
-              nextpri := p + 1;
+       fun new (cvt_fn, name: string, help: string, default) =
+	   let val r = ref default
+	       val p = !nextpri
+	       val ctl = Controls.control { name = name,
+					    pri = [p],
+					    obscurity = obscurity,
+					    help = help,
+					    ctl = r }
+	   in nextpri := p + 1;
 	      ControlRegistry.register registry
-	       { ctl = Controls.stringControl cvtFn ctl,
+	       { ctl = Controls.stringControl cvt_fn ctl,
 		 envName = SOME (ControlUtil.EnvName.toUpper "FLINT_" name) };
 	      r
 	   end
    in
 
-    val print	      = new (flag_cvt, "print", "show IR after each phase", false)
+    val printAllIR    = new (flag_cvt, "print", "show IR after each phase", false)
+    val printPlambda  = new (flag_cvt, "print", "show plambda IR after translate", false)
+    val printFlint    = new (flag_cvt, "print", "show flint IR after each phase", false)
     val printPhases   = new (flag_cvt, "print-phases", "show phases", false)
     val printFctTypes = new (flag_cvt, "print-fct-types",
 			     "show function types", false)
-    val printDepth    = new (int_cvt, "printDepth", "FLINT PP print depth", 200)
-    val lineWidth     = new (int_cvt, "lineWidth", "FLINT PP line width", 200)
-
     val lkdebugging   = new (flag_cvt, "lkdebugging", "LtyKernel debugging", false)
     val tmdebugging   = new (flag_cvt, "tmdebugging", "TransTypes debugging", false)
     val trdebugging   = new (flag_cvt, "trdebugging", "Translate debugging", false)
@@ -89,14 +89,16 @@ struct
 	      "fixfix",          (* 12 *)
 	      "fcontract+eta"])  (* 13 *)
 
-    fun insertPhase (phaseName: string, pos: int) : unit =
+    val currentPhase = new (string_cvt, "currentPhase", "current FlintOpt phase", "nophase")
+
+    fun insertPhase (phaseName: string, pos: int) : unit = 
 	let val phases0 = !phases
             fun insert (0, prefix, rest) = List.revAppend (prefix, phaseName :: rest)
 	      | insert (n, prefix, nil) = raise Subscript
 	      | insert (n, prefix, p::ps) = insert(n-1, p::prefix, ps)
 	in phases := insert(pos, nil, phases0)
 	end
-
+	    
     val inlineThreshold = new (int_cvt, "inline-theshold", "inline threshold", 16)
     (* val splitThreshold  = ref 0 *)
     val unrollThreshold = new (int_cvt, "unroll-threshold", "unroll threshold", 20)
@@ -119,10 +121,9 @@ struct
 
     (* FLINT internal type-checking controls *)
     val check = new (flag_cvt, "check", "whether to typecheck the IR", false)
-
+        (* fails on MLRISC/*/*RegAlloc.sml *)
     val checkDatatypes = new (flag_cvt, "check-datatypes", "typecheck datatypes", false)
 	(* loops on the new cm.sml *)
-
     val checkKinds = new (flag_cvt, "check-kinds",
 			  "check kinding information", true)
 

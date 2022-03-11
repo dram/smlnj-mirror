@@ -16,7 +16,7 @@ local
   structure CO = Coerce
   structure DI = DebIndex
   structure PO = Primop
-  structure LV = LambdaVar
+  structure LV = LambdaVar 
   structure DA = Access
   structure LT = Lty
   structure FR = FunRecMeta
@@ -40,21 +40,21 @@ val ident = fn x => x
 
 (* mkLvars : int -> LV.lvar list) *)
 fun mkLvars n = List.tabulate (n, fn i => LV.mkLvar ())
-
+			      
 (****************************************************************************
  *                   MISC UTILITY FUNCTIONS                                 *
  ****************************************************************************)
 local (* utility functions *)
     val lt_upd =
         let val x = LB.ltc_array (LB.ltc_tv 0)
-         in LD.ltc_poly([LT.tkc_mono],
+         in LD.ltc_poly([LD.tkc_mono],
               [LD.ltc_arrow(LB.ffc_rrflint, [x, LB.ltc_int, LB.ltc_tv 0],
                                             [LB.ltc_unit])])
         end
 
     val lt_sub =
         let val x = LB.ltc_array (LB.ltc_tv 0)
-         in LD.ltc_poly([LT.tkc_mono],
+         in LD.ltc_poly([LD.tkc_mono],
               [LD.ltc_arrow(LB.ffc_rrflint, [x, LB.ltc_int], [LB.ltc_tv 0])])
         end
 in

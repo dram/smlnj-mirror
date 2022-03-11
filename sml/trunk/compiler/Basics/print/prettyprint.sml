@@ -12,18 +12,18 @@
 
 
 signature PRETTYPRINT =
-  sig
-    include PP_STREAM
-    val openVBoxI : stream -> int -> unit
-    val defaultDevice : device
-    val mkDevice : int -> device
-    val with_pp : device -> (stream -> unit) -> unit
-    val with_pp_sans : device -> (stream -> unit) -> unit
-    val with_default_pp : (stream -> unit) -> unit
-    val with_default_pp_sans: int -> (stream -> unit) -> unit  (* 1st arg is linewidth *)
-    val pp_to_string : int -> (stream -> 'a -> unit) -> 'a -> string
-    val pp_to_string_sans : int -> (stream -> 'a -> unit) -> 'a -> string
-  end
+sig
+  include PP_STREAM
+  val openVBoxI : stream -> int -> unit
+  val defaultDevice : device
+  val mkDevice : int -> device
+  val with_pp : device -> (stream -> unit) -> unit
+  val with_pp_sans : device -> (stream -> unit) -> unit
+  val with_default_pp : (stream -> unit) -> unit
+  val with_default_pp_sans: int -> (stream -> unit) -> unit  (* 1st arg is linewidth *)
+  val pp_to_string : int -> (stream -> 'a -> unit) -> 'a -> string
+  val pp_to_string_sans : int -> (stream -> 'a -> unit) -> 'a -> string
+end
 
 structure PrettyPrint : PRETTYPRINT =
   struct
@@ -78,7 +78,7 @@ structure PrettyPrint : PRETTYPRINT =
 
     val defaultDevice : device =
 	{consumer = Control_Print.say,
-	 linewidth = (fn () => !Control_Print.linewidth),
+	 linewidth = (fn () => !Control_Print.lineWidth),
 	 flush = Control_Print.flush}
 
     fun mkDevice (lineWidth : int) : device =
@@ -131,4 +131,4 @@ structure PrettyPrint : PRETTYPRINT =
 	    String.concat(List.rev(!buffer))
 	end
 
-  end (* structure PrettyPrint *)
+end (* structure PrettyPrint *)
