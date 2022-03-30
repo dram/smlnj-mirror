@@ -38,7 +38,7 @@ be viewed as *beta* software.  The major changes are
 * The version numbering scheme has changed to a `YYYY.NN` scheme, where `YYYY` is the
   year of the release and `NN` is the release number for the year.
 * The **MLRISC** code generator that we have used for over 25 years has been replaced
-  with one based on the https:llvm.org[**LLVM Libraries**]
+  with one based on the https://llvm.org[**LLVM Libraries**]
 * We have dropped support for 32-bit systems.  Since we do not
   have a 64-bit Windows port yet, this version only supports "Unix"
   systems on the *AMD64* processor (we have tested *Linux* and
