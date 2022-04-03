@@ -99,6 +99,17 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 == Version 110.99.2; 2021/09/23
 
 //--------------------------------------------------------------------
+[2022/04/03]::
++
+Fix a module compilation performance bug by removing packStr and
+packFct from Elaborator/modules/sigmatch.sml (reducing the size of
+that file by about 25%), and removing the call of packStr
+(in function constrStr) in Elaborator/elaborate/elabmod.sml, replacing
+it with a call to Instantiate.instAbstr. Goodbye at last to packStr!
++
+owner:cs.uchicago.edu/~dbm[Dave MacQueen]
+
+//--------------------------------------------------------------------
 [2021/08/18]::
 +
 Fix a benign bug where the size of a floating-point spill record was twice
