@@ -15,10 +15,9 @@ sig
           epContext : EntPathContext.context,
           path      : InvPath.path,
           region    : SourceMap.region,
-          compInfo  : ElabUtil.compInfo} -> {absyn     : Absyn.dec,
-                                             statenv   : StaticEnv.staticEnv}
-
-  val debugging : bool ref
+          compInfo  : ElabUtil.compInfo}
+      -> {absyn     : Absyn.dec,
+          statenv   : StaticEnv.staticEnv}
 
 end (* signature ELABMOD *)
 
@@ -607,29 +606,29 @@ fun extractSig (env, epContext, context,
 
 
 (****************************************************************************
- *                                                                          *
- * The constrStr function is used to carry out the signature matching       *
- * on structure declarations with signature constraints. The first argument *
- * "transp" is a boolean flag; it is used to indicate whether the signature *
- * matching should be done transparently (true) or opaquely (false).        *
- *                                                                          *
+ * The constrStr function is used to carry out the signature matching
+ * on structure declarations with signature constraints. The first argument
+ * "transp" is a boolean flag used to indicate whether the signature
+ * matching should be done transparently (true) or opaquely (false).
+ * (called 3 times within this module).
  ****************************************************************************)
 fun constrStr(transp, sign, str, strDec, strExp, evOp, tdepth, entEnv, rpath,
               env, region, compInfo) : A.dec * M.Structure * M.strExp =
-  let val {resDec=resDec1, resStr=resStr1, resExp=resExp1} =
-        SM.matchStr{sign=sign, str=str, strExp=strExp, evOp=evOp,
-                    tdepth=tdepth, entEnv=entEnv, rpath=rpath, statenv=env,
-                    region=region, compInfo=compInfo}
-
-   in if transp then (A.SEQdec[strDec, resDec1], resStr1, resExp1)
-      else let val {resDec=resDec2, resStr=resStr2, resExp=resExp2} =
-		   SM.packStr{sign=sign, str=resStr1, strExp=resExp1,
-                              tdepth=tdepth, entEnv=entEnv, rpath=rpath,
-                              statenv=env, region=region, compInfo=compInfo}
-            in (A.SEQdec[strDec, resDec1, resDec2], resStr2, resExp2)
-           end
-  end
-
+  let val {resDec=matchedDec, resStr=matchedStr, resExp=matchedExp} =
+          SM.matchStr{sign=sign, str=str, strExp=strExp, evOp=evOp,
+                      tdepth=tdepth, entEnv=entEnv, statenv=env, rpath=rpath,
+                      region=region, compInfo=compInfo}
+   in if transp
+      then (A.SEQdec[strDec, matchedDec], matchedStr, matchedExp)
+      else (* instantiate the signature (opaque match) *)
+	   let val STR {rlzn=matchedRlzn, access, prim, ...} = matchedStr
+	       val {rlzn=abstractRlzn, ...} =
+		   INS.instAbstr {sign=sign, entEnv=entEnv, srcRlzn=matchedRlzn,
+				  rpath=rpath, region=region, compInfo=compInfo}
+	       val abstractStr = STR {sign=sign, rlzn=abstractRlzn, access=access, prim=prim}
+            in (A.SEQdec[strDec, matchedDec], abstractStr, matchedExp)
+	   end
+  end (* fun constrStr *)
 
 (*** elabStr: elaborate the raw structure, without signature constraint ***)
 (*** several invariants:
