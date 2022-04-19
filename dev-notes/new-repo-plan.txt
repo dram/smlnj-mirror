@@ -1,0 +1,27 @@
+We plan to migrate the SML/NJ project to GitHub over the spring/summer
+of 2022.  We will take this opportunity to reorganize the structure of
+the repository.
+
+The following is a proposal for organizing the repository on GitHub.
+The basic idea is that core pieces of the system are in top-level
+directories, while support tools and libraries are in the `tools`
+and `libraries` directories.
+
+smlnj/
+        basis-lib/                      -- SML Basis Library + SML/NJ Basis
+        cm/                             -- compilation manager
+        libraries/
+                ckit/
+                cml/
+        runtime/                        -- runtime system
+        sml/                            -- interactive system
+        smlc-lib/                       -- compiler library
+        smlnj-lib/                      -- SML/NJ libraries
+        tools/
+                asdl
+                ml-burg
+                ml-lex
+                ml-lpt
+                ml-yacc
+                nlffi
+                smldoc
