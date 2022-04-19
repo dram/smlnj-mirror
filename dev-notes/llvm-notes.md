@@ -490,7 +490,7 @@ attribute on functions
 (see https://github.com/llvm/llvm-project/commit/4dba59689d008df7be37733de4bb537b2911d3ad[commit 4dba59689d008df7be37733de4bb537b2911d3ad]).
 To work around this problem, we remove (or comment out) the following code from
 the `SelectionDAGISel::LowerArguments` function in
-`lib/CodeGen/SelectionDAG/SelectionDAGBuilder.cpp` file.
+`$LLVM/lib/CodeGen/SelectionDAG/SelectionDAGBuilder.cpp` file.
 
 ``` c++
   // In Naked functions we aren't going to save any registers.
