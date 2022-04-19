@@ -303,7 +303,7 @@ is writting in a different style (*e.g.*, conditionals instead of `switch`
 statements for testing calling conventions).  As before, we need to modify a number
 of files in the directory `$LLVM/lib/Target/AArch64/`.
 
-### `AArch64CallingConvention.td`
+#### `AArch64CallingConvention.td`
 
 At the end of the file, add the following code:
 
@@ -356,7 +356,7 @@ def RetCC_AArch64_JWA : CallingConv<[
 Note that the `let Entry = 1` is necessary to make the function visible in the `llvm`
 namespace; otherwise it will be marked as a `static` function.
 
-### `AArch64CallingConvention.h`
+#### `AArch64CallingConvention.h`
 
 Add the following function prototypes:
 
@@ -369,7 +369,7 @@ bool RetCC_AArch64_JWA(unsigned ValNo, MVT ValVT, MVT LocVT,
                          CCState &State);
 ```
 
-### `AArch64FastISel.cpp`
+#### `AArch64FastISel.cpp`
 
 In the method `AArch64FastISel::CCAssignFnForCall`, we add the following statement
 before the final return:
@@ -391,7 +391,7 @@ with
                       : RetCC_AArch64_AAPCS;
 ```
 
-### `AArch64RegisterInfo.cpp`
+#### `AArch64RegisterInfo.cpp`
 
 In the method `AArch64RegisterInfo::getCalleeSavedRegs`, add the following test
 following the similar code for the `GHC` convention.
@@ -419,7 +419,7 @@ method:
   assert(CC != CallingConv::JWA && "should not be JWA calling convention.");
 ```
 
-### `AArch64ISelLowering.cpp`
+#### `AArch64ISelLowering.cpp`
 
 There are several changes to the `$LLVM/lib/Target/AArch64/AArch64ISelLowering.cpp`
 file.  In the method `AArch64TargetLowering::CCAssignFnForCall`, add the case
@@ -464,7 +464,7 @@ should be replaced by
 ```
 This change is not necessary for LLVM 12+.
 
-### `AArch64FrameLowering.cpp`
+#### `AArch64FrameLowering.cpp`
 
 We add the following statement
 
@@ -482,6 +482,21 @@ in three places (following the similar code for the `GHC` calling convention):
   * in method `AArch64FrameLowering::emitEpilogue`
 
   * in method `AArch64FrameLowering::determineCalleeSaves`
+
+### `SelectionDAGBuilder.cpp`
+
+In Version 11.0.0 of *LLVM*, a change was made that breaks the use of the `naked`
+attribute on functions
+(see https://github.com/llvm/llvm-project/commit/4dba59689d008df7be37733de4bb537b2911d3ad[commit 4dba59689d008df7be37733de4bb537b2911d3ad]).
+To work around this problem, we remove (or comment out) the following code from
+the `SelectionDAGISel::LowerArguments` function in
+`lib/CodeGen/SelectionDAG/SelectionDAGBuilder.cpp` file.
+
+``` c++
+  // In Naked functions we aren't going to save any registers.
+  if (F.hasFnAttribute(Attribute::Naked))
+    return;
+```
 
 ## Building LLVM
 
