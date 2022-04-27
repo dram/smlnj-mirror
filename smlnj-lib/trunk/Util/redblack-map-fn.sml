@@ -173,16 +173,14 @@ functor RedBlackMapFn (K : ORD_KEY) :> ORD_MAP where type Key.ord_key = K.ord_ke
 	    look t
 	  end
 
-  (* Remove an item, returning new map and value removed.
-   * Raises LibBase.NotFound if not found.
-   *)
     local
       datatype 'a zipper
 	= TOP
 	| LEFT of (color * K.ord_key * 'a * 'a tree * 'a zipper)
 	| RIGHT of (color * 'a tree * K.ord_key * 'a * 'a zipper)
+      datatype 'a result = FOUND of 'a * 'a tree | NOT_FOUND
     in
-    fun remove (MAP(nItems, t), k) = let
+    fun remove' (t, k) = let
 	(* zip the zipper *)
 	  fun zip (TOP, t) = t
 	    | zip (LEFT(color, xk, x, b, z), a) = zip(z, T(color, a, xk, x, b))
@@ -259,39 +257,48 @@ functor RedBlackMapFn (K : ORD_KEY) :> ORD_MAP where type Key.ord_key = K.ord_ke
 		end
 	    | delMin (T(color, a, yk, y, b), z) = delMin(a, LEFT(color, yk, y, b, z))
 	    | delMin (E, _) = raise Match
-	  fun del (E, p) = raise LibBase.NotFound
+	  fun del (E, p) = NOT_FOUND
 	    | del (T(color, a, yk, y, b), p) = (case K.compare(k, yk)
 		 of LESS => del (a, LEFT(color, yk, y, b, p))
 		  | EQUAL => (case (color, a, b)
-		       of (R, E, E) => (y, zip(p, E))
-			| (B, E, E) => (y, #2 (fixupZip (p, E)))
+		       of (R, E, E) => FOUND(y, zip(p, E))
+			| (B, E, E) => FOUND(y, #2 (fixupZip (p, E)))
 			| (_, T(_, a', yk', y', b'), E) =>
 			  (* node is black and left child is red; we replace the node with its
 			   * left child recolored to black.
 			   *)
-			    (y, zip(p, T(B, a', yk', y', b')))
+			    FOUND(y, zip(p, T(B, a', yk', y', b')))
 			| (_, E, T(_, a', yk', y', b')) =>
 			  (* node is black and right child is red; we replace the node with its
 			   * right child recolored to black.
 			   *)
-			    (y, zip(p, T(B, a', yk', y', b')))
+			    FOUND(y, zip(p, T(B, a', yk', y', b')))
 			| _ => let
 			    val (minKey, minElem, blkDeficit, b) = delMin (b, TOP)
 			    in
 			      if blkDeficit
-				then (y, #2 (fixupZip (RIGHT(color, a, minKey, minElem, p), b)))
-				else (y, zip (p, T(color, a, minKey, minElem, b)))
+				then FOUND(y, #2 (fixupZip (RIGHT(color, a, minKey, minElem, p), b)))
+				else FOUND(y, zip (p, T(color, a, minKey, minElem, b)))
 			    end
 		      (* end case *))
 		  | GREATER => del (b, RIGHT(color, a, yk, y, p))
 		(* end case *))
-	  val (item, t) = del(t, TOP)
 	  in
-	    case t
-	     of T(R, a, xk, x, b) => (MAP(nItems-1, T(B, a, xk, x, b)), item)
-	      | t => (MAP(nItems-1, t), item)
-	    (* end case *)
+            del (t, TOP)
 	  end
+  (* Remove an item, returning new map and value removed.
+   * Raises LibBase.NotFound if not found.
+   *)
+    fun remove (MAP(nItems, t), k) = (case remove' (t, k)
+           of FOUND(item, T(R, a, xk, x, b)) => (MAP(nItems-1, T(B, a, xk, x, b)), item)
+            | FOUND(item, t) => (MAP(nItems-1, t), item)
+            | NOT_FOUND => raise LibBase.NotFound
+          (* end case *))
+    fun findAndRemove (MAP(nItems, t), k) = (case remove' (t, k)
+           of FOUND(item, T(R, a, xk, x, b)) => SOME(MAP(nItems-1, T(B, a, xk, x, b)), item)
+            | FOUND(item, t) => SOME(MAP(nItems-1, t), item)
+            | NOT_FOUND => NONE
+          (* end case *))
     end (* local *)
 
   (* return the first item in the map (or NONE if it is empty) *)
@@ -646,4 +653,4 @@ functor RedBlackMapFn (K : ORD_KEY) :> ORD_MAP where type Key.ord_key = K.ord_ke
 	    fn (MAP(_, m)) => all' m
 	  end
 
-  end;
+  end (* functor RedBlackMapFn *)

@@ -135,6 +135,7 @@ functor SplayMapFn (K : ORD_KEY) :> ORD_MAP where type Key.ord_key = K.ord_key =
 		else (MAP{root=ref(join(left,right)),nobj=nobj-1}, #2 value)
 	    | (_,r) => (root := r; raise LibBase.NotFound)
 	  (* end case *))
+    fun findAndRemove arg = SOME(remove arg) handle LibBase.NotFound => NONE
 
 	(* Return the number of items in the table *)
     fun numItems EMPTY = 0

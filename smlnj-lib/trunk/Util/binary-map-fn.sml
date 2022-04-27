@@ -230,6 +230,8 @@ in
             | _ => (delete'(left,right),value)
 	  (* end case *))
 
+    fun findAndRemove arg = SOME(remove arg) handle LibBase.NotFound => NONE
+
     fun listItems d = let
 	  fun d2l (E, l) = l
 	    | d2l (T{key,value,left,right,...}, l) =

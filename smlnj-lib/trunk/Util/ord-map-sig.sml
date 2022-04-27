@@ -49,6 +49,12 @@ signature ORD_MAP =
     val inDomain : ('a map * Key.ord_key) -> bool
 	(* return true, if the key is in the domain of the map *)
 
+    val findAndRemove : 'a map * Key.ord_key -> ('a map * 'a) option
+        (* If an item with the specified key exists in the map, then it
+         * is removed and the residual map and the item are returned.
+         * Otherwise, `None` is returned.
+         *)
+
     val remove : 'a map * Key.ord_key -> 'a map * 'a
 	(* Remove an item, returning new map and value removed.
          * Raises LibBase.NotFound if not found.

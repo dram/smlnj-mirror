@@ -223,6 +223,8 @@ in
             in (T'(key,value,left,right'),v) end
           else (delete'(left,right),value)
 
+    fun findAndRemove arg = SOME(remove arg) handle LibBase.NotFound => NONE
+
     fun listItems d = let
 	  fun d2l (E, l) = l
 	    | d2l (T{key,value,left,right,...}, l) =
