@@ -82,9 +82,9 @@ structure IntListMap :> ORD_MAP where type Key.ord_key = Int.int =
     fun lookup (l, key) = let
 	  fun f [] = raise LibBase.NotFound
 	    | f ((key', x) :: r) =
-		if (key < key') then raise LibBase.NotFound
-		else if (key = key') then x
-		else f r
+                  if (key' < key) then f r
+                  else if (key' = key) then x
+                  else raise LibBase.NotFound
 	  in
 	    f l
 	  end
@@ -94,11 +94,20 @@ structure IntListMap :> ORD_MAP where type Key.ord_key = Int.int =
    *)
     fun remove (l, key) = let
 	  fun f (_, []) = raise LibBase.NotFound
-	    | f (prefix, (elem as (key', x)) :: r) = (case Key.compare(key, key')
-		   of LESS => raise LibBase.NotFound
-		    | EQUAL => (List.revAppend(prefix, r), x)
-		    | GREATER => f(elem :: prefix, r)
-		  (* end case *))
+	    | f (prefix, (elem as (key', x)) :: r) =
+                  if (key' < key) then f(elem :: prefix, r)
+                  else if (key' = key) then (List.revAppend(prefix, r), x)
+                  else raise LibBase.NotFound
+	  in
+	    f ([], l)
+	  end
+
+    fun findAndRemove (l, key) = let
+	  fun f (_, []) = raise LibBase.NotFound
+	    | f (prefix, (elem as (key', x)) :: r) =
+                  if (key' < key) then f(elem :: prefix, r)
+                  else if (key' = key) then SOME(List.revAppend(prefix, r), x)
+                  else NONE
 	  in
 	    f ([], l)
 	  end

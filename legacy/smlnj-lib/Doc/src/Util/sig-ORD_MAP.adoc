@@ -55,6 +55,8 @@ val inDomain : ('a map * Key.ord_key) -> bool
 
 val remove : 'a map * Key.ord_key -> 'a map * 'a
 
+val findAndRemove : 'a map * Key.ord_key -> ('a map * 'a) option
+
 val first : 'a map -> 'a option
 val firsti : 'a map -> (Key.ord_key * 'a) option
 
@@ -152,6 +154,11 @@ val alli : (Key.ord_key * 'a -> bool) -> 'a map -> bool
   and where `m'` is `m` with `key` removed from its domain.  If `key`
   is not in the domain of `m`, then it raises the exception
   xref:str-LibBase.adoc#exn:NotFound[`NotFound`].
+
+`[.kw]#val# findAndRemove : 'a map * Key.ord_key \-> ('a map * 'a) option`::
+  `findAndRemove (m, key)` returns `SOME(m', v)`, if `m` maps `key` to `v`
+  and where `m'` is `m` with `key` removed from its domain.  If `key`
+  is not in the domain of `m`, then it returns `NONE`.
 
 `[.kw]#val# first : 'a map \-> 'a option`::
   `first m` returns `SOME item` when `item` is the value associated with

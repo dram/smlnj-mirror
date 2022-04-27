@@ -105,6 +105,17 @@ functor ListMapFn (K : ORD_KEY) :> ORD_MAP where type Key.ord_key = K.ord_key =
 	    f ([], l)
 	  end
 
+    fun findAndRemove (l, key) = let
+	  fun f (_, []) = NONE
+	    | f (prefix, (elem as (key', x)) :: r) = (case Key.compare(key, key')
+		   of LESS => NONE
+		    | EQUAL => SOME(List.revAppend(prefix, r), x)
+		    | GREATER => f(elem :: prefix, r)
+		  (* end case *))
+	  in
+	    f ([], l)
+	  end
+
   (* Return the number of items in the map *)
     fun numItems l = List.length l
 

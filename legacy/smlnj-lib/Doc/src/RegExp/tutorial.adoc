@@ -55,11 +55,11 @@ We can then define the scanner as follows:
 fun scanner getc gets = let
       fun getMatch cons (MT.Match({pos, len}, _)) = cons (gets (pos, len))
       in
-	RE.match [
-	    ("[ \t\n]+", getMatch (fn _ => WS)),
-	    ("[0-9]+", getMatch (fn s => NUM(valOf(IntInf.fromString s)))),
-	    ("[a-zA-Z][a-zA-Z0-9]*", getMatch ID)
-	  ] getc
+        RE.match [
+            ("[ \t\n]+", getMatch (fn _ => WS)),
+            ("[0-9]+", getMatch (fn s => NUM(valOf(IntInf.fromString s)))),
+            ("[a-zA-Z][a-zA-Z0-9]*", getMatch ID)
+          ] getc
       end
 ------------
 
@@ -79,12 +79,12 @@ terms of the `getc` function as follows:
 ------------
 fun gets getc (strm, n) = let
       fun getChrs (0, _, chrs) = String.implodeRev chrs
-	| getChrs (n, strm, chrs) = (case getc strm
-	     of NONE => raise Fail "empty stream"
-	      | SOME(c, strm) => getChrs (n-1, strm, c::chrs)
-	    (* end case *))
+        | getChrs (n, strm, chrs) = (case getc strm
+             of NONE => raise Fail "empty stream"
+              | SOME(c, strm) => getChrs (n-1, strm, c::chrs)
+            (* end case *))
       in
-	getChrs (n, strm, [])
+        getChrs (n, strm, [])
       end;
 ------------
 
@@ -101,10 +101,10 @@ fun tokens s = let
       fun gets (ss, n) = Substring.string(Substring.slice (ss, 0, SOME n))
       val scan = scanner Substring.getc gets
       fun lp (ss, toks) = (case scan ss
-	     of SOME(tok, ss') => lp (ss', tok::toks)
-	      | NONE => List.rev toks
-	    (* end case *))
+             of SOME(tok, ss') => lp (ss', tok::toks)
+              | NONE => List.rev toks
+            (* end case *))
       in
-	lp (Substring.full s, [])
+        lp (Substring.full s, [])
       end;
 ------------
