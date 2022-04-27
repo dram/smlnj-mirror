@@ -2,7 +2,15 @@ This is a list of changes to the SML/NJ Library; the version numbers
 correspond to SML/NJ releases.
 
 --------------------------------------------------------------------------------
-SML/NJ 2021.1
+SML/NJ 110.99.3
+-------------------
+
+[2022-04-27]
+	Added `findAndRemove` function to `ORD_MAP` interface.
+
+--------------------------------------------------------------------------------
+
+SML/NJ 110.99.2
 -------------------
 
 [2021-07-28]
