@@ -1,0 +1,82 @@
+// A template for creating release notes for a version
+//
+:version: 2022.1
+:date: ??
+:dist-dir: https://smlnj.org/dist/working/{version}/
+:history: {dist-dir}HISTORY.html
+:release-notes: {dist-dir}{version}-README.html
+:stem: latexmath
+:source-highlighter: pygments
+:stylesheet: release-notes.css
+:notitle:
+
+= Standard ML of New Jersey Release Notes
+
+[subs=attributes]
+++++
+<div class="smlnj-banner">
+  <span class="title"> Standard ML of New Jersey <br/> Release Notes </span>
+  <br/> <br/>
+  <span class="subtitle"> Version {version} <br/> {date} </span>
+</div>
+++++
+
+''''''''
+--
+SML/NJ HOME::
+  https://www.smlnj.org/index.html[[.tt]#https://smlnj.org#]
+FILES::
+  {dist-dir}index.html[[.tt]#{dist-dir}#]
+--
+''''''''
+
+== Summary
+
+== Details
+
+=== Compiler
+
+=== MLRISC
+
+=== Runtime System
+
+=== SML/NJ Library
+
+=== Installation
+
+The `config/install.sh` script continues to work as before.  We have added a `-dev`
+command-line option to enable cross compilation (__i.e.__, it compiles *LLVM*
+for all of the supported target architectures).
+
+== Bugs
+
+Here is a list of tracked bugs fixed (or closed) with this release, please see the
+https://smlnj-gforge.cs.uchicago.edu/projects/smlnj-bugs[bug tracker]
+for more details.
+Note that this list is relative to Version 110.99 and includes fixes that were
+part of the 110.99.* patch releases.
+
+[.buglist,cols="^1,<15"]
+|=======
+| [.bugid]#306#
+| Word8VectorSlice: mapping a subslice produces wrong result or crashes SML/NJ
+|=======
+
+The following unnumbered bug was also fixed:
+--
+  * Performance bug in the compilation of deeply-nested modules.
+--
+
+== Supported systems
+
+We believe that SML/NJ will build and run on the following systems, but have only
+tested some of them:
+
+[.support-table,cols="^2s,^4v,^3v",options="header",strips="none"]
+|=======
+| Architecture | Operating System | Status
+| AMD64 | FreeBSD |
+| | macOS 11 (Big Sur) | Tested
+| | macOS 12 (Monterey) | Tested
+| | Ubuntu 20.04 | Tested
+|=======

@@ -95,6 +95,23 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 //== Recent updates
 
+//--------------------------------------------------------------------
+[2022/05/10]::
++
+Fixed bug bugref:306[] (Word8VectorSlice: mapping a subslice produces
+wrong result or crashes SML/NJ).
+
+//--------------------------------------------------------------------
+[2022/04/03]::
++
+Fix a module compilation performance bug by removing packStr and
+packFct from Elaborator/modules/sigmatch.sml (reducing the size of
+that file by about 25%), and removing the call of packStr
+(in function constrStr) in Elaborator/elaborate/elabmod.sml, replacing
+it with a call to Instantiate.instAbstr. Goodbye at last to packStr!
++
+owner:cs.uchicago.edu/~dbm[Dave MacQueen]
+
 //====================================================================
 == Version 2021.1; 2021/12/31
 
