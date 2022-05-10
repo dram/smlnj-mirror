@@ -176,6 +176,7 @@ structure WordRedBlackMap :> ORD_MAP where type Key.ord_key = word =
 	= TOP
 	| LEFT of (color * Key.ord_key * 'a * 'a tree * 'a zipper)
 	| RIGHT of (color * 'a tree * Key.ord_key * 'a * 'a zipper)
+      datatype 'a result = FOUND of 'a * 'a tree | NOT_FOUND
     in
     fun remove' (t, k) = let
 	(* zip the zipper *)
