@@ -38,6 +38,7 @@ adds support for *macOS 12* (Monterey).
 
 === SML/NJ Library
 
+Added the `findAndRemove` function to `ORD_MAP` interface.
 
 === 32-bit macOS issues
 
@@ -71,19 +72,13 @@ for more details.
 
 [.buglist,cols="^1,<15"]
 |=======
-| [.bugid]#279#
-| `Real.toLargeInt` returns zero for anything in range `[-512,512]`
-| [.bugid]#286#
-| Installation of *SML/NJ* v110.99.1 fails in fresh *Ubuntu* 20.04/*macOS* 10.15
-| [.bugid]#287#
-| Install errors with `request asdl`
-| [.bugid]#293#
-| SMLNJ Incompatibility with *macOS* 12 Beta
+| [.bugid]#306#
+| Word8VectorSlice: mapping a subslice produces wrong result or crashes SML/NJ
 |=======
 
 The following unnumbered bug was also fixed:
 --
-  * Fixed a bug in the printing of `char` values in the REPL.
+  * Performance bug in the compilation of deeply-nested modules.
 --
 
 == Supported systems
