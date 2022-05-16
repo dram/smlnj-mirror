@@ -38,6 +38,12 @@ RegExp library
 	[:upper:]	Uppercase alphabetic characters. 
 	[:xdigit:]	Hexadecimal digits. 
 
+SExp library
+------------
+
+  Strings with non-graphical characters are escaped on output, but not on input.  Also,
+  we should use the Scheme syntax for strings (not SML).  See https://www.scheme.com/tspl4/grammar.html
+
 New libraries
 -------------
 
