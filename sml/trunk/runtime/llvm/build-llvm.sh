@@ -79,7 +79,7 @@ fi
 
 # check that we have a version of CMake that understands presets
 #
-cmake src --list-presets 2> /dev/null
+cmake src --list-presets > /dev/null 2>&1
 if [ $? != 0 ] ; then
   echo "Installation of SML/NJ requires CMake version 3.19 or later"
   exit 1
