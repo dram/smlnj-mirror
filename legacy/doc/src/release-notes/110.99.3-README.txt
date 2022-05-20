@@ -74,6 +74,8 @@ for more details.
 |=======
 | [.bugid]#306#
 | Word8VectorSlice: mapping a subslice produces wrong result or crashes SML/NJ
+| [.bug]#310#
+| Error when REPL tries to print value of type `Posix.FileSys.ST.stat`
 |=======
 
 The following unnumbered bug was also fixed:

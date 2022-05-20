@@ -71,11 +71,15 @@ fun isRecordTy (T.VARty(ref (T.INSTANTIATED t))) = isRecordTy t
   | isRecordTy (T.CONty(T.RECORDtyc _, _::_)) = true
   | isRecordTy _ = false
 
-(* 64BIT: what is this function testing? *)
+(* FIXME: I think that this function is needed because the "TRANSPARENT"
+ * representation was disabled (see ElabData/types/conreps.sml)
+ *)
 fun isUbxTy (T.VARty(ref (T.INSTANTIATED t))) = isUbxTy t
   | isUbxTy (T.CONty(tc as T.GENtyc _, [])) =
-      (TU.eqTycon(tc, BT.int32Tycon)) orelse
-      (TU.eqTycon(tc, BT.word32Tycon))
+      (Target.is64 andalso
+        (TU.eqTycon(tc, BT.int64Tycon) orelse TU.eqTycon(tc, BT.word64Tycon)))
+      orelse
+        (TU.eqTycon(tc, BT.int32Tycon) orelse TU.eqTycon(tc, BT.word32Tycon))
   | isUbxTy _ = false
 
 fun decon (obj, {rep, name, domain}) = (case rep

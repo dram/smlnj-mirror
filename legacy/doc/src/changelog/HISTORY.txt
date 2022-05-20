@@ -96,10 +96,20 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2022/05/20]::
++
+Fixed bug bugref:310[] (Error when REPL tries to print value of type
+`Posix.FileSys.ST.stat`).
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2022/05/10]::
 +
-Fixed bug bugref:306[] (Word8VectorSlice: mapping a subslice produces
+Fixed bug bugref:306[] (`Word8VectorSlice`: mapping a subslice produces
 wrong result or crashes SML/NJ).
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
 
 //--------------------------------------------------------------------
 [2022/04/03]::
