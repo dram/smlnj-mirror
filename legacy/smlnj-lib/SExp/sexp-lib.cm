@@ -1,6 +1,6 @@
 (* sexp-lib.cm
  *
- * COPYRIGHT (c) 2011 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2022 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
  * Author: Damon Wang (with modifications by John Reppy)
@@ -30,4 +30,5 @@ is
   sexp-parser.sml
   sexp-pp.sml
   sexp-printer.sml
+  sexp-string-util.sml
   sexp-tokens.sml

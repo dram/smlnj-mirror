@@ -1,6 +1,6 @@
 (* sexp-pp.sml
  *
- * COPYRIGHT (c) 2018 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2022 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
  * A pretty printer for SExp values.
@@ -37,7 +37,7 @@ structure SExpPP : sig
 	    | ppVal (S.BOOL value) = str (if value then "#t" else "#f")
 	    | ppVal (S.INT value) = str (F.format "%d" [F.LINT value])
 	    | ppVal (S.FLOAT value) = str (F.format "%g" [F.REAL value])
-	    | ppVal (S.STRING value) = str (concat ["\"", String.toString value, "\""])
+	    | ppVal (S.STRING value) = str (SExpStringUtil.toString value)
 	    | ppVal (S.QUOTE value) = (str "'"; ppVal value)
 	    | ppVal (S.LIST values) = ppList values
 	  in

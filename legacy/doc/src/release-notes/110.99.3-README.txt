@@ -38,7 +38,10 @@ adds support for *macOS 12* (Monterey).
 
 === SML/NJ Library
 
-Added the `findAndRemove` function to `ORD_MAP` interface.
+--
+  * Added the `findAndRemove` function to `ORD_MAP` interface.
+  * The *SExp* library now uses *Scheme* syntax for string values.
+--
 
 === 32-bit macOS issues
 
@@ -74,6 +77,8 @@ for more details.
 |=======
 | [.bugid]#306#
 | Word8VectorSlice: mapping a subslice produces wrong result or crashes SML/NJ
+| [.bugid]#309#
+| SExp: parsing the output of the printer produces a different SExp
 | [.bug]#310#
 | Error when REPL tries to print value of type `Posix.FileSys.ST.stat`
 |=======

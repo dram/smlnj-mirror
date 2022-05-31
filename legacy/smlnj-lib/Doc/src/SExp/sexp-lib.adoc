@@ -19,7 +19,7 @@ any formal S-exp specification.
 - Quoted expressions are formed by the single-quote character (``'``) followed
   by an expression.
 
-- Lists are be delimited by matched pairs of `()` `[]` or `{}`, nested freely.
+- Lists are delimited by matched pairs of `()` `[]` or `{}`, nested freely.
 
 - List items are separated with whitespace (space, tab, newlines, or carriage
   returns).
@@ -52,7 +52,9 @@ Notably, "`1.`" and "`.1`" are invalid and "`1`" is parsed as an
 integer -- floats must have a dot with digits
 on both sides.
 
-- Strings are enclosed in double quotes (``"``).
+- Strings are sequences of ASCII characters enclosed in double quotes (``"``).
+  We follow the syntax of *Scheme* strings as described in
+  https://www.scheme.com/tspl4/grammar.html#./grammar:strings[]
 +
 The difference between symbols and strings is that symbols are represented as
 Atom.atom types, so equality comparisons are more efficient.

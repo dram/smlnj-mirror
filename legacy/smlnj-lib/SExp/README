@@ -1,6 +1,6 @@
 The *SExp Library* supports the reading and writing of structured data using
-the S-expression syntax.  It is a work in progress, and does not fully conform with
-any formal S-exp specification.
+the S-expression syntax.  It is a work in progress, and does not fully
+conform with any formal S-exp specification.
 
 - End-of-line comments begin with a semicolon character
 
@@ -10,7 +10,7 @@ any formal S-exp specification.
 - Quoted expressions are formed by the single-quote character (``'``) followed
   by an expression.
 
-- Lists are be delimited by matched pairs of `()` `[]` or `{}`, nested freely.
+- Lists are delimited by matched pairs of `()` `[]` or `{}`, nested freely.
 
 - List items are separated with whitespace (space, tab, newlines, or carriage
   returns).
@@ -36,7 +36,8 @@ any formal S-exp specification.
   integer --- floats must have a dot with digits
   on both sides.
 
-- Strings are enclosed in double quotes (``"``).
+- Strings are enclosed in double quotes (``"``) and mostly follow the Scheme
+  syntax as described in https://www.scheme.com/tspl4/grammar.html#./grammar:strings
 +
   The difference between symbols and strings is that symbols are represented as
   Atom.atom types, so equality comparisons are more efficient.
