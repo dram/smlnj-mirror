@@ -1,6 +1,6 @@
 (* sexp.lex
  *
- * COPYRIGHT (c) 2011 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2022 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
  * Author: Damon Wang (with modifications by John Reppy)
@@ -9,7 +9,6 @@
  *
  * TODO:
  *	EOF rules for strings
- *	newlines in strings
  *	error messages for unknown characters
  *)
 
@@ -24,12 +23,12 @@
 (* support for incremental construction of strings *)
   val sbuf : string list ref = ref []
   fun addStr s = (sbuf := s :: !sbuf)
-  fun addUChr lit = let
-      (* trim the "\u" prefix *)
-	val digits = Substring.triml 2 (Substring.full lit)
-	val SOME(w, _) = Word.scan StringCvt.HEX Substring.getc digits
+  fun addHexEsc lit = let
+      (* trim the "\x" prefix and ";" suffix *)
+	val digits = Substring.trimr 1 (Substring.triml 2 lit)
+	val SOME(d, _) = Int.scan StringCvt.HEX Substring.getc digits
 	in
-	  addStr(UTF8.encode w)
+	  addStr(String.str(chr d))
 	end
   fun finishString () = (T.STRING(String.concat(List.rev(!sbuf))) before sbuf := [])
 );
@@ -45,6 +44,8 @@
 %let initial = {alpha} | "^" | [-+.@!$%&*/:<=>?_~];
 %let subsequent = {initial} | {digit};
 %let ident = {initial} {subsequent}*;
+%let interlnws = " "|"\t";      (* intraline whitespace *)
+%let eol = "\n"|"\r\n"|"\r";
 
 %states S;
 
@@ -63,45 +64,53 @@
 <INITIAL>"#t"			=> ( T.KW_true );
 <INITIAL>"#f"			=> ( T.KW_false );
 
-  (* takes a string of form "0xdeadbeef", strips the leading "0x", and returns
-  * an IntInf with hex value deadbeef.  Note that the hex value is unsigned; to
-  * get negatives, write "-0xdeadbeef".  This means that the string from C's
-  * `printf("%x", -1)` will be parsed as INT_MAX.  TODO is this a good idea? *)
-
+(* takes a string of form "0xdeadbeef", strips the leading "0x", and returns
+ * an IntInf with hex value deadbeef.  Note that the hex value is unsigned; to
+ * get negatives, write "-0xdeadbeef".  This means that the string from C's
+ * `printf("%x", -1)` will be parsed as INT_MAX.  TODO is this a good idea?
+ *)
 <INITIAL>[+-]?"0x"{xdigit}+      => (
-  let
+    let
     (* TODO Doesn't StringCvt.HEX handle stripping the "0x" prefix? *)
-    val digits = if String.isPrefix "+"  yytext         (* "+0xdeadbeef" *)
-                 then String.extract(yytext, 3, NONE)
-                 else if String.isPrefix "-" yytext     (* "-0xdeadbeef" *)
-                 then "-" ^ String.extract(yytext, 3, NONE)
-                 else String.extract(yytext, 2, NONE)   (* "0xdeadbeef" *)
+    val digits = if String.isPrefix "+" yytext         (* "+0xdeadbeef" *)
+            then String.extract(yytext, 3, NONE)
+          else if String.isPrefix "-" yytext            (* "-0xdeadbeef" *)
+            then "-" ^ String.extract(yytext, 3, NONE)
+            else String.extract(yytext, 2, NONE)        (* "0xdeadbeef" *)
     val SOME(value) = StringCvt.scanString (IntInf.scan StringCvt.HEX) digits
-  in
-    T.INT(value)
-  end
-);
+    in
+      T.INT(value)
+    end);
 
-<INITIAL>{int}			    => ( T.INT(valOf(IntInf.fromString yytext)) );
+<INITIAL>{int}                  => ( T.INT(valOf(IntInf.fromString yytext)) );
 
 <INITIAL>{int}{frac}		=> ( float yytext );
 <INITIAL>{int}{exp}		=> ( float yytext );
 <INITIAL>{int}{frac}{exp}	=> ( float yytext );
 
+(* string values follow the syntax of Scheme as described in
+ *
+ *      https://www.scheme.com/tspl4/grammar.html#./grammar:strings
+ *)
 <INITIAL>"\""			=> ( YYBEGIN S; continue() );
 
-(* TODO backport this to the JSON parser, which hangs if it sees a \\ in a
-* string. *)
-<S>"\\"				=> ( addStr "\\"; continue() );
+<S>"\\\\"                       => ( addStr "\\"; continue() );
 <S>"\\\""			=> ( addStr "\""; continue() );
+<S>"\\a"			=> ( addStr "\a"; continue() );
 <S>"\\b"			=> ( addStr "\b"; continue() );
 <S>"\\f"			=> ( addStr "\f"; continue() );
 <S>"\\n"			=> ( addStr "\n"; continue() );
 <S>"\\r"			=> ( addStr "\r"; continue() );
 <S>"\\t"			=> ( addStr "\t"; continue() );
-<S>"\\u"{xdigit}{4}		=> ( addUChr yytext; continue() );
+<S>"\\v"			=> ( addStr "\v"; continue() );
+<S>"\\x"{xdigit}";"		=> ( addHexEsc yysubstr; continue() );
+<S>"\\x"{xdigit}{2}";"		=> ( addHexEsc yysubstr; continue() );
 <S>[^\\"]+			=> ( addStr yytext; continue() );
+<S>"\\"{interlnws}*{eol}{interlnws}*
+                                => ( continue() );
 <S>"\""				=> ( YYBEGIN INITIAL; finishString() );
+(* FIXME: add some error reporting *)
+<S>.                            => ( continue() );
 
 (* FIXME: add some error reporting *)
 <INITIAL>.			=> ( skip() );

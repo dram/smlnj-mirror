@@ -1,14 +1,11 @@
 (* sexp-lib.mlb
  *
- * COPYRIGHT (c) 2011 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2022 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
  * Author: Damon Wang (with modifications by John Reppy)
  *
  * An MLB file for the JSON library, so that it can be used by MLton programs.
- *
- * TODO:
- *	This is not complete, since MLton does not have the ml-lpt-lib yet.
  *)
 
 local
@@ -29,6 +26,7 @@ local
     sexp.sml
 (*    sexp-stream-parser.sml *)
     sexp-parser.sml
+    sexp-string-util.sml
 (*    sexp-stream-printer.sml *)
     sexp-pp.sml
     sexp-printer.sml

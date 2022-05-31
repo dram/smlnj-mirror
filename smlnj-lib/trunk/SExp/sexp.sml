@@ -38,6 +38,8 @@ structure SExp =
 		if (a = b) then EQUAL
 		else if a then LESS
 		else GREATER
+            | (BOOL _, _) => GREATER
+            | (_, BOOL _) => LESS
 	    | (INT a, INT b) => IntInf.compare (a, b)
 	    | (INT _, _) => LESS
 	    | (_, INT _) => GREATER

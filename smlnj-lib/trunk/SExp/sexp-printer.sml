@@ -1,6 +1,6 @@
 (* sexp-printer.sml
  *
- * COPYRIGHT (c) 2011 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2022 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
  * Author: Damon Wang (with modifications by John Reppy)
@@ -28,7 +28,7 @@ structure SExpPrinter : sig
 	    | prVal (S.BOOL value) = pr (if value then "#t" else "#f")
 	    | prVal (S.INT value) = pr (F.format "%d" [F.LINT value])
 	    | prVal (S.FLOAT value) = pr (F.format "%g" [F.REAL value])
-	    | prVal (S.STRING value) = pr (concat ["\"", String.toString value, "\""])
+	    | prVal (S.STRING value) = pr (SExpStringUtil.toString value)
 	    | prVal (S.QUOTE value) = (pr "'"; prVal value)
 	    | prVal (S.LIST values) = prList values
 	  in
