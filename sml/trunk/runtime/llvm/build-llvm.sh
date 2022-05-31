@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# COPYRIGHT (c) 2021 The Fellowship of SML/NJ (http://www.smlnj.org)
+# COPYRIGHT (c) 2022 The Fellowship of SML/NJ (http://www.smlnj.org)
 # All rights reserved.
 #
 # This script handles building the LLVM code generator library as part
