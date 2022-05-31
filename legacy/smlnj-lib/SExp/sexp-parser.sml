@@ -1,6 +1,6 @@
 (* sexp-parser.sml
  *
- * COPYRIGHT (c) 2011 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2022 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
  * Author: Damon Wang (with modifications by John Reppy)
@@ -23,9 +23,9 @@ structure SExpParser : sig
 		  "error ", AntlrStreamPos.spanToString srcMap pos, ": ",
 		  msg, ", found '", T.toString tok, "'"
 		])
-
+(* TODO: add support for lexer errors *)
+          (* the lexer *)
 	  val lexer = Lex.lex srcMap
-
 	(* returns (tok, pos, nextStrm, strm) where the difference between
 	 * nextStrm and strm is that tok is the next token in strm
 	 * whereas the token _after_ tok is the next up in nextStrm.
@@ -36,7 +36,6 @@ structure SExpParser : sig
 		 of (T.WHITE, _, strm) => lexNWS strm
 		  | (tok, pos, nextStrm) => (tok, pos, nextStrm, strm)
 		(* end case *))
-
 	  fun parseValue (strm : Lex.strm) = let
 		val (tok, pos, strm) = lexer strm
 		in
@@ -65,15 +64,14 @@ structure SExpParser : sig
 		    then (nextStrm, S.LIST [])
 		    else let
 		      fun loop (strm, items) = let
+(* FIXME: better error reporting for lists; unclosed vs mismatched delims *)
 			    val (strm, v) = parseValue strm
 			  (* expect either a separator (whitespace) or a delimiter *)
 			    val (tok, pos, nextStrm, strm) = lexNWS strm
 			    in
 			      if matchDelim tok
 				then (nextStrm, v::items)
-				else (loop(strm, v::items)
-				  handle (Fail msg) =>
-				    error(pos, "parsing list gave '" ^ msg ^ "'" , tok))
+				else loop(strm, v::items)
 			    end
 		      val (strm, items) = loop (strm, [])
 		      in
@@ -81,15 +79,15 @@ structure SExpParser : sig
 		      end
 		end
 	(* parse top-level s-expressions until EOF *)
-	  fun parseSExps (strm, sexps) = let
-		val (strm, sexp) = parseValue strm
-		val (tok, pos, nextStrm, strm) = lexNWS strm
-		in
-		  case tok
-		   of T.EOF => List.rev(sexp::sexps)
-		    | _ => parseSExps (strm, sexp::sexps)
-		  (* end case *)
-		end
+	  fun parseSExps (strm, sexps) = (case lexer strm
+		 of (T.WHITE, _, strm) => parseSExps (strm, sexps)
+                  | (T.EOF, _, _) => List.rev sexps
+		  | _ => let
+                      val (strm, sexp) = parseValue strm
+                      in
+                        parseSExps (strm, sexp::sexps)
+                      end
+                (* end case *))
 	  in
 	    parseSExps (Lex.streamifyInstream inStrm, [])
 	  end

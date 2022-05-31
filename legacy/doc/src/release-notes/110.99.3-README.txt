@@ -77,6 +77,8 @@ for more details.
 |=======
 | [.bugid]#306#
 | Word8VectorSlice: mapping a subslice produces wrong result or crashes SML/NJ
+| [.bugid]#307#
+| `SExpParser.parseFile` should return empty list on empty file
 | [.bugid]#309#
 | SExp: parsing the output of the printer produces a different SExp
 | [.bug]#310#

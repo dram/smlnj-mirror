@@ -6,6 +6,10 @@ SML/NJ 110.99.3
 -------------------
 
 [2022-06-01]
+	Fix for bug #307 (`SExpParser.parseFile` should return empty list on empty
+	file)
+
+[2022-06-01]
         Fix for bug #309 (SExp: parsing the output of the printer produces a
         different SExp).  The *SExp* library now uses Scheme syntax for string
         literals.
