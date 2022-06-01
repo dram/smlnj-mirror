@@ -124,11 +124,11 @@ owner:cs.uchicago.edu/~jhr[John Reppy]
 //--------------------------------------------------------------------
 [2022/04/03]::
 +
-Fix a module compilation performance bug by removing packStr and
-packFct from Elaborator/modules/sigmatch.sml (reducing the size of
-that file by about 25%), and removing the call of packStr
-(in function constrStr) in Elaborator/elaborate/elabmod.sml, replacing
-it with a call to Instantiate.instAbstr. Goodbye at last to packStr!
+Fix a module compilation performance bug by removing `packStr` and
+`packFct` from `Elaborator/modules/sigmatch.sml` (reducing the size of
+that file by about 25%), and removing the call of `packStr`
+(in function `constrStr`) in `Elaborator/elaborate/elabmod.sml`, replacing
+it with a call to `Instantiate.instAbstr`. Goodbye at last to `packStr`!
 +
 owner:cs.uchicago.edu/~dbm[Dave MacQueen]
 
