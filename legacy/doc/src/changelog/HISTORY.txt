@@ -96,6 +96,16 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2022/06/01]::
++
+Fixed bug bugref:284[] (Compiler bug: Contract: UsageMap on 132).
+The problem was the the `CPSTrans.cpstrans` function was generating
+code for loading spilled parameters in reverse order.  In addition
+to fixing the bug, added some detailed documentation of the code.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2022/05/20]::
 +
 Fixed bug bugref:310[] (Error when REPL tries to print value of type

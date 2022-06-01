@@ -31,8 +31,8 @@ FILES::
 
 == Summary
 
-This is a patch release that includes a few bug fixes and
-adds support for *macOS 12* (Monterey).
+This is a patch release that fixes a number of bugs in the "legacy" version
+of SML/NJ.
 
 == Details
 
@@ -41,6 +41,8 @@ adds support for *macOS 12* (Monterey).
 --
   * Added the `findAndRemove` function to `ORD_MAP` interface.
   * The *SExp* library now uses *Scheme* syntax for string values.
+  * The *SExp* parser accepts empty files as valid input (producing
+    an empty list of S-Expressions).
 --
 
 === 32-bit macOS issues
@@ -75,6 +77,8 @@ for more details.
 
 [.buglist,cols="^1,<15"]
 |=======
+| [.bugid]#284#
+| Compiler bug: Contract: UsageMap on 132
 | [.bugid]#306#
 | Word8VectorSlice: mapping a subslice produces wrong result or crashes SML/NJ
 | [.bugid]#307#

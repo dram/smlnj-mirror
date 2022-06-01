@@ -2,6 +2,13 @@
  *
  * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
+ *
+ * This module implements a CPS -> CPS transformation that ensures that function
+ * (and continuation) arguments will fit in the available machine registers.
+ *
+ * QUESTION: this pass is currently applied before CPS optimization, but if we
+ *   implemented something like useless-variable elimination, we might be able
+ *   to avoid spilling in some cases.
  *)
 
 functor CPStrans (MachSpec : MACH_SPEC) : sig
@@ -14,7 +21,6 @@ functor CPStrans (MachSpec : MACH_SPEC) : sig
     structure LV = LambdaVar
 
     fun bug s = ErrorMsg.impossible ("CPStrans: " ^ s)
-    fun ident x = x
     val mkv = LV.mkLvar
 
     val unboxedfloat = MachSpec.unboxedFloats
@@ -49,7 +55,33 @@ functor CPStrans (MachSpec : MACH_SPEC) : sig
 	  val nregs = MachSpec.numRegs - MachSpec.numCalleeSaves
 	  val gpnum = Int.min(nregs - 3, MachSpec.numArgRegs)
 
+        (* analyze a list of arguments to determine if they fix in the available target-machine
+         * registers or if we need to spill some of them to the heap.  If we need to spill,
+         * we return `SOME(ovs, ots, gvs, gts, fts)`, where
+         *    ovs  original arguments
+         *    ots  original argument types
+         *    gvs  spilled general arguments
+         *    gts  spilled argument types
+         *    fvs  spilled real arguments
+         * If no spilling is necessary, return `NONE`
+         *)
 	  fun argSpill (args, ctys) = let
+                (* helper to determine which arguments to spill.  The parameters are
+                 *    xs   list of argument variables
+                 *    cts  list of argument types
+                 *    ngp  number of available general-purpose registers
+                 *    nfp  number of available floating-point registers
+                 *    ovs  accumulated original arguments
+                 *    ots  accumulated original argument types
+                 *    gvs  accumulated spilled general arguments
+                 *    gts  accumulated spilled argument types
+                 *    fvs  accumulated spilled real arguments
+                 * The accumulators are all in reverse order.
+                 * REAL32: need to track types of spilled real arguments too
+                 *)
+(* QUESTION: if we spill floating-point arguments, that should increases the pressure
+ * on the integer arguments by one, but this code does not seem to account for that.
+ *)
 		fun h ([], [], ngp, nfp, ovs, ots, [], [], []) = NONE
 		  | h ([], [], ngp, nfp, ovs, ots, [x], [_], []) = NONE
 		  | h ([], [], ngp, nfp, ovs, ots, gvs, gts, fvs) =
@@ -71,15 +103,16 @@ functor CPStrans (MachSpec : MACH_SPEC) : sig
 		    then h (args, ctys, gpnum, fpnum, [], [], [], [], [])
 		    else NONE
 		end (* function argSpill *)
-
+        (* spill code for the arguments of a function application *)
 	  fun spillIn (origargs, origctys, spgvars, spgctys, spfvars) = let
 		val (fhdr, spgvars, spgctys) = (case spfvars
-		       of [] => (ident, spgvars, spgctys)
+		       of [] => (Fn.id, spgvars, spgctys)
 			| _ => let
+                          (* we have floating-point arguments to spill *)
 			    val v = mkv()
 			    val vs = map (fn x => (x, OFFp 0)) spfvars
 			    val ct = PTRt(FPT (length vs))
-			    val fh = fn e => RECORD(RK_RAW64BLOCK, vs, v, e)
+			    fun fh e = RECORD(RK_RAW64BLOCK, vs, v, e)
 			    in
 			      (fh, (VAR v)::spgvars, ct::spgctys)
 			    end
@@ -88,10 +121,12 @@ functor CPStrans (MachSpec : MACH_SPEC) : sig
 		       of [] => (NONE, fhdr)
 			| [x] => (SOME x, fhdr)
 			| _ => let
+                          (* we have general-purpose arguments to spill *)
 			    val v = mkv()
 			    val vs = map (fn x => (x, OFFp 0)) spgvars
+                            fun gh e = fhdr (RECORD(RK_RECORD, vs, v, e))
 			    in
-			      (SOME (VAR v), fn e => fhdr(RECORD(RK_RECORD, vs, v, e)))
+			      (SOME (VAR v), gh)
 			    end
 		      (* end case *))
 		in
@@ -100,31 +135,34 @@ functor CPStrans (MachSpec : MACH_SPEC) : sig
 		    | NONE => NONE
 		  (* end case *)
 		end (* spillIn *)
-
+        (* spill code for the parameters of a function *)
 	  fun spillOut (origargs, origctys, spgvars, spgctys, spfvars) = let
 		val (spfv, fhdr, spgvars, spgctys) = (case spfvars
-		       of [] => (NONE, ident, spgvars, spgctys)
+		       of [] => (NONE, Fn.id, spgvars, spgctys)
 			| _ => let
+                          (* we have spilled floating-point arguments *)
 			    val v = mkv()
-			    val u = VAR v
-			    fun g (sv, (i,hdr)) = (* REAL32: FIXME *)
-				  (i+1, fn e => hdr(SELECT(i, u, sv, FLTt 64, e)))
-			    val (n,fh) = foldl g (0, ident) spfvars
-			    val ct = PTRt(FPT n)
+			    val v' = VAR v
+                            fun fh e = List.foldri
+                                  (fn (i, sv, e) => SELECT(i, v', sv, FLTt 64, e)) (* REAL32: FIXME *)
+                                    e spfvars
+			    val ct = PTRt(FPT(List.length spfvars))
 			    in
 			      (SOME v, fh, v::spgvars, ct::spgctys)
 			    end
 		      (* end case *))
 		val (spgv, ghdr) = (case (spgvars, spgctys)
 		       of ([], _) => (NONE, fhdr)
-			| ([x], t::_) => (SOME (x,t), fhdr)
+			| ([x], t::_) => (SOME(x, t), fhdr)
 			| _ => let
+                          (* we have spilled general-purpose arguments *)
 			    val v = mkv()
-			    val u = VAR v
-			    fun g (sv, st, (i,hdr)) =
-				  (i+1, fn e =>hdr(SELECT(i, u, sv, st, e)))
-			    val (n, gh) = ListPair.foldl g (0, fhdr) (spgvars,spgctys)
-			    val ct = PTRt(RPT n)
+			    val v' = VAR v
+                            fun gh e = ListPair.foldri
+                                  (fn (i, sv, st, e) => SELECT(i, v', sv, st, e))
+                                    (fhdr e)
+                                      (spgvars, spgctys)
+			    val ct = PTRt(RPT(List.length spgvars))
 			    in
 			      (SOME (v, ct), gh)
 			    end
@@ -136,12 +174,16 @@ functor CPStrans (MachSpec : MACH_SPEC) : sig
 		  (* end case *)
 		end (* spillOut *)
 
-	(* mkargin : value list -> (cexp -> cexp * value list) option *)
-	  fun mkargin (args : value list) =
+	(* mkArgIn : value list -> (cexp -> cexp * value list) option
+         * process the arguments of an application.
+         *)
+	  fun mkArgIn (args : value list) =
 		Option.mapPartial spillIn (argSpill (args, List.map grabty args))
 
-	(* mkargout : lvar list -> (lvar list * cty list * cexp -> cexp) option *)
-	  fun mkargout args =
+	(* mkArgOut : lvar list -> (lvar list * cty list * cexp -> cexp) option
+         * process the parameters of a function on entry
+         *)
+	  fun mkArgOut args =
 		Option.mapPartial spillOut (argSpill (args, List.map getty args))
 
 	(**************************************************************************
@@ -157,7 +199,7 @@ functor CPStrans (MachSpec : MACH_SPEC) : sig
 			SELECT(i, v', w, getty w, ce')
 		      end
 		  | OFFSET(i,v,w,ce) => OFFSET(i, vtrans v, w, cexptrans ce)
-		  | APP(v,vl) => (case mkargin vl
+		  | APP(v,vl) => (case mkArgIn vl
 		       of SOME (nvl, hdr) => cexptrans(hdr(APP(v, nvl)))
 			| NONE =>  APP(vtrans v, map vtrans vl)
 		      (* end case *))
@@ -226,7 +268,7 @@ functor CPStrans (MachSpec : MACH_SPEC) : sig
 		val _ = ListPair.app addty (args,cl)
 		val ce' = cexptrans ce
 		in
-		  case mkargout args
+		  case mkArgOut args
 		   of SOME (nargs, nctys, fhdr) => (fk, v, nargs, nctys, fhdr ce')
 		    | NONE => (fk, v, args, cl, ce')
 		  (* end case *)
@@ -242,4 +284,3 @@ functor CPStrans (MachSpec : MACH_SPEC) : sig
 	  end (* cpstrans *)
 
   end (* structure CPStrans *)
-
