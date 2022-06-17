@@ -96,6 +96,19 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2022/06/17]::
++
+Fixed bug bugref:290[] (Incorrect pattern matching for exceptons).
+The fix involves changes to FLINT/opt/lcontract.sml (function swiInfo)
+and FLINT/opt/fcontract.sml (function fcSwitch). The contraction of
+a SWITCH with an constructor as subject is suppressed when the
+constructor is an exception constructor, because for exceptions comparison 
+using the conrep field is inaccurate when the constructor is defined
+by an exception identity declaration (e.g. 'exception B = A').
++
+owner:cs.uchicago.edu/~dbm[Dave MacQueen]
+
+//--------------------------------------------------------------------
 [2022/06/05]::
 +
 Fixed bug bugref:312[] (`CM.make` is unable to handle filenames that
