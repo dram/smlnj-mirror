@@ -642,13 +642,8 @@ fun constrStr(transp, sign, str, strDec, strExp, evOp, tdepth, entEnv, rpath,
       else (* instantiate the signature (opaque match) *)
 	   let val STR {rlzn=matchedRlzn, access, prim, ...} = matchedStr
 	       val {rlzn=abstractRlzn, ...} =
-		   let val srcRlzn =
-			   case str
-			     of M.STR { rlzn, ... } => rlzn
-			      | _ => bug "constrStr[transp=false]"
-		    in INS.instAbstr {sign=sign, entEnv=entEnv, rlzn=matchedRlzn,
-				      rpath=rpath, region=region, compInfo=compInfo}
-		   end
+		   INS.instAbstr {sign=sign, entEnv=entEnv, rlzn=matchedRlzn,
+				  rpath=rpath, region=region, compInfo=compInfo}
 	       val abstractStr = STR {sign=sign, rlzn=abstractRlzn, access=access, prim=prim}
 	       val _ = debugmsg "<<< constrStr[transp=false]"
             in (A.SEQdec[strDec, matchedDec], abstractStr, matchedExp)

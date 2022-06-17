@@ -4,6 +4,12 @@
  * All rights reserved.
  *)
 
+(* bug 290 [DBM, 06.12.2022]
+   function swiInfo (line ?) has been modified to suppressing the rewrite of
+   a switch with a constructor subject matching one of the case constructors
+   when the subject constructor is an exception constructor (rep = EXN).
+*)
+
 signature LCONTRACT =
 sig
   val lcontract : FLINT.prog -> FLINT.prog
@@ -12,7 +18,7 @@ end
 structure LContract : LCONTRACT =
 struct
 
-local
+local  (* local definitions *)
   structure DI = DebIndex
   structure DA = Access
   structure LV = LambdaVar
@@ -29,21 +35,18 @@ local
   structure PO = Primop
   open FLINT
 
-fun bug msg = ErrorMsg.impossible ("LContract: "^msg)
+  fun bug msg = ErrorMsg.impossible ("LContract: "^msg)
 
-val say = Control_Print.say
-fun newline () = say "\n"
-fun saynl msg = (say msg; newline())
-fun says strings = say (concat strings)
-fun saysnl strings = saynl (concat strings)
+  val say = Control_Print.say
+  fun newline () = say "\n"
+  fun saynl msg = (say msg; newline())
+  fun says strings = say (concat strings)
+  fun saysnl strings = saynl (concat strings)
 
-val debugging = FLINT_Control.lcdebugging
-fun dbsay msg =
-    if !debugging
-    then (say msg; newline())
-    else ()
-fun dbsays msgs = dbsay (concat msgs)
-fun bug s = ErrorMsg.impossible ("LContract: "^s)
+  val debugging = FLINT_Control.lcdebugging
+  fun dbsay msg = if !debugging then saynl msg else ()
+  fun dbsays msgs = if !debugging then saysnl msgs else ()
+  fun bug s = ErrorMsg.impossible ("LContract: "^s)
 
 in
 
@@ -182,6 +185,7 @@ fun rename (lexp as (VAR v)) =
   | rename lexp = lexp
 
 (** selecting a field from a potentially known record *)
+(* selInfo : F.value * int -> F.lexp option *)
 fun selInfo (VAR v, i)  =
       ((case get v
          of (_, SimpVal u) => selInfo (u, i)
@@ -195,16 +199,20 @@ fun selInfo (VAR v, i)  =
   | selInfo _ = NONE
 
 (** applying a switch to a data constructor *)
-fun swiInfo (VAR v, ces, oe) =
+(* swiInfo : F.value * (PL.con * F.lexp) list * F.lexp option -> F.lexp option *)
+fun swiInfo (VAR v, arms, defaultOp) =
       ((case get v
-         of (_, SimpVal u) => swiInfo(u, ces, oe)
-          | (_, ConExp (dc as (_,rep,_), ts, u)) =>
-               let fun h ((PL.DATAcon(dc as (_,nrep,_),ts,x),e)::r) =
-                         if rep=nrep then SOME(LET([x], RET [u], e)) else h r
-                     | h (_::r) = bug "unexpected case in swiInfo"
-                     | h [] = oe
-                in h ces
-               end
+         of (_, SimpVal u) => swiInfo(u, arms, defaultOp)
+          | (_, ConExp ((_,rep,_), _, value)) =>  (* subject is a Constr exp *)
+	    (case rep
+	       of DA.EXN _ => NONE
+	        | _ => 
+		  let fun check ((PL.DATAcon((_,nrep,_), _, lvar), e) :: rest) =
+			    if nrep = rep then SOME(LET([lvar], RET [value], e)) else check rest
+			| check (_::_) = bug "unexpected case in swiInfo"
+			| check [] = defaultOp (* none of the Constrs statically match the subject *)
+		   in check arms
+		  end)
           | _ => NONE)
        handle LContract => NONE)
   | swiInfo _ = NONE
@@ -381,28 +389,29 @@ end (* branchopt local *)
               lplet ((fn z => CON(lpdc c, ts, lpsv u, v, z)),
                      true, v, ConExp(c,ts,u), e)
 
-          | SWITCH (v, cs, ces, oe) =>
-              (case swiInfo(v, ces, oe)
+          | SWITCH (v, consig, arms, defaultOp) =>
+              (case swiInfo (v, arms, defaultOp)
                 of SOME ne => loop ne
                  | _ => let val nv = lpsv v
-                            fun h ((c, e), (es, b)) =
+                            fun folder ((c, e), (es, b)) =
                               let val nc = lpcon c
                                   val (ne, nb) = loop e
                                in ((nc, ne)::es, nb andalso b)
                               end
-                            val (nces, ncb) = foldr h ([], true) ces
-                            val (noe, nb) =
-                              case oe
+                            val (newArms, ncb) = foldr folder ([], true) arms
+                            val (newDefaultOp, nb) =
+                              case defaultOp
                                of NONE => (NONE, ncb)
                                 | SOME e => let val (ne, b) = loop e
                                              in (SOME ne, b andalso ncb)
                                             end
-                         in (SWITCH(nv, cs, nces, noe), nb)
+                         in (SWITCH(nv, consig, newArms, newDefaultOp), nb)
                         end)
 
           | RECORD (rk, us, v, e) =>
               lplet ((fn z => RECORD(rk, map lpsv us, v, z)),
                      true, v, ListExp us, e)
+
           | SELECT(u, i, v, e) =>
               (case selInfo (u, i)
                 of SOME nv => (chkIn(v, SimpVal nv); loop e)

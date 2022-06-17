@@ -217,6 +217,7 @@ struct
 
     structure O  = Option
     structure DI = DebIndex
+    structure A =  Access
     structure LV = LambdaVar
     structure M  = LV.Map
     structure S  = LV.Set
@@ -408,7 +409,8 @@ struct
 	    | eqConValue (con, v) = bugval("unexpected comparison with val", v)
 
           (* lookup : bindings * LV.lvar -> sval
-           *  calls M.find and turns sval for SOME or calls bug for NONE *)
+           *  calls M.find and turns sval for SOME or calls bug for NONE, so lookup
+           *  is always expected to succeed (the lvar is in the domain of the bindings) *)
 	  fun lookup (m: bindings, lv: LV.lvar) : sval =
 	      (case M.find (m,lv)
 		 of SOME x => x
@@ -428,7 +430,8 @@ struct
 	      lookup (m, lvar)
 	    | val2sval m v = Val v  (* v a constant F.value *)
 
-	  fun bugsv (msg,sv) = bugval(msg, sval2val sv)
+          (* bugsv : string * sval -> unit *)
+	  fun bugsv (msg, sval) = bugval(msg, sval2val sval)
 
           (* subst : bindings -> LV.lvar -> F.value *)
 	  fun subst m lvar = sval2val (lookup (m, lvar))
@@ -513,8 +516,8 @@ struct
 
           (* cdcon : bindings -> PL.dataconstr -> PL.dataConstr
            *  substitutes access lvar for exn constructors, ow does nothing *)
-	  fun cdcon m (s,Access.EXN(Access.LVAR lv),lty) =
-	      (s, Access.EXN(Access.LVAR(substvar m lv)), lty)
+	  fun cdcon m (s, A.EXN(A.LVAR lvar), lty) =
+	        (s, A.EXN(A.LVAR(substvar m lvar)), lty)
 	    | cdcon _ dc = dc
 
 	  (* The set of functions which are apparently non-recursive but which seem
@@ -525,14 +528,14 @@ struct
           type cont = bindings * F.lexp -> F.lexp
             (* a kind of "continuation" function *)
 
-          (* fcexp : ifs:S.set -> m:bindings -> le:F.lexp -> cont:cont -> F.lexp
+          (* fcexp : ifs:S.set -> m:bindings * le:F.lexp * cont:cont -> F.lexp
 	   *  ifs (inlined functions): set of function lvars for functions that we're currently
 	   *      inlining, in order to detect loops
 	   *  m: bindings -- a map from lvars to their "defining expressions" (svals)
 	   *  le : expression to contract
 	   *  cont: context continuation *)
 	  fun fcexp (ifs : S.set) (m : bindings, le : F.lexp, cont : cont) : F.lexp =
-	      let val loop = fcexp ifs (* : (bindings * lexp * cont) -> lexp *)
+	      let val loop = fcexp ifs (* : (bindings * F.lexp * cont) -> F.lexp  -- keeping ifs fixed *)
 		  val substval = substval m
 		  val cdcon = cdcon m
 		  val cpo = cpo m
@@ -919,103 +922,103 @@ struct
 
                 (* fcexp/fcSwitch : v:F.value * ac:A.consig * arms:(PL.con * F.lexp) list * def:F.lexp option
 		                    -> F.lexp   -- F.SWITCH args *)
-		fun fcSwitch (v, ac, arms, def) =
-		    let fun fcsCon (lvc,svc,dc1:PL.dataconstr,tycs1) =
-			      let fun killle le = C.unuselexp (undertake m) le
-				  fun kill lv le =
-				      C.unuselexp (undertake (addbind(m,lv,Var(lv,NONE)))) le
-				  fun killarm (PL.DATAcon(_,_,lv),le) = kill lv le
-				    | killarm _ = buglexp("bad arm in switch(con)", le)
-
-				  fun carm ((PL.DATAcon(dc2,tycs2,lv),le)::dcs) =
-				      (* sometimes lty1 <> lty2 :-( so this doesn't work:
-				       *  FU.dcon_eq(dc1, dc2) andalso tycs_eq(tycs1,tycs2) *)
-				      if #2 dc1 = #2 (cdcon dc2) then
-					  (map killarm dcs; (* kill the rest *)
-					   O.map killle def; (* and the default case *)
-					   loop ((substitute(m, lv, svc, F.VAR lvc)), le, cont))
-				      else
-					  (* kill this arm and continue with the rest *)
-					  (kill lv le; carm dcs)
-				    | carm [] = loop (m, O.valOf def, cont)
-				    | carm _ = buglexp("unexpected arm in switch(con,...)", le)
-			      in click_switch(); carm arms
-			      end (* fcsCon *)
-
-		      (* fcexp/fcSwitch/fcsVal : sval -> F.lexp *)
-			fun fcsVal v =
-			    let fun kill le = C.unuselexp (undertake m) le
-				fun carm ((con,le)::tl) =
-				      if eqConValue(con, v)
-				      then (map (kill o #2) tl;
-					    O.map kill def;
-					    loop (m, le, cont))
-				      else (kill le; carm tl)
-				  | carm [] = loop (m, O.valOf def, cont)
+		fun fcSwitch (subject: F.value, consig, arms, defaultOp) =
+		    let fun fcsCon (lvc, svc, (_, subject_rep, _): PL.dataconstr, _) =
+			    (* subject (thing matched against) is a (constant) data constructor,
+			       subject_rep is the conrep of that data constructor.
+			       This switch contraction is performed only if subject_rep is _not_
+			       an exception constructor; otherwise the equality test between datacon
+			       reps is not valid because of identity declarations of exception
+			       constructors. [bug 290]
+			     * ASSERT: subject_rep is not EXN _ (checked before calling fcsCon) *)
+			    let fun killLexp lexp = C.unuselexp (undertake m) lexp
+				fun kill (lvar, lexp) =
+				    C.unuselexp (undertake (addbind (m, lvar, Var(lvar,NONE)))) lexp
+				fun killarm (PL.DATAcon (_, _, lvar), lexp) = kill (lvar, lexp)
+				  | killarm _ = buglexp("bad arm in switch(con)", le)
+				fun carm ((PL.DATAcon (dc2, _, lvar), lexp) :: rest) =
+				    if subject_rep = #2 (cdcon dc2)
+				    then (* subject DATAcon == arm DATAcon, so this arm is chosen *)
+				      (map killarm rest; (* kill the rest of the arms *)
+				       O.map killLexp defaultOp; (* and the default case *)
+				       loop ((substitute(m, lvar, svc, F.VAR lvc)), lexp, cont))
+				    else (* kill this arm and try the rest *)
+				      (kill (lvar, lexp); carm rest)
+				  | carm [] = loop (m, O.valOf defaultOp, cont)
+				  | carm _ = buglexp("unexpected arm in switch(con,...)", le)
 			     in click_switch(); carm arms
-			    end
+			    end (* fcsCon *)
 
-		      (* fcexp/fcSwitch/fcsDefault : sval (* * LV.lvar *) -> F.lexp
-		       *  lvar argument "lvc" is not used (uses are commented out) *)
-			fun fcsDefault (sv (*,lvc *)) =
-			  (case (arms,def)
-			     of ([(PL.DATAcon(dc,tycs,lv),le)],NONE) =>
-				(* this is a mere DECON, so we can push the let binding
+		      (* fcexp/fcSwitch/fcsVal : F.value -> F.lexp *)
+			fun fcsVal value =
+			    let fun killLexp lexp = C.unuselexp (undertake m) lexp
+				fun carm ((con,lexp) :: rest) =
+				      if eqConValue (con, value)
+				      then (map (killLexp o #2) rest;
+					    O.map killLexp defaultOp;
+					    loop (m, lexp, cont))
+				      else (killLexp lexp; carm rest)
+				  | carm [] = loop (m, O.valOf defaultOp, cont)
+			     in click_switch(); carm arms
+			    end (* fcsVal *)
+
+		      (* fcexp/fcSwitch/fcsDefault : sval -> F.lexp
+		       *  old lvar argument "lvc" has been eliminated *)
+			fun fcsDefault sval =
+			  (case (arms, defaultOp)
+			     of ([(PL.DATAcon (dc, tycs, lvar), le)], NONE) =>
+				(* single arm, no default lexp;
+				 * this is a mere DECON, so we can push the let binding
 				 * (hidden in cont) inside and maybe even drop the DECON *)
 				let val ndc = cdcon dc
-				    val slv = Decon(lv, sv, ndc, tycs)
-				    val nm = addbind(m, lv, slv)
+				    val slv = Decon (lvar, sval, ndc, tycs)
+				    val nm = addbind (m, lvar, slv)
 				    (* see below *)
-				    (* val nm = addbind(nm, lvc, Con(lvc, slv, ndc, tycs)) *)
 				    val nle = loop (nm, le, cont)
-				    val nv = sval2val sv
+				    val nv = sval2val sval
 				in
-				    if C.usedLvar lv then
-					F.SWITCH(nv,ac,[(PL.DATAcon(ndc,tycs,lv),nle)],NONE)
+				    if C.usedLvar lvar then
+					F.SWITCH (nv, consig,[(PL.DATAcon(ndc,tycs,lvar), nle)], NONE)
 				    else (unuseValue m nv; nle)
 				end
-			      | ([(_,le)],NONE) =>
-				(* This should never happen, but we can optimize it away *)
-				(unuseValue m (sval2val sv); loop (m, le, cont))
-			      | ([],SOME le) =>
-				(* This should never happen, but we can optimize it away *)
-				(unuseValue m (sval2val sv); loop (m, le, cont))
+			      | ([(_, lexp)], NONE) =>
+				(* Single arm, no default: this should never happen,
+				 * but we optimize it away anyway *)
+				(unuseValue m (sval2val sval); loop (m, lexp, cont))
+			      | ([], SOME defaultLexp) =>
+				(* No arms, but default exists: this also should never happen,
+				 * but we optimize it away anyway *)
+				(unuseValue m (sval2val sval); loop (m, defaultLexp, cont))
 			      | _ =>
-				let fun carm (PL.DATAcon(dc,tycs,lv),le) =
-					let val ndc = cdcon dc
-					    val slv = Decon(lv, sv, ndc, tycs)
-					    val nm = addbind(m, lv, slv)
-					(* we can rebind lv to a more precise value
-					 * !!BEWARE!!  This rebinding is misleading:
-					 * - it gives the impression that `lvc' is built
-					 *   from`lv' although the reverse is true:
-					 *   if `lvc' is undertaken, `lv's count should
-					 *   *not* be updated!
-					 *   Luckily, `lvc' will not become dead while
-					 *   rebound to Con(lv) because it's used by the
-					 *   SWITCH. All in all, it works fine, but it's
-					 *   not as straightforward as it seems.
-					 * - it seems to be a good idea, but it can hide
-					 *   other opt-opportunities since it hides the
-					 *   previous binding. *)
-					(* val nm = addbind(nm, lvc, Con(lvc,slv,ndc,tycs)) *)
-					in (PL.DATAcon(ndc, tycs, lv), loop (nm, le, #2))
-					end
-				      | carm (con,le) = (con, loop (m, le, #2))
-				    val narms = map carm arms
-				    val ndef = Option.map (fn le => loop (m, le, #2)) def
-				in cont(m, F.SWITCH(sval2val sv, ac, narms, ndef))
+				let fun carm (PL.DATAcon (dc, tycs, lvar), lexp) =
+					  let val ndc = cdcon dc
+					      val slv = Decon(lvar, sval, ndc, tycs)
+					      val nm = addbind(m, lvar, slv)
+					  (* deleted apparently obsolete [SM] comment *)
+					  in (PL.DATAcon(ndc, tycs, lvar), loop (nm, lexp, #2))
+					  end
+				      | carm (con,lexp) = (con, loop (m, lexp, #2))
+				    val newArms = map carm arms
+				    val newDefaultOp =
+					  case defaultOp
+					    of NONE => NONE
+					     | SOME lexp => SOME (loop (m, lexp, #2))
+				in cont (m, F.SWITCH (sval2val sval, consig, newArms, newDefaultOp))
 				end)
 
-		        val sv = val2sval m v
-		     in case sv
-			  of Con x => fcsCon x
+		        val subjectSval = val2sval m subject
+
+		     in case subjectSval
+			  of Con (x as (_, _, (_, conrep, _), _)) =>
+			       (* check for EXN conrep, if so call fcsDefault subjectSval instead of fcsCon *)
+ 			       (case conrep 
+				  of A.EXN _ => fcsDefault subjectSval
+				   | _ => fcsCon x)
 			   | Val v => fcsVal v
-			   | (Var{1=lvc,...} | Select{1=lvc,...} | Decon{1=lvc, ...}
-			      | (* will probably never happen? *) Record{1=lvc,...}) =>
-			       fcsDefault sv
+			   | (Var _ | Select _ | Decon _ | (* will probably never happen? *) Record _) =>
+			       fcsDefault subjectSval
 			   | (Fun _ | TFun _) =>
-			       bugval("fcSwitch[Fun|TFun]", sval2val sv)
+			       bugval("fcSwitch[Fun|TFun]", subject)
 		    end (* fcSwitch *)
 
                 (* fcexp/fcCon : PL.dataconstr * LT.tyc list * F.value * LV.lvar * F.lexp -> F.lexp -- F.CON args*)
