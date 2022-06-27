@@ -29,6 +29,7 @@
 #include "ml-timer.h"
 #include "gc-stats.h"
 #include "vproc-state.h"
+#include "ml-signals.h"
 #include "profile.h"
 
 #ifdef C_CALLS
@@ -110,6 +111,9 @@ void InvokeGC (ml_state_t *msp, int level)
     msp->ml_limitPtr    = HEAP_LIMIT(heap);
 
     STOP_GC_PAUSE();
+
+  /* conditionally signal a GC signal */
+    GCSignal (msp->ml_vproc, level);
 
     ASSIGN(ProfCurrent, PROF_RUNTIME);
 
@@ -198,6 +202,9 @@ void InvokeGCWithRoots (ml_state_t *msp, int level, ...)
     msp->ml_limitPtr    = HEAP_LIMIT(heap);
 
     STOP_GC_PAUSE();
+
+  /* conditionally signal a GC signal */
+    GCSignal (msp->ml_vproc, level);
 
     ASSIGN(ProfCurrent, PROF_RUNTIME);
 
