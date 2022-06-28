@@ -33,9 +33,9 @@
 
 /* Registers (see compiler/CodeGen/amd64/amd64CpsRegs.sml): */
 #define temp		RAX
-#define misc0		RBX
-#define misc1		RCX
-#define misc2		RDX
+#define misc0		RBX     /* callee save */
+#define misc1		RCX     /* callee save */
+#define misc2		RDX     /* callee save */
 #define misc3		R10
 #define misc4		R11
 #define misc5		R12
