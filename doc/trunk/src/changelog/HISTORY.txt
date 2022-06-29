@@ -106,6 +106,17 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2022/06/29]::
++
+Fixed a pretty printing issue that arises when printing nested
+structure definitions.  For example, opening the `OS` structure
+in the REPL, would result in an extra newline between the colon
+and the `sig` keyword.
+This behavior is not present in the legacy version.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2022/06/27]::
 +
 Adding support for generating a SIG_GC signal when there is a garbage
