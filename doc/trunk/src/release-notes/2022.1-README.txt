@@ -85,6 +85,8 @@ part of the 110.99.* patch releases.
 | `CM.make` is unable to handle filenames that contain a backslash
 | [.bugid]#314#
 | `IEEEReal.setRoundingMode` is a no-op on Linux
+| [.bugid]#315#
+| `IEEEReal.float_class` does not match the Basis Library
 |=======
 
 The following unnumbered bug was also fixed:
