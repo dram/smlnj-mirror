@@ -18,7 +18,7 @@ sig
 
   val ppOpen: PrettyPrint.stream -> StaticEnv.staticEnv
               -> SymPath.path * Modules.Structure * int -> unit
-									    
+
   val ppStructureName : PrettyPrint.stream -> StaticEnv.staticEnv
 			-> Modules.Structure -> unit
 
@@ -234,23 +234,29 @@ fun ppStructure ppstrm env (str, depth) =
 	       -> unit *)
 and ppElement (env,depth,entityEnvOp) ppstrm (sym, spec) =
     (case spec
-       of M.STRspec{sign,entVar,def,slot} =>
-	   (openHVBox ppstrm (PP.Abs 0);
-	     pps ppstrm "structure ";
-	     ppSym ppstrm sym; pps ppstrm " :";
-	     break ppstrm {nsp=1,offset=2};
+       of M.STRspec{sign,entVar,def,slot} => (
+	    openHVBox ppstrm (PP.Abs 0);
+              openHBox ppstrm;
+	        pps ppstrm "structure";
+                space ppstrm 1;
+	        ppSym ppstrm sym;
+                space ppstrm 1;
+                pps ppstrm ":";
+                space ppstrm 1;
+             closeBox ppstrm;
 	     openHVBox ppstrm (PP.Abs 0);
-	      case entityEnvOp
-		of NONE => ppSignature0 ppstrm (sign,env,depth-1,true,NONE)
-		 | SOME eenv =>
-		    let val {entities,...} =
-			    case EE.look(eenv,entVar) of
-				M.STRent e => e
-			      | _ => bug "ppElement:STRent"
-		     in ppSignature0 ppstrm
-			  (sign,env,depth-1,true,SOME entities)
-		    end;
-	     closeBox ppstrm;
+               case entityEnvOp
+                of NONE => ppSignature0 ppstrm (sign,env,depth-1,true,NONE)
+                 | SOME eenv => let
+                     val {entities,...} =
+                             case EE.look(eenv,entVar)
+                              of M.STRent e => e
+                               | _ => bug "ppElement:STRent"
+                     in
+                       ppSignature0 ppstrm (sign,env,depth-1,true,SOME entities)
+                     end
+                (* end case *);
+              closeBox ppstrm;
 	    closeBox ppstrm)
 
 	| M.FCTspec{sign,entVar,slot} =>
@@ -558,11 +564,16 @@ and ppBinding ppstrm (env: SE.staticEnv) (name: S.symbol, binding: B.binding, de
 	     PP.string ppstrm "funsig "; ppSym ppstrm name;
 	     ppFunsig ppstrm env (fs, depth);
 	    PP.closeBox ppstrm)
-       | B.STRbind str =>
-	  (PP.openHVBox ppstrm (PP.Abs 0);
-	    PP.string ppstrm "structure "; ppSym ppstrm name;
-	    PP.string ppstrm " :";
-	    PP.break ppstrm {nsp=1,offset=2};
+       | B.STRbind str => (
+          PP.openHVBox ppstrm (PP.Abs 0);
+	    PP.openHBox ppstrm;
+	      PP.string ppstrm "structure";
+	      PP.space ppstrm 1;
+              ppSym ppstrm name;
+	      PP.space ppstrm 1;
+	      PP.string ppstrm ":";
+	      PP.space ppstrm 1;
+            PP.closeBox ppstrm;
 	    ppStructure ppstrm env (str, depth);
 	   PP.closeBox ppstrm)
        | B.FCTbind fct =>

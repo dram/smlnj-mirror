@@ -265,22 +265,8 @@ fun ppDec ({static,dynamic}: Environment.environment)
  	       PP.newline ppstrm;
 	       PP.closeBox ppstrm)
 
-	and ppStrb (AS.STRB{name, str, ...}) = 
-	    (PP.openHVBox ppstrm (PP.Rel 0);  (* 110_96_64 version *)
-	      PP.openHVBox ppstrm (PP.Rel 0);
-	       PP.string ppstrm "structure ";
-	       PU.ppSym ppstrm name;
-	       PP.string ppstrm " :";
-	       PP.break ppstrm {nsp=1,offset=2};
-	       (case str
-		 of M.STR{sign=M.SIG{name=SOME name',...},...} =>
-		    PU.ppSym ppstrm name'
-		  | _ => PPModules.ppStructure ppstrm static (str, !signatures));
-	      PP.closeBox ppstrm;
-	      PP.newline ppstrm;
-	     PP.closeBox ppstrm)
-(* trunk (2021.0) version
-	     (PP.openHVBox ppstrm (PP.Abs 0);
+	and ppStrb (AS.STRB{name, str, ...}) = (
+	      PP.openHVBox ppstrm (PP.Abs 0);
 		PP.openHBox ppstrm;
 		  PP.string ppstrm "structure";
 		  PP.space ppstrm 1;
@@ -289,10 +275,10 @@ fun ppDec ({static,dynamic}: Environment.environment)
 		  PP.string ppstrm ":";
 		  PP.space ppstrm 1;
 		PP.closeBox ppstrm;
-		PPModules.ppStructure ppstrm (str,static,!signatures);
+		PPModules.ppStructure ppstrm static (str, !signatures);
 	        PP.newline ppstrm;
 	      PP.closeBox ppstrm)
-*)
+
 	and ppFctb (AS.FCTB{name, fct, ...}) =
 	    (PP.openHVBox ppstrm (PP.Abs 0);
 	      pps "functor ";
