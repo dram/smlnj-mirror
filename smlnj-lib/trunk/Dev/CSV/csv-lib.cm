@@ -1,20 +1,24 @@
 (* csv-lib.cm
  *
- * COPYRIGHT (c) 2015 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2022 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
+ *
+ * A Library for reading and writing CSV files.
  *)
 
 Library
 
-  signature CSV
-  structure ListCSV
-  functor CSVIOFn
+  signature CSV_ROW
+
+  functor CSVReadFn
+
+  structure CSVReadList
+  structure CSVReadVector
 
 is
 
   $/basis.cm
   $/smlnj-lib.cm
 
-  csv-sig.sml
-  csv-io-fn.sml
-  list-csv.sml
+  csv-read-fn.sml
+  csv-read.sml
