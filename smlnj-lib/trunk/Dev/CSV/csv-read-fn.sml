@@ -29,7 +29,7 @@ functor CSVReadFn (R : CSV_ROW) : sig
         pos : int               (* the character index where the error occurred *)
       }
 
-    val getRow : TextIO.instream -> row option
+    val getRow : TextIO.instream -> R.row option
 
   end = struct
 
