@@ -5,6 +5,7 @@
  *)
 
 structure CSVReadList = CSVReadFn (
+  struct
 
     type row = string list
 
@@ -14,6 +15,7 @@ structure CSVReadList = CSVReadFn (
   end)
 
 structure CSVReadVector = CSVReadFn (
+  struct
 
     type row = string vector
 
