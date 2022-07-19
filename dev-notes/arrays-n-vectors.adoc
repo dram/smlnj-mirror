@@ -53,7 +53,8 @@ extra level of indirection when accessing data.
 The basic idea is to make it possible to wrap data objects with headers
 to create array and vector types.  We can do this in a type-safe way using
 phantom types.  For example, here is a possible interface for dealing with
-the various
+the various kinds of sequence types that we might want to support.
+
 [source,sml]
 ------------
 structure PrimSeq :> sig
