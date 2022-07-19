@@ -92,17 +92,32 @@ in integer arithmetic and various floating-point operations.
 
 **LLVM** needs to be modified to support the **JWA** calling convention
 that we use.  The modifications are fairly simple, and are
-described for **LLVM** 10.0.x below, where `$LLVM` denotes the root of
+described for **LLVM** 14.0.x below, where `$LLVM` denotes the root of
 the **LLVM** source tree.
 
 There is some documentation about how to specify calling conventions in
 ["Writing an LLVM Backend"](https://llvm.org/docs/WritingAnLLVMBackend.html)
 
+### Fixing `lib/CodeGen/SelectionDAG/SelectionDAGBuilder.cpp`
+
+In LLVM Version 11.0.0, a change was made to the `SelectionDAGISel::LowerArguments`
+method in the `SelectionDAGBuilder.cpp` file that breaks the handling of the `naked`
+attribute on functions.  This change needs to be reverted to make things work.
+We add an `#ifdef` to disable the bogus code:
+
+``` c++
+#fdef BROKEN_NAKED_ATTRIBUTE
+  // In Naked functions we aren't going to save any registers.
+  if (F.hasFnAttribute(Attribute::Naked))
+    return;
+#endif
+```
+
 ### `CallingConv.h`
 
 The file `$LLVM/include/llvm/IR/CallingConv.h` assigns integer codes for
-the various calling conventions.  In **LLVM** 10.0.x, the last number assigned
-is `19`, so we use `20` for **JWA**.  Add the following code to the file just
+the various calling conventions.  In **LLVM** 14.0.x, the last number assigned
+is `20`, so we use `21` for **JWA**.  Add the following code to the file just
 before the first target-specific code (which will be `64`).
 
 ``` c++
@@ -112,7 +127,7 @@ before the first target-specific code (which will be `64`).
     /// if there are not enough registers for a given function. The lack of
     /// warning is needed in order to properly utilize musttail calls as
     /// jumps because they are picky about parameters.
-    JWA = 20,
+    JWA = 21,
 ```
 
 ### Supporting `jwacc` in LLVM Assembler
@@ -259,7 +274,8 @@ recognize the **JWA** convention.
 To the code
 ``` c++
   if (CC == CallingConv::Fast || CC == CallingConv::GHC ||
-      CC == CallingConv::HiPE || CC == CallingConv::Tail)
+      CC == CallingConv::HiPE || CC == CallingConv::Tail ||
+      CC == CallingConv::SwiftTail)
     return 0;
 ```
 add a test for **JWA** (`CC == CallingConv::JWA`).
@@ -273,7 +289,7 @@ a check for **JWA** to the function `canGuaranteeTCO`.
   return (CC == CallingConv::Fast || CC == CallingConv::GHC ||
           CC == CallingConv::X86_RegCall || CC == CallingConv::HiPE ||
           CC == CallingConv::HHVM || CC == CallingConv::Tail ||
-          CC == CallingConv::JWA);
+          CC == CallingConv::SwiftTail || CC == CallingConv::JWA);
 ```
 
 #### `X86RegisterInfo.cpp`
@@ -443,8 +459,10 @@ Replace the body of `AArch64TargetLowering::CCAssignFnForReturn` with the follow
 
 Lastly, change the function `canGuaranteeTCO` to the following:
 ``` c++
-static bool canGuaranteeTCO(CallingConv::ID CC) {
-  return (CC == CallingConv::Fast) || (CC == CallingConv::JWA);
+static bool canGuaranteeTCO(CallingConv::ID CC, bool GuaranteeTailCalls) {
+  return (CC == CallingConv::Fast && GuaranteeTailCalls) ||
+         CC == CallingConv::Tail || CC == CallingConv::SwiftTail ||
+         CC == CallingConv::JWA;
 }
 ```
 
@@ -506,7 +524,7 @@ steps needed to build and install LLVM, but we outline the build process here.
 
 There are three directories involved:
 
-  * The LLVM source directory (`$LLVM_SRC`); currently this directory is `llvm-10.0.1.src`
+  * The LLVM source directory (`$LLVM_SRC`); currently this directory is `llvm-14.0.3.src`
 
   * A fresh build directory, (`$LLVM_BUILD`)
 
