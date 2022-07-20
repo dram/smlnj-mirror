@@ -44,6 +44,9 @@ Update LLVM to 14.0.5
 
 --
   * Added the `findAndRemove` function to `ORD_MAP` interface.
+  * Generalized comparisons on ordered maps; added `equiv` and
+    `extends` functions to `ORD_MAP` interface and made type of
+    `collate` more polymorphic.
   * The *SExp* library now uses *Scheme* syntax for string values.
   * The *SExp* parser accepts empty files as valid input (producing
     an empty list of S-Expressions).
