@@ -4,6 +4,7 @@
 :date: ??
 :dist-dir: https://smlnj.org/dist/working/{version}/
 :history: {dist-dir}HISTORY.html
+:issue-base: https://github.com/smlnj/smlnj/issues/
 :release-notes: {dist-dir}{version}-README.html
 :stem: latexmath
 :source-highlighter: pygments
@@ -32,6 +33,17 @@ FILES::
 
 == Summary
 
+== GitHub Migration
+
+With this release, we have migrated the bug tracking infrastructure to a system using
+**GitHub** issues.  We have prepopulated the issues for the legacy repository with
+the entries from the old bug database.
+
+Since issues are associated with a repository, we now have separate trackers for the
+legacy and main development versions.  While most bugs that are present in one version
+will also be present in the other version, it is not necessary to create two issues
+when reporting a bug.
+
 == Details
 
 === Compiler
@@ -58,46 +70,62 @@ The `config/install.sh` script continues to work as before.  We have added a `-d
 command-line option to enable cross compilation (__i.e.__, it compiles *LLVM*
 for all of the supported target architectures).
 
-== Bugs
+== Closed Issues
 
-Here is a list of tracked bugs fixed (or closed) with this release, please see the
-https://smlnj-gforge.cs.uchicago.edu/projects/smlnj-bugs[bug tracker]
-for more details.
-Note that this list is relative to Version 110.99 and includes fixes that were
-part of the 110.99.* patch releases.
+Here is a list of the issues that are fixed (or closed) with this release.
+We include the original bug numbers for bugs that were reported using the
+old https://smlnj-gforge.cs.uchicago.edu/projects/smlnj-bugs[bug tracker].
 
-[.buglist,cols="^1,<15"]
+[.buglist,cols="^1,<15,^2",strips="none"]
 |=======
-| [.bugid]#65#
-| Garbage collection does not trigger `sigGC`
-| [.bugid]#284#
-| Compiler bug: Contract: UsageMap on 132
-| [.bugid]#290#
-| Incorrect pattern matching for exceptons
-| [.bugid]#291#
-| Signals are not delivered for corresponding events
-| [.bugid]#306#
-| Word8VectorSlice: mapping a subslice produces wrong result or crashes SML/NJ
-| [.bugid]#307#
-| `SExpParser.parseFile` should return empty list on empty file
-| [.bugid]#309#
-| SExp: parsing the output of the printer produces a different SExp
-| [.bugid]#310#
-| Error when REPL tries to print value of type `Posix.FileSys.ST.stat`
-| [.bugid]#312#
-| `CM.make` is unable to handle filenames that contain a backslash
-| [.bugid]#314#
-| `IEEEReal.setRoundingMode` is a no-op on Linux
-| [.bugid]#315#
-| `IEEEReal.float_class` does not match the Basis Library
-| [.bugid]#316#
-| `Real.fromManExp` does not return expected value if `man = 0.0`
-| [.bugid]#317#
-| Conversion from string to real does not accept non-finite values
-| [.bugid]#318#
-| `IEEEReal.decimal_approx` does not match the Basis Library
-| [.bugid]#319#
-| Type of `Real.fromDecimal` does not match the Basis Library
+| [.bugid]#26#
+| {issue-base}26[Garbage collection does not trigger `sigGC`]
+| [old bug #65]
+| [.bugid]#219#
+| {issue-base}219[Compiler bug: Contract: UsageMap on 132]
+| [old bug #284]
+| [.bugid]#223#
+| {issue-base}223[Incorrect pattern matching for exceptons]
+| [old bug #290]
+| [.bugid]#224#
+| {issue-base}224[Signals are not delivered for corresponding events]
+| [old bug #291]
+| [.bugid]#239#
+| {issue-base}239[Word8VectorSlice: mapping a subslice produces wrong result or crashes SML/NJ]
+| [old bug #306]
+| [.bugid]#240#
+| {issue-base}240[`SExpParser.parseFile` should return empty list on empty file]
+| [old bug #307]
+| [.bugid]#240#
+| {issue-base}241[Add function for converting `HTML4.html` to string]
+| [old bug #308]
+| [.bugid]#242#
+| {issue-base}242[SExp: parsing the output of the printer produces a different SExp]
+| [old bug #309]
+| [.bugid]#243#
+| {issue-base}243[Error when REPL tries to print value of type `Posix.FileSys.ST.stat`]
+| [old bug #310]
+| [.bugid]#244#
+| {issue-base}244[`CM.make` is unable to handle filenames that contain a backslash]
+| [old bug #312]
+| [.bugid]#247#
+| {issue-base}247[`IEEEReal.setRoundingMode` is a no-op on Linux]
+| [old bug #314]
+| [.bugid]#248#
+| {issue-base}248[`IEEEReal.float_class` does not match the Basis Library]
+| [old bug #315]
+| [.bugid]#249#
+| {issue-base}249[`Real.fromManExp` does not return expected value if `man = 0.0`]
+| [old bug #316]
+| [.bugid]#250#
+| {issue-base}250[Conversion from string to real does not accept non-finite values]
+| [old bug #317]
+| [.bugid]#251#
+| {issue-base}251[`IEEEReal.decimal_approx` does not match the Basis Library]
+| [old bug #318]
+| [.bugid]#252#
+| {issue-base}252[Type of `Real.fromDecimal` does not match the Basis Library]
+| [old bug #319]
 |=======
 
 The following unnumbered bug was also fixed:
@@ -108,10 +136,11 @@ The following unnumbered bug was also fixed:
 The following bugs were reported for the legacy version, but do not affect
 the new versions.
 
-[.buglist,cols="^1,<15"]
+[.buglist,cols="^1,<15,^2",strips="none"]
 |=======
-| [.bugid]#313#
-| `Real.fromLargeInt` crashes on large integer input
+| [.bugid]#246#
+| {issue-base}246[`Real.fromLargeInt` crashes on large integer input]
+| [old bug #313]
 |=======
 
 == Supported systems
