@@ -43,8 +43,10 @@ struct
     val printPlambda  = new (flag_cvt, "print", "show plambda IR after translate", false)
     val printFlint    = new (flag_cvt, "print", "show flint IR after each phase", false)
     val printPhases   = new (flag_cvt, "print-phases", "show phases", false)
-    val printFctTypes = new (flag_cvt, "print-fct-types",
-			     "show function types", false)
+    val printFctTypes = new (flag_cvt, "print-fct-types", "show function types", false)
+    val printDTNames  = new (flag_cvt, "print", "print datatype names in PPLty.fmtTyc", true)
+    val printINDltys  = new (flag_cvt, "print", "print IND tycs and ltys", false)
+
     val lkdebugging   = new (flag_cvt, "lkdebugging", "LtyKernel debugging", false)
     val tmdebugging   = new (flag_cvt, "tmdebugging", "TransTypes debugging", false)
     val trdebugging   = new (flag_cvt, "trdebugging", "Translate debugging", false)
