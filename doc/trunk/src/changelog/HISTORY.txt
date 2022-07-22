@@ -109,6 +109,20 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //--------------------------------------------------------------------
 [2022/07/22]::
 +
+Fix gforge bug 270, smlnj/legacy issue #241. See issue #241 for details.
++
+owner:cs.uchicago.edu/~dbm[Dave MacQueen]
+
+//--------------------------------------------------------------------
+[2022/07/22]::
++
+Fix gforge bug 204, smlnj/legacy issue #177. See issue #177 for details.
++
+owner:cs.uchicago.edu/~dbm[Dave MacQueen]
+
+//--------------------------------------------------------------------
+[2022/07/22]::
++
 Fix for {issue-base}/68[Unable to interrupt execution by using `SIGINT`].
 +
 owner:cs.uchicago.edu/~jhr[John Reppy]
