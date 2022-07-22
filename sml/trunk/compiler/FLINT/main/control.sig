@@ -13,7 +13,7 @@ sig
   val printPhases     : bool ref   (* show phases *)
   val printFctTypes   : bool ref   (* show functor types *)
   val printDTNames    : bool ref   (* print datatype names in PPLty.fmtTyc *)
-  val printINDlyts    : bool ref   (* print IND tycs and ltys in PPLty *)
+  val printINDltys    : bool ref   (* print IND tycs and ltys in PPLty *)
 
   val currentPhase    : string ref (* the name of the current FLINT optimization phase *)
   val phases	      : string list ref  (* determines phases and their order *)

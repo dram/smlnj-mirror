@@ -22,10 +22,6 @@ sig
   val ppStrexp : StaticEnv.staticEnv * Source.inputSource option
                  -> PrettyPrint.stream -> Absyn.strexp * int -> unit
 
-  val lineprint : bool ref
-
-  val debugging : bool ref
-
 end (* signature PPABSYN *)
 
 
@@ -48,15 +44,17 @@ local
 in
 
 (* debugging *)
+val debugging = ElabDataControl.ppabsyndebugging
+
 val say = Control_Print.say
-val debugging = ref false
-fun debugmsg (msg: string) =
+fun dbsaynl (msg: string) =
       if !debugging then (say msg; say "\n") else ()
+
 fun bug msg = ErrorMsg.impossible("PPAbsyn: "^msg)
 
+(* printing flags, from ElabDataControl *)
+val lineprint = ElabDataControl.absynLineprint
 val internals = ElabDataControl.absynInternals
-
-val lineprint = ref false
 
 fun C f x y = f y x
 
@@ -195,7 +193,7 @@ fun ppPat env ppstrm =
           | ppPat' (MARKpat(p,region), d) = ppPat' (p,d)
 	  | ppPat' _ = bug "ppPat'"
      in ppPat'
-    end
+    end (* fun ppPat *)
 
 and ppDconPat(env,ppstrm) =
     let val {openHOVBox, openHVBox, closeBox, pps, ppi, ...} = PU.en_pp ppstrm
@@ -217,7 +215,7 @@ and ppDconPat(env,ppstrm) =
 	      pps "("; ppPat env ppstrm (v,d); PP.break ppstrm {nsp=1,offset=2};
 	      pps " as "; ppPat env ppstrm (p,d-1); pps ")";
 	      closeBox ())
-	  | ppDconPat'(APPpat(DATACON{name,...},_,p),l,r,d) =
+	  | ppDconPat'(APPpat(DATACON{name,...}, _, argPat), l, r, d) =
 	      let val dname = S.name name
 		      (* should really have original path, like for VARexp *)
 		  val thisFix = lookFIX(env,name)
@@ -225,20 +223,24 @@ and ppDconPat(env,ppstrm) =
 		  val atom = strongerR(effFix,r) orelse strongerL(l,effFix)
 	       in openHOVBox 2;
 		  lpcond(atom);
-		  case (thisFix,p)
-		    of (INfix _, RECORDpat{fields=[(_,pl),(_,pr)],...}) =>
-			 let val (left,right) =
-				 if atom then (nullFix,nullFix)
-				 else (l,r)
-			  in ppDconPat' (pl,left,thisFix,d-1);
-			     PP.break ppstrm {nsp=1,offset=0};
-			     pps dname;
-			     PP.break ppstrm {nsp=1,offset=0};
-			     ppDconPat' (pr,thisFix,right,d-1)
-			 end
-		     | _ =>
+		  case thisFix
+		    of INfix _ => 
+                         (case AU.headStripPat argPat
+			    of RECORDpat{fields=[(_,leftPat),(_,rightPat)],...} =>
+			       (* BUG? assuming field pairs are in the right order! *)
+				 let val (left,right) =
+					 if atom then (nullFix,nullFix)
+					 else (l,r)
+				  in ppDconPat' (leftPat,left,thisFix,d-1);
+				     PP.break ppstrm {nsp=1,offset=0};
+				     pps dname;
+				     PP.break ppstrm {nsp=1,offset=0};
+				     ppDconPat' (rightPat, thisFix, right, d-1)
+				 end
+		            | _ => bug "ppDconPat'")
+		     | NONfix =>
 		        (pps dname; PP.break ppstrm {nsp=1,offset=0};
-			 ppDconPat'(p,infFix,infFix,d-1));
+			 ppDconPat' (argPat, infFix, infFix, d-1));
 		  rpcond(atom);
 		  closeBox ()
 	      end
@@ -503,7 +505,7 @@ fun ppExp (context as (env,source_opt)) ppstrm =
 			     closeBox ())
 		     in case thisFix
 			  of INfix _ =>   (* path is single symbol *)
-			     (case stripMark rand
+			     (case AU.headStripExp rand
 				of RECORDexp[(_,pl),(_,pr)] =>
 				    let val atom = strongerL(leftFix,thisFix)
 					     orelse strongerR(thisFix,rightFix)

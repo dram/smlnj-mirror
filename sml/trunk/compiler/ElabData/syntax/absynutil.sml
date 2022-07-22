@@ -17,6 +17,8 @@ structure AbsynUtil : sig
     val constantCon : Absyn.con -> bool
     val conToSign : Absyn.con -> Access.consig
     val conToString : Absyn.con -> string
+    val headStripExp : Absyn.exp -> Absyn.exp
+    val headStripPat : Absyn.pat -> Absyn.pat
     val stripPatMarks : Absyn.pat -> Absyn.pat
     val patternVars : Absyn.pat -> Variable.var list
     val noVarsInPat : Absyn.pat -> bool
@@ -96,6 +98,20 @@ structure AbsynUtil : sig
       | conToString (WORDcon{ival, ty}) = "W" ^ IntInf.toString ival
       | conToString (STRINGcon s) = "S:" ^ PrintUtil.formatString s
       | conToString (VLENcon (n,_)) = "L" ^ Int.toString n
+
+    (* headStripExp : exp -> exp *)
+    (* strip MARKexp and CONSTRAINTexp head constructors. Used to access the RECORDexp (pair)
+     * argument of an infix constructor in an APPexp (see PPAbsyn.ppAppExp) *)
+    fun headStripExp (MARKexp(exp,_)) = headStripExp exp
+      | headStripExp (CONSTRAINTexp(exp,_)) = headStripExp exp
+      | headStripExp exp = exp
+
+    (* headStripPat : pat -> pat *)
+    (* strip MARKpat and CONSTRAINTpat head constructors. Used to access the RECORDpat (pair)
+     * argument of an infix constructor in an APPpat (see PPAbsyn.ppDconPat) *)
+    fun headStripPat (MARKpat (p,_)) = headStripPat p
+      | headStripPat (CONSTRAINTpat (p, ty)) = headStripPat p
+      | headStripPat pat = pat
 
     (* stripPatMarks : AS.pat -> AS.pat *)
     fun stripPatMarks pat =

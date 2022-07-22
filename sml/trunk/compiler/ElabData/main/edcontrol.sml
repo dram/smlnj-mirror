@@ -40,6 +40,7 @@ struct
     val envdebugging = new ("env-debugging", "Env debugging", false)
     val eedebugging = new ("ee-debugging", "EntityEnv debugging", false)
     val mudebugging = new ("mu-debugging", "ModuleUtil debugging", false)
+    val ppabsyndebugging = new ("ppabsyn-debugging", "PPAbsyn debugging", false)
 
     val tudebugging = new ("tu-debugging", "TypesUtil debugging", false)
         (* TypesUtil *)
@@ -52,7 +53,8 @@ struct
 
     val typesInternals = new ("types-internals", "show internal types reps", false)
     val modulesInternals = new ("modules-internals", "show internal module reps", false)
-    val absynInternals = new ("absyn-internals", "show internal absyn info", false)
+    val absynLineprint = new ("absyn-lineprint", "PPAbsyn: print positions as line,column", false)
+    val absynInternals = new ("absyn-internals", "PPAbsyn: show internal absyn info", false)
     val varconInternals = new ("varcon-internals", "show internal var/con reps", false)
     val internals = new ("general-internals", "show internal reps", false)
 

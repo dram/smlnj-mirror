@@ -23,6 +23,9 @@ sig
   val tpdebugging : bool ref
       (* PPType debugging *)
 
+  val ppabsyndebugging : bool ref
+      (* PPAbsyn debugging *)
+
   val typesInternals : bool ref
       (* show types internal reps *)
 
@@ -35,8 +38,11 @@ sig
   val modulesInternals : bool ref
       (* show modules internal reps *)
 
+  val absynLineprint : bool ref
+      (* PPAbsyn: print positions as line number + column *)
+
   val absynInternals : bool ref
-      (* show absyn internal reps (MARKS) *)
+      (* PPAbsyn: show absyn internal reps (e.g. MARKs) *)
 
   val varconInternals : bool ref
       (* show value/constructor internal reps *)
@@ -48,7 +54,7 @@ sig
       (* set all internals controls to true, returning "former" values *)
 
   val resetInternals : bool * bool * bool * bool * bool -> unit
-      (* set all internals controls to "former" values *)
+      (* set all internals controls to new values given by arguments *)
 
   val boxedconstconreps : bool ref
       (* constructor representation (used in ConRep) *)
