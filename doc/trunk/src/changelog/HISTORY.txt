@@ -6,6 +6,7 @@ The Fellowship of SML/NJ
 :source-highlighter: pygments
 :tabsize: 8
 :note-caption: UPDATE
+:issue-base: https://github.com/smlnj/smlnj/issues
 
 This file documents changes to the *Standard ML of New Jersey* system since
 March of 2000 (around Version 110.26).  The change log  primarily covers
@@ -104,6 +105,13 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 
 //====================================================================
 //== Recent updates
+
+//--------------------------------------------------------------------
+[2022/07/22]::
++
+Fix for {issue-base}/68[Unable to interrupt execution by using `SIGINT`].
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
 
 //--------------------------------------------------------------------
 [2022/07/06]::

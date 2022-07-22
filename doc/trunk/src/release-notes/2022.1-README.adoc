@@ -4,7 +4,7 @@
 :date: ??
 :dist-dir: https://smlnj.org/dist/working/{version}/
 :history: {dist-dir}HISTORY.html
-:issue-base: https://github.com/smlnj/smlnj/issues/
+:issue-base: https://github.com/smlnj/smlnj/issues
 :release-notes: {dist-dir}{version}-README.html
 :stem: latexmath
 :source-highlighter: pygments
@@ -79,52 +79,60 @@ old https://smlnj-gforge.cs.uchicago.edu/projects/smlnj-bugs[bug tracker].
 [.buglist,cols="^1,<15,^2",strips="none"]
 |=======
 | [.bugid]#26#
-| {issue-base}26[Garbage collection does not trigger `sigGC`]
+| {issue-base}/26[Garbage collection does not trigger `sigGC`]
 | [old bug #65]
+| {issue-base}/141[Pretty printing of Absyn in error message does not respect fixity]
+| [old bug #141]
+| [.bugid]#205#
+| {issue-base}/205[Last branch of case expression omitted from `PPAst`]
+| [old bug #270]
 | [.bugid]#219#
-| {issue-base}219[Compiler bug: Contract: UsageMap on 132]
+| {issue-base}/219[Compiler bug: Contract: UsageMap on 132]
 | [old bug #284]
 | [.bugid]#223#
-| {issue-base}223[Incorrect pattern matching for exceptons]
+| {issue-base}/223[Incorrect pattern matching for exceptons]
 | [old bug #290]
 | [.bugid]#224#
-| {issue-base}224[Signals are not delivered for corresponding events]
+| {issue-base}/224[Signals are not delivered for corresponding events]
 | [old bug #291]
 | [.bugid]#239#
-| {issue-base}239[Word8VectorSlice: mapping a subslice produces wrong result or crashes SML/NJ]
+| {issue-base}/239[Word8VectorSlice: mapping a subslice produces wrong result or crashes SML/NJ]
 | [old bug #306]
 | [.bugid]#240#
-| {issue-base}240[`SExpParser.parseFile` should return empty list on empty file]
+| {issue-base}/240[`SExpParser.parseFile` should return empty list on empty file]
 | [old bug #307]
 | [.bugid]#240#
-| {issue-base}241[Add function for converting `HTML4.html` to string]
+| {issue-base}/241[Add function for converting `HTML4.html` to string]
 | [old bug #308]
 | [.bugid]#242#
-| {issue-base}242[SExp: parsing the output of the printer produces a different SExp]
+| {issue-base}/242[SExp: parsing the output of the printer produces a different SExp]
 | [old bug #309]
 | [.bugid]#243#
-| {issue-base}243[Error when REPL tries to print value of type `Posix.FileSys.ST.stat`]
+| {issue-base}/243[Error when REPL tries to print value of type `Posix.FileSys.ST.stat`]
 | [old bug #310]
 | [.bugid]#244#
-| {issue-base}244[`CM.make` is unable to handle filenames that contain a backslash]
+| {issue-base}/244[Unable to interrupt execution by using `SIGINT`]
+| [old bug #311]
+| [.bugid]#245#
+| {issue-base}/245[`CM.make` is unable to handle filenames that contain a backslash]
 | [old bug #312]
 | [.bugid]#247#
-| {issue-base}247[`IEEEReal.setRoundingMode` is a no-op on Linux]
+| {issue-base}/247[`IEEEReal.setRoundingMode` is a no-op on Linux]
 | [old bug #314]
 | [.bugid]#248#
-| {issue-base}248[`IEEEReal.float_class` does not match the Basis Library]
+| {issue-base}/248[`IEEEReal.float_class` does not match the Basis Library]
 | [old bug #315]
 | [.bugid]#249#
-| {issue-base}249[`Real.fromManExp` does not return expected value if `man = 0.0`]
+| {issue-base}/249[`Real.fromManExp` does not return expected value if `man = 0.0`]
 | [old bug #316]
 | [.bugid]#250#
-| {issue-base}250[Conversion from string to real does not accept non-finite values]
+| {issue-base}/250[Conversion from string to real does not accept non-finite values]
 | [old bug #317]
 | [.bugid]#251#
-| {issue-base}251[`IEEEReal.decimal_approx` does not match the Basis Library]
+| {issue-base}/251[`IEEEReal.decimal_approx` does not match the Basis Library]
 | [old bug #318]
 | [.bugid]#252#
-| {issue-base}252[Type of `Real.fromDecimal` does not match the Basis Library]
+| {issue-base}/252[Type of `Real.fromDecimal` does not match the Basis Library]
 | [old bug #319]
 |=======
 
@@ -139,7 +147,7 @@ the new versions.
 [.buglist,cols="^1,<15,^2",strips="none"]
 |=======
 | [.bugid]#246#
-| {issue-base}246[`Real.fromLargeInt` crashes on large integer input]
+| {issue-base}/246[`Real.fromLargeInt` crashes on large integer input]
 | [old bug #313]
 |=======
 
