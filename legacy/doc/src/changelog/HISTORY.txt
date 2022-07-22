@@ -96,6 +96,20 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2022/07/22]::
++
+Fix gforge bug 270, github smlnj/legacy issue #241. See issue #241 for details.
++
+owner:cs.uchicago.edu/~dbm[Dave MacQueen]
+
+//--------------------------------------------------------------------
+[2022/07/22]::
++
+Fix gforge bug 204, github smlnj/legacy issue #177. See issue #177 for details.
++
+owner:cs.uchicago.edu/~dbm[Dave MacQueen]
+
+//--------------------------------------------------------------------
 [2022/06/01]::
 +
 Fixed bug bugref:284[] (Compiler bug: Contract: UsageMap on 132).
