@@ -37,7 +37,7 @@ FILES::
 
 With this release, we have migrated the bug tracking infrastructure to a system using
 **GitHub** issues.  We have prepopulated the issues for the legacy repository with
-the entries from the old bug database.
+the entries from the gforge bug database.
 
 Since issues are associated with a repository, we now have separate trackers for the
 legacy and main development versions.  While most bugs that are present in one version
@@ -51,6 +51,19 @@ when reporting a bug.
 Update LLVM to 14.0.5
 
 === Runtime System
+
+=== Basis Library
+
+Added support for the following proposed https://github.com/SMLFamily/BasisLibrary[**Basis
+Library** extensions]:
+
+--
+  * https://github.com/SMLFamily/BasisLibrary/wiki/2021-001-Add-getWindowSz-function-to-Posix.TTY-structure[
+    2021-001 Add getWindowSz function to Posix.TTY structure]
+
+  * https://github.com/SMLFamily/BasisLibrary/wiki/2022-001-Add-value-tau-to-MATH-signature[
+    2022-001 Add value tau to MATH signature]
+--
 
 === SML/NJ Library
 
@@ -74,66 +87,69 @@ for all of the supported target architectures).
 
 Here is a list of the issues that are fixed (or closed) with this release.
 We include the original bug numbers for bugs that were reported using the
-old https://smlnj-gforge.cs.uchicago.edu/projects/smlnj-bugs[bug tracker].
+https://smlnj-gforge.cs.uchicago.edu/projects/smlnj-bugs[bug tracker].
 
-[.buglist,cols="^1,<15,^2",strips="none"]
+[.buglist,cols="^2,<10,^2",strips="none",options="header"]
 |=======
+| Issue No.
+| Description
+| Gforge Bug
 | [.bugid]#26#
 | {issue-base}/26[Garbage collection does not trigger `sigGC`]
-| [old bug #65]
+| 65
 | {issue-base}/141[Pretty printing of Absyn in error message does not respect fixity]
-| [old bug #141]
+| 141
 | [.bugid]#205#
 | {issue-base}/205[Last branch of case expression omitted from `PPAst`]
-| [old bug #270]
+| 270
 | [.bugid]#219#
 | {issue-base}/219[Compiler bug: Contract: UsageMap on 132]
-| [old bug #284]
+| 284
 | [.bugid]#223#
 | {issue-base}/223[Incorrect pattern matching for exceptons]
-| [old bug #290]
+| 290
 | [.bugid]#224#
 | {issue-base}/224[Signals are not delivered for corresponding events]
-| [old bug #291]
+| 291
 | [.bugid]#239#
 | {issue-base}/239[Word8VectorSlice: mapping a subslice produces wrong result or crashes SML/NJ]
-| [old bug #306]
+| 306
 | [.bugid]#240#
 | {issue-base}/240[`SExpParser.parseFile` should return empty list on empty file]
-| [old bug #307]
+| 307
 | [.bugid]#240#
 | {issue-base}/241[Add function for converting `HTML4.html` to string]
-| [old bug #308]
+| 308
 | [.bugid]#242#
 | {issue-base}/242[SExp: parsing the output of the printer produces a different SExp]
-| [old bug #309]
+| 309
 | [.bugid]#243#
 | {issue-base}/243[Error when REPL tries to print value of type `Posix.FileSys.ST.stat`]
-| [old bug #310]
+| 310
 | [.bugid]#244#
 | {issue-base}/244[Unable to interrupt execution by using `SIGINT`]
-| [old bug #311]
+| 311
 | [.bugid]#245#
 | {issue-base}/245[`CM.make` is unable to handle filenames that contain a backslash]
-| [old bug #312]
+| 312
 | [.bugid]#247#
 | {issue-base}/247[`IEEEReal.setRoundingMode` is a no-op on Linux]
-| [old bug #314]
+| 314
 | [.bugid]#248#
 | {issue-base}/248[`IEEEReal.float_class` does not match the Basis Library]
-| [old bug #315]
+| 315
 | [.bugid]#249#
 | {issue-base}/249[`Real.fromManExp` does not return expected value if `man = 0.0`]
-| [old bug #316]
+| 316
 | [.bugid]#250#
 | {issue-base}/250[Conversion from string to real does not accept non-finite values]
-| [old bug #317]
+| 317
 | [.bugid]#251#
 | {issue-base}/251[`IEEEReal.decimal_approx` does not match the Basis Library]
-| [old bug #318]
+| 318
 | [.bugid]#252#
 | {issue-base}/252[Type of `Real.fromDecimal` does not match the Basis Library]
-| [old bug #319]
+| 319
 |=======
 
 The following unnumbered bug was also fixed:
@@ -144,11 +160,14 @@ The following unnumbered bug was also fixed:
 The following bugs were reported for the legacy version, but do not affect
 the new versions.
 
-[.buglist,cols="^1,<15,^2",strips="none"]
+[.buglist,cols="^2,<10,^2",strips="none",options="header"]
 |=======
+| Issue No.
+| Description
+| Gforge Bug
 | [.bugid]#246#
 | {issue-base}/246[`Real.fromLargeInt` crashes on large integer input]
-| [old bug #313]
+| 313
 |=======
 
 == Supported systems

@@ -107,9 +107,42 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2022/07/25]::
++
+Implemented Basis Library proposal
+https://github.com/SMLFamily/BasisLibrary/wiki/2021-001-Add-getWindowSz-function-to-Posix.TTY-structure[2021-001]
+(Add getWindowSz function to Posix.TTY structure).
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2022/07/25]::
++
+Implemented Basis Library proposal
+https://github.com/SMLFamily/BasisLibrary/wiki/2022-001-Add-value-tau-to-MATH-signature[2022-001]
+(Add `tau` to `MATH` signature).
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2022/07/24]::
++
+Fix for {issue-base}/58[ml-build fails on Windows with error].
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2022/07/24]::
++
+Fix for {issue-base}/51[makeml and installml scripts do not like
+locations with spaces].
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2022/07/22]::
 +
-Fix for {issue-base}/205[Last branch of case expression omitted from PPAst].
+Fix for {issue-base}/205[Last branch of case expression omitted by PPAst].
 +
 owner:cs.uchicago.edu/~dbm[Dave MacQueen]
 
