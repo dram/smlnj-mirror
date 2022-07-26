@@ -1,27 +1,78 @@
+# Migrating SML/NJ to GitHub
+
 We plan to migrate the SML/NJ project to GitHub over the spring/summer
 of 2022.  We will take this opportunity to reorganize the structure of
 the repository.
 
-The following is a proposal for organizing the repository on GitHub.
 The basic idea is that core pieces of the system are in top-level
 directories, while support tools and libraries are in the `tools`
 and `libraries` directories.
 
+## Step 1
+
+The first step is a partial reorganzation of the repository.  We preserve
+the current organization of the `base` subdirectories
+
+smlnj/
+        basis-lib/                      -- SML Basis Library + SML/NJ Basis
+        cm/                             -- compilation manager (old `base/cm`)
+        compiler/                       -- the SML compiler (old `base/compiler`)
+        libraries/                      -- additional libraries
+                ckit/
+                cml/
+                eXene/
+                MLRISC/
+                old-basis/              -- 2004 version of SML Basis Library
+                pgraph/
+                trace-debug-profile/
+        llvm/                           -- modified version of LLVM that supports JWA
+        make-dist/                      -- support for packaging releases as installers
+            macos/                      -- support for building macOS PKG file
+            windows/                    -- support for building Windows MSI file
+        runtime/                        -- runtime system
+        smlnj-lib/                      -- SML/NJ libraries
+        system/                         -- bootstrapping (the old `base/system`)
+        tools/
+                asdl
+                heap2asm
+                ml-burg
+                ml-lpt                  -- ml-antlr and ml-ulex tool
+                ml-yacc
+                nlffi
+                smldoc
+
+## Step 2
+
+In the second step, we reorganize the compiler into a collection of libraries
+(essentially a replacement for the "visible compiler") that can be used to
+implement standalone tools, such as a LSP server.  The stuff that is currently
+in `base/system` would likely be split across the `basis-lib` and `sml`
+directories.
+
 smlnj/
         basis-lib/                      -- SML Basis Library + SML/NJ Basis
         cm/                             -- compilation manager
-        libraries/
+        libraries/                      -- additional libraries
                 ckit/
                 cml/
+                eXene/
+                MLRISC/
+                old-basis/              -- 2004 version of SML Basis Library
+                pgraph/
+                trace-debug-profile/
+        llvm/                           -- modified version of LLVM that supports JWA
+        make-dist/                      -- support for packaging releases as installers
+            macos/                      -- support for building macOS PKG file
+            windows/                    -- support for building Windows MSI file
         runtime/                        -- runtime system
         sml/                            -- interactive system
         smlc-lib/                       -- compiler library
         smlnj-lib/                      -- SML/NJ libraries
         tools/
                 asdl
+                heap2asm
                 ml-burg
-                ml-lex
-                ml-lpt
+                ml-lpt                  -- ml-antlr and ml-ulex tool
                 ml-yacc
                 nlffi
                 smldoc
