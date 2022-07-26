@@ -11,42 +11,41 @@ and `libraries` directories.
 ## Step 1
 
 The first step is a partial reorganzation of the repository.  We preserve
-the current organization of the `base` subdirectories
+the current organization of the `base` subdirectories, but lift them
+up to top level.
 
 smlnj/
-        basis-lib/                      -- SML Basis Library + SML/NJ Basis
-        cm/                             -- compilation manager (old `base/cm`)
-        compiler/                       -- the SML compiler (old `base/compiler`)
-        libraries/                      -- additional libraries
-                ckit/
-                cml/
-                eXene/
-                MLRISC/
-                old-basis/              -- 2004 version of SML Basis Library
-                pgraph/
-                trace-debug-profile/
-        llvm/                           -- modified version of LLVM that supports JWA
-        make-dist/                      -- support for packaging releases as installers
-            macos/                      -- support for building macOS PKG file
-            windows/                    -- support for building Windows MSI file
-        runtime/                        -- runtime system
-        smlnj-lib/                      -- SML/NJ libraries
-        system/                         -- bootstrapping (the old `base/system`)
-        tools/
-                asdl
-                heap2asm
-                ml-burg
-                ml-lpt                  -- ml-antlr and ml-ulex tool
-                ml-yacc
-                nlffi
-                smldoc
+    cm/                         -- compilation manager (old `base/cm`)
+    compiler/                   -- the SML compiler (old `base/compiler`)
+    libraries/                  -- additional libraries
+        ckit/
+        cml/
+        eXene/
+        MLRISC/
+        old-basis/              -- 2004 version of SML Basis Library
+        pgraph/
+        trace-debug-profile/
+    llvm/                       -- modified version of LLVM that supports JWA
+    make-dist/                  -- support for packaging releases as installers
+        macos/                  -- support for building macOS PKG file
+        windows/                -- support for building Windows MSI file
+    runtime/                    -- runtime system
+    smlnj-lib/                  -- SML/NJ libraries
+    system/                     -- bootstrapping (the old `base/system`)
+    tools/
+        asdl
+        heap2asm
+        ml-burg
+        ml-lpt                  -- ml-antlr and ml-ulex tool
+        ml-yacc
+        nlffi
 
 ## Step 2
 
 In the second step, we reorganize the compiler into a collection of libraries
 (essentially a replacement for the "visible compiler") that can be used to
 implement standalone tools, such as a LSP server.  The stuff that is currently
-in `base/system` would likely be split across the `basis-lib` and `sml`
+in `base/system` would be split across the `basis-lib`, `cm`, and `sml`
 directories.
 
 smlnj/
@@ -71,8 +70,14 @@ smlnj/
         tools/
                 asdl
                 heap2asm
+                ml-build
                 ml-burg
                 ml-lpt                  -- ml-antlr and ml-ulex tool
+                ml-makedepend
                 ml-yacc
                 nlffi
-                smldoc
+                smldoc                  -- signature documentation tool (under development)
+
+Note that some of the tools (*i.e.*, `asdl`, `ml-lpt`, and `nlffi`) have support
+libraries that we might want to split out into the `libraries` directory.  We might
+also want to move `smlc-lib` and `smlnj-lib` directories into `libraries`.
