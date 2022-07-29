@@ -19,3 +19,4 @@ and then creates the MSI file.
     build-msi.bat
 
 It uses the WiX Tools for this last step ().
+

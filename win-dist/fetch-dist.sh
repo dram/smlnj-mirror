@@ -1,7 +1,10 @@
 #!/bin/sh
 #
-# Script to fetch the distribution files for building the Windows
-# version of SML/NJ
+# Copyright (c) 2022 The Fellowship of SML/NJ
+#
+# Pre-installation script for SML/NJ.  The purpose of this script
+# is to download and unpackage files in preparation of building on
+# Windows.  The script can be run under either WSL or Cygwin.
 #
 # usage:
 #	fetch-dist.sh [-32 | -64] <version>
@@ -41,7 +44,7 @@ if [ $# != 1 ] ; then
 fi
 VERSION=$1
 
-CONFIGURL=http://smlnj.cs.uchicago.edu/dist/working/$VERSION/config.tgz
+CONFIGURL=https://smlnj.cs.uchicago.edu/dist/working/$VERSION/config.tgz
 
 #
 # set the various directory and file pathname variables
@@ -63,8 +66,10 @@ cd $DISTROOT
 # the files that we need to download
 #
 # first we need to download and unbundle the config directory for the release
+# Note that we use the "-k" option here, since the smlnj.org certificate is
+# not always current.
 #
-curl -s -S -O $CONFIGURL
+curl -k -s -S -O $CONFIGURL
 tar -xzf config.tgz
 if [ "$?" != 0 ] ; then
   # note that if config.tgz does not exist, curl will still work (it will get a
@@ -86,10 +91,6 @@ if [ x"$VERSION" != x"$CONFIG_VERSION" ] ; then
   rm -rf $DISTROOT
   complain "version in config/version is $CONFIG_VERSION"
 fi
-
-# customize the smlnj.wxs file with the SML/NJ version number
-#
-sed -e "s,@SMLNJ_VERSION@,$VERSION,g" $ROOT/wix/smlnj_wxs.in > $CONFIGDIR/WinSetup/smlnj.wxs
 
 #
 # create the base source subdirectory
@@ -128,6 +129,21 @@ done
 # so that the config\install.bat script works
 #
 touch smlnj-lib/HTML4/*.l.sml smlnj-lib/HTML4/*.g.sml
+
+# add the WinSetup directory
+#
+if [ ! -d $CONFIGDIR/WinSetup ] ; then
+  cp -rp $ROOT/WinSetup $CONFIGDIR/WinSetup
+fi
+
+# customize the smlnj.wxs file with the SML/NJ version number
+#
+PRODUCT_ID=$(uuidgen)
+PACKAGE_ID=$(uuidgen)
+sed -e "s,@SMLNJ_VERSION@,$VERSION,g" \
+    -e "s,@PRODUCT_ID@,$PRODUCT_ID,g" \
+    -e "s,@PACKAGE_ID@,$PACKAGE_ID,g" \
+    $ROOT/wix/smlnj_wxs.in > $CONFIGDIR/WinSetup/smlnj.wxs
 
 #
 # remove tar files
