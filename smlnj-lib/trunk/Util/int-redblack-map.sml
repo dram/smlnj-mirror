@@ -419,7 +419,7 @@ structure IntRedBlackMap :> ORD_MAP where type Key.ord_key = int =
 	    (n1 >= n2) andalso cmp (start m1, start m2)
 	  end
 
- (* support for constructing red-black trees in linear time from increasing
+  (* support for constructing red-black trees in linear time from increasing
    * ordered sequences (based on a description by R. Hinze).  Note that the
    * elements in the digits are ordered with the largest on the left, whereas
    * the elements of the trees are ordered with the largest on the right.
