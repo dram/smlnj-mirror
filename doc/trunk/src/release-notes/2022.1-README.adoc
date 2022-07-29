@@ -37,7 +37,7 @@ FILES::
 
 With this release, we have migrated the bug tracking infrastructure to a system using
 **GitHub** issues.  We have prepopulated the issues for the legacy repository with
-the entries from the gforge bug database.
+the entries from the old bug database.
 
 Since issues are associated with a repository, we now have separate trackers for the
 legacy and main development versions.  While most bugs that are present in one version
@@ -83,11 +83,18 @@ The `config/install.sh` script continues to work as before.  We have added a `-d
 command-line option to enable cross compilation (__i.e.__, it compiles *LLVM*
 for all of the supported target architectures).
 
+==== Windows
+
+The MSI installer now correctly sets the version of *SML/NJ* (see
+https://github.com/smlnj/legacy/issues/59[issue 59] for details).
+We also add a shortcut for uninstalling *SML/NJ* to the Program
+Menu.
+
 == Closed Issues
 
 Here is a list of the issues that are fixed (or closed) with this release.
 We include the original bug numbers for bugs that were reported using the
-https://smlnj-gforge.cs.uchicago.edu/projects/smlnj-bugs[bug tracker].
+old https://smlnj-gforge.cs.uchicago.edu/projects/smlnj-bugs[bug tracker].
 
 [.buglist,cols="^2,<10,^2",strips="none",options="header"]
 |=======
@@ -97,6 +104,10 @@ https://smlnj-gforge.cs.uchicago.edu/projects/smlnj-bugs[bug tracker].
 | [.bugid]#26#
 | {issue-base}/26[Garbage collection does not trigger `sigGC`]
 | 65
+| [.bugid]#51#
+| {issue-base}/51[makeml and installml scripts do not like locations with spaces]
+| 90
+| [.bugid]#141#
 | {issue-base}/141[Pretty printing of Absyn in error message does not respect fixity]
 | 141
 | [.bugid]#205#
@@ -111,6 +122,12 @@ https://smlnj-gforge.cs.uchicago.edu/projects/smlnj-bugs[bug tracker].
 | [.bugid]#224#
 | {issue-base}/224[Signals are not delivered for corresponding events]
 | 291
+| [.bugid]#234#
+| {issue-base}/234[ml-build fails on Windows with error]
+| 301
+| [.bugid]#235#
+| {issue-base}/235[MSI installer for SMLNJ 110.99.2 reports as version 0.0.0.0]
+| 302
 | [.bugid]#239#
 | {issue-base}/239[Word8VectorSlice: mapping a subslice produces wrong result or crashes SML/NJ]
 | 306

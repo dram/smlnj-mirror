@@ -106,6 +106,15 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 //== Recent updates
 
+
+//--------------------------------------------------------------------
+[2022/07/27]::
++
+Fix for {issue-base}/235[MSI installer for SMLNJ 110.99.2 reports as
+version 0.0.0.0].
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
 //--------------------------------------------------------------------
 [2022/07/25]::
 +
@@ -127,7 +136,7 @@ owner:cs.uchicago.edu/~jhr[John Reppy]
 //--------------------------------------------------------------------
 [2022/07/24]::
 +
-Fix for {issue-base}/58[ml-build fails on Windows with error].
+Fix for {issue-base}/234[ml-build fails on Windows with error].
 +
 owner:cs.uchicago.edu/~jhr[John Reppy]
 
@@ -142,15 +151,15 @@ owner:cs.uchicago.edu/~jhr[John Reppy]
 //--------------------------------------------------------------------
 [2022/07/22]::
 +
-Fix for {issue-base}/205[Last branch of case expression omitted by PPAst].
+Fix for {issue-base}/205[Last branch of case expression omitted by PPAst.ppAst].
 +
 owner:cs.uchicago.edu/~dbm[Dave MacQueen]
 
 //--------------------------------------------------------------------
 [2022/07/22]::
 +
-Fix for {issue-base}141[Pretty printing of Absyn in error message does not
-respect fixity].
+Fix for {issue-base}141[Pretty printing of Absyn in error message does
+not respect fixity].
 +
 owner:cs.uchicago.edu/~dbm[Dave MacQueen]
 
