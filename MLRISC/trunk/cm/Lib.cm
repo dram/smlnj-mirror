@@ -23,33 +23,20 @@ Library
 	structure SortedList
 	structure StringOutStream
 is
-#if defined(NEW_CM)
-#if SMLNJ_VERSION * 100 + SMLNJ_MINOR_VERSION >= 11030
+
 	$/basis.cm
 	$/smlnj-lib.cm
-	$/Control.cm
-#else
-	basis.cm
-	smlnj-lib.cm
+
 	Control.cm
-#endif
-#else
-	smlnj-lib.cm
-	Control.cm
-#endif
+
 	../library/annotations.sig
 	../library/annotations.sml
 	../library/bitset.sig
 	../library/bitset.sml
 	../library/cache.sml
 	../library/catlist.sml
-#if SMLNJ_VERSION * 100 + SMLNJ_MINOR_VERSION < 11042
-        ../library/orig-dynamic-array.sml
-	../library/orig-hash-array.sml
-#else
 	../library/dynamic-array.sml
 	../library/hash-array.sml
-#endif
 	../library/freq.sig
 	../library/freq.sml
 	../library/heap.sml

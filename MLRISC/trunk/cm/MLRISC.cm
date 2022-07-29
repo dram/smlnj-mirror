@@ -136,26 +136,14 @@ Library
 	functor WeightedBlockPlacementFn
 	functor UnimplementedCCallsFn
 is
-#if defined(NEW_CM)
-#if SMLNJ_VERSION * 100 + SMLNJ_MINOR_VERSION >= 11030
+
 	$/basis.cm
 	$/smlnj-lib.cm
-	$/Control.cm
-	$/Graphs.cm
-	$/Lib.cm
-#else
-	basis.cm
-	smlnj-lib.cm
+
 	Control.cm
 	Graphs.cm
 	Lib.cm
-#endif
-#else
-	smlnj-lib.cm
-	Control.cm
-	Graphs.cm
-	Lib.cm
-#endif
+
 	../instructions/cells.sig
 	../instructions/cells.sml
 	../instructions/cells-basis.sig
@@ -260,7 +248,7 @@ is
         ../ra/cluster-ra.sml
 	../emit/asm-flags.sml
 	../emit/instruction-emitter.sig
-	../emit/asmEmit.sig 
+	../emit/asmEmit.sig
 	../emit/asmStream.sml
 	../emit/asmUtil.sml
 	../emit/cfgEmit.sml

@@ -87,23 +87,13 @@ Library
 	functor NodePriorityQueue
 	functor UndirectedGraph
 is
-#if defined(NEW_CM)
-#if SMLNJ_VERSION * 100 + SMLNJ_MINOR_VERSION >= 11030
+
 	$/basis.cm
 	$/smlnj-lib.cm
-	$/Control.cm
-	$/Lib.cm
-#else
-	basis.cm
-	smlnj-lib.cm
+
 	Control.cm
 	Lib.cm
-#endif
-#else
-	smlnj-lib.cm
-	Control.cm
-	Lib.cm
-#endif
+
 	../graphs/acyclic-graph.sml
 	../graphs/bellman-ford.sml
 	../graphs/bigraph.sig

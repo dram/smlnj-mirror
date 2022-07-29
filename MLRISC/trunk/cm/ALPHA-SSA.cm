@@ -2,20 +2,10 @@
 Library
 	functor AlphaSSAProps
 is
-#if defined(NEW_CM)
-#if SMLNJ_VERSION * 100 + SMLNJ_MINOR_VERSION >= 11030
+
 	$/basis.cm
 	$/smlnj-lib.cm
-	$/Control.cm
-	$/MLRISC.cm
-	$/RTL.cm
-	$/SSA.cm
-	$/Region.cm
-	$/ALPHA.cm
-	$/ALPHA-RTL.cm
-#else
-	basis.cm
-	smlnj-lib.cm
+
 	Control.cm
 	MLRISC.cm
 	RTL.cm
@@ -23,15 +13,5 @@ is
 	Region.cm
 	ALPHA.cm
 	ALPHA-RTL.cm
-#endif
-#else
-	smlnj-lib.cm
-	Control.cm
-	MLRISC.cm
-	RTL.cm
-	SSA.cm
-	Region.cm
-	ALPHA.cm
-	ALPHA-RTL.cm
-#endif
+
 	../alpha/SSA/alphaSSAProps.sml
