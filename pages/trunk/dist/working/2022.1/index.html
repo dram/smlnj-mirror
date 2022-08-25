@@ -1,0 +1,101 @@
+<!-- Copyright (c) 2022 The Fellowship of SML/NJ -->
+
+<!DOCTYPE html>
+<HTML>
+<head>
+  <meta charset="utf-8" />
+  <title>SML/NJ 2022.1 Distribution</title>
+  <style>
+    body {
+      background-color: white;
+    }
+    dd {
+      margin-bottom: 0.5em;
+    }
+    .file-list a {
+      font-family: "Courier", monospace;
+    }
+    span.tt {
+      font-family: "Courier", monospace;
+    }
+  </style>
+</head>
+<body>
+<h2>SML/NJ 2022.1 Distribution</h1>
+
+<hr />
+
+<h3>Installing SML/NJ</h3>
+
+<dl>
+  <dt><b>macOS installer package for 64-bit Intel hardware</b></dt>
+  <dd>
+    <p>
+    You can either use the "generic Unix" procedure above or you can install
+    a pre-built system using an installer package.
+    We provide a 64-bit installer for Intel Macs:
+    </p>
+    <ul>
+      <li>
+        <a href="http://smlnj.cs.uchicago.edu/dist/working/2022.1/smlnj-amd64-2022.1.pkg">
+        smlnj-amd64-2022.1.pkg</a>.
+      </li>
+    </ul>
+    <p>
+    The macOS installer (on Intel) puts SML/NJ in the directory
+    <span class="tt">/usr/local/smlnj</span>; if you have a previous version
+    installed, then it will be updated in place.
+    If you wish to install at a different location, you should use the build procedure
+    for Unix systems.
+    </p>
+    <p>
+    The installer works on macOS Catalina and later, but you will need to
+    right-click on the installer to launch it, since it is not a notarized installer.
+    </p>
+   </dd>
+  <dt><b>macOS on 64-bit Intel hardware from GitHub</b></dt>
+  <dd>
+    <p>
+    Follow the instructions in the <a href="https://github.com/smlnj/smlnj">project README</a>
+    for building the system from the repository sources.
+    The 2022.1 boot files can be found
+    <a href="http://smlnj.cs.uchicago.edu/dist/working/2022.1/boot.amd64-unix.tgz">
+    <tt>http://smlnj.cs.uchicago.edu/dist/working/2022.1/boot.amd64-unix.tgz</tt></a>.
+    </p>
+   </dd>
+  <dt><b>macOS on Apple Silicon</b></dt>
+  <dd>
+    <p>
+    We are currently working on a native port of <strong>SML/NJ</strong> for Apple's
+    new Arm-based hardware.
+    Meanwhile, version <a href="http://smlnj.cs.uchicago.edu/dist/working/110.99.3">110.99.3</a>
+    is known to run on Apple Silicon Macs using the Rosetta2 emulation system.
+    </p>
+  </dd>
+  <dt><b>Linux</b></dt>
+  <dd>
+    <p>
+    Because of an issue with LLVM and ELF object files that we have not yet figured out,
+    this version does not support Linux.
+    </p>
+  </dd>
+  <dt><b>Microsoft Windows</b></dt>
+  <dd>
+    <p>
+    This version does not support Windows.
+    </p>
+  </dd>
+</dl>
+
+<hr />
+<div style="text-align:center;"><STRONG>
+| <A HREF="../../../index.html">Home</A>
+| <A HREF="../index.html">Downloads</A>
+|
+</STRONG></div>
+<hr />
+
+Send comments to <img src="../../../images/smlnj-list-logo.png" alt="smlnj-dev-list" style="vertical-align: middle;"><br />
+<span style="font-size: small">Copyright &#169; 2022, SML/NJ Fellowship.</span><br />
+</body>
+</html>

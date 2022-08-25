@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 2.0.17">
+<title>Standard ML of New Jersey Release Notes</title>
+<style>
+body {
+  font-size: 14pt;
+}
+div.smlnj-banner {
+  font-weight: bold;
+  text-align: center;
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.smlnj-banner span.title {
+  font-size: 200%;
+}
+div.smlnj-banner span.subtitle {
+  font-size: 150%;
+}
+h2 {
+  font-size: 140%;
+}
+h3 {
+  font-size: 120%;
+}
+dd {
+  margin-left: 2em;
+  margin-bottom: 0.5em;
+}
+li {
+  margin-bottom: 0.5em;
+}
+span.important {
+  color: red;
+  text-weight: bold;
+}
+span.tt {
+  font-family: "Courier", monospace;
+}
+code {
+  font-family: "Courier", monospace;
+  white-space: pre;
+  color: darkblue;
+}
+.code {
+  font-family: "Courier", monospace;
+  white-space: pre;
+  color: darkblue;
+}
+span.kw {
+  font-family: "Courier", monospace;
+  font-weight: bold;
+  color: darkgreen;
+}
+span.com {
+  font-style: italic;
+  color: indianred;
+}
+span.exe {
+  font-weight: bold;
+}
+table.buglist {
+  margin-left: 2em;
+  font-size: 100%;
+}
+table.buglist span.bugid {
+  padding-right: 1em;
+  padding-left: 0px;
+  margin-left: 0px;
+}
+span.bugid {
+  font-weight: bold;
+}
+p.compact {
+  margin-top: 0pt;
+  margin-bottom: 0pt;
+}
+.support-table {
+  margin-left: 2em;
+  font-size: 100%;
+}
+.support-table th {
+  text-align: left;
+  padding-right: 1em;
+  border-bottom: 2px solid black;
+}
+.support-table td {
+  padding-right: 1em;
+}
+p.tableblock {
+  padding-right: 1em;
+  margin-top: 0pt;
+  margin-bottom: 0pt;
+}
+
+</style>
+</head>
+<body class="article">
+<div id="header">
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="smlnj-banner">
+  <span class="title"> Standard ML of New Jersey <br/> Release Notes </span>
+  <br/> <br/>
+  <span class="subtitle"> Version 2022.1 <br/> August 25, 2022 </span>
+</div>
+<hr>
+<div class="openblock">
+<div class="content">
+<div class="dlist">
+<dl>
+<dt class="hdlist1">SML/NJ HOME</dt>
+<dd>
+<p><a href="https://www.smlnj.org/index.html"><span class="tt">https://smlnj.org</span></a></p>
+</dd>
+<dt class="hdlist1">FILES</dt>
+<dd>
+<p><a href="https://smlnj.org/dist/working/2022.1/index.html"><span class="tt">https://smlnj.org/dist/working/2022.1/</span></a></p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<hr>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_summary">Summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The main purpose of this release is to provide a baseline set of boot files for
+building from the <a href="https://github.com/smlnj/smlnj"><strong>GitHub</strong> repository</a>.  It
+also includes the bug fixes from legacy version
+<a href="https://smlnj.org/dist/working/110.99.3/index.html">110.99.3</a> and a new
+implementation of the pattern-match compiler.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_github_migration">GitHub Migration</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>With this release, we have migrated the bug tracking infrastructure to a system using
+<strong>GitHub</strong> issues.  We have prepopulated the issues for the legacy repository with
+the entries from the old bug database.</p>
+</div>
+<div class="paragraph">
+<p>Since issues are associated with a repository, we now have separate trackers for the
+legacy and main development versions.  While most bugs that are present in one version
+will also be present in the other version, it is not necessary to create two issues
+when reporting a bug.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_details">Details</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_basis_library">Basis Library</h3>
+<div class="paragraph">
+<p>Added support for the following proposed <a href="https://github.com/SMLFamily/BasisLibrary"><strong>Basis
+Library</strong> extensions</a>:</p>
+</div>
+<div class="openblock">
+<div class="content">
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/SMLFamily/BasisLibrary/wiki/2021-001-Add-getWindowSz-function-to-Posix.TTY-structure">
+2021-001 Add getWindowSz function to Posix.TTY structure</a></p>
+</li>
+<li>
+<p><a href="https://github.com/SMLFamily/BasisLibrary/wiki/2022-001-Add-value-tau-to-MATH-signature">
+2022-001 Add value tau to MATH signature</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_smlnj_library">SML/NJ Library</h3>
+<div class="openblock">
+<div class="content">
+<div class="ulist">
+<ul>
+<li>
+<p>Added the <code>findAndRemove</code> function to <code>ORD_MAP</code> interface.</p>
+</li>
+<li>
+<p>Generalized comparisons on ordered maps; added <code>equiv</code> and
+<code>extends</code> functions to <code>ORD_MAP</code> interface and made type of
+<code>collate</code> more polymorphic.</p>
+</li>
+<li>
+<p>The <strong>SExp</strong> library now uses <strong>Scheme</strong> syntax for string values.</p>
+</li>
+<li>
+<p>The <strong>SExp</strong> parser accepts empty files as valid input (producing
+an empty list of S-Expressions).</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_installation">Installation</h3>
+<div class="paragraph">
+<p>The <code>config/install.sh</code> script continues to work as before.  We have added a <code>-dev</code>
+command-line option to enable cross compilation (<em>i.e.</em>, it compiles <strong>LLVM</strong>
+for all of the supported target architectures).</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_closed_issues">Closed Issues</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Here is a list of the issues that are fixed (or closed) with this release.
+We include the original bug numbers for bugs that were reported using the
+old <a href="https://smlnj-gforge.cs.uchicago.edu/projects/smlnj-bugs">bug tracker</a>.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch buglist">
+<colgroup>
+<col style="width: 14.2857%;">
+<col style="width: 71.4285%;">
+<col style="width: 14.2858%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-center valign-top">Issue No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-center valign-top">Gforge Bug</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><span class="bugid">26</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/smlnj/smlnj/issues/26">Garbage collection does not trigger <code>sigGC</code></a></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">65</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><span class="bugid">51</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/smlnj/smlnj/issues/51">makeml and installml scripts do not like locations with spaces</a></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">90</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><span class="bugid">141</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/smlnj/smlnj/issues/141">Pretty printing of Absyn in error message does not respect fixity</a></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">141</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><span class="bugid">205</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/smlnj/smlnj/issues/205">Last branch of case expression omitted from <code>PPAst</code></a></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">270</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><span class="bugid">219</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/smlnj/smlnj/issues/219">Compiler bug: Contract: UsageMap on 132</a></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">284</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><span class="bugid">223</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/smlnj/smlnj/issues/223">Incorrect pattern matching for exceptons</a></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">290</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><span class="bugid">224</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/smlnj/smlnj/issues/224">Signals are not delivered for corresponding events</a></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">291</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><span class="bugid">239</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/smlnj/smlnj/issues/239">Word8VectorSlice: mapping a subslice produces wrong result or crashes SML/NJ</a></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">306</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><span class="bugid">240</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/smlnj/smlnj/issues/240"><code>SExpParser.parseFile</code> should return empty list on empty file</a></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">307</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><span class="bugid">241</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/smlnj/smlnj/issues/241">Add function for converting <code>HTML4.html</code> to string</a></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">308</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><span class="bugid">242</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/smlnj/smlnj/issues/242">SExp: parsing the output of the printer produces a different SExp</a></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">309</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><span class="bugid">243</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/smlnj/smlnj/issues/243">Error when REPL tries to print value of type <code>Posix.FileSys.ST.stat</code></a></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">310</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><span class="bugid">244</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/smlnj/smlnj/issues/244">Unable to interrupt execution by using <code>SIGINT</code></a></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">311</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><span class="bugid">245</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/smlnj/smlnj/issues/245"><code>CM.make</code> is unable to handle filenames that contain a backslash</a></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">312</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><span class="bugid">247</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/smlnj/smlnj/issues/247"><code>IEEEReal.setRoundingMode</code> is a no-op on Linux</a></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">314</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><span class="bugid">248</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/smlnj/smlnj/issues/248"><code>IEEEReal.float_class</code> does not match the Basis Library</a></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">315</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><span class="bugid">249</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/smlnj/smlnj/issues/249"><code>Real.fromManExp</code> does not return expected value if <code>man = 0.0</code></a></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">316</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><span class="bugid">250</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/smlnj/smlnj/issues/250">Conversion from string to real does not accept non-finite values</a></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">317</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><span class="bugid">251</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/smlnj/smlnj/issues/251"><code>IEEEReal.decimal_approx</code> does not match the Basis Library</a></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">318</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><span class="bugid">252</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/smlnj/smlnj/issues/252">Type of <code>Real.fromDecimal</code> does not match the Basis Library</a></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">319</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following unnumbered bug was also fixed:</p>
+</div>
+<div class="openblock">
+<div class="content">
+<div class="ulist">
+<ul>
+<li>
+<p>Performance bug in the compilation of deeply-nested modules.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>The following bugs were reported for the legacy version, but do not affect
+the new versions.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch buglist">
+<colgroup>
+<col style="width: 14.2857%;">
+<col style="width: 71.4285%;">
+<col style="width: 14.2858%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-center valign-top">Issue No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-center valign-top">Gforge Bug</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><span class="bugid">246</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/smlnj/smlnj/issues/246"><code>Real.fromLargeInt</code> crashes on large integer input</a></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">313</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_supported_systems">Supported systems</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>We believe that SML/NJ will build and run on the following systems, but have only
+tested some of them:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch support-table">
+<colgroup>
+<col style="width: 22.2222%;">
+<col style="width: 44.4444%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-center valign-top">Architecture</th>
+<th class="tableblock halign-center valign-top">Operating System</th>
+<th class="tableblock halign-center valign-top">Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><strong>AMD64</strong></p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">macOS 11 (Big Sur)</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Tested</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">macOS 12 (Monterey)</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Tested</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">macOS 13 (Vecntura)</p></td>
+<td class="tableblock halign-center valign-top"></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Last updated 2022-08-25 13:04:48 -0500
+</div>
+</div>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  messageStyle: "none",
+  tex2jax: {
+    inlineMath: [["\\(", "\\)"]],
+    displayMath: [["\\[", "\\]"]],
+    ignoreClass: "nostem|nolatexmath"
+  },
+  asciimath2jax: {
+    delimiters: [["\\$", "\\$"]],
+    ignoreClass: "nostem|noasciimath"
+  },
+  TeX: { equationNumbers: { autoNumber: "none" } }
+})
+MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+  MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+    if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains("stemblock")) {
+      data.math.root.display = "block"
+    }
+    return data
+  })
+})
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</body>
+</html>
